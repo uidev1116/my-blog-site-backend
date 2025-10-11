@@ -4,37 +4,37 @@
 <script>
 ACMS.Ready(function()
 {
-	var tpl = _.template($('#js-seo_info_template').html());
-	var output, keywords, description, ogimage, robots;
+  var tpl = _.template($('#js-seo_info_template').html());
+  var output, keywords, description, ogimage, robots;
 
-	if ( keywords = document.getElementsByName('keywords').item(0) ) {
-		keywords = keywords.content;
-	}
-	if ( description = document.getElementsByName('description').item(0) ) {
-		description = description.content;
-	}
-	if ( robots = document.getElementsByName('robots').item(0) ) {
-		robots = robots.content;
-	}
+  if ( keywords = document.getElementsByName('keywords').item(0) ) {
+    keywords = keywords.content;
+  }
+  if ( description = document.getElementsByName('description').item(0) ) {
+    description = description.content;
+  }
+  if ( robots = document.getElementsByName('robots').item(0) ) {
+    robots = robots.content;
+  }
 
-	ogimage = $('meta[property="og:image"]').attr('content');
+  ogimage = $('meta[property="og:image"]').attr('content');
 
-	if (!!ogimage) {
-		var checkImg = new Image();
-		checkImg.src = ogimage;
-		checkImg.onerror = function() {
-			$('#js-seo_info_ogimage').remove();
-		};
-	}
-	output = tpl({
-		title: document.title,
-		keywords: keywords,
-		description: description,
-		ogimage: ogimage,
-		robots: robots
-	});
+  if (!!ogimage) {
+    var checkImg = new Image();
+    checkImg.src = ogimage;
+    checkImg.onerror = function() {
+      $('#js-seo_info_ogimage').remove();
+    };
+  }
+  output = tpl({
+    title: document.title,
+    keywords: keywords,
+    description: description,
+    ogimage: ogimage,
+    robots: robots
+  });
 
-	$('#js-seo_info').html(output);
+  $('#js-seo_info').html(output);
 });
 </script>
 
@@ -42,68 +42,68 @@ ACMS.Ready(function()
 
 <script id="js-seo_info_template" type="text/template">
 <section class="acms-container">
-	<div class="acms-admin-edit-info">
-		@section("check-search-engine")
-		<p>
-			<!--T-->※以下の内容は管理者のみに表示されています。<!--/T-->
-			<a href="https://www.google.co.jp/search?q=site:%{INHERLINK}" target="_blank"><!--T-->Googleで確認<!--/T--></a> |
-			<a href="https://search.yahoo.co.jp/search?p=site:%{INHERLINK}" target="_blank"><!--T-->Yahoo!で確認<!--/T--></a> |
-			<a href="https://developers.facebook.com/tools/debug/sharing/?q=%{INHERLINK}" target="_blank"><!--T-->Facebookで確認<!--/T--></a>
-		</p>
-		@endsection
-		<h3 class="acms-admin-edit-info-heading"><!--T-->情報<!--/T--></h3>
-		<table class="acms-admin-table acms-edit-info-table">
-			@section("title")
-			<tr>
-				<th class="acms-admin-text-nowrap"><!--T-->タイトル<!--/T--> - <small>title</small></th>
-				<td>
-					<%- title %>
-				</td>
-			</tr>
-			@endsection
-			@section("keywords")
-			<% if ( !!keywords ) { %>
-			<tr>
-				<th class="acms-admin-text-nowrap"><!--T-->キーワード<!--/T--> - <small>keywords</small></th>
-				<td>
-					<%- keywords %>
-				</td>
-			</tr>
-			@endsection
-			<% } %>
-			@section("description")
-			<tr>
-				<th class="acms-admin-text-nowrap"><!--T-->概要文<!--/T--> - <small>description</small></th>
-				<td>
-					<%- description %>
-				</td>
-			</tr>
-			@endsection
-			@section("search-engine")
-			<tr>
-				<th class="acms-admin-text-nowrap"><!--T-->検索エンジン<!--/T--> - <small>robots</small></th>
-				<td>
-					<% if ( robots && robots.match(/noindex/) ) { %>
-					<span class="acms-admin-label acms-admin-label-danger"><!--T-->検索エンジンに表示しない<!--/T--></span>
-					<% } %>
-				</td>
-			</tr>
-			@endsection
-			@section("ogp")
-			<tr>
-				<th class="acms-admin-text-nowrap"><!--T-->OGP画像<!--/T--> - <small>og:image</small></th>
-				<td>
-					<% if (ogimage) { %>
-					<img id="js-seo_info_ogimage" src="<%- ogimage %>" alt="OGP画像" class="acms-admin-edit-info-ogpimage">
-					<% }%>
-				</td>
-			</tr>
-			@endsection
-			@section("others")
-			@include("/include/check-seo-extend.html")
-			@endsection
-		</table>
-	</div>
+  <div class="acms-admin-edit-info">
+    @section("check-search-engine")
+    <p>
+      <!--T-->※以下の内容は管理者のみに表示されています。<!--/T-->
+      <a href="https://www.google.co.jp/search?q=site:%{INHERLINK}" target="_blank"><!--T-->Googleで確認<!--/T--></a> |
+      <a href="https://search.yahoo.co.jp/search?p=site:%{INHERLINK}" target="_blank"><!--T-->Yahoo!で確認<!--/T--></a> |
+      <a href="https://developers.facebook.com/tools/debug/sharing/?q=%{INHERLINK}" target="_blank"><!--T-->Facebookで確認<!--/T--></a>
+    </p>
+    @endsection
+    <h3 class="acms-admin-edit-info-heading"><!--T-->情報<!--/T--></h3>
+    <table class="acms-admin-table acms-edit-info-table">
+      @section("title")
+      <tr>
+        <th class="acms-admin-text-nowrap"><!--T-->タイトル<!--/T--> - <small>title</small></th>
+        <td>
+          <%- title %>
+        </td>
+      </tr>
+      @endsection
+      @section("keywords")
+      <% if ( !!keywords ) { %>
+      <tr>
+        <th class="acms-admin-text-nowrap"><!--T-->キーワード<!--/T--> - <small>keywords</small></th>
+        <td>
+          <%- keywords %>
+        </td>
+      </tr>
+      @endsection
+      <% } %>
+      @section("description")
+      <tr>
+        <th class="acms-admin-text-nowrap"><!--T-->概要文<!--/T--> - <small>description</small></th>
+        <td>
+          <%- description %>
+        </td>
+      </tr>
+      @endsection
+      @section("search-engine")
+      <tr>
+        <th class="acms-admin-text-nowrap"><!--T-->検索エンジン<!--/T--> - <small>robots</small></th>
+        <td>
+          <% if ( robots && robots.match(/noindex/) ) { %>
+          <span class="acms-admin-label acms-admin-label-danger"><!--T-->検索エンジンに表示しない<!--/T--></span>
+          <% } %>
+        </td>
+      </tr>
+      @endsection
+      @section("ogp")
+      <tr>
+        <th class="acms-admin-text-nowrap"><!--T-->OGP画像<!--/T--> - <small>og:image</small></th>
+        <td>
+          <% if (ogimage) { %>
+          <img id="js-seo_info_ogimage" src="<%- ogimage %>" alt="OGP画像" class="acms-admin-edit-info-ogpimage">
+          <% }%>
+        </td>
+      </tr>
+      @endsection
+      @section("others")
+      @include("/include/check-seo-extend.html")
+      @endsection
+    </table>
+  </div>
 </section>
 </script>
 <!-- END_MODULE Touch_NotPreview -->

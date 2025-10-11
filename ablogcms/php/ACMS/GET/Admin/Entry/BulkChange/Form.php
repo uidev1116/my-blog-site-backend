@@ -48,8 +48,9 @@ class ACMS_GET_Admin_Entry_BulkChange_Form extends ACMS_GET_Admin_Entry_BulkChan
         $sql = SQL::newSelect('category');
         $sql->addWhereIn('category_id', $categoryIds);
         $q = $sql->get(dsn());
-        if (DB::query($q, 'fetch')) {
-            while ($row = DB::fetch($q)) {
+        $statement = DB::query($q, 'exec');
+        if ($statement) {
+            while ($row = DB::next($statement)) {
                 $categories[] = [
                     'id' => (int)$row['category_id'],
                     'label' => (string)$row['category_name']

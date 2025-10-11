@@ -1,0 +1,109 @@
+<table class="entryFormColumnSettingTable entryFormColumnTable">
+  <tbody>
+    <tr><!-- BEGIN_IF [{normal}/nem] -->
+      <td class="entryFormFileentryFormImages"><!-- BEGIN preview:veil -->
+        <a
+          href="{normal}"
+          data-caption="{caption}"
+          class="js-smartphoto"
+        >
+          <img src="{normal}" alt="<!--T-->プレビュー<!--/T-->" class="entryFormFileImage">
+        </a><!-- END preview:veil -->
+      </td><!-- END_IF -->
+      <td class="entryFormFileControl">
+        <dl class="acms-admin-m-0">
+          <dt>
+            <label for="unit-eximage-normal-{id}"><!--T-->標準画像<!--/T--></label>
+          </dt>
+          <dd>
+            <input
+              type="text"
+              name="eximage_normal_{id}"
+              size="45"
+              value="{normal}"
+              id="unit-eximage-normal-{id}"
+              class="acms-admin-form-width-full"
+              placeholder="例）https://"
+            >
+          </dd>
+          <dt>
+            <label for="unit-eximage-large-{id}"><!--T-->拡大画像<!--/T--></label>
+          </dt>
+          <dd>
+            <input
+              type="text"
+              name="eximage_large_{id}"
+              size="45"
+              value="{large}"
+              id="unit-eximage-large-{id}"
+              class="acms-admin-form-width-full"
+              placeholder="例）https://"
+            >
+          </dd>
+          <dt>
+            <label for="unit-eximage-size-{id}"><!--T-->画像の大きさ<!--/T--></label>
+          </dt>
+          <dd>
+            <select name="eximage_size_{id}" id="unit-eximage-size-{id}">
+              <!-- BEGIN size:loop -->
+              <option value="{value}"{selected}>{label}</option>
+              <!-- END size:loop -->
+              <option value=""{size:selected#none}><!--T-->そのまま<!--/T--></option>
+            </select>
+          </dd>
+        </dl>
+        <details class="acms-admin-accordion">
+          <summary class="acms-admin-accordion-button acms-admin-text-left">
+            <span class="acms-admin-icon-arrow-small-down acms-admin-margin-left-mini" aria-hidden="true"></span> <!--T-->詳細<!--/T-->
+          </summary>
+          <div class="acms-admin-accordion-panel">
+            <table class="entryFormImageTable">
+              <tbody>
+                <tr>
+                  <th>
+                    <label for="unit-eximage-caption-{id}"><!--T-->キャプション<!--/T--></label>
+                  </th>
+                  <td>
+                    <textarea
+                      name="eximage_caption_{id}"
+                      rows="1"
+                      id="unit-eximage-caption-{id}"
+                      class="acms-admin-form-width-full"
+                    >{caption}</textarea>
+                  </td>
+                </tr>
+                <tr>
+                  <th>
+                    <label for="unit-eximage-link-{id}"><!--T-->リンク<!--/T--></label>
+                  </th>
+                  <td>
+                    <input
+                      type="text"
+                      name="eximage_link_{id}"
+                      value="{link}"
+                      id="unit-eximage-link-{id}"
+                      class="acms-admin-form-width-full"
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <th>
+                    <label for="unit-eximage-alt-text-{id}"><!--T-->代替テキスト<!--/T--></label>
+                  </th>
+                  <td>
+                    <textarea
+                      name="eximage_alt_{id}"
+                      rows="1"
+                      id="unit-eximage-alt-text-{id}"
+                      class="acms-admin-form-width-full"
+                    >{alt}</textarea>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </td>
+    </tr>
+  </tbody>
+</table>

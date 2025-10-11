@@ -8,7 +8,18 @@
  *
  */
 
-/* stylelint-disable value-keyword-case */
+/**
+ * グリッドシステム（非推奨）
+ */
+/**
+ * グリッドシステム（非推奨）
+ */
+/**
+ * グリッドシステム（非推奨）
+ */
+/* ------------------------------
+  Popover
+------------------------------- */
 /* ------------------------------
   共通
  ------------------------------ */
@@ -85,12 +96,10 @@ body {
 .tv-header-info {
   margin: 0 0 15px;
 }
-.tv-header-info::before, .tv-header-info::after {
-  display: table;
-  content: " ";
-}
 .tv-header-info::after {
+  display: block;
   clear: both;
+  content: "";
 }
 
 .tv-info-item {
@@ -106,12 +115,10 @@ body {
 .tv-tab {
   margin: 0 0 10px;
 }
-.tv-tab::before, .tv-tab::after {
-  display: table;
-  content: " ";
-}
 .tv-tab::after {
+  display: block;
   clear: both;
+  content: "";
 }
 
 .tv-tab-list {
@@ -189,10 +196,6 @@ body {
 }
 .tv-comment-text .acms-admin-label {
   border-radius: 0 0 3px;
-}
-
-.tv-pre .linenums {
-  padding: 0 0 0 2em;
 }
 
 /* ------------------------------

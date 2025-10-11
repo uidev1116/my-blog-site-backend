@@ -16,7 +16,9 @@ class ValidatorFactory extends Factory
         }
         foreach ($this->_collection as $validator) {
             if (is_callable([$validator, $method])) {
-                return call_user_func_array([$validator, $method], $params);
+                /** @var callable $callback */
+                $callback = [$validator, $method];
+                return call_user_func_array($callback, $params);
             }
         }
         throw new \RuntimeException('Not found validator.');

@@ -7,12 +7,31 @@
 
 <!-- BEGIN_MODULE Admin_Config -->
 <!-- BEGIN_IF [{notice_mess}/nem/] -->
-<p class="acms-admin-alert acms-admin-alert-info acms-admin-alert-icon">
-  <span class="acms-admin-alert-icon-before acms-admin-icon-news"></span>
+<div role="alert" class="acms-admin-alert acms-admin-alert-info acms-admin-alert-icon">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+  >
+    ×
+  </button>
   <!--T-->プロパティ情報を保存しました<!--/T-->
-  <button　class="js-acms-alert-close acms-admin-alert-icon-after acms-admin-margin-right-mini">×</button>
-</p>
+</div>
 <!-- END_IF -->
+
+<!-- BEGIN msg#error -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-danger acms-admin-alert-icon">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+  <!--T-->コンフィグを保存出来ませんでした。<!--/T-->
+</div>
+<!-- END msg#error -->
 
 <form action="" method="post" class="acms-admin-form">
   <div class="js-acms_fix_marker acms_fix_bg">
@@ -50,40 +69,6 @@
     </div>
   </div>
 
-  <p class="transaction-notice-{config:validator} acms-admin-alert acms-admin-alert-danger">
-    <!--T-->コンフィグを保存出来ませんでした。<!--/T-->
-  </p>
-
-  <h2 class="acms-admin-admin-title2"><!--T-->メタ情報<!--/T--></h2>
-  <table class="adminTable acms-admin-table-admin-edit">
-    <tr>
-      <th>
-        <!--T-->キーワード<!--/T-->
-        <i
-          class="acms-admin-icon-tooltip js-acms-tooltip-hover"
-          data-acms-tooltip='<!--T-->このサイトの meta name="keywords" の内容として使用できます。「,（カンマ）」で区切ることで複数登録することができます。この入力内容は、グローバル変数の&#37;&#123;META_KEYWORDS}で表示できます。<!--/T-->'
-        ></i>
-      </th>
-      <td>
-        <textarea name="meta_keywords" class="acms-admin-form-width-full" rows="5">{meta_keywords}</textarea>
-        <input type="hidden" name="config[]" value="meta_keywords" />
-      </td>
-    </tr>
-    <tr>
-      <th>
-        <!--T-->説明 ( ディスクリプション )<!--/T-->
-        <i
-          class="acms-admin-icon-tooltip js-acms-tooltip-hover"
-          data-acms-tooltip='<!--T-->このサイトの meta name="description" の内容として使用できます。この入力内容は、グローバル変数の&#37;&#123;META_DESCRIPTION}で表示できます。<!--/T-->'
-        ></i>
-      </th>
-      <td>
-        <textarea name="meta_description" class="acms-admin-form-width-full" rows="5">{meta_description}</textarea>
-        <input type="hidden" name="config[]" value="meta_description" />
-      </td>
-    </tr>
-  </table>
-
   <h2 class="acms-admin-admin-title2"><!--T-->ウェブサービス<!--/T--></h2>
   <table class="adminTable acms-admin-table-admin-edit">
     <tr>
@@ -100,7 +85,7 @@
     </tr>
   </table>
 
-  <h2 class="acms-admin-admin-title2"><!--T-->Pingショット<!--/T--></h2>
+  <h2 class="acms-admin-admin-title2"><!--T-->Pingショット（非推奨）<!--/T--></h2>
   <table class="adminTable acms-admin-table-admin-edit">
     <tr>
       <th>

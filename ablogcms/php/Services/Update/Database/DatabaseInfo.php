@@ -31,11 +31,15 @@ class DatabaseInfo
     public function getTables()
     {
         $DB = DB::singleton($this->dsn);
-        $q = "SHOW TABLES FROM `" . $this->dsn['name'] . "` LIKE '" . $this->dsn['prefix'] . "%'";
-        $DB->query($q, 'fetch');
-
+        $q = [
+            'sql' => "SHOW TABLES FROM `" . $this->dsn['name'] . "` LIKE :table_prefix",
+            'params' => [
+                'table_prefix' => $this->dsn['prefix'] . '%'
+            ],
+        ];
+        $all = $DB->query($q, 'all');
         $tables = [];
-        while ($tb = $DB->fetch($q)) {
+        foreach ($all as $tb) {
             $tables[] = implode($tb);
         }
         return $tables;
@@ -50,11 +54,13 @@ class DatabaseInfo
     public function getColumns($table)
     {
         $DB = DB::singleton($this->dsn);
-        $q = "SHOW COLUMNS FROM `{$table}`";
-        $DB->query($q, 'fetch');
-
+        $q = [
+            'sql' => "SHOW COLUMNS FROM `{$table}`",
+            'params' => [],
+        ];
+        $all = $DB->query($q, 'all');
         $columns = [];
-        while ($fd = $DB->fetch($q)) {
+        foreach ($all as $fd) {
             $columns[$fd['Field']] = $fd;
         }
         return $columns;
@@ -69,11 +75,13 @@ class DatabaseInfo
     public function getIndex($table)
     {
         $DB = DB::singleton($this->dsn);
-        $q = "SHOW INDEX FROM `{$table}`";
-        $DB->query($q, 'fetch');
-
+        $q = [
+            'sql' => "SHOW INDEX FROM `{$table}`",
+            'params' => [],
+        ];
+        $all = $DB->query($q, 'all');
         $index = [];
-        while ($fd = $DB->fetch($q)) {
+        foreach ($all as $fd) {
             $index[] = $fd['Key_name'];
         }
         $index = array_values(array_unique($index));
@@ -102,7 +110,13 @@ class DatabaseInfo
     public function changeEngine($table, $engine)
     {
         $DB = DB::singleton($this->dsn);
-        $sql = "SELECT ENGINE FROM information_schema.tables WHERE table_schema = '" . $this->dsn['name'] . "' AND table_name = '" . $table . "'";
+        $sql = [
+            'sql' => "SELECT ENGINE FROM information_schema.tables WHERE table_schema = :table_schema AND table_name = :table_name",
+            'params' => [
+                'table_name' => $table,
+                'table_schema' => $this->dsn['name'],
+            ],
+        ];
         $current = $DB->query($sql, 'one');
 
         if ($current === $engine) {
@@ -145,14 +159,15 @@ class DatabaseInfo
     public function showIndex($table)
     {
         $DB = DB::singleton($this->dsn);
-        $q = "SHOW INDEX FROM `$table`";
-        $DB->query($q, 'fetch');
-
+        $q = [
+            'sql' => "SHOW INDEX FROM `$table`",
+            'params' => [],
+        ];
+        $all = $DB->query($q, 'all');
         $fds = [];
-        while ($fd = $DB->fetch($q)) {
+        foreach ($all as $fd) {
             $fds[] = $fd;
         }
-
         return $fds;
     }
 
@@ -182,12 +197,15 @@ class DatabaseInfo
             case 'change':
                 // カラムのサイズ変更で現行サイズより小さい場合は処理をスキップ
                 if (preg_match('/^[a-z]+\((\d+)\)/', $def['Type'], $match)) {
-                    $cq = "SHOW COLUMNS FROM " . $tb . " LIKE '" . $left . "'";
+                    $cq = [
+                        'sql' => "SHOW COLUMNS FROM " . $tb . " LIKE '" . $left . "'",
+                        'params' => [],
+                    ];
                     $DB = DB::singleton($this->dsn);
-                    $DB->query($cq, 'fetch');
+                    $all = $DB->query($cq, 'all');
                     $size = $match[1];
 
-                    if ($row = $DB->fetch($cq)) {
+                    foreach ($all as $row) {
                         $type = $row['Type'];
                         if (preg_match('/^[a-z]+\((\d+)\)/', $type, $match)) {
                             $csize = $match[1];
@@ -213,7 +231,10 @@ class DatabaseInfo
                 $q .= " `" . $left . "`";
         }
         $DB = DB::singleton($this->dsn);
-        $DB->query($q, 'exec');
+        $DB->query([
+            'sql' => $q,
+            'params' => [],
+        ], 'exec');
     }
 
     /**
@@ -256,8 +277,12 @@ class DatabaseInfo
                 $q .= ") ENGINE=InnoDB;";
             }
 
+            $sql = [
+                'sql' => $q,
+                'params' => [],
+            ];
             $DB = DB::singleton($this->dsn);
-            $isSuccess = $DB->query($q, 'exec');
+            $isSuccess = $DB->query($sql, 'exec');
             if ($isSuccess === false) {
                 throw new \RuntimeException('「' . $tb . '」' . 'テーブルの作成に失敗しました。');
             }

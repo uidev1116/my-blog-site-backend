@@ -383,8 +383,7 @@
   position: relative;
   list-style-type: none;
   line-height: 10px;
-  -webkit-backface-visibility: hidden;
-          backface-visibility: hidden;
+  backface-visibility: hidden;
   overflow: hidden;
   z-index: 11;
 }
@@ -529,8 +528,7 @@
   height: 350px;
   z-index: 12;
   overflow: hidden;
-  -webkit-backface-visibility: hidden;
-          backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .trumbowyg-modal-box {
@@ -547,8 +545,7 @@
   font-size: 14px;
   font-family: "Trebuchet MS", Helvetica, Verdana, sans-serif;
   box-shadow: rgba(0, 0, 0, 0.2) 0 2px 3px;
-  -webkit-backface-visibility: hidden;
-          backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 .trumbowyg-modal-box .trumbowyg-modal-title {
   font-size: 24px;

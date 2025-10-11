@@ -95,7 +95,6 @@ class ACMS_Http_File extends ACMS_Http
         ) {
             throw new \RuntimeException(gettext('パラメータが不正です'));
         }
-
         // $_FILES['upfile']['error'] の値を確認
         switch ($_FILES[$this->key]['error']) {
             case UPLOAD_ERR_OK:
@@ -108,6 +107,9 @@ class ACMS_Http_File extends ACMS_Http
                 throw new \RuntimeException(UPLOAD_ERR_FORM_SIZE);
             default:
                 throw new \RuntimeException($_FILES[$this->key]['error']);
+        }
+        if (!is_uploaded_file($_FILES[$this->key]['tmp_name'])) {
+            throw new \RuntimeException('アップロードされたファイルがありません');
         }
     }
 
@@ -145,7 +147,14 @@ class ACMS_Http_File extends ACMS_Http
     public function convertEncoding($path)
     {
         try {
-            $data = mb_convert_encoding(Storage::get($path, dirname($path)), 'UTF-8', 'UTF-8, SJIS-win, SJIS');
+            $text = LocalStorage::get($path, dirname($path));
+            if ($text === false) {
+                throw new \RuntimeException('ファイルが見つかりません');
+            }
+            $data = mb_convert_encoding($text, 'UTF-8', 'UTF-8, SJIS-win, SJIS');
+            if ($data === false) {
+                throw new \RuntimeException('文字コードの変換に失敗しました');
+            }
             $data = preg_replace('/^\xEF\xBB\xBF/', '', $data); // remove BOM
 
             $temp = new SplTempFileObject();

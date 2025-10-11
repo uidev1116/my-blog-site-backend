@@ -4,7 +4,7 @@ namespace Acms\Services\Mailer\Transport;
 
 use Google_Client;
 use Google_Exception;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Facades\Logger as AcmsLogger;
 use Acms\Services\Facades\Config;
 use Acms\Services\Facades\Cache;
@@ -79,11 +79,11 @@ class GoogleApi
         $idJsonPath = $this->config->get($this->jsonPathConfigKey);
         $this->client->setApplicationName('ACMS_GMAIL_SMTP');
         $this->client->setScopes($this->scopes);
-        if ($idJsonPath !== '' && Storage::exists($idJsonPath)) {
+        if ($idJsonPath !== '' && LocalStorage::exists($idJsonPath)) {
             $this->setAuthConfig($idJsonPath);
         }
         $this->client->setAccessType('offline');
-        $this->client->setApprovalPrompt("force");
+        $this->client->setPrompt("consent");
         $redirect_uri = acmsLink([
             'bid' => BID,
         ], false) . 'callback/smtp/google.html';
@@ -155,7 +155,7 @@ class GoogleApi
         if ($json === '') {
             throw new InvalidArgumentException('Invalid client secret JSON file path.');
         }
-        if (!Storage::exists($json)) {
+        if (!LocalStorage::exists($json)) {
             throw new RuntimeException('Failed to open ' . $json);
         }
         $json = file_get_contents($json);

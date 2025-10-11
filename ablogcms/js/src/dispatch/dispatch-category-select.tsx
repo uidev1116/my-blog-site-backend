@@ -30,15 +30,13 @@ export default function dispatchCategorySelect(context: Document | Element) {
 
     const inputs = [input, ...etcInput];
 
-    const customOptions = [
-      ...(element.dataset.none === 'true' ? [{ value: '0', label: ACMS.i18n('category.select_no_option_label') }] : []),
-    ];
+    const defaultValue = input.value ? input.value : undefined;
 
     render(
       <Suspense fallback={null}>
         <div style={{ display: 'inline-block', width: '350px' }}>
           <CategorySelect
-            defaultValue={input.value ? parseInt(input.value, 10) : undefined}
+            defaultValue={defaultValue}
             onChange={(newValue) => {
               inputs.forEach((input) => {
                 input.value = newValue?.value || '';
@@ -46,7 +44,7 @@ export default function dispatchCategorySelect(context: Document | Element) {
               });
             }}
             narrowDown={element.getAttribute('data-narrow-down') === 'true'}
-            customOptions={customOptions}
+            noOption={element.getAttribute('data-none') === 'true'}
             isCreatable={element.getAttribute('data-creation') === 'true'}
           />
         </div>
@@ -62,7 +60,7 @@ export default function dispatchCategorySelect(context: Document | Element) {
     }
     const {
       target: selector,
-      defaultValue = '',
+      defaultValue: _defaultValue = '',
       isCreatable = 'false',
       narrowDown = 'false',
       isClearable = 'true',
@@ -86,15 +84,11 @@ export default function dispatchCategorySelect(context: Document | Element) {
       throw new Error('Not found input element!');
     }
 
-    const customOptions = [
-      ...(noOption === 'true' ? [{ value: '0', label: ACMS.i18n('category.select_no_option_label') }] : []),
-      ...(mtOption === 'true' ? [{ value: '-1', label: ACMS.i18n('category.select_mt_option_label') }] : []),
-    ].sort((a, b) => a.value.localeCompare(b.value));
-
+    const defaultValue = _defaultValue || undefined;
     render(
       <Suspense fallback={null}>
         <CategorySelect
-          defaultValue={defaultValue ? parseInt(defaultValue, 10) : undefined}
+          defaultValue={defaultValue}
           onChange={(newValue) => {
             inputs.forEach((input) => {
               input.value = newValue?.value || '';
@@ -104,7 +98,8 @@ export default function dispatchCategorySelect(context: Document | Element) {
           narrowDown={narrowDown === 'true'}
           isCreatable={isCreatable === 'true'}
           isClearable={isClearable === 'true'}
-          customOptions={customOptions}
+          mtOption={mtOption === 'true'}
+          noOption={noOption === 'true'}
           id={id}
           inputId={inputId}
           isDisabled={isDisabled === 'true'}

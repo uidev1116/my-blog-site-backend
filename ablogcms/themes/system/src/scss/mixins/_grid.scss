@@ -1,8 +1,63 @@
 @use 'sass:math';
+@use 'sass:map';
+@use '../global/variables' as var;
+@use 'breakpoints' as breakpoints;
 
 // ------------------------------
 // grid
 // ------------------------------
+
+// CSS Gridのカラムとスタート位置のクラスを生成するmixin
+// 各ブレイクポイントに対して、カラムの幅とグリッド開始位置を指定するクラスを生成します
+// $columns: グリッドの列数（デフォルトはvar.$acms-columns）
+// $breakpoints: ブレイクポイントの設定（デフォルトはvar.$grid-breakpoints）
+@mixin make-cssgrid($columns: var.$acms-columns, $breakpoints: var.$grid-breakpoints) {
+  @each $breakpoint in map.keys($breakpoints) {
+    $infix: breakpoints.breakpoint-infix($breakpoint, $breakpoints);
+
+    @include breakpoints.media-breakpoint-up($breakpoint, $breakpoints) {
+      @if $columns > 0 {
+        @for $i from 1 through $columns {
+          .acms-g-col#{$infix}-#{$i} {
+            grid-column: auto / span $i;
+          }
+        }
+
+        // Start with `1` because `0` is an invalid value.
+        // Ends with `$columns - 1` because offsetting by the width of an entire row isn't possible.
+        @for $i from 1 through ($columns - 1) {
+          .acms-g-start#{$infix}-#{$i} {
+            grid-column-start: $i;
+          }
+        }
+      }
+    }
+  }
+}
+
+// CSS Gridのカラム数を設定するクラスを生成するmixin
+// 各ブレイクポイントに対して、グリッドのカラム数を指定するクラスを生成します
+// $columns: グリッドの列数（デフォルトはvar.$acms-columns）
+// $breakpoints: ブレイクポイントの設定（デフォルトはvar.$grid-breakpoints）
+@mixin make-cssgrid-columns($columns: var.$acms-columns, $breakpoints: var.$grid-breakpoints) {
+  @each $breakpoint in map.keys($breakpoints) {
+    $infix: breakpoints.breakpoint-infix($breakpoint, $breakpoints);
+
+    @include breakpoints.media-breakpoint-up($breakpoint, $breakpoints) {
+      @if $columns > 0 {
+        @for $i from 1 through $columns {
+          .acms-g-cols#{$infix}-#{$i} {
+            --acms-columns: #{$i};
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * グリッドシステム（非推奨）
+ */
 @mixin make-grid($name, $grid-name, $number) {
   @for $i from 1 through $number {
     @if $grid-name {
@@ -13,7 +68,7 @@
           float: none;
         }
 
-        width: percentage(math.div($i, $number));
+        width: math.percentage(math.div($i, $number));
       }
     } @else {
       .#{$name}-#{$i} {
@@ -23,39 +78,45 @@
           float: none;
         }
 
-        width: percentage(math.div($i, $number));
+        width: math.percentage(math.div($i, $number));
       }
     }
   }
 }
 
+/**
+ * グリッドシステム（非推奨）
+ */
 @mixin make-pulled-grid($name, $grid-name, $number) {
   $limit: $number - 1;
 
   @for $i from 1 through $limit {
     @if $grid-name {
       .#{$name}-#{$grid-name}-#{$i} {
-        right: percentage(math.div($i, $number));
+        right: math.percentage(math.div($i, $number));
       }
     } @else {
       .#{$name}-#{$i} {
-        right: percentage(math.div($i, $number));
+        right: math.percentage(math.div($i, $number));
       }
     }
   }
 }
 
+/**
+ * グリッドシステム（非推奨）
+ */
 @mixin make-pushed-grid($name, $grid-name, $number) {
   $limit: $number - 1;
 
   @for $i from 1 through $limit {
     @if $grid-name {
       .#{$name}-#{$grid-name}-#{$i} {
-        left: percentage(math.div($i, $number));
+        left: math.percentage(math.div($i, $number));
       }
     } @else {
       .#{$name}-#{$i} {
-        left: percentage(math.div($i, $number));
+        left: math.percentage(math.div($i, $number));
       }
     }
   }

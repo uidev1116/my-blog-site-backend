@@ -1,0 +1,11 @@
+{% if touch('Touch_NotPreview') and touch('Touch_SessionWithAdministration') and moduleInfo is not empty %}
+  {% if moduleInfo.mid is not empty %}
+    <p class="{{ class|default('acms-admin-module-edit') }}">
+      <a href="#" class="js-module_management" data-bid="{{ moduleInfo.bid }}" data-mid="{{ moduleInfo.mid }}"><!-- T -->編集する<!-- /T --></a>
+    </p>
+  {% else %}
+    <p class="{{ class|default('acms-admin-module-edit') }}">
+      <a href="{{ moduleInfo.url }}" class="js-dialog-btn"><!-- T -->編集する<!-- /T --></a>
+    </p>
+  {% endif %}
+{% endif %}

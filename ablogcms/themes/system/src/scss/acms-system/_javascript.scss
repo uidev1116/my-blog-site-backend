@@ -26,20 +26,6 @@
 }
 
 // ------------------------------
-// jQuery UI Tabs
-// ------------------------------
-// スマートフォンのとき
-@media screen and (max-width: global.$breakpoint-md-max) {
-  #main .ui-tabs {
-    margin-bottom: 20px;
-
-    .ui-tabs-panel {
-      padding: 0;
-    }
-  }
-}
-
-// ------------------------------
 // 管理画面 SmartPhoto
 // ------------------------------
 .is-admin-page .smartphoto {

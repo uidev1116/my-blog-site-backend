@@ -2,11 +2,11 @@
 	<div>
 		@include("/admin/topicpath.html")
 	</div>
-	<div class="acms-admin-grid">
-		<div class="acms-admin-col-9">
+	<div class="acms-admin-cssgrid">
+		<div class="acms-admin-g-col-9">
 			<h1 class="acms-admin-admin-title js-dialog-title"><!--T-->メディア タグ管理<!--/T--></h1>
 		</div>
-		<div class="acms-admin-col-3">
+		<div class="acms-admin-g-col-3">
 			<a href="%{ADMIN_BASE_URL}bid/%{BID}/admin/media_index/" class="acms-admin-btn acms-admin-float-right">
 				<i class="acms-admin-icon acms-admin-icon-media"></i>
 				<!--T-->メディア一覧へ<!--/T-->
@@ -56,27 +56,11 @@
 <!-- BEGIN index#notFound -->
 <p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger"><span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->タグがありません。<!--/T--></p><!-- END index#notFound -->
 <!-- BEGIN index -->
-<ul id="tagList" class="acms-admin-list-inline js-incremental_search"><!-- BEGIN tag:loop -->
-	<li class="search_element"><a href="{url}?edit=update">{name} <span class="acms-admin-label">{amount}</span></a></li><!-- END tag:loop -->
+<ul id="tagList" class="acms-admin-hstack acms-admin-flex-wrap acms-admin-list-nostyle js-incremental_search"><!-- BEGIN tag:loop -->
+	<li class="search_element"><a href="{url}?edit=update" class="acms-admin-btn">{name} <span class="acms-admin-label">{amount}</span></a></li><!-- END tag:loop -->
 </ul>
-<div class="acms-admin-grid">
-	<div class="acms-admin-col-md-6 acms-admin-col-sm-12">
-		<!-- BEGIN pager:veil -->
-		<div class="acms-admin-pager-container">
-			<ul class="acms-admin-pager"><!-- BEGIN backLink -->
-				<li class="prev"><a href="{url}">&laquo;&nbsp;<!--T-->前へ<!--/T--></a></li><!-- END backLink --><!-- BEGIN page:loop -->
-				<li{pageCurAttr}[raw]><span><!-- BEGIN link#front --><a href="{url}"><!-- END link#front -->{page}<!-- BEGIN link#rear --></a><!-- END link#rear --></span></li><!-- END page:loop --><!-- BEGIN lastPage:veil -->
-				<li class="last"><a href="{lastPageUrl}">...{lastPage}</a></li><!-- END lastPage:veil --><!-- BEGIN forwardLink -->
-				<li class="next"><a href="{url}"><!--T-->次へ<!--/T-->&nbsp;&raquo;</a></li><!-- END forwardLink -->
-			</ul>
-		</div>
-		<!-- END pager:veil -->
-	</div>
-	<div class="acms-admin-col-md-6 acms-admin-col-sm-12">
-		<div class="acms-admin-itemsAmount-container">
-			<p>{itemsFrom}<!--T-->件<!--/T--> - {itemsTo}<!--T-->件<!--/T--> / <!--T-->全<!--/T-->{itemsAmount}<!--T-->件<!--/T--></p>
-		</div>
-	</div>
+<div class="acms-admin-cssgrid acms-admin-mt-5">
+	@include("/admin/include/pagination.html")
 </div><!-- /.acms-grid -->
 <!-- END index -->
 <!-- END_MODULE Admin_Media_Tag_Index -->

@@ -1,13 +1,11 @@
 <header>
-  <div>
-    @include("/admin/topicpath.html")
-  </div>
+  <div>@include("/admin/topicpath.html")</div>
   <div>
     <h1 class="acms-admin-admin-title js-dialog-title"><!--T-->ダッシュボード<!--/T--></h1>
   </div>
 </header>
 
-<hr class="clearHidden">
+<hr class="clearHidden" />
 
 <!-- BEGIN_MODULE Touch_LoggerIsDevelopmentMode -->
 <p class="acms-admin-alert acms-admin-alert-warning">
@@ -33,22 +31,17 @@
 <!-- END_MODULE Admin_Messages -->
 
 <!-- BEGIN_MODULE Admin_Top -->
-<div class="acms-admin-grid-r">
-  <div class="acms-admin-col-md-6">
-
+<div class="acms-admin-cssgrid acms-admin-g-cols-1 acms-admin-g-cols-md-2">
+  <div>
     @section("dashboard-left")
     <!-- BEGIN_MODULE Touch_SessionWithCompilation -->
     @include("/admin/dashboard-left.html")
     <!-- END_MODULE Touch_SessionWithCompilation -->
-    @endsection
-
-    @section("dashboard-shortcut-list")
+    @endsection @section("dashboard-shortcut-list")
     <!-- BEGIN_MODULE Admin_Shortcut_List -->
     <h2 class="acms-admin-admin-title2"><!--T-->ショートカット<!--/T--></h2>
     <!-- BEGIN notFound -->
-    <p>
-      <!--T-->ショートカットは見つかりませんでした<!--/T-->
-    </p>
+    <p><!--T-->ショートカットは見つかりませんでした<!--/T--></p>
     <!-- END notFound -->
     <!-- BEGIN shortcut:veil -->
     <table class="acms-admin-admin-mini-table acms-admin-admin-icon-table">
@@ -68,9 +61,7 @@
 
     @section("dashboard-license-status")
     <!-- BEGIN_MODULE Admin_Dashboard_LicenseStatus -->
-    <h2 class="acms-admin-admin-title2">
-      <!--T-->システム・ライセンス情報<!--/T-->
-    </h2>
+    <h2 class="acms-admin-admin-title2"><!--T-->システム・ライセンス情報<!--/T--></h2>
     <table class="acms-admin-admin-mini-table">
       <thead>
         <tr>
@@ -92,9 +83,9 @@
         <td class="caution">
           <!--T-->未認証（開発モード）<!--/T-->
           <!-- BEGIN_IF [%{UNLICENSED_REASON}/eq/EXPIRED] -->
-          <br><!--T-->期限切れです<!--/T-->
+          <br /><!--T-->期限切れです<!--/T-->
           <!-- ELSE_IF [%{UNLICENSED_REASON}/eq/TOO_MANY_USERS] -->
-          <br><!--T-->ユーザー数がライセンスの限度を超えています<!--/T-->
+          <br /><!--T-->ユーザー数がライセンスの限度を超えています<!--/T-->
           <!-- END_IF -->
         </td>
         <!-- ELSE_IF [%{IS_TRIAL}/eq/on] -->
@@ -107,18 +98,26 @@
       </tr>
       <tr>
         <td><!--T-->ドメイン<!--/T--></td>
-        <td class="{caution}">{domain} <!-- BEGIN matchDomain:veil -->({matchDomain})<!-- END matchDomain:veil --></td>
-      </tr><!-- BEGIN max:veil -->
+        <td class="{caution}">
+          {domain}
+          <!-- BEGIN matchDomain:veil -->({matchDomain})<!-- END matchDomain:veil -->
+        </td>
+      </tr>
+      <!-- BEGIN max:veil -->
       <tr>
         <td><!--T-->ユーザーの上限<!--/T--></td>
-        <td><!-- BEGIN amount:veil -->{amount} / {max}<!-- END amount:veil --><!-- BEGIN unlimited --><!--T-->無制限<!--/T--><!-- END unlimited --></td>
-      </tr><!-- END max:veil -->
+        <td>
+          <!-- BEGIN amount:veil -->{amount} / {max}<!-- END amount:veil --><!-- BEGIN unlimited --><!--T-->無制限<!--/T--><!-- END unlimited -->
+        </td>
+      </tr>
+      <!-- END max:veil -->
       <!-- BEGIN option:veil -->
       <tr>
         <td><!--T-->オプション<!--/T--></td>
         <td>
           <!-- BEGIN licenseType:loop -->
-          <!-- BEGIN licenseType:glue --><!--T-->,<!--/T--> <!-- END licenseType:glue --><!--T-->{type}<!--/T--><!-- END licenseType:loop -->
+          <!-- BEGIN licenseType:glue --><!--T-->,<!--/T-->
+          <!-- END licenseType:glue --><!--T-->{type}<!--/T--><!-- END licenseType:loop -->
         </td>
       </tr>
       <!-- END option:veil -->
@@ -160,14 +159,19 @@
         <tbody>
           <tr>
             <td>
-              <p class="acms-admin-margin-none">
+              <p class="acms-admin-m-0">
                 <!--T-->ライセンスを有効化するには以下のエンドポイントに通信できる必要があります。<!--/T-->
               </p>
               <p class="acms-admin-margin-bottom-small"><strong>%{ACTIVATION_ENDPOINT}</strong></p>
             </td>
             <td>
               <form method="post" class="acms-admin-form acms-admin-margin-bottom-small">
-                <input type="submit" name="ACMS_POST_License_Activation" value="<!--T-->アクティベーションを開始<!--/T-->" class="acms-admin-btn">
+                <input
+                  type="submit"
+                  name="ACMS_POST_License_Activation"
+                  value="<!--T-->アクティベーションを開始<!--/T-->"
+                  class="acms-admin-btn"
+                />
               </form>
             </td>
           </tr>
@@ -185,49 +189,57 @@
       <form action="" method="post" class="acms-admin-form">
         <table class="acms-admin-admin-mini-table">
           <thead>
-          <tr>
-            <th><!--T-->状態<!--/T--></th>
-            <th><!--T-->出力ページのHTTPステータス<!--/T--></th>
-            <th><!--T-->設定<!--/T--></th>
-          </tr>
+            <tr>
+              <th><!--T-->状態<!--/T--></th>
+              <th><!--T-->出力ページのHTTPステータス<!--/T--></th>
+              <th><!--T-->設定<!--/T--></th>
+            </tr>
           </thead>
           <tbody>
-          <tr>
-            <td>
-              <!-- BEGIN_IF [%{MAINTENANCE_MODE}/nem/] --><span class="acms-admin-text-danger"><!--T-->メンテナンス中<!--/T--></span><!-- ELSE --> - <!-- END_IF -->
-            </td>
-            <td>
-              <!-- BEGIN_IF [%{MAINTENANCE_MODE}/eq/503] -->
-              503（<!--T-->サービス利用不可<!--/T-->）<!--T-->ページ<!--/T-->
-              <!-- ELSE_IF [%{MAINTENANCE_MODE}/eq/200] -->
-              200（<!--T-->正常<!--/T-->）<!--T-->ページ<!--/T-->
-              <!-- ELSE -->
-              <select name="maintenance_http_status">
-                <option value="503">503（<!--T-->サービス利用不可<!--/T-->）<!--T-->ページ<!--/T--></option>
-                <option value="200">200（<!--T-->正常<!--/T-->）<!--T-->ページ<!--/T--></option>
-              </select>
-              <input type="hidden" name="blog[]" value="maintenance_http_status" />
-              <!-- END_IF -->
-            </td>
-            <td>
-              <!-- BEGIN_IF [%{MAINTENANCE_MODE}/nem] -->
-              <input type="hidden" name="maintenance_mode" value="off" />
-              <input type="hidden" name="blog[]" value="maintenance_mode" />
-              <input type="submit"
-                   name="ACMS_POST_Blog_MaintenanceMode"
-                   value="<!--T-->メンテナンスを終了<!--/T-->"
-                   class="acms-admin-btn-admin"/>
-              <!-- ELSE -->
-              <input type="hidden" name="maintenance_mode" value="on" />
-              <input type="hidden" name="blog[]" value="maintenance_mode" />
-              <input type="submit"
-                   name="ACMS_POST_Blog_MaintenanceMode"
-                   value="<!--T-->メンテナンスを開始<!--/T-->"
-                   onClick="return confirm('<!--T-->一般の方がサイトを閲覧できなくなります。よろしいですか？<!--/T-->');"
-                   class="acms-admin-btn-admin"/>
-              <!-- END_IF -->
-            </td>
-          </tr>
+            <tr>
+              <td>
+                <!-- BEGIN_IF [%{MAINTENANCE_MODE}/nem/] --><span class="acms-admin-text-danger"
+                  ><!--T-->メンテナンス中<!--/T--></span
+                ><!-- ELSE -->
+                -
+                <!-- END_IF -->
+              </td>
+              <td>
+                <!-- BEGIN_IF [%{MAINTENANCE_MODE}/eq/503] -->
+                503（<!--T-->サービス利用不可<!--/T-->）<!--T-->ページ<!--/T-->
+                <!-- ELSE_IF [%{MAINTENANCE_MODE}/eq/200] -->
+                200（<!--T-->正常<!--/T-->）<!--T-->ページ<!--/T-->
+                <!-- ELSE -->
+                <select name="maintenance_http_status">
+                  <option value="503">503（<!--T-->サービス利用不可<!--/T-->）<!--T-->ページ<!--/T--></option>
+                  <option value="200">200（<!--T-->正常<!--/T-->）<!--T-->ページ<!--/T--></option>
+                </select>
+                <input type="hidden" name="blog[]" value="maintenance_http_status" />
+                <!-- END_IF -->
+              </td>
+              <td>
+                <!-- BEGIN_IF [%{MAINTENANCE_MODE}/nem] -->
+                <input type="hidden" name="maintenance_mode" value="off" />
+                <input type="hidden" name="blog[]" value="maintenance_mode" />
+                <input
+                  type="submit"
+                  name="ACMS_POST_Blog_MaintenanceMode"
+                  value="<!--T-->メンテナンスを終了<!--/T-->"
+                  class="acms-admin-btn-admin"
+                />
+                <!-- ELSE -->
+                <input type="hidden" name="maintenance_mode" value="on" />
+                <input type="hidden" name="blog[]" value="maintenance_mode" />
+                <input
+                  type="submit"
+                  name="ACMS_POST_Blog_MaintenanceMode"
+                  value="<!--T-->メンテナンスを開始<!--/T-->"
+                  onClick="return confirm('<!--T-->一般の方がサイトを閲覧できなくなります。よろしいですか？<!--/T-->');"
+                  class="acms-admin-btn-admin"
+                />
+                <!-- END_IF -->
+              </td>
+            </tr>
           </tbody>
         </table>
       </form>
@@ -236,13 +248,18 @@
     @endsection
 
     @section("dashboard-ping-update")
-    <h2 class="acms-admin-admin-title2"><!--T-->Ping送信<!--/T--></h2>
+    <h2 class="acms-admin-admin-title2"><!--T-->Ping送信（非推奨）<!--/T--></h2>
     <table class="acms-admin-admin-mini-table">
       <tr>
         <th>Ping送信</th>
         <td>
           <form action="" method="post">
-            <input type="submit" name="ACMS_POST_PingWeblogUpdate" value="<!--T-->Ping送信<!--/T-->" class="acms-admin-btn" />
+            <input
+              type="submit"
+              name="ACMS_POST_PingWeblogUpdate"
+              value="<!--T-->Ping送信<!--/T-->"
+              class="acms-admin-btn"
+            />
           </form>
         </td>
       </tr>
@@ -250,13 +267,8 @@
     @endsection
   </div>
 
-  <div class="acms-admin-col-md-6">
-
-    @section("dashboard-right")
-    @include("/admin/dashboard-right.html")
-    @endsection
-
-    @section("dashboard-clear-cache")
+  <div>
+    @section("dashboard-right") @include("/admin/dashboard-right.html") @endsection @section("dashboard-clear-cache")
     <!-- BEGIN_MODULE Touch_SessionWithCompilation -->
     <h2 class="acms-admin-admin-title2"><!--T-->キャッシュクリア<!--/T--></h2>
     <form action="" method="post">
@@ -271,7 +283,9 @@
             <td>
               <div class="acms-admin-form-checkbox">
                 <input type="checkbox" id="input-checkbox-cashe-page" name="target[]" value="page" checked />
-                <label for="input-checkbox-cashe-page"><i class="acms-admin-ico-checkbox"></i>&nbsp;&nbsp;<!--T-->ページ キャッシュ<!--/T--></label>
+                <label for="input-checkbox-cashe-page"
+                  ><i class="acms-admin-ico-checkbox"></i>&nbsp;&nbsp;<!--T-->ページ キャッシュ<!--/T--></label
+                >
               </div>
             </td>
           </tr>
@@ -280,7 +294,9 @@
             <td>
               <div class="acms-admin-form-checkbox">
                 <input type="checkbox" id="input-checkbox-cashe-template" name="target[]" value="template" checked />
-                <label for="input-checkbox-cashe-template"><i class="acms-admin-ico-checkbox"></i>&nbsp;&nbsp;<!--T-->テンプレート キャッシュ<!--/T--></label>
+                <label for="input-checkbox-cashe-template"
+                  ><i class="acms-admin-ico-checkbox"></i>&nbsp;&nbsp;<!--T-->テンプレート キャッシュ<!--/T--></label
+                >
               </div>
             </td>
           </tr>
@@ -288,7 +304,9 @@
             <td>
               <div class="acms-admin-form-checkbox">
                 <input type="checkbox" id="input-checkbox-cashe-config" name="target[]" value="config" />
-                <label for="input-checkbox-cashe-config"><i class="acms-admin-ico-checkbox"></i>&nbsp;&nbsp;<!--T-->コンフィグ キャッシュ<!--/T--></label>
+                <label for="input-checkbox-cashe-config"
+                  ><i class="acms-admin-ico-checkbox"></i>&nbsp;&nbsp;<!--T-->コンフィグ キャッシュ<!--/T--></label
+                >
               </div>
             </td>
           </tr>
@@ -296,7 +314,9 @@
             <td>
               <div class="acms-admin-form-checkbox">
                 <input type="checkbox" id="input-checkbox-cashe-field" name="target[]" value="field" />
-                <label for="input-checkbox-cashe-field"><i class="acms-admin-ico-checkbox"></i>&nbsp;&nbsp;<!--T-->カスタムフィールド キャッシュ<!--/T--></label>
+                <label for="input-checkbox-cashe-field"
+                  ><i class="acms-admin-ico-checkbox"></i>&nbsp;&nbsp;<!--T-->カスタムフィールド キャッシュ<!--/T--></label
+                >
               </div>
             </td>
           </tr>
@@ -304,16 +324,19 @@
             <td>
               <div class="acms-admin-form-checkbox">
                 <input type="checkbox" id="input-checkbox-cashe-module" name="target[]" value="module" />
-                <label for="input-checkbox-cashe-module"><i class="acms-admin-ico-checkbox"></i>&nbsp;&nbsp;<!--T-->モジュール キャッシュ<!--/T--></label>
+                <label for="input-checkbox-cashe-module"
+                  ><i class="acms-admin-ico-checkbox"></i>&nbsp;&nbsp;<!--T-->モジュール キャッシュ<!--/T--></label
+                >
               </div>
             </td>
           </tr>
           <tr>
             <td>
               <div class="acms-admin-form-checkbox">
-
                 <input type="checkbox" id="input-checkbox-cashe-temp" name="target[]" value="temp" />
-                <label for="input-checkbox-cashe-temp"><i class="acms-admin-ico-checkbox"></i>&nbsp;&nbsp;<!--T-->一時的なキャッシュ<!--/T--></label>
+                <label for="input-checkbox-cashe-temp"
+                  ><i class="acms-admin-ico-checkbox"></i>&nbsp;&nbsp;<!--T-->一時的なキャッシュ<!--/T--></label
+                >
               </div>
             </td>
           </tr>
@@ -322,7 +345,12 @@
       </table>
       <div>
         <input type="hidden" name="field[]" value="target" />
-        <input type="submit" name="ACMS_POST_Cache" value="<!--T-->キャッシュをクリア<!--/T-->" class="acms-admin-btn-admin"/>
+        <input
+          type="submit"
+          name="ACMS_POST_Cache"
+          value="<!--T-->キャッシュをクリア<!--/T-->"
+          class="acms-admin-btn-admin"
+        />
         <input type="hidden" name="forcing" value="true" />
       </div>
     </form>
@@ -332,13 +360,20 @@
     <h2 class="acms-admin-admin-title2"><!--T-->公開 / 掲載終了 予定の記事<!--/T--></h2>
     <div class="acms-admin-admin-table-scroll">
       <table class="acms-admin-admin-mini-table">
-        <tbody><!-- BEGIN cache_reserve:loop -->
+        <tbody>
+          <!-- BEGIN cache_reserve:loop -->
           <tr>
-            <td><a href="{entryUrl}">{title}</a><br><!-- BEGIN type:touch#start -->
-            <!--T-->公開予定<!--/T--><!-- END type:touch#start --><!-- BEGIN type:touch#end -->
-            <!--T-->掲載終了<!--/T--><!-- END type:touch#end --> : {datetime}[datetime('Y/m/d H:i:s')]</td>
-            <td><a href="{entryEdit}" class="acms-admin-btn-admin"><!--T-->編集<!--/T--></a></td>
-          </tr><!-- END cache_reserve:loop -->
+            <td>
+              <a href="{entryUrl}">{title}</a><br /><!-- BEGIN type:touch#start -->
+              <!--T-->公開予定<!--/T--><!-- END type:touch#start --><!-- BEGIN type:touch#end -->
+              <!--T-->掲載終了<!--/T--><!-- END type:touch#end -->
+              : {datetime}[datetime('Y/m/d H:i:s')]
+            </td>
+            <td>
+              <a href="{entryEdit}" class="acms-admin-btn-admin"><!--T-->編集<!--/T--></a>
+            </td>
+          </tr>
+          <!-- END cache_reserve:loop -->
         </tbody>
       </table>
     </div>
@@ -350,7 +385,9 @@
     @section("dashboard-draft-list")
     <!-- BEGIN_MODULE Admin_Dashboard_DraftList -->
     <h2 class="acms-admin-admin-title2"><!--T-->下書きのエントリー<!--/T--></h2>
-    <!-- BEGIN draft#notFound --><p><!--T-->下書き中のエントリーは見つかりませんでした<!--/T--></p><!-- END draft#notFound -->
+    <!-- BEGIN draft#notFound -->
+    <p><!--T-->下書き中のエントリーは見つかりませんでした<!--/T--></p>
+    <!-- END draft#notFound -->
     <!-- BEGIN draft:veil -->
     <div class="acms-admin-admin-table-scroll">
       <table class="acms-admin-admin-mini-table">
@@ -360,12 +397,19 @@
             <th><!--T-->アクション<!--/T--></th>
           </tr>
         </thead>
-        <tbody><!-- BEGIN entry:loop -->
+        <tbody>
+          <!-- BEGIN entry:loop -->
           <tr>
-            <td><a href="{entryUrl}">{title}</a><br> <!-- BEGIN category:veil -->( <a href="{categoryUrl}">{categoryName}</a> )<!-- END category:veil -->
-            {userName} {datetime}[datetime(Y年m月d日 H:i:s)]</td>
-            <td><a href="{editUrl}" class="acms-admin-btn-admin"><!--T-->編集<!--/T--></a></td>
-          </tr><!-- END entry:loop -->
+            <td>
+              <a href="{entryUrl}">{title}</a><br />
+              <!-- BEGIN category:veil -->( <a href="{categoryUrl}">{categoryName}</a> )<!-- END category:veil -->
+              {userName} {datetime}[datetime(Y年m月d日 H:i:s)]
+            </td>
+            <td>
+              <a href="{editUrl}" class="acms-admin-btn-admin"><!--T-->編集<!--/T--></a>
+            </td>
+          </tr>
+          <!-- END entry:loop -->
         </tbody>
       </table>
     </div>
@@ -374,30 +418,40 @@
     @endsection
 
     @section("dashboard-log-login")
-    <!-- BEGIN_MODULE Admin_Dashboard_Log_Login -->
-    <h2 class="acms-admin-admin-title2"><!--T-->ログイン履歴<!--/T--></h2>
+    <!-- BEGIN_MODULE Admin_Login_History -->
+    <!-- BEGIN history:veil -->
+    <div class="acms-admin-margin-top-large acms-admin-d-flex acms-admin-align-items-center acms-admin-justify-content-between">
+      <h2 class="acms-admin-admin-title2"><!--T-->ログイン履歴<!--/T--></h2>
+      <a href="{indexUrl}"><!--T-->もっと見る<!--/T--></a>
+    </div>
     <div class="acms-admin-admin-table-scroll">
       <table class="acms-admin-admin-mini-table">
         <thead>
           <tr>
-            <th><!--T-->最終ログイン日時<!--/T--></th>
+            <th><!--T-->最終アクセス日時<!--/T--></th>
+            <th><!--T-->接続元IPアドレス<!--/T--></th>
             <th><!--T-->ユーザー/権限<!--/T--></th>
           </tr>
         </thead>
-        <tbody><!-- BEGIN log:loop -->
+        <tbody>
+          <!-- BEGIN user:loop -->
           <tr>
-            <td>{datetime}</td>
-            <td>{name}/<!-- BEGIN auth:touch#administrator -->
-              <!--T-->管理者<!--/T--><!-- END auth:touch#administrator --><!-- BEGIN auth:touch#editor -->
-              <!--T-->編集者<!--/T--><!-- END auth:touch#editor --><!-- BEGIN auth:touch#contributor -->
-              <!--T-->投稿者<!--/T--><!-- END auth:touch#contributor --><!-- BEGIN auth:touch#subscriber -->
-              <!--T-->読者<!--/T--><!-- END auth:touch#subscriber -->
+            <td>{datetime}[datetime('Y/m/d H:i')]</td>
+            <td>{remoteAddr}</td>
+            <td>
+              {name}/<!-- BEGIN auth#administrator -->
+              <!--T-->管理者<!--/T--><!-- END auth#administrator --><!-- BEGIN auth#editor -->
+              <!--T-->編集者<!--/T--><!-- END auth#editor --><!-- BEGIN auth#contributor -->
+              <!--T-->投稿者<!--/T--><!-- END auth#contributor --><!-- BEGIN auth#subscriber -->
+              <!--T-->読者<!--/T--><!-- END auth#subscriber -->
             </td>
-          </tr><!-- END log:loop -->
+          </tr>
+          <!-- END user:loop -->
         </tbody>
       </table>
     </div>
-    <!-- END_MODULE Admin_Dashboard_Log_Login -->
+    <!-- END history:veil -->
+    <!-- END_MODULE Admin_Login_History -->
     @endsection
 
     @section("dashboard-login-terminal-restriction")
@@ -414,20 +468,34 @@
         </thead>
         <tbody>
           <tr>
-            <td><!-- BEGIN status#permission -->
+            <td>
+              <!-- BEGIN status#permission -->
               <!--T-->許可端末<!--/T--><!-- END status#permission --><!-- BEGIN status#denial -->
               <!--T-->拒否端末<!--/T--><!-- END status#denial -->
             </td>
-            <td><!-- BEGIN status2#denial -->
+            <td>
+              <!-- BEGIN status2#denial -->
               <form action="" method="post" class="acms-admin-inline-block">
                 <input type="hidden" name="status" value="permission" />
-                <input type="submit" name="ACMS_POST_Login_TerminalRestriction" value="<!--T-->許可端末に設定<!--/T-->" class="acms-admin-btn-admin" />
-              </form><!-- END status2#denial -->
+                <input
+                  type="submit"
+                  name="ACMS_POST_Login_TerminalRestriction"
+                  value="<!--T-->許可端末に設定<!--/T-->"
+                  class="acms-admin-btn-admin"
+                />
+              </form>
+              <!-- END status2#denial -->
               <!-- BEGIN status2#permission -->
               <form action="" method="post" class="acms-admin-inline-block">
                 <input type="hidden" name="status" value="denial" />
-                <input type="submit" name="ACMS_POST_Login_TerminalRestriction" value="<!--T-->拒否端末に設定<!--/T-->" class="acms-admin-btn-admin acms-admin-btn-admin-danger" />
-              </form><!-- END status2#permission -->
+                <input
+                  type="submit"
+                  name="ACMS_POST_Login_TerminalRestriction"
+                  value="<!--T-->拒否端末に設定<!--/T-->"
+                  class="acms-admin-btn-admin acms-admin-btn-admin-danger"
+                />
+              </form>
+              <!-- END status2#permission -->
             </td>
           </tr>
         </tbody>

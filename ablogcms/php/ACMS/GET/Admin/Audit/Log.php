@@ -5,7 +5,7 @@ class ACMS_GET_Admin_Audit_Log extends ACMS_GET_Admin
     public function get()
     {
         if (!sessionWithAdministration()) {
-            return '';
+            die403();
         }
 
         $tpl = new Template($this->tpl, new ACMS_Corrector());
@@ -70,10 +70,10 @@ class ACMS_GET_Admin_Audit_Log extends ACMS_GET_Admin
         );
 
         $q = $sql->get(dsn());
-        DB::query($q, 'fetch');
+        $statement = DB::query($q, 'exec');
 
         // データを組み立て
-        while ($log = DB::fetch($q)) {
+        while ($log = DB::next($statement)) {
             $msgTemp = $log['audit_log_message'];
             $msgTemp = str_replace(["\r\n", "\r", "\n"], "\n", $msgTemp);
             $msgTemp = explode("\n", $msgTemp);

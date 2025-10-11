@@ -7,6 +7,7 @@ use Symfony\Component\Cache\PruneableInterface;
 use Symfony\Component\Cache\Marshaller\DefaultMarshaller;
 use DB;
 use SQL;
+use Traversable;
 
 class DatabaseTagAwareAdapter extends AbstractTagAwareAdapter implements PruneableInterface
 {
@@ -120,29 +121,36 @@ class DatabaseTagAwareAdapter extends AbstractTagAwareAdapter implements Pruneab
     /**
      * 複数のキャッシュ・アイテムをフェッチします
      *
-     * @param array $ids
-     * @return array|\Traversable
+     * @inheritDoc
      */
-    protected function doFetch(array $ids)
+    protected function doFetch(array $ids): Traversable|array
     {
         $sql = SQL::newSelect($this->cacheTableName);
-        $sql->addSelect($this->cacheKeyColName, '`key`');
+        $sql->addSelect($this->cacheKeyColName, 'key');
         $case = SQL::newCase();
         $where = SQL::newWhere();
         $where->addWhere(SQL::newOpr($this->cacheLifetimeColName, null), 'OR');
         $where->addWhere(SQL::newOpr($this->cacheLifetimeColName, REQUEST_TIME, '>'), 'OR');
         $case->add($where, SQL::newField($this->cacheDataColName));
         $case->setElse('expired');
-        $sql->addSelect($case->get(dsn()), '`data`');
-        $sql->addWhereIn($this->cacheKeyColName, $ids);
-
+        $sql->addSelect($case, 'data');
+        if (count($ids) > 1) {
+            $sql->addWhereIn($this->cacheKeyColName, $ids);
+        } else {
+            $sql->addWhereOpr($this->cacheKeyColName, $ids[0]);
+        }
         $expired = [];
         $result = DB::query($sql->get(dsn()), 'all');
         foreach ($result as $row) {
             if ($row['data'] === 'expired') {
                 $expired[] = $row['key'];
             } else {
-                yield $row['key'] => $this->marshaller->unmarshall(\is_resource($row['data']) ? stream_get_contents($row['data']) : $row['data']);
+                $data = $row['data'];
+                if (isStreamLike($data)) {
+                    // おそらく stream 型オブジェクト（8.4以降の新設タイプ）
+                    $data = stream_get_contents($data);
+                }
+                yield $row['key'] => $this->marshaller->unmarshall($data);
             }
         }
         if (count($expired) > 0) {
@@ -155,11 +163,9 @@ class DatabaseTagAwareAdapter extends AbstractTagAwareAdapter implements Pruneab
     /**
      * キャッシュを持っていくるどうかを確認します
      *
-     * @param string $id
-     *
-     * @return bool
+     * @inheritDoc
      */
-    protected function doHave(string $id)
+    protected function doHave(string $id): bool
     {
         $sql = SQL::newSelect($this->cacheTableName);
         $sql->addSelect($this->cacheKeyColName);
@@ -172,14 +178,19 @@ class DatabaseTagAwareAdapter extends AbstractTagAwareAdapter implements Pruneab
     /**
      * プール内のすべてのアイテムを削除する。
      *
-     * @param string $namespace
-     * @return bool
+     * @inheritDoc
      */
-    protected function doClear(string $namespace)
+    protected function doClear(string $namespace): bool
     {
         if ('' === $namespace) {
-            $q = "TRUNCATE TABLE $this->cacheTableName";
-            $q2 = "TRUNCATE TABLE $this->cacheTagTableName";
+            $q = [
+                'sql' => "TRUNCATE TABLE $this->cacheTableName",
+                'params' => [],
+            ];
+            $q2 = [
+                'sql' => "TRUNCATE TABLE $this->cacheTagTableName",
+                'params' => [],
+            ];
         } else {
             $sql = SQL::newDelete($this->cacheTableName);
             $sql->addWhereOpr($this->cacheKeyColName, $this->namespace . '%', 'LIKE');
@@ -198,11 +209,7 @@ class DatabaseTagAwareAdapter extends AbstractTagAwareAdapter implements Pruneab
     /**
      * 複数のキャッシュ・アイテムを直ちに永続化する
      *
-     * @param array $values
-     * @param int $lifetime
-     * @param array[] $addTagData
-     * @param array[] $removeTagData
-     * @return array キャッシュに失敗した識別子
+     * @inheritDoc
      */
     protected function doSave(array $values, int $lifetime, array $addTagData = [], array $removeTagData = []): array
     {
@@ -246,8 +253,7 @@ class DatabaseTagAwareAdapter extends AbstractTagAwareAdapter implements Pruneab
     /**
      * プールから複数のアイテムと対応するタグを削除します
      *
-     * @param array $ids
-     * @return bool
+     * @inheritDoc
      */
     protected function doDelete(array $ids): bool
     {
@@ -260,8 +266,7 @@ class DatabaseTagAwareAdapter extends AbstractTagAwareAdapter implements Pruneab
     /**
      * タグと削除されたアイテムの関係を削除します
      *
-     * @param array $tagData Array of tag => key identifiers that should be removed from the pool
-     * @return bool
+     * @inheritDoc
      */
     protected function doDeleteTagRelations(array $tagData): bool
     {
@@ -277,8 +282,7 @@ class DatabaseTagAwareAdapter extends AbstractTagAwareAdapter implements Pruneab
     /**
      * タグを使用してキャッシュされた項目を無効にします
      *
-     * @param string[] $tagIds
-     * @return bool
+     * @inheritDoc
      */
     protected function doInvalidate(array $tagIds): bool
     {

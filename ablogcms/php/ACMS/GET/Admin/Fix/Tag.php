@@ -5,7 +5,7 @@ class ACMS_GET_Admin_Fix_Tag extends ACMS_GET_Admin_Fix
     function fix(&$Tpl, $block)
     {
         if (!sessionWithAdministration()) {
-            return false;
+            die403();
         }
 
         $Fix =& $this->Post->getChild('fix');

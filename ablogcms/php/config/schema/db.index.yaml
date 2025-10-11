@@ -42,26 +42,22 @@
   - KEY dashboard_key (dashboard_key,dashboard_blog_id)
   - KEY dashboard_sort (dashboard_sort,dashboard_blog_id)
 %{PREFIX}entry:
-  - PRIMARY KEY  (entry_id,entry_start_datetime,entry_end_datetime,entry_status)
-  - UNIQUE KEY entry_posted_datetime (entry_posted_datetime,entry_id)
-  - KEY entry_code (entry_code,entry_category_id,entry_blog_id,entry_status)
-  - KEY entry_status (entry_datetime,entry_start_datetime,entry_end_datetime,entry_status,entry_indexing,entry_id)
+  - PRIMARY KEY (entry_id)
   - KEY entry_user_id (entry_user_id)
   - KEY entry_category_id (entry_category_id)
   - KEY entry_user_sort (entry_user_sort,entry_id)
   - KEY entry_category_sort(entry_category_sort,entry_id)
   - KEY entry_datetime_sort(entry_datetime,entry_id)
-  - KEY entry_sub_category(entry_id,entry_status,entry_approval,entry_datetime,entry_start_datetime,entry_end_datetime,entry_indexing,entry_category_id,entry_blog_id)
+  - KEY entry_filter (entry_blog_id,entry_category_id,entry_status,entry_approval,entry_indexing,entry_start_datetime,entry_end_datetime,entry_datetime,entry_id)
+  - KEY entry_reserve_filter (entry_reserve_rev_id,entry_start_datetime,entry_end_datetime)
 %{PREFIX}entry_rev:
-  - PRIMARY KEY  (entry_id,entry_start_datetime,entry_end_datetime,entry_status,entry_rev_id)
-  - UNIQUE KEY entry_posted_datetime (entry_posted_datetime,entry_id,entry_rev_id)
-  - KEY entry_code (entry_code,entry_category_id,entry_blog_id,entry_status)
-  - KEY entry_status (entry_datetime,entry_start_datetime,entry_end_datetime,entry_status,entry_indexing,entry_id)
+  - PRIMARY KEY (entry_id,entry_rev_id)
   - KEY entry_user_id (entry_user_id)
   - KEY entry_category_id (entry_category_id)
   - KEY entry_user_sort (entry_user_sort,entry_id)
   - KEY entry_category_sort(entry_category_sort,entry_id)
   - KEY entry_datetime_sort(entry_datetime,entry_id)
+  - KEY entry_filter (entry_blog_id,entry_category_id,entry_status,entry_approval,entry_indexing,entry_start_datetime,entry_end_datetime,entry_datetime,entry_id)
 %{PREFIX}relationship:
   - PRIMARY KEY (relation_id,relation_eid,relation_type)
   - KEY relation_order (relation_id,relation_order)
@@ -73,23 +69,29 @@
   - KEY field_uid (field_uid)
   - KEY field_bid (field_bid)
   - KEY field_mid (field_mid)
+  - KEY field_unit_id (field_unit_id)
   - KEY field_eid (field_eid,field_key,field_search)
   - KEY field_key (field_key)
   - KEY field_key_value (field_key,field_value(64))
   - KEY field_cid_sort (field_cid,field_sort)
   - KEY field_eid_sort (field_eid,field_sort)
   - KEY field_bid_sort (field_bid,field_sort)
+  - KEY field_unit_sort (field_unit_id,field_sort)
+  - KEY field_type (field_type, field_eid)
 %{PREFIX}field_rev:
   - KEY field_cid (field_cid)
   - KEY field_uid (field_uid)
   - KEY field_bid (field_bid)
   - KEY field_mid (field_mid)
+  - KEY field_unit_id (field_unit_id)
   - KEY field_eid (field_eid,field_key,field_search,field_rev_id)
   - KEY field_key (field_key)
   - KEY field_key_value (field_key,field_value(64))
   - KEY acms_field_cid_sort (field_cid,field_sort,field_rev_id)
   - KEY acms_field_eid_sort (field_eid,field_sort,field_rev_id)
   - KEY acms_field_bid_sort (field_bid,field_sort,field_rev_id)
+  - KEY acms_field_unit_sort (field_unit_id,field_sort,field_rev_id)
+  - KEY field_type (field_type, field_eid)
 %{PREFIX}form:
   - PRIMARY KEY  (form_id)
 %{PREFIX}fulltext:
@@ -127,6 +129,8 @@
   - KEY audit_log_index (audit_log_datetime,audit_log_level_name,audit_log_session_uid)
 %{PREFIX}module:
   - PRIMARY KEY  (module_identifier,module_name,module_blog_id,module_scope)
+  - KEY module_created_datetime (module_created_datetime,module_id)
+  - KEY module_updated_datetime (module_updated_datetime,module_id)
 %{PREFIX}role:
   - PRIMARY KEY  (role_id)
 %{PREFIX}role_blog:
@@ -155,8 +159,6 @@
   - PRIMARY KEY  (tag_entry_id,tag_sort,tag_rev_id)
   - KEY tag_name_entry (tag_name,tag_entry_id,tag_rev_id)
   - KEY tag_blog_id (tag_blog_id,tag_name,tag_rev_id)
-%{PREFIX}trackback:
-  - PRIMARY KEY  (trackback_entry_id,trackback_id,trackback_status)
 %{PREFIX}user:
   - PRIMARY KEY  (user_id)
 %{PREFIX}user_session:
@@ -189,3 +191,6 @@
   - KEY log_webhook_id_datetime (log_webhook_id, log_webhook_datetime)
 %{PREFIX}token:
   - KEY token_index (token_key, token_type, token_expire)
+%{PREFIX}last_access:
+  - PRIMARY KEY (last_access_uid)
+  - KEY datetime (last_access_uid, last_access_datetime)

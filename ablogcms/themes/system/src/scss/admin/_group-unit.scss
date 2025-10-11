@@ -1,0 +1,178 @@
+@use '../global/common' as global;
+
+/* GroupUnit
+=============================== */
+
+.acms-group-unit {
+  --acms-group-unit-level-color: transparent;
+}
+
+.acms-group-unit {
+  position: relative;
+  padding-left: 8px;
+
+  &::before {
+    position: absolute;
+    display: block;
+    border-left: 2px solid var(--acms-group-unit-level-color);
+    content: '';
+    inset: 16px 0;
+  }
+}
+
+/* 非表示のとき */
+.acms-unit[data-unit-status='close'] .acms-group-unit {
+  $level-color: global.$acms-color-system-gray20;
+
+  --acms-group-unit-level-color: #{$level-color};
+
+  .acms-group-unit-start .acms-unit-toolbar,
+  .acms-group-unit-end .acms-unit-toolbar {
+    --acms-unit-toolbar-color: #{global.$acms-color-system-gray80};
+    --acms-unit-toolbar-vr-color: #{global.$acms-color-system-gray40};
+
+    // --acms-unit-toolbar-color: #{global.color-contrast(
+    //     $background: $level-color,
+    //     $color-contrast-light: global.$acms-color-system-gray80
+    //   )};
+    // --acms-unit-toolbar-vr-color: #{global.color-contrast(
+    //     $background: $level-color,
+    //     $color-contrast-dark: global.$acms-color-system-gray80,
+    //     $color-contrast-light: global.$acms-color-system-gray40
+    //   )};
+  }
+
+  .acms-group-unit-start.acms-unit-toolbar-button,
+  .acms-group-unit-end.acms-unit-toolbar-button {
+    --acms-unit-toolbar-button-disabled-color: #{global.$acms-color-system-gray40};
+
+    // --acms-unit-toolbar-button-disabled-color: #{global.color-contrast(
+    //     $background: $level-color,
+    //     $color-contrast-dark: global.$acms-color-system-gray20,
+    //     $color-contrast-light: global.$acms-color-system-gray40
+    //   )};
+  }
+}
+
+.acms-group-unit-start,
+.acms-group-unit-end {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 32px;
+  background-color: var(--acms-group-unit-level-color);
+  border-radius: 6px;
+  box-shadow: 0 1px 4px 0 #3333;
+
+  &::before {
+    position: absolute;
+    top: 15px;
+    left: -8px;
+    display: block;
+    width: 9px;
+    height: 2px;
+    background-color: var(--acms-group-unit-level-color);
+    content: '';
+  }
+}
+
+.acms-group-unit-start {
+  margin-bottom: 16px;
+}
+
+.acms-unit[data-unit-type='group'][data-unit-children-count='0']:not([data-unit-collapsed='true']) > .acms-group-unit {
+  .acms-group-unit-start {
+    margin-bottom: 0;
+  }
+}
+
+.acms-group-unit.acms-group-unit-level1 {
+  $level-color: global.$acms-color-system-gray90;
+
+  --acms-group-unit-level-color: #{$level-color};
+
+  .acms-group-unit-start .acms-unit-toolbar,
+  .acms-group-unit-end .acms-unit-toolbar {
+    --acms-unit-toolbar-color: #{global.$acms-color-white};
+    --acms-unit-toolbar-vr-color: #{global.$acms-color-system-gray40};
+
+    // --acms-unit-toolbar-color: #{global.color-contrast(
+    //     $background: $level-color,
+    //     $color-contrast-light: global.$acms-color-system-gray80
+    //   )};
+    // --acms-unit-toolbar-vr-color: #{global.color-contrast(
+    //     $background: $level-color,
+    //     $color-contrast-dark: global.$acms-color-system-gray80,
+    //     $color-contrast-light: global.$acms-color-system-gray40
+    //   )};
+  }
+
+  .acms-group-unit-start .acms-unit-toolbar-button,
+  .acms-group-unit-end .acms-unit-toolbar-button {
+    --acms-unit-toolbar-button-hover-color: #{global.$acms-color-system-gray80};
+
+    // --acms-unit-toolbar-button-hover-color: #{global.color-contrast(
+    //     $background: $level-color,
+    //     $color-contrast-light: global.$acms-color-system-gray80,
+    //     $color-contrast-dark: global.$acms-color-system-gray20
+    //   )};
+  }
+}
+
+.acms-group-unit.acms-group-unit-level2 {
+  $level-color: global.$acms-color-system-gray70;
+
+  --acms-group-unit-level-color: #{$level-color};
+
+  // z-index: 2;
+
+  .acms-group-unit-start .acms-unit-toolbar,
+  .acms-group-unit-end .acms-unit-toolbar {
+    --acms-unit-toolbar-color: #{global.color-contrast(
+        $background: $level-color,
+        $color-contrast-light: global.$acms-color-system-gray80
+      )};
+    --acms-unit-toolbar-vr-color: #{global.color-contrast(
+        $background: $level-color,
+        $color-contrast-light: global.$acms-color-system-gray80,
+        $color-contrast-dark: global.$acms-color-system-gray40
+      )};
+  }
+
+  .acms-group-unit-start .acms-unit-toolbar-button,
+  .acms-group-unit-end .acms-unit-toolbar-button {
+    --acms-unit-toolbar-button-hover-color: #{global.color-contrast(
+        $background: $level-color,
+        $color-contrast-light: global.$acms-color-system-gray20,
+        $color-contrast-dark: global.$acms-color-system-gray80
+      )};
+  }
+}
+
+.acms-group-unit.acms-group-unit-level3 {
+  $level-color: global.$acms-color-system-gray40;
+
+  --acms-group-unit-level-color: #{$level-color};
+
+  .acms-group-unit-start .acms-unit-toolbar,
+  .acms-group-unit-end .acms-unit-toolbar {
+    --acms-unit-toolbar-color: #{global.color-contrast(
+        $background: $level-color,
+        $color-contrast-light: global.$acms-color-system-gray80
+      )};
+    --acms-unit-toolbar-vr-color: #{global.color-contrast(
+        $background: $level-color,
+        $color-contrast-light: global.$acms-color-system-gray80,
+        $color-contrast-dark: global.$acms-color-system-gray40
+      )};
+  }
+
+  .acms-group-unit-start .acms-unit-toolbar-button,
+  .acms-group-unit-end .acms-unit-toolbar-button {
+    --acms-unit-toolbar-button-hover-color: #{global.color-contrast(
+        $background: $level-color,
+        $color-contrast-light: global.$acms-color-system-gray20,
+        $color-contrast-dark: global.$acms-color-system-gray80
+      )};
+  }
+}

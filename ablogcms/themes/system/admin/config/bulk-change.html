@@ -1,119 +1,144 @@
 <header>
-	<div>
-		@include("/admin/topicpath.html")
-	</div>
-	<div>
-		@include("/admin/config/parts/header-editor.html", {"title": "<!--T-->一括変更フィールド設定<!--/T-->"})
-	</div>
+  <div>
+    @include("/admin/topicpath.html")
+  </div>
+  <div>
+    @include("/admin/config/parts/header-editor.html", {"title": "<!--T-->一括変更フィールド設定<!--/T-->"})
+  </div>
 </header>
+
+<form id="config-index-form" action="" method="post">
+  <input type="hidden" name="bid" value="%{BID}" />
+  <input type="hidden" name="admin" value="config_editor" />
+  <!-- BEGIN_IF [%{setid}/nem/] -->
+  <input type="hidden" name="setid" value="%{setid}" />
+  <input type="hidden" name="query[]" value="setid" />
+  <!-- END_IF -->
+  <!-- BEGIN_IF [%{rid}/nem/] -->
+  <input type="hidden" name="rid" value="%{rid}" />
+  <input type="hidden" name="query[]" value="rid" />
+  <!-- END_IF -->
+  <input type="hidden" name="ACMS_POST_2GET" value="on"/>
+</form>
 
 <!-- BEGIN_MODULE Admin_Config -->
 <!-- BEGIN_IF [{notice_mess}/nem/] -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span
-	class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
-	<button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->一括変更フィールド設定を保存しました<!--/T-->
-</p><!-- END_IF -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    aria-label="アラートを閉じる"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+  >
+    ×
+  </button>
+  <!--T-->一括変更フィールド設定を保存しました<!--/T-->
+</div><!-- END_IF -->
 
 <form action="" method="post" class="acms-admin-form">
-	<div class="js-acms_fix_marker acms_fix_bg">
-		<div class="acms_fix_bg_index acms-admin-form-group">
-      <div class="js-fake-form" data-method="post">
-        <input type="hidden" name="bid" value="%{BID}" />
-        <input type="hidden" name="admin" value="config_editor" />
-        <!-- BEGIN_IF [%{setid}/nem/] -->
-        <input type="hidden" name="setid" value="%{setid}" />
-        <input type="hidden" name="query[]" value="setid" />
-        <!-- END_IF -->
-        <!-- BEGIN_IF [%{rid}/nem/] -->
-        <input type="hidden" name="rid" value="%{rid}" />
-        <input type="hidden" name="query[]" value="rid" />
-        <!-- END_IF -->
-        <input type="hidden" name="ACMS_POST_2GET" value="on"/>
-        <button type="button" class="js-submit acms-admin-btn-admin acms-admin-inline-btn"><!--T-->一覧<!--/T--></button>
+  <div class="js-acms_fix_marker acms_fix_bg">
+    <div class="acms_fix_bg_index acms-admin-form-group">
+      <button
+        type="submit"
+        form="config-index-form"
+        class="acms-admin-btn-admin acms-admin-inline-btn"
+      >
+        <!--T-->一覧<!--/T-->
+      </button>
+
+      <button
+        type="submit"
+        name="ACMS_POST_Config"
+        class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-admin-save js-saving-splash"
+      >
+        <!--T-->保存<!--/T-->
+      </button>
+      @include("/admin/config/action.html")
+
+      <!-- BEGIN_MODULE Touch_SessionWithAdministration -->
+      <div class="acms-admin-float-right">
+        <a href="%{ADMIN_BASE_URL}bid/%{BID}/admin/config_import-part/?setid=%{setid}&rid=%{rid}" class="acms-admin-btn-admin"><!--T-->インポート<!--/T--></a>
+        <button
+          type="submit"
+          name="ACMS_POST_Config_PartExport"
+          class="acms-admin-btn-admin"
+        >
+          <!--T-->エクスポート<!--/T-->
+        </button>
+        <a href="{shortcutUrl}" class="acms-admin-btn-admin"><i class="acms-admin-icon acms-admin-icon-shortcut"></i><!--T-->ショートカットに追加<!--/T--></a>
       </div>
+      <!-- END_MODULE Touch_SessionWithAdministration -->
+    </div>
+  </div>
 
-			<input type="submit" name="ACMS_POST_Config" value="<!--T-->保存<!--/T-->"
-				   class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-admin-save js-saving-splash"/>
-			@include("/admin/config/action.html")
+  <h2 class="acms-admin-admin-title2"><!--T-->変換項目設定<!--/T--></h2>
+  <table class="js-fieldgroup-sortable adminTable acms-admin-table-admin-edit" style="table-layout: fixed;">
+    <thead class="acms-admin-hide-sp">
+    <tr>
+      <th class="acms-admin-table-left acms-admin-admin-config-table-item-handle">&nbsp;</th>
+      <th class="acms-admin-table-left">
+        <!--T-->項目名<!--/T-->
+        <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->管理用のラベルです。日本語入力できます。<!--/T-->"></i>
+      </th>
+      <th class="acms-admin-table-left">
+        <!--T-->フィールド名 or フィールドグループ名（グループ名は@から書きます）<!--/T-->
+        <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->テンプレートにカスタムフィールド名を指定します。（field#フィールド名 or field#@グループ名）<!--/T-->"></i>
+      </th>
+      <th class="acms-admin-table-left acms-admin-admin-config-table-action"><!--T-->削除<!--/T--></th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- BEGIN bulkChangeFieldSetting:loop -->
+    <tr class="sortable-item">
+      <td class="item-handle">
+        <i class="acms-admin-icon-sort"></i>
+      </td>
+      <td>
+        <input type="text" name="bulkChangeFieldLabel[]" value="{bulkChangeFieldLabel}" class="acms-admin-form-width-full">
+      </td>
+      <td>
+        <input type="text" name="bulkChangeFieldKey[]" value="{bulkChangeFieldKey}" class="acms-admin-form-width-full">
+      </td>
+      <td>
+        <input type="button" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger" value="<!--T-->削除<!--/T-->">
+      </td>
+    </tr>
+    <!-- END bulkChangeFieldSetting:loop -->
+    <tr class="sortable-item item-template">
+      <td class="item-handle">
+        <i class="acms-admin-icon-sort"></i>
+      </td>
+      <td>
+        <input type="text" name="bulkChangeFieldLabel[]" value="" class="acms-admin-form-width-full">
+      </td>
+      <td>
+        <input type="text" name="bulkChangeFieldKey[]" value="" class="acms-admin-form-width-full">
+      </td>
+      <td>
+        <input type="button" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger" value="<!--T-->削除<!--/T-->">
+      </td>
+    </tr>
+    </tbody>
+    <tfoot>
+    <tr>
+      <td colspan="4">
+        <input type="button" class="item-insert acms-admin-btn-admin" value="<!--T-->追加<!--/T-->">
+      </td>
+    </tr>
+    </tfoot>
+  </table>
 
-			<!-- BEGIN_MODULE Touch_SessionWithAdministration -->
-			<div class="acms-admin-float-right">
-				<a href="%{ADMIN_BASE_URL}bid/%{BID}/admin/config_import-part/?setid=%{setid}&rid=%{rid}" class="acms-admin-btn-admin"><!--T-->インポート<!--/T--></a>
-				<input type="submit" name="ACMS_POST_Config_PartExport" class="acms-admin-btn-admin" value="<!--T-->エクスポート<!--/T-->"/>
-				<a href="{shortcutUrl}" class="acms-admin-btn-admin"><i class="acms-admin-icon acms-admin-icon-shortcut"></i><!--T-->ショートカットに追加<!--/T--></a>
-			</div>
-			<!-- END_MODULE Touch_SessionWithAdministration -->
-		</div>
-	</div>
+  <input type="hidden" name="@bulkChangeFieldSetting[]" value="bulkChangeFieldLabel">
+  <input type="hidden" name="config[]" value="bulkChangeFieldLabel">
 
-	<h2 class="acms-admin-admin-title2"><!--T-->変換項目設定<!--/T--></h2>
-	<table class="js-fieldgroup-sortable adminTable acms-admin-table-admin-edit" style="table-layout: fixed;">
-		<thead class="acms-admin-hide-sp">
-		<tr>
-			<th class="acms-admin-table-left acms-admin-admin-config-table-item-handle">&nbsp;</th>
-			<th class="acms-admin-table-left">
-				<!--T-->項目名<!--/T-->
-				<i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->管理用のラベルです。日本語入力できます。<!--/T-->"></i>
-			</th>
-			<th class="acms-admin-table-left">
-				<!--T-->フィールド名 or フィールドグループ名（グループ名は@から書きます）<!--/T-->
-				<i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->テンプレートにカスタムフィールド名を指定します。（field#フィールド名 or field#@グループ名）<!--/T-->"></i>
-			</th>
-			<th class="acms-admin-table-left acms-admin-admin-config-table-action"><!--T-->削除<!--/T--></th>
-		</tr>
-		</thead>
-		<tbody>
-		<!-- BEGIN bulkChangeFieldSetting:loop -->
-		<tr class="sortable-item">
-			<td class="item-handle">
-				<i class="acms-admin-icon-sort"></i>
-			</td>
-			<td>
-				<input type="text" name="bulkChangeFieldLabel[]" value="{bulkChangeFieldLabel}" class="acms-admin-form-width-full">
-			</td>
-			<td>
-				<input type="text" name="bulkChangeFieldKey[]" value="{bulkChangeFieldKey}" class="acms-admin-form-width-full">
-			</td>
-			<td>
-				<input type="button" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger" value="<!--T-->削除<!--/T-->">
-			</td>
-		</tr>
-		<!-- END bulkChangeFieldSetting:loop -->
-		<tr class="sortable-item item-template">
-			<td class="item-handle">
-				<i class="acms-admin-icon-sort"></i>
-			</td>
-			<td>
-				<input type="text" name="bulkChangeFieldLabel[]" value="" class="acms-admin-form-width-full">
-			</td>
-			<td>
-				<input type="text" name="bulkChangeFieldKey[]" value="" class="acms-admin-form-width-full">
-			</td>
-			<td>
-				<input type="button" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger" value="<!--T-->削除<!--/T-->">
-			</td>
-		</tr>
-		</tbody>
-		<tfoot>
-		<tr>
-			<td colspan="4">
-				<input type="button" class="item-insert acms-admin-btn-admin" value="<!--T-->追加<!--/T-->">
-			</td>
-		</tr>
-		</tfoot>
-	</table>
+  <input type="hidden" name="@bulkChangeFieldSetting[]" value="bulkChangeFieldKey">
+  <input type="hidden" name="config[]" value="bulkChangeFieldKey">
 
-	<input type="hidden" name="@bulkChangeFieldSetting[]" value="bulkChangeFieldLabel">
-	<input type="hidden" name="config[]" value="bulkChangeFieldLabel">
+  <input type="hidden" name="config[]" value="@bulkChangeFieldSetting">
 
-	<input type="hidden" name="@bulkChangeFieldSetting[]" value="bulkChangeFieldKey">
-	<input type="hidden" name="config[]" value="bulkChangeFieldKey">
-
-	<input type="hidden" name="config[]" value="@bulkChangeFieldSetting">
-
-	<!-- BEGIN_MODULE Admin_Rule_Name -->
-	<input type="hidden" name="rid" value="{rid}" /><!-- END_MODULE Admin_Rule_Name --><!-- BEGIN_MODULE Admin_Module_Name -->
-	<input type="hidden" name="mid" value="{mid}" /><!-- END_MODULE Admin_Module_Name --><!-- BEGIN_MODULE Admin_Config_Set_Name -->
-	<input type="hidden" name="setid" value="{setid}" /><!-- END_MODULE Admin_Config_Set_Name -->
+  <!-- BEGIN_MODULE Admin_Rule_Name -->
+  <input type="hidden" name="rid" value="{rid}" /><!-- END_MODULE Admin_Rule_Name --><!-- BEGIN_MODULE Admin_Module_Name -->
+  <input type="hidden" name="mid" value="{mid}" /><!-- END_MODULE Admin_Module_Name --><!-- BEGIN_MODULE Admin_Config_Set_Name -->
+  <input type="hidden" name="setid" value="{setid}" /><!-- END_MODULE Admin_Config_Set_Name -->
 </form>
 <!-- END_MODULE Admin_Config -->

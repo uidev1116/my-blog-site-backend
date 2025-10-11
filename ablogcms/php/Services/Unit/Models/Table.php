@@ -3,28 +3,60 @@
 namespace Acms\Services\Unit\Models;
 
 use Acms\Services\Unit\Contracts\Model;
+use Acms\Services\Unit\Contracts\AnkerUnitInterface;
+use Acms\Traits\Unit\AnkerUnitTrait;
+use Acms\Traits\Unit\UnitMultiLangTrait;
 use Template;
 
-class Table extends Model
+/**
+ * @extends \Acms\Services\Unit\Contracts\Model<array<string, mixed>>
+ */
+class Table extends Model implements AnkerUnitInterface
 {
+    use AnkerUnitTrait;
+    use UnitMultiLangTrait;
+
+    /**
+     * ユニットの独自データ
+     * @var array<string, mixed>
+     */
+    private $attributes = [];
+
     /**
      * ユニットタイプを取得
      *
-     * @return string
+     * @inheritDoc
      */
-    public function getUnitType(): string
+    public static function getUnitType(): string
     {
         return 'table';
     }
 
     /**
-     * ユニットが画像タイプか取得
-     *
-     * @return bool
+     * @inheritDoc
      */
-    public function getIsImageUnit(): bool
+    public static function getUnitLabel(): string
     {
-        return false;
+        return gettext('テーブル');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAttributes()
+    {
+        return [
+            'table_source' => $this->getField1(),
+            ...$this->attributes,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setAttributes($attributes): void
+    {
+        $this->attributes = $attributes;
     }
 
     /**
@@ -40,17 +72,15 @@ class Table extends Model
     }
 
     /**
-     * POSTデータからユニット独自データを抽出
-     *
-     * @param array $post
-     * @param bool $removeOld
-     * @param bool $isDirectEdit
-     * @return void
+     * @inheritDoc
      */
-    public function extract(array $post, bool $removeOld = true, bool $isDirectEdit = false): void
+    public function extract(array $request): void
     {
-        $id = $this->getTempId();
-        $this->setField1($this->implodeUnitData($post["table_source_{$id}"] ?? ''));
+        $id = $this->getId();
+        if (is_null($id)) {
+            throw new \LogicException('Unit ID must be set before calling extract');
+        }
+        $this->setField1($this->implodeUnitDataTrait($request["table_source_{$id}"] ?? ''));
     }
 
     /**
@@ -60,7 +90,7 @@ class Table extends Model
      */
     public function canSave(): bool
     {
-        if (empty($this->getField1())) {
+        if ($this->getField1() === '') {
             return false;
         }
         return true;
@@ -114,14 +144,14 @@ class Table extends Model
      */
     public function render(Template $tpl, array $vars, array $rootBlock): void
     {
-        if (empty($this->getField1())) {
+        if ($this->getField1() === '') {
             return;
         }
         $vars += [
             'table' => $this->getField1(),
+            'anker' => $this->getAnker(),
         ];
-        $vars['attr'] = $this->getAttr();
-        $this->formatMultiLangUnitData($vars['table'], $vars, 'table');
+        $this->formatMultiLangUnitDataTrait($vars['table'], $vars, 'table');
         $tpl->add(array_merge(['unit#' . $this->getType()], $rootBlock), $vars);
     }
 
@@ -135,8 +165,8 @@ class Table extends Model
      */
     public function renderEdit(Template $tpl, array $vars, array $rootBlock): void
     {
-        $this->formatMultiLangUnitData($this->getField1(), $vars, 'table');
-        $tpl->add(array_merge([$this->getUnitType()], $rootBlock), $vars);
+        $this->formatMultiLangUnitDataTrait($this->getField1(), $vars, 'table');
+        $tpl->add(array_merge([$this::getUnitType()], $rootBlock), $vars);
     }
 
     /**
@@ -147,7 +177,7 @@ class Table extends Model
     protected function getLegacy(): array
     {
         return [
-            'table' => $this->getField1(),
+            'table' => $this->getField1()
         ];
     }
 }

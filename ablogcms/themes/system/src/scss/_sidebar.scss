@@ -30,7 +30,7 @@
 
   @include global.font-size(14);
 
-  @media (min-width: global.$breakpoint-md-min) {
+  @include global.media-breakpoint-up(md) {
     padding: 5px 15px;
     background-color: inherit;
     border-top: 1px solid global.$acms-color-gray80;
@@ -73,7 +73,7 @@
   display: block;
 
   // 表示
-  @media (min-width: global.$breakpoint-md-min) {
+  @include global.media-breakpoint-up(md) {
     display: none;
   }
 

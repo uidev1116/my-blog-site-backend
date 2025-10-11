@@ -1,0 +1,35 @@
+<div>
+  <div>
+    <div>
+      <div class="js-table-unit">
+        <!-- BEGIN_IF [{table}[delnl]/em] -->
+        <div class="js-editable-table-{id}">
+          <table>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </table>
+          <input type="hidden" name="table_source_{id}[]" value="{table}" class="js-editable-table-dest" />
+        </div>
+        <!-- ELSE -->
+        <div class="js-editable-table-{id}" data-dest="table_source_{id}[]">
+          {table}[raw]
+          <input type="hidden" name="table_source_{id}[]" value="{table}" class="js-editable-table-dest" />
+        </div>
+        <!-- END_IF -->
+      </div>
+    </div>
+  </div>
+</div>

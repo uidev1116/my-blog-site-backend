@@ -27,9 +27,14 @@
           </div>
           <div class="acms-admin-filter-item acms-admin-filter-item-full">
             <label for="filter-keyword" class="acms-admin-filter-item-name"><!--T-->キーワード<!--/T--></label>
-            <div class="acms-admin-filter-item-content">
-              <input type="text" name="keyword" value="%{KEYWORD}" class="acms-admin-form-width-full" id="filter-keyword" placeholder="<!--T-->タイトル・本文・カスタムフィールドから検索（複数指定可）<!--/T-->"/>
-            </div>
+            <input
+              type="text"
+              name="keyword"
+              value="%{KEYWORD}"
+              class="acms-admin-form-width-full"
+              id="filter-keyword"
+              placeholder="<!--T-->タイトル・本文・カスタムフィールドから検索（複数指定可）<!--/T-->"
+            />
           </div>
         </div>
       </div>
@@ -86,18 +91,16 @@
             <div class="acms-admin-filter-content">
               <div class="acms-admin-filter-item">
                 <label for="filter-order" class="acms-admin-filter-item-name acms-admin-show-sp"><!--T-->ソート<!--/T--></label>
-                <div class="acms-admin-filter-item-content">
-                  <select name="order" class="js-select2" id="filter-order">
-                    <option value="datetime-asc"{order:selected#datetime-asc}><!--T-->日付 (昇順)<!--/T--></option>
-                    <option value="datetime-desc"{order:selected#datetime-desc}><!--T-->日付 (降順)<!--/T--></option>
-                    <option value="code-asc"{order:selected#code-asc}><!--T-->ファイル名（昇順）<!--/T--></option>
-                    <option value="code-desc"{order:selected#code-desc}><!--T-->ファイル名（降順）<!--/T--></option>
-                    <option value="id-asc"{order:selected#id-asc}><!--T-->ID（昇順）<!--/T--></option>
-                    <option value="id-desc"{order:selected#id-desc}><!--T-->ID（降順）<!--/T--></option>
-                    <option value="sort-asc"{order:selected#sort-asc}><!--T-->表示順（昇順）<!--/T--></option>
-                    <option value="sort-desc"{order:selected#sort-desc}><!--T-->表示順（降順）<!--/T--></option>
-                  </select>
-                </div>
+                <select name="order" class="js-select2" id="filter-order">
+                  <option value="datetime-asc"{order:selected#datetime-asc}><!--T-->日付 (昇順)<!--/T--></option>
+                  <option value="datetime-desc"{order:selected#datetime-desc}><!--T-->日付 (降順)<!--/T--></option>
+                  <option value="code-asc"{order:selected#code-asc}><!--T-->ファイル名（昇順）<!--/T--></option>
+                  <option value="code-desc"{order:selected#code-desc}><!--T-->ファイル名（降順）<!--/T--></option>
+                  <option value="id-asc"{order:selected#id-asc}><!--T-->ID（昇順）<!--/T--></option>
+                  <option value="id-desc"{order:selected#id-desc}><!--T-->ID（降順）<!--/T--></option>
+                  <option value="sort-asc"{order:selected#sort-asc}><!--T-->表示順（昇順）<!--/T--></option>
+                  <option value="sort-desc"{order:selected#sort-desc}><!--T-->表示順（降順）<!--/T--></option>
+                </select>
               </div>
             </div>
           </div>
@@ -155,24 +158,8 @@
     </tbody>
   </table>
 
-  <div class="js-ajax_load_link acms-admin-grid">
-    <div class="acms-admin-col-8">
-      <!-- BEGIN pager:veil -->
-      <div class="acms-admin-pager-container">
-        <ul class="acms-admin-pager"><!-- BEGIN backLink -->
-          <li class="prev"><a href="{url}">&laquo;&nbsp;<!--T-->前へ<!--/T--></a></li><!-- END backLink --><!-- BEGIN page:loop -->
-          <li{pageCurAttr}[raw]><span><!-- BEGIN link#front --><a href="{url}"><!-- END link#front -->{page}<!-- BEGIN link#rear --></a><!-- END link#rear --></span></li><!-- END page:loop --><!-- BEGIN lastPage:veil -->
-          <li class="last"><a href="{lastPageUrl}">...{lastPage}</a></li><!-- END lastPage:veil --><!-- BEGIN forwardLink -->
-          <li class="next"><a href="{url}"><!--T-->次へ<!--/T-->&nbsp;&raquo;</a></li><!-- END forwardLink -->
-        </ul>
-      </div>
-      <!-- END pager:veil -->
-    </div>
-    <div class="acms-admin-col-4">
-      <div class="acms-admin-float-right">
-        <p>{itemsFrom}<!--T-->件<!--/T--> - {itemsTo}<!--T-->件<!--/T--> / <!--T-->全<!--/T-->{itemsAmount}<!--T-->件<!--/T--></p>
-      </div>
-    </div>
+  <div class="js-ajax_load_link acms-admin-cssgrid">
+    @include("/admin/include/pagination.html")
   </div><!-- /.acms-grid -->
 </div>
 </div>

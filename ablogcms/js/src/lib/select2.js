@@ -1,13 +1,18 @@
 import 'select2/dist/js/select2.full';
 import 'select2/dist/css/select2.css';
 
-import { findAncestor } from './dom';
+const defaultOption = {
+  containerCssClass: 'acms-admin-selectbox',
+  dropdownCssClass: 'acms-admin-select-dropdown',
+};
 
-export default (context, option) => {
-  $(context)
-    .select2(option)
+export default function setupSelect2(element, option = {}) {
+  const options = { ...defaultOption, ...option };
+  const $element = $(element);
+  $element
+    .select2(options)
     .on('select2:open', () => {
-      const positionY = context.getBoundingClientRect().top;
+      const positionY = element.getBoundingClientRect().top;
       let margin = window.innerHeight - positionY;
       if (positionY > margin) {
         margin = positionY;
@@ -19,10 +24,10 @@ export default (context, option) => {
       $('.select2-results__options').css('max-height', `${margin}px`);
     })
     .on('select2:select', () => {
-      $(context).trigger('change');
-      context.dispatchEvent(new Event('change'));
+      $(element).trigger('change');
+      element.dispatchEvent(new Event('change', { bubbles: true }));
     });
-  if (findAncestor(context, '.acms-admin-modal-dialog')) {
-    $(context).data('select2').$dropdown.addClass('select2-in-modal');
+  if (element.closest('.acms-admin-modal-dialog')) {
+    $(element).data('select2').$dropdown.addClass('select2-in-modal');
   }
-};
+}

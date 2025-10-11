@@ -14,7 +14,7 @@ class ACMS_GET_Admin_Category_SelectGlobal extends ACMS_GET_Admin
         }
 
         $Tpl = new Template($this->tpl, new ACMS_Corrector());
-        if (in_array(ADMIN, ['entry-edit', 'entry_editor', 'entry-add'], true)) {
+        if (in_array(ADMIN, ['entry-edit', 'entry_editor'], true)) {
             $target_bid = $this->bid;
         } else {
             $target_bid = $this->Get->get('_bid', $this->bid);
@@ -30,7 +30,7 @@ class ACMS_GET_Admin_Category_SelectGlobal extends ACMS_GET_Admin
         }
         $cid = $this->cid;
         $filterCid = 0;
-        if (intval($this->eid) > 0) {
+        if ($this->eid) {
             $cid = ACMS_RAM::entryCategory($this->eid);
         }
         $Tpl->add(null, $this->buildCategorySelect(

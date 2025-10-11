@@ -136,10 +136,10 @@ class Export
         $SQL = SQL::newSelect('config_set');
         $SQL->addWhereOpr('config_set_blog_id', $this->bid);
         $q = $SQL->get(dsn());
-        DB::query($q, 'fetch');
+        $statement = DB::query($q, 'exec');
         $records = [];
 
-        while ($r = DB::fetch($q)) {
+        while ($r = DB::next($statement)) {
             $records[] = $r;
         }
         $this->setYaml($records, 'config_set');
@@ -153,10 +153,10 @@ class Export
         $SQL = SQL::newSelect('config');
         $SQL->addWhereOpr('config_blog_id', $this->bid);
         $q = $SQL->get(dsn());
-        DB::query($q, 'fetch');
+        $statement = DB::query($q, 'exec');
         $records = [];
 
-        while ($r = DB::fetch($q)) {
+        while ($r = DB::next($statement)) {
             $this->extractMetaIds($r);
             $records[] = $r;
         }
@@ -171,10 +171,10 @@ class Export
         $SQL = SQL::newSelect('rule');
         $SQL->addWhereOpr('rule_blog_id', $this->bid);
         $q = $SQL->get(dsn());
-        DB::query($q, 'fetch');
+        $statement = DB::query($q, 'exec');
         $records = [];
 
-        while ($r = DB::fetch($q)) {
+        while ($r = DB::next($statement)) {
             $this->extractMetaIds($r);
             $records[] = $r;
         }
@@ -189,10 +189,10 @@ class Export
         $SQL = SQL::newSelect('module');
         $SQL->addWhereOpr('module_blog_id', $this->bid);
         $q = $SQL->get(dsn());
-        DB::query($q, 'fetch');
+        $statement = DB::query($q, 'exec');
         $records = [];
 
-        while ($r = DB::fetch($q)) {
+        while ($r = DB::next($statement)) {
             $this->extractMetaIds($r);
             $records[] = $r;
         }

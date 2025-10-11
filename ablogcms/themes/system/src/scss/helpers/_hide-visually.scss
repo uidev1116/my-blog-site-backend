@@ -1,0 +1,47 @@
+@use '../global/variables' as var;
+@use '../mixins/hide-visually' as mixins;
+@use '../mixins/breakpoints' as breakpoints;
+
+// ---------------
+// Hide Visually
+// ---------------
+
+// スクリーンリーダー用
+//このクラスを適応した要素は、目では見えませんが、音声では認識できるようになります。
+.acms-hide-visually,
+.acms-hide-visually-focusable:not(:focus, :focus-within) {
+  @include mixins.hide-visually;
+}
+
+// legacy
+// hide-visually をブレイクポイントによって切り替えたい場面はないと思うので、非推奨とする
+// ブレイクポイントの分け方も範囲指定で使いづらい。
+@include breakpoints.media-breakpoint-down(sm) {
+  .acms-hide-visually-xs {
+    @include mixins.hide-visually;
+  }
+}
+
+@include breakpoints.media-breakpoint-between(sm, md) {
+  .acms-hide-visually-sm {
+    @include mixins.hide-visually;
+  }
+}
+
+@include breakpoints.media-breakpoint-between(md, lg) {
+  .acms-hide-visually-md {
+    @include mixins.hide-visually;
+  }
+}
+
+@include breakpoints.media-breakpoint-between(lg, xl) {
+  .acms-hide-visually-lg {
+    @include mixins.hide-visually;
+  }
+}
+
+@include breakpoints.media-breakpoint-up(xl) {
+  .acms-hide-visually-xl {
+    @include mixins.hide-visually;
+  }
+}

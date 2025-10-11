@@ -4,6 +4,7 @@ use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Common;
 use Acms\Services\Facades\Entry;
 use Acms\Services\Facades\Logger as AcmsLogger;
+use Acms\Services\Unit\Contracts\Model;
 
 class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
 {
@@ -15,6 +16,7 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
         if (!$this->validate($eid)) {
             AcmsLogger::info('「' . ACMS_RAM::entryTitle($eid) . '」エントリーを複製に失敗しました');
         }
+        /** @var int<1, max> $eid */
         $newEid = $this->duplicate($eid);
         $cid = idval($this->Post->get('cid'));
 
@@ -22,22 +24,29 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
             'newEID' => $newEid,
         ]);
 
-        $this->redirect(acmsLink([
-            'bid'   => BID,
-            'cid'   => $cid,
-            'eid'   => $newEid,
-        ]));
+        if ($eid === EID) { // @phpstan-ignore-line
+            // 詳細画面からの複製の場合は、複製先のエントリー詳細画面にリダイレクト
+            $this->redirect(acmsLink([
+                'bid'   => BID,
+                'cid'   => $cid,
+                'eid'   => $newEid,
+            ]));
+        }
+        return $this->Post;
     }
 
     /**
      * エントリーを複製する
      * @param int $eid 複製元のエントリーID
-     * @return int 複製先のエントリーID
+     * @return int<1, max> 複製先のエントリーID
      */
     protected function duplicate($eid)
     {
         $DB = DB::singleton(dsn());
-        $newEid = $DB->query(SQL::nextval('entry_id', dsn()), 'seq');
+        $newEid = (int)$DB->query(SQL::nextval('entry_id', dsn()), 'seq');
+        if ($newEid < 1) {
+            throw new \RuntimeException('Failed to generate new entry id');
+        }
         if (enableApproval(BID, CID) && !sessionWithApprovalAdministrator(BID, CID)) {
             $this->approvalDupe($eid, $newEid);
             if (HOOK_ENABLE) {
@@ -64,22 +73,7 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
         if (empty($eid)) {
             return false;
         }
-        $bid = ACMS_RAM::entryBlog($eid);
-        if (roleAvailableUser()) {
-            if (!roleAuthorization('entry_edit', $bid, $eid)) {
-                return false;
-            }
-        } else {
-            if (!sessionWithCompilation($bid)) {
-                if (!sessionWithContribution($bid)) {
-                    return false;
-                }
-                if (SUID <> ACMS_RAM::entryUser($eid) && !enableApproval($bid, CID)) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        return Entry::canDuplicate($eid);
     }
 
     /**
@@ -90,19 +84,21 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
      */
     protected function relationDupe($eid, $newEid)
     {
-        $DB     = DB::singleton(dsn());
-
-        $SQL    = SQL::newSelect('relationship');
+        $SQL = SQL::newSelect('relationship');
         $SQL->addWhereOpr('relation_id', $eid);
-        $all    = $DB->query($SQL->get(dsn()), 'all');
+        $all = DB::query($SQL->get(dsn()), 'all');
 
+        $sql = SQL::newBulkInsert('relationship');
         foreach ($all as $row) {
-            $SQL = SQL::newInsert('relationship');
-            $SQL->addInsert('relation_id', $newEid);
-            $SQL->addInsert('relation_eid', $row['relation_eid']);
-            $SQL->addInsert('relation_type', $row['relation_type']);
-            $SQL->addInsert('relation_order', $row['relation_order']);
-            $DB->query($SQL->get(dsn()), 'exec');
+            $sql->addInsert([
+                'relation_id' => $newEid,
+                'relation_eid' => $row['relation_eid'],
+                'relation_type' => $row['relation_type'],
+                'relation_order' => $row['relation_order'],
+            ]);
+        }
+        if ($sql->hasData()) {
+            DB::query($sql->get(dsn()), 'exec');
         }
     }
 
@@ -135,13 +131,13 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
      */
     protected function approvalDupe($eid, $newEid)
     {
-        $DB         = DB::singleton(dsn());
-        $bid        = ACMS_RAM::entryBlog($eid);
-        $approval   = ACMS_RAM::entryApproval($eid);
-        $sourceRev  = false;
+        $DB = DB::singleton(dsn());
+        $bid = ACMS_RAM::entryBlog($eid);
+        $approval = ACMS_RAM::entryApproval($eid);
+        $sourceRev = false;
 
         if ($approval === 'pre_approval') {
-            $sourceRev  = true;
+            $sourceRev = true;
         }
 
         //------
@@ -149,71 +145,73 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
         $unitRepository = Application::make('unit-repository');
         assert($unitRepository instanceof \Acms\Services\Unit\Repository);
         $rvid = $sourceRev ? 1 : null;
-        $map = $unitRepository->duplicateUnits($eid, $newEid, $rvid, 1);
+        $collection = $unitRepository->duplicateUnits($eid, $newEid, $rvid, 1);
+
 
         //-------
         // entry
         if ($sourceRev) {
-            $SQL    = SQL::newSelect('entry_rev');
+            $SQL = SQL::newSelect('entry_rev');
             $SQL->addWhereOpr('entry_rev_id', 1);
         } else {
-            $SQL    = SQL::newSelect('entry');
+            $SQL = SQL::newSelect('entry');
         }
         $SQL->addWhereOpr('entry_id', $eid);
         $SQL->addWhereOpr('entry_blog_id', $bid);
         $row = $DB->query($SQL->get(dsn()), 'row');
-        $title  = $row['entry_title'] . config('entry_title_duplicate_suffix');
-        $code   = ('on' == config('entry_code_title')) ? stripWhitespace($title) : config('entry_code_prefix') . $newEid;
+        $title = $row['entry_title'] . config('entry_title_duplicate_suffix');
+        $code = ('on' == config('entry_code_title')) ? stripWhitespace($title) : config('entry_code_prefix') . $newEid;
         if (!!config('entry_code_extension') and !strpos($code, '.')) {
             $code .= ('.' . config('entry_code_extension'));
         }
 
-        $uid    = intval($row['entry_user_id']);
+        $uid = intval($row['entry_user_id']);
         if (!($cid = intval($row['entry_category_id']))) {
             $cid = null;
         };
 
         //------
         // sort
-        $SQL    = SQL::newSelect('entry');
+        $SQL = SQL::newSelect('entry');
         $SQL->setSelect('entry_sort');
         $SQL->addWhereOpr('entry_blog_id', $bid);
         $SQL->setOrder('entry_sort', 'DESC');
         $SQL->setLimit(1);
-        $esort  = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
+        $esort = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
 
-        $SQL    = SQL::newSelect('entry');
+        $SQL = SQL::newSelect('entry');
         $SQL->setSelect('entry_user_sort');
         $SQL->addWhereOpr('entry_user_id', $uid);
         $SQL->addWhereOpr('entry_blog_id', $bid);
         $SQL->setOrder('entry_user_sort', 'DESC');
         $SQL->setLimit(1);
-        $usort  = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
+        $usort = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
 
-        $SQL    = SQL::newSelect('entry');
+        $SQL = SQL::newSelect('entry');
         $SQL->setSelect('entry_category_sort');
         $SQL->addWhereOpr('entry_category_id', $cid);
         $SQL->addWhereOpr('entry_blog_id', $bid);
         $SQL->setOrder('entry_category_sort', 'DESC');
         $SQL->setLimit(1);
-        $csort  = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
+        $csort = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
 
-        $row['entry_id']        = $newEid;
-        $row['entry_status']    = 'close';
-        $row['entry_title']     = $title;
-        $row['entry_code']      = $code;
+        $row['entry_id'] = $newEid;
+        $row['entry_status'] = 'close';
+        $row['entry_title'] = $title;
+        $row['entry_code'] = $code;
         if (config('update_datetime_as_duplicate_entry') !== 'off') {
             $row['entry_datetime'] = date('Y-m-d H:i:s', REQUEST_TIME);
         }
-        $row['entry_posted_datetime']   = date('Y-m-d H:i:s', REQUEST_TIME);
-        $row['entry_updated_datetime']  = date('Y-m-d H:i:s', REQUEST_TIME);
-        $row['entry_hash']              = md5(SYSTEM_GENERATED_DATETIME . date('Y-m-d H:i:s', REQUEST_TIME));
-        $row['entry_primary_image']     = !empty($map[$row['entry_primary_image']]) ? $map[$row['entry_primary_image']] : null;
-        $row['entry_sort']              = $esort;
-        $row['entry_user_sort']         = $usort;
-        $row['entry_category_sort']     = $csort;
-        $row['entry_user_id']           = SUID;
-        $SQL    = SQL::newInsert('entry');
+        $row['entry_posted_datetime'] = date('Y-m-d H:i:s', REQUEST_TIME);
+        $row['entry_updated_datetime'] = date('Y-m-d H:i:s', REQUEST_TIME);
+        $row['entry_hash'] = md5(SYSTEM_GENERATED_DATETIME . date('Y-m-d H:i:s', REQUEST_TIME));
+        $primaryImageUnit = $collection->getPrimaryImageUnit();
+        $row['entry_primary_image'] = $primaryImageUnit ? $primaryImageUnit->getId() : null;
+        $row['entry_sort'] = $esort;
+        $row['entry_user_sort'] = $usort;
+        $row['entry_category_sort'] = $csort;
+        $row['entry_user_id'] = SUID;
+        $SQL = SQL::newInsert('entry');
         foreach ($row as $fd => $val) {
             if (
                 !in_array($fd, [
@@ -239,7 +237,7 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
         $SQL->addInsert('entry_last_update_user_id', SUID);
         $DB->query($SQL->get(dsn()), 'exec');
 
-        $SQL    = SQL::newInsert('entry_rev');
+        $SQL = SQL::newInsert('entry_rev');
         foreach ($row as $fd => $val) {
             if (
                 !in_array($fd, [
@@ -261,22 +259,26 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
 
         //-----
         // tag
-        $SQL    = SQL::newSelect('tag');
+        $SQL = SQL::newSelect($sourceRev ? 'tag_rev' : 'tag');
         $SQL->addWhereOpr('tag_entry_id', $eid);
         $SQL->addWhereOpr('tag_blog_id', $bid);
-        $q  = $SQL->get(dsn());
-        if ($DB->query($q, 'fetch') and ($row = $DB->fetch($q))) {
+        if ($sourceRev) {
+            $SQL->addWhereOpr('tag_rev_id', 1);
+        }
+        $q = $SQL->get(dsn());
+        $statement = $DB->query($q, 'exec');
+        if ($statement && ($row = $DB->next($statement))) {
+            $insert = SQL::newBulkInsert('tag_rev');
             do {
-                $row['tag_entry_id']    = $newEid;
-                $Insert = SQL::newInsert('tag_rev');
-                foreach ($row as $fd => $val) {
-                    $Insert->addInsert($fd, $val);
-                }
+                $row['tag_entry_id'] = $newEid;
                 if (!$sourceRev) {
-                    $Insert->addInsert('tag_rev_id', 1);
+                    $row['tag_rev_id'] = 1;
                 }
-                $DB->query($Insert->get(dsn()), 'exec');
-            } while ($row = $DB->fetch($q));
+                $insert->addInsert($row);
+            } while ($row = $DB->next($statement));
+            if ($insert->hasData()) {
+                $DB->query($insert->get(dsn()), 'exec');
+            }
         }
 
         //--------------
@@ -291,12 +293,14 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
         //-------
         // field
         if ($sourceRev) {
-            $Field  = loadEntryField($eid, 1);
+            $Field = loadEntryField($eid, 1);
         } else {
-            $Field  = loadEntryField($eid);
+            $Field = loadEntryField($eid);
         }
         $this->duplicateFieldsTrait($Field);
+        Common::saveField('eid', $newEid, $Field);
         Entry::saveFieldRevision($newEid, $Field, 1);
+        Common::saveFulltext('eid', $newEid, Common::loadEntryFulltext($newEid));
     }
 
     /**
@@ -319,7 +323,7 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
         // unit
         $unitRepository = Application::make('unit-repository');
         assert($unitRepository instanceof \Acms\Services\Unit\Repository);
-        $map = $unitRepository->duplicateUnits($eid, $newEid, $sourceRvid, null);
+        $collection = $unitRepository->duplicateUnits($eid, $newEid, $sourceRvid, null);
 
         //-------
         // entry
@@ -340,46 +344,47 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
 
         //------
         // sort
-        $SQL    = SQL::newSelect('entry');
+        $SQL = SQL::newSelect('entry');
         $SQL->setSelect('entry_sort');
         $SQL->addWhereOpr('entry_blog_id', $bid);
         $SQL->setOrder('entry_sort', 'DESC');
         $SQL->setLimit(1);
-        $esort  = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
+        $esort = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
 
-        $SQL    = SQL::newSelect('entry');
+        $SQL = SQL::newSelect('entry');
         $SQL->setSelect('entry_user_sort');
         $SQL->addWhereOpr('entry_user_id', $uid);
         $SQL->addWhereOpr('entry_blog_id', $bid);
         $SQL->setOrder('entry_user_sort', 'DESC');
         $SQL->setLimit(1);
-        $usort  = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
+        $usort = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
 
-        $SQL    = SQL::newSelect('entry');
+        $SQL = SQL::newSelect('entry');
         $SQL->setSelect('entry_category_sort');
         $SQL->addWhereOpr('entry_category_id', $cid);
         $SQL->addWhereOpr('entry_blog_id', $bid);
         $SQL->setOrder('entry_category_sort', 'DESC');
         $SQL->setLimit(1);
-        $csort  = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
+        $csort = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
 
-        $row['entry_id']        = $newEid;
-        $row['entry_status']    = 'close';
-        $row['entry_approval']  = 'none';
-        $row['entry_title']     = $title;
-        $row['entry_code']      = $code;
+        $row['entry_id'] = $newEid;
+        $row['entry_status'] = 'close';
+        $row['entry_approval'] = 'none';
+        $row['entry_title'] = $title;
+        $row['entry_code'] = $code;
         if (config('update_datetime_as_duplicate_entry') !== 'off') {
             $row['entry_datetime'] = date('Y-m-d H:i:s', REQUEST_TIME);
         }
-        $row['entry_posted_datetime']   = date('Y-m-d H:i:s', REQUEST_TIME);
-        $row['entry_updated_datetime']  = date('Y-m-d H:i:s', REQUEST_TIME);
-        $row['entry_hash']              = md5(SYSTEM_GENERATED_DATETIME . date('Y-m-d H:i:s', REQUEST_TIME));
-        $row['entry_primary_image']     = !empty($map[$row['entry_primary_image']]) ? $map[$row['entry_primary_image']] : null;
-        $row['entry_sort']              = $esort;
-        $row['entry_user_sort']         = $usort;
-        $row['entry_category_sort']     = $csort;
-        $row['entry_user_id']           = SUID;
-        $SQL    = SQL::newInsert('entry');
+        $row['entry_posted_datetime'] = date('Y-m-d H:i:s', REQUEST_TIME);
+        $row['entry_updated_datetime'] = date('Y-m-d H:i:s', REQUEST_TIME);
+        $row['entry_hash'] = md5(SYSTEM_GENERATED_DATETIME . date('Y-m-d H:i:s', REQUEST_TIME));
+        $primaryImageUnit = $collection->getPrimaryImageUnit();
+        $row['entry_primary_image'] = $primaryImageUnit ? $primaryImageUnit->getId() : null;
+        $row['entry_sort'] = $esort;
+        $row['entry_user_sort'] = $usort;
+        $row['entry_category_sort'] = $csort;
+        $row['entry_user_id'] = SUID;
+        $SQL = SQL::newInsert('entry');
         foreach ($row as $fd => $val) {
             if ($fd === 'entry_current_rev_id' || $fd === 'entry_reserve_rev_id') {
                 continue;
@@ -390,19 +395,21 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
 
         //-----
         // tag
-        $SQL    = SQL::newSelect('tag');
+        $SQL = SQL::newSelect('tag');
         $SQL->addWhereOpr('tag_entry_id', $eid);
         $SQL->addWhereOpr('tag_blog_id', $bid);
-        $q  = $SQL->get(dsn());
-        if ($DB->query($q, 'fetch') and ($row = $DB->fetch($q))) {
+        $q = $SQL->get(dsn());
+        $statement = $DB->query($q, 'exec');
+
+        if ($statement && ($row = $DB->next($statement))) {
+            $insert = SQL::newBulkInsert('tag');
             do {
-                $row['tag_entry_id']    = $newEid;
-                $Insert = SQL::newInsert('tag');
-                foreach ($row as $fd => $val) {
-                    $Insert->addInsert($fd, $val);
-                }
-                $DB->query($Insert->get(dsn()), 'exec');
-            } while ($row = $DB->fetch($q));
+                $row['tag_entry_id'] = $newEid;
+                $insert->addInsert($row);
+            } while ($row = $DB->next($statement));
+            if ($insert->hasData()) {
+                $DB->query($insert->get(dsn()), 'exec');
+            }
         }
 
         //--------------

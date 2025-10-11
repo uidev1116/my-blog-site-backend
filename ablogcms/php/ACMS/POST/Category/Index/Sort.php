@@ -6,7 +6,7 @@ class ACMS_POST_Category_Index_Sort extends ACMS_POST
     {
         if (!sessionWithCompilation()) {
             AcmsLogger::warning('権限がないため、指定されたカテゴリーの並び順変更に失敗しました');
-            die();
+            die403();
         }
         if (!empty($_POST['checks']) and is_array($_POST['checks'])) {
             $DB = DB::singleton(dsn());
@@ -52,7 +52,7 @@ class ACMS_POST_Category_Index_Sort extends ACMS_POST
                 $SQL->addWhereOpr('category_blog_id', BID);
                 $SQL->setLimit(1);
                 if (!$row = $DB->query($SQL->get(dsn()), 'row')) {
-                    die('toSort object is not found');
+                    die500('toSort object is not found');
                 }
                 $toLeft     = intval($row['category_left']);
                 $toRight    = intval($row['category_right']);
@@ -64,7 +64,7 @@ class ACMS_POST_Category_Index_Sort extends ACMS_POST
                 $SQL->addWhereOpr('category_id', $cid);
                 $SQL->addWhereOpr('category_blog_id', BID);
                 if (!$row = $DB->query($SQL->get(dsn()), 'row')) {
-                    die('fromSort object is not found');
+                    die500('fromSort object is not found');
                 }
                 $fromSort   = intval($row['category_sort']);
                 $fromLeft   = intval($row['category_left']);

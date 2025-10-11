@@ -25,8 +25,8 @@ class ACMS_POST_Fix_Tag extends ACMS_POST_Fix
         $Fix = $this->extract('fix', new ACMS_Validator());
         $tagSource  = $Fix->get('tagSource');
         $source     = ( 1
-            && isset($_FILES['source']['tmp_name'])
-            && Storage::isReadable($_FILES['source']['tmp_name'])
+            && is_uploaded_file($_FILES['source']['tmp_name'])
+            && LocalStorage::isReadable($_FILES['source']['tmp_name'])
         ) || $tagSource;
 
         $Fix->setMethod('source', 'required', $source);
@@ -48,14 +48,21 @@ class ACMS_POST_Fix_Tag extends ACMS_POST_Fix
                      * detect convert encoding
                      */
                     $uploadPath = $_FILES['source']['tmp_name'];
-                    $raw = Storage::get($uploadPath, dirname($uploadPath));
-
+                    if (is_uploaded_file($uploadPath) === false) {
+                        throw new \RuntimeException('無効なファイルです。');
+                    }
+                    $raw = LocalStorage::get($uploadPath, dirname($uploadPath));
+                    if ($raw === false) {
+                        throw new \RuntimeException('ファイルが見つかりません。');
+                    }
                     if ($enc = mb_detect_encoding($raw, 'UTF-8, EUC-JP, SJIS-win, SJIS, EUCJP-win')) {
                         $raw = mb_convert_encoding($raw, 'UTF-8', $enc);
                     }
-
                     $fixed = preg_replace('@,| |　@', '', $raw);
                     $words = preg_split('@[\x0D\x0A|\x0D|\x0A/]@', $fixed);
+                    if ($words === false) {
+                        throw new \RuntimeException('ワードが不正です');
+                    }
                     $words = array_unique(array_merge(array_diff($words, [''])));
 
                     $Fix->set('tagSource', implode(',', $words));
@@ -92,10 +99,9 @@ class ACMS_POST_Fix_Tag extends ACMS_POST_Fix
 
                 $SQL->addGroup('entry_id');
                 $q  = $SQL->get(dsn());
+                $statement = $DB->query($q, 'exec');
 
-                $DB->query($q, 'fetch');
-
-                while ($e = $DB->fetch($q)) {
+                while ($e = $DB->next($statement)) {
                     $insert = false;
                     $eid    = $e['entry_id'];
                     $title  = $e['entry_title'];

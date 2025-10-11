@@ -36,13 +36,13 @@ class Compiler extends ContractsCompiler
             }
             $resolver = empty($obj) ? new $class() : $obj;
             $html = $resolver->resolve($html, $document_root, $offset_dir, $domain, $blog_code);
-
-            $blogPath = \ACMS_RAM::blogDomain(BID);
-            if (DIR_OFFSET) {
-                $blogPath .= '/' . DIR_OFFSET;
-            }
-            $html = preg_replace('@(https?)?://' . $blogPath . '/?@', '/', $html);
         }
+        $blogPath = \ACMS_RAM::blogDomain(BID) ?? '';
+        if (DIR_OFFSET) {
+            $blogPath .= '/' . DIR_OFFSET;
+        }
+        $html = preg_replace('@(https?)?://' . preg_quote($blogPath, '@') . '(?::\d+)?/?@', '/', $html);
+
         return $html;
     }
 }

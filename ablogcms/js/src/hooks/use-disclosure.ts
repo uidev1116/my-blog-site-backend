@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import useFirstMountState from './use-first-mount-state';
 
 interface UseDisclosureProps {
@@ -15,6 +15,7 @@ interface UseDisclosureReturn {
   afterOpen: boolean;
   close: () => void;
   open: () => void;
+  toggle: () => void;
 }
 
 /**
@@ -46,19 +47,12 @@ interface UseDisclosureReturn {
  *
  * ```tsx
  * const Accordion = () => {
- *   const { isOpen, beforeClose, afterOpen, open, close } = useDisclosure({
+ *   const { isOpen, beforeClose, afterOpen, toggle } = useDisclosure({
  *     closeTimeout: 300,
  *     onAfterOpen: () => console.log('Opened!'),
  *     onAfterClose: () => console.log('Closed!'),
  *   });
  *
- *   const toggle = () => {
- *     if (isOpen) {
- *       close();
- *     } else {
- *       open();
- *     }
- *   };
  *
  *   return (
  *     <div className="accordion-section">
@@ -155,28 +149,50 @@ const useDisclosure = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [internalState.beforeClose, closeTimeout]);
 
+  // beforeCloseがtrueの間はisOpenをtrueとすることで、閉じるアニメーションを実行する
+  const isOpen = useMemo(
+    () => internalState.isOpen || internalState.beforeClose,
+    [internalState.isOpen, internalState.beforeClose]
+  );
+
   const open = useCallback(() => {
+    if (isOpen) {
+      // すでに開いている場合は何もしない
+      return;
+    }
     setInternalState({
       isOpen: true,
       beforeClose: false,
       afterOpen: false,
     });
-  }, []);
+  }, [isOpen]);
 
   const close = useCallback(() => {
+    if (!isOpen) {
+      // すでに閉じている場合は何もしない
+      return;
+    }
     setInternalState((prevState) => ({
       ...prevState,
       beforeClose: true,
     }));
-  }, []);
+  }, [isOpen]);
+
+  const toggle = useCallback(() => {
+    if (isOpen) {
+      close();
+    } else {
+      open();
+    }
+  }, [isOpen, open, close]);
 
   return {
-    // beforeCloseがtrueの間はisOpenをtrueとすることで、閉じるアニメーションを実行する
-    isOpen: internalState.isOpen || internalState.beforeClose,
+    isOpen,
     beforeClose: internalState.beforeClose,
     afterOpen: internalState.afterOpen,
     open,
     close,
+    toggle,
   };
 };
 

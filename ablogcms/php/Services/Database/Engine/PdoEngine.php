@@ -4,7 +4,9 @@ namespace Acms\Services\Database\Engine;
 
 use Acms\Services\Facades\Logger as AcmsLogger;
 use App;
+use SQL;
 use PDO;
+use PDOStatement;
 use PDOException;
 
 /**
@@ -22,6 +24,11 @@ class PdoEngine extends Base
      * @var bool
      */
     protected $throwException = false;
+
+    /**
+     * @var array
+     */
+    protected $params = [];
 
     /**
      * connect mysql server
@@ -59,11 +66,15 @@ class PdoEngine extends Base
 
         $charset = isset($dsn['charset']) ? $dsn['charset'] : 'UTF-8';
         $this->debug = !empty($dsn['debug']);
+        $this->isBenchmarkMode = isBenchMarkMode();
         $this->dsn = [
             'type' => isset($dsn['type']) ? $dsn['type'] : null,
             'debug' => $this->debug,
             'charset' => $charset,
         ];
+
+        $q = "SET SESSION sql_mode='ALLOW_INVALID_DATES'";
+        $this->query(['sql' => $q, 'params' => []], 'exec');
     }
 
     /**
@@ -157,7 +168,10 @@ class PdoEngine extends Base
             return $version;
         }
         $db = self::singleton(dsn());
-        $version = (string) $db->query('select version()', 'one');
+        $version = (string) $db->query([
+            'sql' => 'select version()',
+            'params' => []
+        ], 'one');
         return $version;
     }
 
@@ -170,7 +184,10 @@ class PdoEngine extends Base
      * 'one'    => 最初の行の最初のfieldを返す<br>
      * 'seq'    => insert,update,deleteされた件数を返す(int)
      *
-     * @param string $sql
+     * @param array{
+     *  sql: string,
+     *  params: list<mixed>|array<string, mixed>,
+     * } $sql
      * @param string $mode
      * @param boolean $buffered
      * @param boolean $auditLog
@@ -184,25 +201,34 @@ class PdoEngine extends Base
         $query_result_count++;
 
         try {
+            if (!isset($sql['sql'])) { // @phpstan-ignore-line
+                throw new \InvalidArgumentException('Invalid SQL format');
+            }
             $this->hook($sql);
+            $sqlString = $sql['sql'];
+            $sqlParams = $sql['params'];
+            $this->params = $sqlParams;
+
             $start_time = microtime(true);
             if ($buffered === false) {
                 $this->connection->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);
             } else {
                 $this->connection->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
             }
-            $res = $this->connection->query($sql);
+            $stmt = $this->connection->prepare($sqlString);
+            $stmt->execute($sqlParams);
+
             $exe_time = sprintf('%0.6f', microtime(true) - $start_time);
             $this->saveProcessingTime($sql, $exe_time);
-            $this->affectedRows = $res ? $res->rowCount() : 0;
-            $this->columnCount = $res ? $res->columnCount() : 0;
-            $this->statement = $res;
+            $this->affectedRows = $stmt ? $stmt->rowCount() : 0;
+            $this->columnCount = $stmt ? $stmt->columnCount() : 0;
+            $this->statement = $stmt;
 
             $method = strtolower($mode) . 'Mode';
             if (method_exists($this, $method)) {
-                $result = $this->{$method}($sql, $res); // @phpstan-ignore-line
+                $result = $this->{$method}($sql, $stmt); // @phpstan-ignore-line
             } else {
-                $result = $this->etcMode($sql, $res);
+                $result = $this->etcMode($sql, $stmt);
             }
             return $result;
         } catch (PDOException $e) {
@@ -211,7 +237,7 @@ class PdoEngine extends Base
                     'code' => $e->getCode(),
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),
-                    'sql' => $sql,
+                    'sql' => SQL::dumpSQL($sql),
                 ]);
             }
             if ($this->debug) {
@@ -232,23 +258,64 @@ class PdoEngine extends Base
     }
 
     /**
+     * プレースホルダー付きのSQL文字列を取得
+     *
+     * @return string
+     */
+    public function getQueryString(): string
+    {
+        if ($this->statement === null) {
+            return '';
+        }
+        return $this->statement->queryString;
+    }
+
+    /**
+     * プレースホルダーの値を取得
+     *
+     * @return array
+     */
+    public function getQueryParameter(): array
+    {
+        return $this->params;
+    }
+
+    /**
      * sql文を指定して1行ずつfetchされた値を返す
      * $DB->query($SQL->get(dsn()), 'fetch');<br>
      * while ( $row = $DB->fetch($q) ) {<br>
      *     $Config->addField($row['config_key'], $row['config_value']);<br>
      * }
      *
-     * @param string $sql
+     * @deprecated パフォーマンスの問題で非推奨
+     * @param array{
+     *  sql: string,
+     *  params: list<mixed>|array<string, mixed>,
+     * } | null $sql
+     * @param bool $reset
      * @return array|bool
      */
     public function fetch($sql = null, $reset = false)
     {
+        if ($sql === null) {
+            return false;
+        }
         $this->hook($sql);
-        $id = sha1($sql);
+        $encodedSql = json_encode($sql, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($encodedSql === false) {
+            throw new \RuntimeException('json_encode failed: ' . json_last_error_msg());
+        }
+        $id = hash('sha256', $encodedSql, false);
         if (!isset($this->fetch[$id])) {
             return false;
         }
-        if (!$row = $this->fetch[$id]->fetch(\PDO::FETCH_ASSOC)) {
+        if ($reset) {
+            $this->fetch[$id]->closeCursor();
+            unset($this->fetch[$id]);
+            return false;
+        }
+        $row = $this->fetch[$id]->fetch(\PDO::FETCH_ASSOC);
+        if ($row === false) {
             $this->fetch[$id]->closeCursor();
             unset($this->fetch[$id]);
             return false;
@@ -257,9 +324,35 @@ class PdoEngine extends Base
     }
 
     /**
+     * リソースを指定して1行ずつfetchされた値を返す
+     * $statement = Database::query($sql->get(dsn()), 'exec');
+     * while ($row = $DB->next($statement)) {
+     *     $Config->addField($row['config_key'], $row['config_value']);
+     * }
+     *
+     * @param PDOStatement|false $statement
+     * @return array|false
+     */
+    public function next(PDOStatement|false $statement)
+    {
+        if (!$statement) {
+            return false;
+        }
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        if ($row === false) {
+            $statement->closeCursor();
+            return false;
+        }
+        return $row;
+    }
+
+    /**
      * query()の結果を返す
      *
-     * @param string $sql
+     * @param array{
+     *   sql: string,
+     *   params: list<mixed>|array<string, mixed>,
+     * } $sql
      * @param mixed $response
      * @return mixed
      */
@@ -271,7 +364,10 @@ class PdoEngine extends Base
     /**
      * insert,update,deleteされた件数を返す
      *
-     * @param string $sql
+     * @param array{
+     *   sql: string,
+     *   params: list<mixed>|array<string, mixed>,
+     * } $sql
      * @param mixed $response
      * @return int
      */
@@ -280,7 +376,10 @@ class PdoEngine extends Base
         if (is_bool($response)) {
             return $this->connection->lastInsertId();
         } else {
-            $one = $this->query('select last_insert_id()', 'one');
+            $one = $this->query([
+                'sql' => 'select last_insert_id()',
+                'params' => [],
+            ], 'one');
             $response->closeCursor();
 
             return intval($one);
@@ -290,26 +389,16 @@ class PdoEngine extends Base
     /**
      * すべての行を連想配列で返す
      *
-     * @param string $sql
+     * @param array{
+     *   sql: string,
+     *   params: list<mixed>|array<string, mixed>,
+     * } $sql
      * @param mixed $response
      * @return array
      */
     protected function allMode($sql, $response)
     {
-        $all = [];
-        while ($row = $response->fetch(\PDO::FETCH_ASSOC)) {
-            if (is_array($row) and 'UTF-8' != $this->charset()) {
-                foreach ($row as $key => $val) {
-                    if (!is_null($val)) {
-                        $_val = mb_convert_encoding($val, 'UTF-8', $this->charset());
-                        if ($val === mb_convert_encoding($_val, $this->charset(), 'UTF-8')) {
-                            $row[$key] = $_val;
-                        }
-                    }
-                }
-            }
-            $all[] = $row;
-        }
+        $all = $response->fetchAll(PDO::FETCH_ASSOC);
         $response->closeCursor();
 
         return $all;
@@ -318,7 +407,10 @@ class PdoEngine extends Base
     /**
      * 最初の行を配列で返す
      *
-     * @param string $sql
+     * @param array{
+     *   sql: string,
+     *   params: list<mixed>|array<string, mixed>,
+     * } $sql
      * @param mixed $response
      * @return array
      */
@@ -326,14 +418,7 @@ class PdoEngine extends Base
     {
         $list = [];
         while ($row = $response->fetch(\PDO::FETCH_ASSOC)) {
-            $one = array_shift($row);
-            if (!is_null($one)) {
-                $_one = mb_convert_encoding($one, 'UTF-8', $this->charset());
-                if ($one === mb_convert_encoding($_one, $this->charset(), 'UTF-8')) {
-                    $one = $_one;
-                }
-            }
-            $list[] = $one;
+            $list[] = array_shift($row);
         }
         $response->closeCursor();
 
@@ -343,7 +428,10 @@ class PdoEngine extends Base
     /**
      * 最初の行の最初のcolumnの値を返す
      *
-     * @param string $sql
+     * @param array{
+     *   sql: string,
+     *   params: list<mixed>|array<string, mixed>,
+     * } $sql
      * @param mixed $response
      * @return string
      */
@@ -355,22 +443,16 @@ class PdoEngine extends Base
         $one = array_shift($row);
         $response->closeCursor();
 
-        if ('UTF-8' != $this->charset()) {
-            if (!is_null($one)) {
-                $_one = mb_convert_encoding($one, 'UTF-8', $this->charset());
-                if ($one === mb_convert_encoding($_one, $this->charset(), 'UTF-8')) {
-                    $one = $_one;
-                }
-            }
-        }
-
         return $one;
     }
 
     /**
      * 最初の行の連想配列を返す
      *
-     * @param string $sql
+     * @param array{
+     *   sql: string,
+     *   params: list<mixed>|array<string, mixed>,
+     * } $sql
      * @param mixed $response
      * @return array
      */
@@ -378,17 +460,6 @@ class PdoEngine extends Base
     {
         $row = $response->fetch(\PDO::FETCH_ASSOC);
         $response->closeCursor();
-
-        if (is_array($row) and 'UTF-8' != $this->charset()) {
-            foreach ($row as $key => $val) {
-                if (!is_null($val)) {
-                    $_val = mb_convert_encoding($val, 'UTF-8', $this->charset());
-                    if ($val === mb_convert_encoding($_val, $this->charset(), 'UTF-8')) {
-                        $row[$key] = $_val;
-                    }
-                }
-            }
-        }
 
         return $row;
     }

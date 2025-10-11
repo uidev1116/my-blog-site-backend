@@ -3,13 +3,9 @@
 // ------------------------------
 
 @mixin clearfix() {
-  &::before,
   &::after {
-    display: table;
-    content: ' ';
-  }
-
-  &::after {
+    display: block;
     clear: both;
+    content: '';
   }
 }

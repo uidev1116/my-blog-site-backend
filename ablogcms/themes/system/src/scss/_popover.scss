@@ -1,0 +1,36 @@
+@use 'global/common' as global;
+
+/* ------------------------------
+  ポップオーバー
+------------------------------- */
+
+.acms-popover {
+  --acms-popover-padding-x: 8px;
+  --acms-popover-padding-y: 12px;
+  --acms-popover-min-width: 280px;
+  --acms-popover-box-shadow: global.$acms-shadow-elevation-middle;
+
+  @include global.popover(
+    $padding-x: var(--acms-popover-padding-x),
+    $padding-y: var(--acms-popover-padding-y),
+    $min-width: var(--acms-popover-min-width),
+    $box-shadow: var(--acms-popover-box-shadow)
+  );
+
+  &[data-elevation='1'] {
+    --acms-popover-box-shadow: #{global.$acms-shadow-elevation-low};
+  }
+
+  &[data-elevation='2'] {
+    --acms-popover-box-shadow: #{global.$acms-shadow-elevation-middle};
+  }
+
+  &[data-elevation='3'] {
+    --acms-popover-box-shadow: #{global.$acms-shadow-elevation-high};
+  }
+}
+
+.acms-popover.small {
+  --acms-popover-padding-x: 4px;
+  --acms-popover-padding-y: 4px;
+}

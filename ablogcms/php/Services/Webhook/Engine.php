@@ -104,7 +104,8 @@ class Engine
         $sql->addWhereOpr('webhook_type', $type);
         $where = SQL::newWhere();
         foreach ($events as $event) {
-            $where->addWhere(SQL::newFunction("'{$event}', webhook_events", 'FIND_IN_SET'), 'OR');
+            $event = DB::quote($event);
+            $where->addWhere(SQL::newFunction("{$event}, `webhook_events`", 'FIND_IN_SET', null, false), 'OR');
         }
         $sql->addWhere($where);
         $where = SQL::newWhere();
@@ -129,10 +130,12 @@ class Engine
             $args = [$args];
         }
         array_unshift($args, $events);
-        $methodName = "{$type}Hook";
 
-        if (method_exists($this->payload, $methodName)) {
-            return call_user_func_array([$this->payload, $methodName], $args);
+        $methodName = "{$type}Hook";
+        $callback = [$this->payload, $methodName];
+        if (is_callable($callback)) {
+            /** @var callable $callback */
+            return call_user_func_array($callback, $args);
         }
         return false;
     }

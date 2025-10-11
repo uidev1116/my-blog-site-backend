@@ -2,7 +2,8 @@
 
 namespace Acms\Services\StaticExport;
 
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\Common;
 
 class TerminateCheck
 {
@@ -32,8 +33,8 @@ class TerminateCheck
      */
     public function terminate()
     {
-        Storage::remove($this->loggerPath);
-        Storage::put($this->terminateFlagPath, 'terminate');
+        LocalStorage::remove($this->loggerPath);
+        LocalStorage::put($this->terminateFlagPath, 'terminate');
     }
 
     /**
@@ -41,7 +42,7 @@ class TerminateCheck
      */
     public function removeFlag()
     {
-        Storage::remove($this->terminateFlagPath);
+        LocalStorage::remove($this->terminateFlagPath);
     }
 
     /**
@@ -49,9 +50,10 @@ class TerminateCheck
      */
     public function check()
     {
-        if (Storage::exists($this->terminateFlagPath)) {
-            Storage::remove($this->loggerPath);
+        if (LocalStorage::exists($this->terminateFlagPath)) {
+            LocalStorage::remove($this->loggerPath);
             $this->removeFlag();
+            Common::setSafeHeadersWithoutCache(200, 'text/plain');
             die();
         }
     }

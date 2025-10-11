@@ -294,6 +294,23 @@ export default function dispatchMediaField(context: Element | Document = documen
         });
       };
     });
+
+    useEffectOnce(() => {
+      const listener = (event: Event) => {
+        if (!(event instanceof CustomEvent)) return;
+        const media = event.detail;
+        handleChange(media);
+      };
+      inputs.forEach((input) => {
+        input?.addEventListener('acms.set-main-image', listener);
+      });
+      return () => {
+        inputs.forEach((input) => {
+          input?.removeEventListener('acms.set-main-image', listener);
+        });
+      };
+    });
+
     return (
       <>
         {dropArea !== null &&

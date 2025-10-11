@@ -1,103 +1,102 @@
 <?php
 
-class ACMS_POST_Fix_Replacement_All extends ACMS_POST
+use Acms\Services\Facades\Common;
+use Acms\Services\Facades\Database as DB;
+
+class ACMS_POST_Fix_Replacement_All extends ACMS_POST_Fix
 {
-    function post()
+    public function post()
     {
-        if (!sessionWithAdministration()) {
-            return false;
+        $field = $this->extract('fix');
+        if (!$this->validate($field)) {
+            return $this->Post;
         }
+        [$target, $pattern, $replacement, $filter] = $this->getReplaceSetting($field);
+        $targetBlogIds = $this->targetBlog($field->get('fix_replacement_target_blog') === 'descendant');
 
-        $Fix = $this->extract('fix');
-        $Fix->setMethod('fix_replacement_target', 'required');
-        $Fix->setMethod('fix_replacement_pattern', 'required');
-        $Fix->setMethod('fix_replacement_replacement', 'required');
+        $this->replaceAll($target, $pattern, $replacement, $targetBlogIds, $filter);
+        $updated = DB::affected_rows();
 
-        $Fix->validate(new ACMS_Validator());
+        $this->completeProcess($updated);
+        $this->saveLog($target, $updated, $pattern, $replacement);
 
-        if ($Fix->isValidAll()) {
-            $target = $Fix->get('fix_replacement_target');
-            $pattern = $Fix->get('fix_replacement_pattern');
-            $replacement = $Fix->get('fix_replacement_replacement');
-            $includeDescendant = $Fix->get('fix_replacement_target_blog') === 'descendant';
-
-            $this->replace($target, $pattern, $replacement, $includeDescendant);
-
-            $DB = DB::singleton(dsn());
-            $updated = $DB->affected_rows();
-
-            //----------
-            // fulltext
-            $SQL = SQL::newSelect('entry');
-            $SQL->addSelect('entry_id');
-            $q = $SQL->get(dsn());
-            $DB->query($q, 'fetch');
-            while ($row = $DB->fetch($q)) {
-                $eid = $row['entry_id'];
-                Common::saveFulltext('eid', $eid, Common::loadEntryFulltext($eid));
-                Common::deleteFieldCache('eid', $eid);
-            }
-
-            Cache::flush('temp');
-
-            $this->Post->set('updated', $updated);
-            $this->Post->set('message', 'success');
-
-            if (intval($updated) > 0) {
-                $targetName = '';
-                if ($target === 'title') {
-                    $targetName = 'タイトル';
-                }
-                if ($target === 'unit') {
-                    $targetName = 'ユニット';
-                }
-                if ($target === 'field') {
-                    $targetName = 'カスタムフィールド';
-                }
-
-                AcmsLogger::info($updated . '件、エントリーの「' . $targetName . '」のテキスト置換を実行しました「' . $pattern . '」->「' . $replacement . '」');
-            }
-        }
         return $this->Post;
     }
 
-    function replace($target, $pattern, $replacement, $includeDescendant = false)
+    /**
+     * 一括テキスト置換を実行
+     *
+     * @param string $target
+     * @param string $pattern
+     * @param string $replacement
+     * @param int[] $targetBlogIds
+     * @param string $filter
+     * @return void
+     */
+    public function replaceAll(string $target, string $pattern, string $replacement, array $targetBlogIds, string $filter = ''): void
     {
-        $DB = DB::singleton(dsn());
-        $SQL = null;
-        $blogIds = [BID];
-
-        if ($includeDescendant) {
-            $blog = SQL::newSelect('blog');
-            $blog->setSelect('blog_id');
-            ACMS_Filter::blogTree($blog, BID, 'descendant-or-self');
-            $blogIds = DB::query($blog->get(dsn()), 'list');
-        }
-
         switch ($target) {
             case 'title':
-                $REP = SQL::newFunction('entry_title', ['REPLACE', $pattern, $replacement]);
-                $SQL = SQL::newUpdate('entry');
-                $SQL->addUpdate('entry_title', $REP);
-                $SQL->addWhereOpr('entry_title', '%' . $pattern . '%', 'LIKE');
-                $SQL->addWhereIn('entry_blog_id', $blogIds);
+                $rep = SQL::newFunction('entry_title', ['REPLACE', $pattern, $replacement]);
+                $sql = SQL::newUpdate('entry');
+                $sql->addUpdate('entry_title', $rep);
+                $sql->addWhereOpr('entry_title', "%{$pattern}%", 'LIKE');
+                $sql->addWhereIn('entry_blog_id', $targetBlogIds);
+                DB::query($sql->get(dsn()), 'exec');
                 break;
             case 'unit':
-                $REP = SQL::newFunction('column_field_1', ['REPLACE', $pattern, $replacement]);
-                $SQL = SQL::newUpdate('column');
-                $SQL->addUpdate('column_field_1', $REP);
-                $SQL->addWhereOpr('column_field_1', '%' . $pattern . '%', 'LIKE');
-                $SQL->addWhereIn('column_blog_id', $blogIds);
+                $rep = SQL::newFunction('column_field_1', ['REPLACE', $pattern, $replacement]);
+                $sql = SQL::newUpdate('column');
+                $sql->addUpdate('column_field_1', $rep);
+                $sql->addWhereOpr('column_field_1', "%{$pattern}%", 'LIKE');
+                $sql->addWhereIn('column_blog_id', $targetBlogIds);
+                DB::query($sql->get(dsn()), 'exec');
+                break;
+            case 'custom_unit':
+                $rep = SQL::newFunction('field_value', ['REPLACE', $pattern, $replacement]);
+                $sql = SQL::newUpdate('field');
+                $sql->addUpdate('field_value', $rep);
+                $sql->addWhereOpr('field_unit_id', null, '<>');
+                $sql->addWhereOpr('field_value', "%{$pattern}%", 'LIKE');
+                if ($filter) {
+                    $sql->addWhereOpr('field_key', $filter);
+                }
+                $sql->addWhereIn('field_blog_id', $targetBlogIds);
+                DB::query($sql->get(dsn()), 'exec');
                 break;
             case 'field':
-                $REP = SQL::newFunction('field_value', ['REPLACE', $pattern, $replacement]);
-                $SQL = SQL::newUpdate('field');
-                $SQL->addUpdate('field_value', $REP);
-                $SQL->addWhereOpr('field_eid', null, '<>');
-                $SQL->addWhereOpr('field_value', '%' . $pattern . '%', 'LIKE');
-                $SQL->addWhereIn('field_blog_id', $blogIds);
+                $rep = SQL::newFunction('field_value', ['REPLACE', $pattern, $replacement]);
+                $sql = SQL::newUpdate('field');
+                $sql->addUpdate('field_value', $rep);
+                $sql->addWhereOpr('field_eid', null, '<>');
+                $sql->addWhereOpr('field_value', "%{$pattern}%", 'LIKE');
+                if ($filter) {
+                    $sql->addWhereOpr('field_key', $filter);
+                }
+                $sql->addWhereIn('field_blog_id', $targetBlogIds);
+                DB::query($sql->get(dsn()), 'exec');
                 break;
         }
-        return $DB->query($SQL->get(dsn()), 'exec');
+    }
+
+    /**
+     * 完了後の処理
+     *
+     * @param int $updated
+     * @return void
+     */
+    protected function completeProcess(int $updated): void
+    {
+        $SQL = SQL::newSelect('entry');
+        $SQL->addSelect('entry_id');
+        $q = $SQL->get(dsn());
+        $statement = DB::query($q, 'exec');
+        while ($row = DB::next($statement)) {
+            $eid = $row['entry_id'];
+            Common::saveFulltext('eid', $eid, Common::loadEntryFulltext($eid));
+            Common::deleteFieldCache('eid', $eid);
+        }
+
+        parent::completeProcess($updated);
     }
 }

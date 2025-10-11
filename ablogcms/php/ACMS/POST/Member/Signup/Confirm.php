@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_POST_Member_Signup_Confirm extends ACMS_POST_Member
 {
     /**
@@ -100,7 +102,10 @@ class ACMS_POST_Member_Signup_Confirm extends ACMS_POST_Member
         $user->setMethod('code', 'regex', REGEX_VALID_ID);
         $user->setMethod('mail_mobile', 'email');
         $user->setMethod('url', 'url');
-        $user->setMethod('login', 'isOperable', !SUID and 'on' == config('subscribe'));
+        if (SUID || !Login::canMemberSignin() || config('subscribe') !== 'on') { // @phpstan-ignore-line
+            $user->setMethod('login', 'isOperable', false);
+            httpStatusCode('403 Forbidden');
+        }
 
         if (config('email-auth-signin') !== 'on') {
             // パスワードなしのメール認証によるサインイン設定

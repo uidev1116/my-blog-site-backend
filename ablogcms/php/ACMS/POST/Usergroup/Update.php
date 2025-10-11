@@ -34,11 +34,15 @@ class ACMS_POST_Usergroup_Update extends ACMS_POST_Usergroup
             $SQL->addWhereOpr('usergroup_id', $ugid);
             $DB->query($SQL->get(dsn()), 'exec');
 
+            $sql = SQL::newBulkInsert('usergroup_user');
             foreach ($Usergroup->getArray('user_list') as $uid) {
-                $SQL    = SQL::newInsert('usergroup_user');
-                $SQL->addInsert('usergroup_id', $ugid);
-                $SQL->addInsert('user_id', $uid);
-                $DB->query($SQL->get(dsn()), 'exec');
+                $sql->addInsert([
+                    'usergroup_id' => $ugid,
+                    'user_id' => $uid,
+                ]);
+            }
+            if ($sql->hasData()) {
+                $DB->query($sql->get(dsn()), 'exec');
             }
 
             $this->Post->set('edit', 'update');

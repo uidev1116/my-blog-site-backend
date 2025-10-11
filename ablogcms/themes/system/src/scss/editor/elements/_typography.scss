@@ -1,0 +1,305 @@
+@use '../../global/common' as global;
+
+/* ------------------------------
+ テキスト
+------------------------------ */
+
+/* リンク
+----------------------------- */
+@include global.editor-style(
+  ('a'),
+  $exclude-classes: ('not-editor-style', 'media-image-block', 'column-image', 'column-media', 'column-eximage')
+) {
+  color: global.$acms-color-link-text;
+  text-decoration: underline;
+
+  @media (hover: hover) {
+    transition: color 0.2s linear;
+
+    &:where(:any-link):hover {
+      color: color-mix(in srgb, currentcolor 80%, black);
+    }
+  }
+}
+
+/* em
+----------------------------- */
+@include global.editor-style(('em')) {
+  font-style: italic;
+}
+
+/* strong
+----------------------------- */
+@include global.editor-style(('strong')) {
+  font-weight: bold;
+}
+
+/* mark
+----------------------------- */
+@include global.editor-style(('mark')) {
+  padding-block: 0.125rem;
+  color: inherit;
+  background-color: global.$hightlight-colors;
+  border-radius: 0.125rem;
+  box-decoration-break: clone;
+}
+
+/* code
+----------------------------- */
+@include global.editor-style(('code'), $exclude-classes: ('not-editor-style', 'code-highlight')) {
+  padding: 0.25em;
+  color: global.$acms-color-danger60;
+  background-color: global.$acms-color-gray20;
+  border: 1px solid global.$acms-color-system-gray40;
+  border-radius: 0.1875rem; /* 3px */
+
+  @include global.font-size(12);
+
+  @include global.media-breakpoint-up(md) {
+    @include global.font-size(14);
+  }
+}
+
+/* 見出し
+----------------------------- */
+@include global.editor-style('h1') {
+  font-weight: bold;
+  line-height: 1.5;
+  margin-block: calc(var(--unit-margin-top) + 0.923em) var(--unit-margin-bottom);
+
+  @include global.font-size(26);
+
+  @include global.media-breakpoint-up(md) {
+    @include global.font-size(28);
+  }
+}
+
+@include global.editor-style('h2') {
+  font-weight: bold;
+  line-height: 1.5;
+  margin-block: calc(var(--unit-margin-top) + 0.923em) var(--unit-margin-bottom);
+
+  @include global.font-size(22);
+
+  @include global.media-breakpoint-up(md) {
+    @include global.font-size(26);
+  }
+}
+
+@include global.editor-style('h3') {
+  font-weight: bold;
+  line-height: 1.5;
+  margin-block: calc(var(--unit-margin-top) + 0.667em) var(--unit-margin-bottom);
+
+  @include global.font-size(20);
+
+  @include global.media-breakpoint-up(md) {
+    @include global.font-size(24);
+  }
+}
+
+@include global.editor-style('h4') {
+  font-weight: bold;
+  line-height: 1.5;
+  margin-block: calc(var(--unit-margin-top) + 0.4em) var(--unit-margin-bottom);
+
+  @include global.font-size(16);
+
+  @include global.media-breakpoint-up(md) {
+    @include global.font-size(20);
+  }
+}
+
+@include global.editor-style('h5') {
+  font-weight: bold;
+  line-height: 1.7;
+  margin-block: calc(var(--unit-margin-top) + 0.25em) var(--unit-margin-bottom);
+
+  @include global.font-size(14);
+
+  @include global.media-breakpoint-up(md) {
+    @include global.font-size(16);
+  }
+}
+
+@include global.editor-style('h6') {
+  font-weight: bold;
+  line-height: 1.7;
+  margin-block: calc(var(--unit-margin-top) + 0.25em) var(--unit-margin-bottom);
+
+  @include global.font-size(14);
+
+  @include global.media-breakpoint-up(md) {
+    @include global.font-size(16);
+  }
+}
+
+/* 本文
+----------------------------- */
+@include global.editor-style('p') {
+  line-height: 1.7;
+  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+
+  @include global.font-size(14);
+
+  @include global.media-breakpoint-up(md) {
+    @include global.font-size(16);
+  }
+}
+
+/* リスト
+----------------------------- */
+@include global.editor-style('ul') {
+  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+  list-style: disc;
+  padding-inline-start: 1.5rem;
+
+  li {
+    line-height: 1.7;
+    margin-block-start: 0.5em;
+
+    @include global.font-size(14);
+
+    &:first-child {
+      margin-block-start: 0;
+    }
+
+    & > * {
+      /* ブロックエディター：リセット用 */
+      margin-block: 0;
+    }
+
+    ul {
+      margin-block: 0.5em 0;
+      list-style: circle;
+      padding-inline-start: 1.75rem;
+
+      ul {
+        list-style: square;
+      }
+    }
+  }
+
+  @include global.media-breakpoint-up(md) {
+    li {
+      @include global.font-size(16);
+    }
+  }
+}
+
+/* 番号付きリスト */
+@include global.editor-style('ol') {
+  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+  list-style-type: decimal;
+  padding-inline-start: 1.5rem;
+
+  li {
+    line-height: 1.7;
+    margin-block-start: 0.5em;
+
+    @include global.font-size(14);
+
+    &:first-child {
+      margin-block-start: 0;
+    }
+
+    & > * {
+      /* ブロックエディター：リセット用 */
+      margin-block: 0;
+    }
+
+    ol {
+      margin-block: 0.5em 0;
+      list-style-type: lower-alpha;
+      padding-inline-start: 1.75rem;
+
+      ol {
+        list-style-type: lower-roman;
+      }
+    }
+  }
+
+  @include global.media-breakpoint-up(md) {
+    li {
+      @include global.font-size(16);
+    }
+  }
+}
+
+/* 記述リスト */
+@include global.editor-style('dl') {
+  display: grid;
+  gap: 0.5em;
+  padding-block: 1em;
+  padding-inline-start: 0;
+  line-height: 1.7;
+  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+  border: 0 solid currentcolor;
+  border-block-start-width: 1px;
+  border-block-end-width: 1px;
+
+  @include global.font-size(14);
+
+  dt {
+    font-weight: bold;
+  }
+
+  dd {
+    margin-inline-start: 0; /* リセット用 */
+  }
+
+  dd + dt {
+    margin-top: 0.5em;
+  }
+
+  @include global.media-breakpoint-up(md) {
+    @include global.font-size(16);
+  }
+}
+
+/* ソースコード
+----------------------------- */
+@include global.editor-style(('pre')) {
+  max-width: 100%;
+  padding: 1rem;
+  overflow: auto;
+  color: global.$acms-color-black; /* 閲覧側画面の文字色はライブラリに依存 */
+  line-height: 1.7;
+  background-color: global.$acms-color-gray20;
+  border: 1px solid global.$acms-color-system-gray40;
+  border-radius: 0.375rem; /* 6px */
+  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+
+  @include global.font-size(14);
+
+  code {
+    /* リセット用 */
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+    background-color: inherit;
+    border: none;
+    box-shadow: none;
+  }
+
+  @include global.media-breakpoint-up(md) {
+    @include global.font-size(16);
+  }
+}
+
+/* 水平罫線
+----------------------------- */
+@include global.editor-style(('hr')) {
+  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+  border: 0 solid global.$acms-color-gray70;
+  border-top-width: 1px;
+}
+
+/* ブロックエディター用 */
+[data-type='horizontalRule'] {
+  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+
+  hr {
+    margin-block: 0;
+  }
+}

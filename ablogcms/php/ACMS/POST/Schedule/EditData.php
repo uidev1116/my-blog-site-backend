@@ -4,15 +4,16 @@ class ACMS_POST_Schedule_EditData extends ACMS_POST_Schedule
 {
     public function post()
     {
+        $scid = (int) $this->Get->get('scid', 0);
         $Conf = $this->extract('schedule');
         $Conf->setMethod('year', 'regex', '@^[0-9]{4}$@');
         $Conf->setMethod('month', 'regex', '@^[0-9]{2}$@');
-        $Conf->setMethod('schedule', 'operative', sessionWithScheduleAdministration());
+        $Conf->setMethod('schedule', 'operative', sessionWithScheduleAdministration(BID, $scid));
         $Conf->validate(new ACMS_Validator());
 
         $year   = $Conf->get('year');
         $month  = $Conf->get('month');
-        $limit  = date('t', mktime(0, 0, 0, $month, 1, $year)) + 1;
+        $limit  = date('t', mktime(0, 0, 0, (int) $month, 1, (int) $year)) + 1;
 
         $sche   = [];
         $sfds   = [];
@@ -32,7 +33,6 @@ class ACMS_POST_Schedule_EditData extends ACMS_POST_Schedule
         }
 
         $DB     = DB::singleton(dsn());
-        $scid   = $this->Get->get('scid');
 
         // delete
         $SQL    = SQL::newDelete('schedule');

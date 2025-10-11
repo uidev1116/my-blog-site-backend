@@ -1,0 +1,47 @@
+<table class="entryFormColumnSettingTable entryFormColumnTable">
+  <tbody>
+    <tr>
+      <!-- BEGIN_IF [{youtubeId}/nem/] -->
+      <td class="entryFormFileentryFormImages">
+        <iframe
+          width="240"
+          height="150"
+          src="https://www.youtube.com/embed/{youtubeId}?wmode=transparent"
+          frameborder="0"
+          allowfullscreen
+        ></iframe>
+      </td>
+      <!-- END_IF -->
+      <td class="entryFormFileControl">
+        <table>
+          <tbody>
+            <tr>
+              <th>
+                <label for="unit-youtube-id-{id}">YouTube ID</label>
+              </th>
+              <td>
+                <input
+                  name="youtube_id_{id}"
+                  type="text"
+                  value="{youtubeId}"
+                  size="15"
+                  id="unit-youtube-id-{id}"
+                >
+              </td>
+            </tr>
+            <tr>
+              <th><label for="unit-youtube-size-{id}"><!--T-->サイズ<!--/T--></label></th>
+              <td>
+                <select name="youtube_size_{id}" id="unit-youtube-size-{id}">
+                  <!-- BEGIN size:loop -->
+                  <option value="{value}"{selected}>{label}</option>
+                  <!-- END size:loop -->
+                </select>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+  </tbody>
+</table>

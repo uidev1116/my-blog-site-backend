@@ -1,6 +1,7 @@
 <?php
 
 use Acms\Services\Facades\Preview;
+use Acms\Services\Facades\Common;
 
 class ACMS_POST_Timemachine_Disable extends ACMS_POST
 {
@@ -12,6 +13,8 @@ class ACMS_POST_Timemachine_Disable extends ACMS_POST
         Preview::endPreviewMode();
 
         AcmsLogger::info('タイムマシンモードを終了しました');
+
+        Common::setSafeHeadersWithoutCache(200, 'text/plain');
         die('OK');
     }
 }

@@ -1,0 +1,48 @@
+@use '../global/common' as global;
+
+/* ------------------------------
+ 管理ボックス
+------------------------------- */
+
+#adminBox,
+.acms-box {
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: global.$edit-entry-bg-color-base;
+  border: solid 1px global.$edit-entry-bg-color-dark;
+
+  @include global.font-size(14);
+
+  #loginUserStatus {
+    margin: 0 0 8px;
+    font-size: 12px;
+  }
+
+  .acms-inline-btn {
+    margin-bottom: 5px;
+  }
+}
+
+.acms-label-approval-group {
+  display: inline;
+  padding: 0 10px;
+
+  a,
+  a:visited {
+    color: global.$acms-color-link-text;
+  }
+}
+
+#adminBox .acms-btn-admin {
+  margin-right: 0;
+}
+
+// エントリー編集ボックス
+
+.acms-btn-action-group {
+  clear: both;
+  margin-block: 10px;
+  padding: 10px;
+  background-color: global.$edit-entry-bg-color-base;
+  border: solid 1px global.$edit-entry-bg-color-dark;
+}

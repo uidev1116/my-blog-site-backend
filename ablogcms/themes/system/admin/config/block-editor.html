@@ -1,0 +1,628 @@
+<header>
+  <div>
+    @include("/admin/topicpath.html")
+  </div>
+  <div>
+    @include("/admin/config/parts/header-editor.html", {"title": "<!--T-->ブロックエディター設定<!--/T-->"})
+  </div>
+</header>
+
+<!-- BEGIN_MODULE Admin_Config -->
+<!-- BEGIN_IF [{notice_mess}/nem/] -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    aria-label="アラートを閉じる"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+  >
+    ×
+  </button>
+  <!--T-->ブロックエディター設定を保存しました<!--/T-->
+</div>
+<!-- END_IF -->
+
+<form id="config-index-form" action="" method="post">
+  <input type="hidden" name="bid" value="%{BID}" />
+  <input type="hidden" name="admin" value="config_editor" />
+  <!-- BEGIN_IF [%{setid}/nem/] -->
+  <input type="hidden" name="setid" value="%{setid}" />
+  <input type="hidden" name="query[]" value="setid" />
+  <!-- END_IF -->
+  <!-- BEGIN_IF [%{rid}/nem/] -->
+  <input type="hidden" name="rid" value="%{rid}" />
+  <input type="hidden" name="query[]" value="rid" />
+  <!-- END_IF -->
+  <input type="hidden" name="ACMS_POST_2GET" value="on"/>
+</form>
+
+<form action="" method="post" class="acms-admin-form">
+  <div class="js-acms_fix_marker acms_fix_bg">
+    <div class="acms_fix_bg_index acms-admin-form-group">
+      <button
+        type="submit"
+        form="config-index-form"
+        class="acms-admin-btn-admin acms-admin-inline-btn"
+      >
+        <!--T-->一覧<!--/T-->
+      </button>
+
+      <button
+        type="submit"
+        name="ACMS_POST_Config"
+        class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-admin-save js-saving-splash"
+      >
+        <!--T-->保存<!--/T-->
+      </button>
+      @include("/admin/config/action.html")
+
+      <!-- BEGIN_MODULE Touch_SessionWithAdministration -->
+      <div class="acms-admin-float-right">
+        <a href="%{ADMIN_BASE_URL}bid/%{BID}/admin/config_import-part/?setid=%{setid}&rid=%{rid}" class="acms-admin-btn-admin"><!--T-->インポート<!--/T--></a>
+        <button
+          type="submit"
+          name="ACMS_POST_Config_PartExport"
+          class="acms-admin-btn-admin"
+        >
+          <!--T-->エクスポート<!--/T-->
+        </button>
+        <a href="{shortcutUrl}" class="acms-admin-btn-admin"><i class="acms-admin-icon acms-admin-icon-shortcut"></i><!--T-->ショートカットに追加<!--/T--></a>
+      </div>
+      <!-- END_MODULE Touch_SessionWithAdministration -->
+    </div>
+  </div>
+
+  <h2 class="acms-admin-admin-title2"><!--T-->画像リサイズ<!--/T--></h2>
+  <table class="acms-admin-table-admin-edit">
+    <tr>
+      <th><!--T-->画像リサイズ<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->画像をリサイズするサイズを指定します。<!--/T-->"></i></th>
+      <td>
+        <span>横幅</span>
+        <input type="text" name="block_editor_resize_image_size" size="4" value="{block_editor_resize_image_size}"/> px
+        <input type="hidden" name="config[]" value="block_editor_resize_image_size"/>
+        <input type="hidden" name="block_editor_resize_image_size:c" value="a"/>
+        <input type="hidden" name="block_editor_resize_image_size:validator#digits" id="validator-block_editor_resize_image_size-digits"/>
+        <div role="alert" aria-live="assertive">
+          <div
+            data-validator-label="validator-block_editor_resize_image_size-digits"
+            class="validator-result-{block_editor_resize_image_size:validator#digits}">
+            <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->数字を入力して下さい。<!--/T--></p>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <h2 class="acms-admin-admin-title2"><!--T-->ブロックメニュー<!--/T--></h2>
+  <table class="js-fieldgroup-sortable adminTable acms-admin-table-admin-edit" style="table-layout: fixed;">
+    <thead class="acms-admin-hide-sp">
+    <tr>
+      <th class="acms-admin-table-left acms-admin-admin-config-table-item-handle">&nbsp;</th>
+      <th class="acms-admin-table-left">
+        <!--T-->ブロック<!--/T-->
+        <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ブロックのタイプを選択します<!--/T-->"></i>
+      </th>
+      <th class="acms-admin-table-left">
+        <!--T-->ラベル<!--/T-->
+        <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->表示するラベル名を指定します。空の場合デフォルトの値が使用されます。<!--/T-->"></i>
+      </th>
+      <th class="acms-admin-table-left">
+        <!--T-->クラス<!--/T-->
+        <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ブロックに付与するクラス名を指定します。<!--/T-->"></i>
+      </th>
+      <th class="acms-admin-table-left">
+        <!--T-->グループ<!--/T-->
+        <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->メニュー表示するときのグループを指定します。空の場合、上で設定されているグループが設定されます。<!--/T-->"></i>
+      </th>
+      <th class="acms-admin-table-left acms-admin-admin-config-table-action"><!--T-->削除<!--/T--></th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- BEGIN block_editor_block_menu:loop -->
+    <tr class="sortable-item">
+      <td class="item-handle">
+        <i class="acms-admin-icon-sort"></i>
+      </td>
+      <td>
+        <select name="block_editor_block_menu_type[]">
+          <optgroup label="基本">
+            <option value="paragraph"{block_editor_block_menu_type:selected#paragraph}>段落</option>
+            <option value="bulletList"{block_editor_block_menu_type:selected#bulletList}>リスト</option>
+            <option value="numberedList"{block_editor_block_menu_type:selected#numberedList}>番号付きリスト</option>
+            <option value="blockquote"{block_editor_block_menu_type:selected#blockquote}>引用</option>
+            <option value="codeBlock"{block_editor_block_menu_type:selected#codeBlock}>コード</option>
+            <option value="heading1"{block_editor_block_menu_type:selected#heading1}>見出し1</option>
+            <option value="heading2"{block_editor_block_menu_type:selected#heading2}>見出し2</option>
+            <option value="heading3"{block_editor_block_menu_type:selected#heading3}>見出し3</option>
+            <option value="heading4"{block_editor_block_menu_type:selected#heading4}>見出し4</option>
+            <option value="heading5"{block_editor_block_menu_type:selected#heading5}>見出し5</option>
+            <option value="heading6"{block_editor_block_menu_type:selected#heading6}>見出し6</option>
+          </optgroup>
+          <optgroup label="挿入">
+            <option value="image"{block_editor_block_menu_type:selected#image}>画像</option>
+            <option value="file"{block_editor_block_menu_type:selected#file}>ファイル</option>
+            <option value="table"{block_editor_block_menu_type:selected#table}>テーブル</option>
+            <option value="linkButton"{block_editor_block_menu_type:selected#linkButton}>リンクボタン</option>
+            <option value="horizontalRule"{block_editor_block_menu_type:selected#horizontalRule}>水平罫線</option>
+          </optgroup>
+          <optgroup label="レイアウト">
+            <option value="columns2"{block_editor_block_menu_type:selected#columns2}>2カラムに分割</option>
+            <option value="columns3"{block_editor_block_menu_type:selected#columns3}>3カラムに分割</option>
+          </optgroup>
+        </select>
+      </td>
+      <td>
+        <input type="text" name="block_editor_block_menu_label[]" value="{block_editor_block_menu_label}" class="acms-admin-form-width-full">
+      </td>
+      <td>
+        <input type="text" name="block_editor_block_menu_class[]" value="{block_editor_block_menu_class}" class="acms-admin-form-width-full">
+      </td>
+      <td>
+        <input type="text" name="block_editor_block_menu_group[]" value="{block_editor_block_menu_group}" class="acms-admin-form-width-full">
+      </td>
+      <td>
+        <input type="button" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger" value="<!--T-->削除<!--/T-->">
+      </td>
+    </tr>
+    <!-- END block_editor_block_menu:loop -->
+    <tr class="sortable-item item-template">
+      <td class="item-handle">
+        <i class="acms-admin-icon-sort"></i>
+      </td>
+      <td>
+        <select name="block_editor_block_menu_type[]">
+          <optgroup label="基本">
+            <option value="paragraph">段落</option>
+            <option value="bulletList">リスト</option>
+            <option value="numberedList">番号付きリスト</option>
+            <option value="blockquote">引用</option>
+            <option value="codeBlock">コード</option>
+            <option value="heading1">見出し1</option>
+            <option value="heading2">見出し2</option>
+            <option value="heading3">見出し3</option>
+            <option value="heading4">見出し4</option>
+            <option value="heading5">見出し5</option>
+            <option value="heading6">見出し6</option>
+          </optgroup>
+          <optgroup label="挿入">
+            <option value="image">画像</option>
+            <option value="file">ファイル</option>
+            <option value="table">テーブル</option>
+            <option value="linkButton">リンクボタン</option>
+            <option value="horizontalRule">水平罫線</option>
+          </optgroup>
+          <optgroup label="レイアウト">
+            <option value="columns2">2カラムに分割</option>
+            <option value="columns3">3カラムに分割</option>
+          </optgroup>
+        </select>
+      </td>
+      <td>
+        <input type="text" name="block_editor_block_menu_label[]" value="" class="acms-admin-form-width-full">
+      </td>
+      <td>
+        <input type="text" name="block_editor_block_menu_class[]" value="" class="acms-admin-form-width-full">
+      </td>
+      <td>
+        <input type="text" name="block_editor_block_menu_group[]" value="" class="acms-admin-form-width-full">
+      </td>
+      <td>
+        <input type="button" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger" value="<!--T-->削除<!--/T-->">
+      </td>
+    </tr>
+    </tbody>
+    <tfoot>
+    <tr>
+      <td colspan="4">
+        <input type="button" class="item-insert acms-admin-btn-admin" value="<!--T-->追加<!--/T-->">
+      </td>
+    </tr>
+    </tfoot>
+  </table>
+
+  <input type="hidden" name="@block_editor_block_menu[]" value="block_editor_block_menu_type">
+  <input type="hidden" name="@block_editor_block_menu[]" value="block_editor_block_menu_label">
+  <input type="hidden" name="@block_editor_block_menu[]" value="block_editor_block_menu_class">
+  <input type="hidden" name="@block_editor_block_menu[]" value="block_editor_block_menu_group">
+  <input type="hidden" name="config[]" value="block_editor_block_menu_type">
+  <input type="hidden" name="config[]" value="block_editor_block_menu_label">
+  <input type="hidden" name="config[]" value="block_editor_block_menu_class">
+  <input type="hidden" name="config[]" value="block_editor_block_menu_group">
+  <input type="hidden" name="config[]" value="@block_editor_block_menu">
+
+  <h2 class="acms-admin-admin-title2"><!--T-->メニュー設定<!--/T--></h2>
+  <table class="acms-admin-table-admin-edit">
+    <tr>
+      <th><!--T-->斜体<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->テキストの斜体を設定します。<!--/T-->"></i></th>
+      <td>
+        <input type="hidden" name="block_editor_block_menu_text_italic_display" value="off">
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="block_editor_block_menu_text_italic_display" value="on"{block_editor_block_menu_text_italic_display:checked#on} id="input-checkbox-block_editor_block_menu_text_italic_display-on">
+          <label for="input-checkbox-block_editor_block_menu_text_italic_display-on"><i class="acms-admin-ico-checkbox"></i><!--T-->表示する<!--/T--></label>
+        </div>
+        <input type="hidden" name="config[]" value="block_editor_block_menu_text_italic_display">
+      </td>
+    </tr>
+    <tr>
+      <th><!--T-->下線<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->テキストの下線を設定します。<!--/T-->"></i></th>
+      <td>
+        <input type="hidden" name="block_editor_block_menu_text_underline_display" value="off">
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="block_editor_block_menu_text_underline_display" value="on"{block_editor_block_menu_text_underline_display:checked#on} id="input-checkbox-block_editor_block_menu_text_underline_display-on">
+          <label for="input-checkbox-block_editor_block_menu_text_underline_display-on"><i class="acms-admin-ico-checkbox"></i><!--T-->表示する<!--/T--></label>
+        </div>
+        <input type="hidden" name="config[]" value="block_editor_block_menu_text_underline_display">
+      </td>
+    </tr>
+    <tr>
+      <th><!--T-->打ち消し線<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->テキストの打ち消し線を設定します。<!--/T-->"></i></th>
+      <td>
+        <input type="hidden" name="block_editor_block_menu_text_strike_through_display" value="off">
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="block_editor_block_menu_text_strike_through_display" value="on"{block_editor_block_menu_text_strike_through_display:checked#on} id="input-checkbox-block_editor_block_menu_text_strike_through_display-on">
+          <label for="input-checkbox-block_editor_block_menu_text_strike_through_display-on"><i class="acms-admin-ico-checkbox"></i><!--T-->表示する<!--/T--></label>
+        </div>
+        <input type="hidden" name="config[]" value="block_editor_block_menu_text_strike_through_display">
+      </td>
+    </tr>
+    <tr>
+      <th><!--T-->コード<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->コードを設定します。<!--/T-->"></i></th>
+      <td>
+        <input type="hidden" name="block_editor_block_menu_text_code_display" value="off">
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="block_editor_block_menu_text_code_display" value="on"{block_editor_block_menu_text_code_display:checked#on} id="input-checkbox-block_editor_block_menu_text_code_display-on">
+          <label for="input-checkbox-block_editor_block_menu_text_code_display-on"><i class="acms-admin-ico-checkbox"></i><!--T-->表示する<!--/T--></label>
+        </div>
+        <input type="hidden" name="config[]" value="block_editor_block_menu_text_code_display">
+      </td>
+    </tr>
+    <tr>
+      <th><!--T-->マーカー<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->テキストの背景色を設定します。<!--/T-->"></i></th>
+      <td>
+        <input type="hidden" name="block_editor_block_menu_text_marker_display" value="off">
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="block_editor_block_menu_text_marker_display" value="on"{block_editor_block_menu_text_marker_display:checked#on} id="input-checkbox-block_editor_block_menu_text_marker_display-on">
+          <label for="input-checkbox-block_editor_block_menu_text_marker_display-on"><i class="acms-admin-ico-checkbox"></i><!--T-->表示する<!--/T--></label>
+        </div>
+        <input type="hidden" name="config[]" value="block_editor_block_menu_text_marker_display">
+      </td>
+    </tr>
+    <tr>
+      <th><!--T-->文字色<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->テキストの文字色を設定します。<!--/T-->"></i></th>
+      <td>
+        <input type="hidden" name="block_editor_block_menu_text_color_display" value="off">
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="block_editor_block_menu_text_color_display" value="on"{block_editor_block_menu_text_color_display:checked#on} id="input-checkbox-block_editor_block_menu_text_color_display-on">
+          <label for="input-checkbox-block_editor_block_menu_text_color_display-on"><i class="acms-admin-ico-checkbox"></i><!--T-->表示する<!--/T--></label>
+        </div>
+        <input type="hidden" name="config[]" value="block_editor_block_menu_text_color_display">
+      </td>
+    </tr>
+    <tr>
+      <th><!--T-->下付き文字<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->下付き文字を設定します。<!--/T-->"></i></th>
+      <td>
+        <input type="hidden" name="block_editor_block_menu_text_sub_display" value="off">
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="block_editor_block_menu_text_sub_display" value="on"{block_editor_block_menu_text_sub_display:checked#on} id="input-checkbox-block_editor_block_menu_text_sub_display-on">
+          <label for="input-checkbox-block_editor_block_menu_text_sub_display-on"><i class="acms-admin-ico-checkbox"></i><!--T-->表示する<!--/T--></label>
+        </div>
+        <input type="hidden" name="config[]" value="block_editor_block_menu_text_sub_display">
+      </td>
+    </tr>
+    <tr>
+      <th><!--T-->上付き文字<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->上付き文字を設定します。<!--/T-->"></i></th>
+      <td>
+        <input type="hidden" name="block_editor_block_menu_text_sup_display" value="off">
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="block_editor_block_menu_text_sup_display" value="on"{block_editor_block_menu_text_sup_display:checked#on} id="input-checkbox-block_editor_block_menu_text_sup_display-on">
+          <label for="input-checkbox-block_editor_block_menu_text_sup_display-on"><i class="acms-admin-ico-checkbox"></i><!--T-->表示する<!--/T--></label>
+        </div>
+        <input type="hidden" name="config[]" value="block_editor_block_menu_text_sup_display">
+      </td>
+    </tr>
+    <tr>
+      <th><!--T-->文字サイズ<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->テキストのfont-sizeを設定します。<!--/T-->"></i></th>
+      <td>
+        <input type="hidden" name="block_editor_block_menu_font_size_display" value="off">
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="block_editor_block_menu_font_size_display" value="on"{block_editor_block_menu_font_size_display:checked#on} id="input-checkbox-block_editor_block_menu_font_size_display-on">
+          <label for="input-checkbox-block_editor_block_menu_font_size_display-on"><i class="acms-admin-ico-checkbox"></i><!--T-->表示する<!--/T--></label>
+        </div>
+        <input type="hidden" name="config[]" value="block_editor_block_menu_font_size_display">
+      </td>
+    </tr>
+    <tr>
+      <th><!--T-->フォント<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->テキストのfont-familyを設定します。<!--/T-->"></i></th>
+      <td>
+        <input type="hidden" name="block_editor_block_menu_font_family_display" value="off">
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="block_editor_block_menu_font_family_display" value="on"{block_editor_block_menu_font_family_display:checked#on} id="input-checkbox-block_editor_block_menu_font_family_display-on">
+          <label for="input-checkbox-block_editor_block_menu_font_family_display-on"><i class="acms-admin-ico-checkbox"></i><!--T-->表示する<!--/T--></label>
+        </div>
+        <input type="hidden" name="config[]" value="block_editor_block_menu_font_family_display">
+      </td>
+    </tr>
+    <tr>
+      <th><!--T-->カスタムクラス<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->テキストにインライン（span）でクラスを設定します。<!--/T-->"></i></th>
+      <td>
+        <input type="hidden" name="block_editor_block_menu_custom_class_display" value="off">
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="block_editor_block_menu_custom_class_display" value="on"{block_editor_block_menu_custom_class_display:checked#on} id="input-checkbox-block_editor_block_menu_custom_class_display-on">
+          <label for="input-checkbox-block_editor_block_menu_custom_class_display-on"><i class="acms-admin-ico-checkbox"></i><!--T-->表示する<!--/T--></label>
+        </div>
+        <input type="hidden" name="config[]" value="block_editor_block_menu_custom_class_display">
+      </td>
+    </tr>
+    <tr>
+      <th><!--T-->テーブルの背景色<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->テーブルの背景色を設定します<!--/T-->"></i></th>
+      <td>
+        <input type="hidden" name="block_editor_block_menu_table_bg_color_display" value="off">
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="block_editor_block_menu_table_bg_color_display" value="on"{block_editor_block_menu_table_bg_color_display:checked#on} id="input-checkbox-block_editor_block_menu_table_bg_color_display-on">
+          <label for="input-checkbox-block_editor_block_menu_table_bg_color_display-on"><i class="acms-admin-ico-checkbox"></i><!--T-->表示する<!--/T--></label>
+        </div>
+        <input type="hidden" name="config[]" value="block_editor_block_menu_table_bg_color_display">
+      </td>
+    </tr>
+  </table>
+
+  <h2 class="acms-admin-admin-title2"><!--T-->カスタムクラス<!--/T--></h2>
+  <table class="js-fieldgroup-sortable acms-admin-table-admin-edit">
+    <thead class="acms-admin-hide-sp">
+      <tr>
+        <th class="acms-admin-admin-config-table-item-handle acms-admin-table-nowrap">&nbsp;</th>
+        <th class="acms-admin-table-left"><!--T-->ラベル<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ブロックエディターにおける、インラインカスタムclassのラベルを設定します。<!--/T-->"></i></th>
+        <th class="acms-admin-table-left"><!--T-->クラス<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ブロックエディターにおける、インラインカスタムclassのクラスを設定します<!--/T-->"></i></th>
+        <th class="acms-admin-admin-config-table-action"></th>
+      </tr>
+    </thead>
+    <tbody><!-- BEGIN block_editor_custom_class:loop -->
+      <tr class="sortable-item">
+        <td class="item-handle acms-admin-hide-sp acms-admin-table-nowrap"><i class="acms-admin-icon-sort"></i></td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->ラベル<!--/T--></span>
+          <input type="text" name="block_editor_custom_class_label[]" value="{block_editor_custom_class_label}" size="" class="acms-admin-form-width-full"/>
+        </td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->クラス<!--/T--></span>
+          <input type="text" name="block_editor_custom_class_value[]" value="{block_editor_custom_class_value}" size="" class="acms-admin-form-width-full"/>
+        </td>
+        <td class="acms-admin-table-nowrap"><input type="button" value="<!--T-->削除<!--/T-->" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger"/>
+        </td>
+      </tr><!-- END block_editor_custom_class:loop -->
+      <tr class="sortable-item item-template">
+        <td class="item-handle acms-admin-hide-sp acms-admin-table-nowrap"><i class="acms-admin-icon-sort"></i></td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->ラベル<!--/T--></span>
+          <input type="text" name="block_editor_custom_class_label[]" value="" size="" class="acms-admin-form-width-full"/>
+        </td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->クラス<!--/T--></span>
+          <input type="text" name="block_editor_custom_class_value[]" value="" size="" class="acms-admin-form-width-full"/>
+        </td>
+        <td class="acms-admin-table-nowrap">
+          <input type="button" value="<!--T-->削除<!--/T-->" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger"/>
+        </td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4">
+          <input type="button" value="<!--T-->追加<!--/T-->" class="item-insert acms-admin-btn-admin"/>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+  <input type="hidden" name="@block_editor_custom_class[]" value="block_editor_custom_class_label"/>
+  <input type="hidden" name="@block_editor_custom_class[]" value="block_editor_custom_class_value"/>
+  <input type="hidden" name="config[]" value="block_editor_custom_class_label"/>
+  <input type="hidden" name="config[]" value="block_editor_custom_class_value"/>
+  <input type="hidden" name="config[]" value="@block_editor_custom_class"/>
+
+  <h2 class="acms-admin-admin-title2"><!--T-->画像サイズ<!--/T--></h2>
+  <table class="js-fieldgroup-sortable acms-admin-table-admin-edit">
+    <thead class="acms-admin-hide-sp">
+      <tr>
+        <th class="acms-admin-admin-config-table-item-handle acms-admin-table-nowrap">&nbsp;</th>
+        <th class="acms-admin-table-left"><!--T-->ラベル<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ブロックエディターにおける、画像サイズのラベルを設定します。<!--/T-->"></i></th>
+        <th class="acms-admin-table-left"><!--T-->サイズ（%）<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ブロックエディターにおける、画像サイズの幅を%で設定します<!--/T-->"></i></th>
+        <th class="acms-admin-admin-config-table-action"></th>
+      </tr>
+    </thead>
+    <tbody><!-- BEGIN block_editor_image_size:loop -->
+      <tr class="sortable-item">
+        <td class="item-handle acms-admin-hide-sp acms-admin-table-nowrap"><i class="acms-admin-icon-sort"></i></td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->ラベル<!--/T--></span>
+          <input type="text" name="block_editor_image_size_label[]" value="{block_editor_image_size_label}" size="" class="acms-admin-form-width-full"/>
+        </td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->サイズ（%）<!--/T--></span>
+          <input type="text" name="block_editor_image_size_value[]" value="{block_editor_image_size_value}" size="" class="acms-admin-form-width-full"/>
+        </td>
+        <td class="acms-admin-table-nowrap"><input type="button" value="<!--T-->削除<!--/T-->" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger"/>
+        </td>
+      </tr><!-- END block_editor_image_size:loop -->
+      <tr class="sortable-item item-template">
+        <td class="item-handle acms-admin-hide-sp acms-admin-table-nowrap"><i class="acms-admin-icon-sort"></i></td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->ラベル<!--/T--></span>
+          <input type="text" name="block_editor_image_size_label[]" value="" size="" class="acms-admin-form-width-full"/>
+        </td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->サイズ（%）<!--/T--></span>
+          <input type="text" name="block_editor_image_size_value[]" value="" size="" class="acms-admin-form-width-full"/>
+        </td>
+        <td class="acms-admin-table-nowrap">
+          <input type="button" value="<!--T-->削除<!--/T-->" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger"/>
+        </td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4">
+          <input type="button" value="<!--T-->追加<!--/T-->" class="item-insert acms-admin-btn-admin"/>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+  <input type="hidden" name="@block_editor_image_size[]" value="block_editor_image_size_label"/>
+  <input type="hidden" name="@block_editor_image_size[]" value="block_editor_image_size_value"/>
+  <input type="hidden" name="config[]" value="block_editor_image_size_label"/>
+  <input type="hidden" name="config[]" value="block_editor_image_size_value"/>
+  <input type="hidden" name="config[]" value="@block_editor_image_size"/>
+
+  <h2 class="acms-admin-admin-title2"><!--T-->カラーパレット<!--/T--></h2>
+  <table class="js-fieldgroup-sortable acms-admin-table-admin-edit">
+    <thead class="acms-admin-hide-sp">
+      <tr>
+        <th class="acms-admin-admin-config-table-item-handle acms-admin-table-nowrap">&nbsp;</th>
+        <th class="acms-admin-table-left"><!--T-->16進数カラーコード<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ブロックエディターにおける、カラーパレットの色を設定します。<!--/T-->"></i></th>
+        <th class="acms-admin-admin-config-table-action"></th>
+      </tr>
+    </thead>
+    <tbody><!-- BEGIN block_editor_color_palette:loop -->
+      <tr class="sortable-item">
+        <td class="item-handle acms-admin-hide-sp acms-admin-table-nowrap"><i class="acms-admin-icon-sort"></i></td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->16進数カラーコード<!--/T--></span>
+          <input type="text" name="block_editor_color_palette_value[]" value="{block_editor_color_palette_value}" size="" class="acms-admin-form-width-small" placeholder="#000000"/>
+        </td>
+        <td class="acms-admin-table-nowrap"><input type="button" value="<!--T-->削除<!--/T-->" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger"/>
+        </td>
+      </tr><!-- END block_editor_color_palette:loop -->
+      <tr class="sortable-item item-template">
+        <td class="item-handle acms-admin-hide-sp acms-admin-table-nowrap"><i class="acms-admin-icon-sort"></i></td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->16進数カラーコード<!--/T--></span>
+          <input type="text" name="block_editor_color_palette_value[]" value="" size="" class="acms-admin-form-width-small" placeholder="#000000"/>
+        </td>
+        <td class="acms-admin-table-nowrap">
+          <input type="button" value="<!--T-->削除<!--/T-->" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger"/>
+        </td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4">
+          <input type="button" value="<!--T-->追加<!--/T-->" class="item-insert acms-admin-btn-admin"/>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+  <input type="hidden" name="@block_editor_color_palette[]" value="block_editor_color_palette_value"/>
+  <input type="hidden" name="config[]" value="block_editor_color_palette_value"/>
+  <input type="hidden" name="config[]" value="@block_editor_color_palette"/>
+
+  <h2 class="acms-admin-admin-title2"><!--T-->文字サイズ（font-size）<!--/T--></h2>
+  <table class="js-fieldgroup-sortable acms-admin-table-admin-edit">
+    <thead class="acms-admin-hide-sp">
+      <tr>
+        <th class="acms-admin-admin-config-table-item-handle acms-admin-table-nowrap">&nbsp;</th>
+        <th class="acms-admin-table-left"><!--T-->ラベル<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ブロックエディターにおける、フォントサイズ選択肢のラベルを設定します。<!--/T-->"></i></th>
+        <th class="acms-admin-table-left"><!--T-->値（rem, em, px）<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ブロックエディターにおける、フォントサイズ選択肢の値をpxで設定します<!--/T-->"></i></th>
+        <th class="acms-admin-admin-config-table-action"></th>
+      </tr>
+    </thead>
+    <tbody><!-- BEGIN block_editor_font_size:loop -->
+      <tr class="sortable-item">
+        <td class="item-handle acms-admin-hide-sp acms-admin-table-nowrap"><i class="acms-admin-icon-sort"></i></td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->ラベル<!--/T--></span>
+          <input type="text" name="block_editor_font_size_label[]" value="{block_editor_font_size_label}" size="" class="acms-admin-form-width-full"/>
+        </td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->値（rem, em, px）<!--/T--></span>
+          <input type="text" name="block_editor_font_size_value[]" value="{block_editor_font_size_value}" size="" class="acms-admin-form-width-full"/>
+        </td>
+        <td class="acms-admin-table-nowrap"><input type="button" value="<!--T-->削除<!--/T-->" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger"/>
+        </td>
+      </tr><!-- END block_editor_font_size:loop -->
+      <tr class="sortable-item item-template">
+        <td class="item-handle acms-admin-hide-sp acms-admin-table-nowrap"><i class="acms-admin-icon-sort"></i></td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->ラベル<!--/T--></span>
+          <input type="text" name="block_editor_font_size_label[]" value="" size="" class="acms-admin-form-width-full"/>
+        </td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->値（rem, em, px）<!--/T--></span>
+          <input type="text" name="block_editor_font_size_value[]" value="" size="" class="acms-admin-form-width-full"/>
+        </td>
+        <td class="acms-admin-table-nowrap">
+          <input type="button" value="<!--T-->削除<!--/T-->" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger"/>
+        </td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4">
+          <input type="button" value="<!--T-->追加<!--/T-->" class="item-insert acms-admin-btn-admin"/>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+  <input type="hidden" name="@block_editor_font_size[]" value="block_editor_font_size_label"/>
+  <input type="hidden" name="@block_editor_font_size[]" value="block_editor_font_size_value"/>
+  <input type="hidden" name="config[]" value="block_editor_font_size_label"/>
+  <input type="hidden" name="config[]" value="block_editor_font_size_value"/>
+  <input type="hidden" name="config[]" value="@block_editor_font_size"/>
+
+  <h2 class="acms-admin-admin-title2"><!--T-->フォント（font-family）<!--/T--></h2>
+  <table class="js-fieldgroup-sortable acms-admin-table-admin-edit">
+    <thead class="acms-admin-hide-sp">
+      <tr>
+        <th class="acms-admin-admin-config-table-item-handle acms-admin-table-nowrap">&nbsp;</th>
+        <th class="acms-admin-table-left"><!--T-->ラベル<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ブロックエディターにおける、フォント選択肢のラベルを設定します。<!--/T-->"></i></th>
+        <th class="acms-admin-table-left"><!--T-->値<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ブロックエディターにおける、フォント選択肢の値を設定します<!--/T-->"></i></th>
+        <th class="acms-admin-admin-config-table-action"></th>
+      </tr>
+    </thead>
+    <tbody><!-- BEGIN block_editor_font_family:loop -->
+      <tr class="sortable-item">
+        <td class="item-handle acms-admin-hide-sp acms-admin-table-nowrap"><i class="acms-admin-icon-sort"></i></td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->ラベル<!--/T--></span>
+          <input type="text" name="block_editor_font_family_label[]" value="{block_editor_font_family_label}" size="" class="acms-admin-form-width-full"/>
+        </td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->値<!--/T--></span>
+          <input type="text" name="block_editor_font_family_value[]" value="{block_editor_font_family_value}" size="" class="acms-admin-form-width-full"/>
+        </td>
+        <td class="acms-admin-table-nowrap"><input type="button" value="<!--T-->削除<!--/T-->" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger"/>
+        </td>
+      </tr><!-- END block_editor_font_family:loop -->
+      <tr class="sortable-item item-template">
+        <td class="item-handle acms-admin-hide-sp acms-admin-table-nowrap"><i class="acms-admin-icon-sort"></i></td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->ラベル<!--/T--></span>
+          <input type="text" name="block_editor_font_family_label[]" value="" size="" class="acms-admin-form-width-full"/>
+        </td>
+        <td>
+          <span class="acms-admin-hide acms-admin-show-sp"><!--T-->値<!--/T--></span>
+          <input type="text" name="block_editor_font_family_value[]" value="" size="" class="acms-admin-form-width-full"/>
+        </td>
+        <td class="acms-admin-table-nowrap">
+          <input type="button" value="<!--T-->削除<!--/T-->" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger"/>
+        </td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4">
+          <input type="button" value="<!--T-->追加<!--/T-->" class="item-insert acms-admin-btn-admin"/>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+  <input type="hidden" name="@block_editor_font_family[]" value="block_editor_font_family_label"/>
+  <input type="hidden" name="@block_editor_font_family[]" value="block_editor_font_family_value"/>
+  <input type="hidden" name="config[]" value="block_editor_font_family_label"/>
+  <input type="hidden" name="config[]" value="block_editor_font_family_value"/>
+  <input type="hidden" name="config[]" value="@block_editor_font_family"/>
+
+  <!-- BEGIN_MODULE Admin_Rule_Name -->
+  <input type="hidden" name="rid" value="{rid}" /><!-- END_MODULE Admin_Rule_Name --><!-- BEGIN_MODULE Admin_Module_Name -->
+  <input type="hidden" name="mid" value="{mid}" /><!-- END_MODULE Admin_Module_Name --><!-- BEGIN_MODULE Admin_Config_Set_Name -->
+  <input type="hidden" name="setid" value="{setid}" /><!-- END_MODULE Admin_Config_Set_Name -->
+</form>
+<!-- END_MODULE Admin_Config -->

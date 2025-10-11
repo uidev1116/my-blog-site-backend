@@ -3,7 +3,6 @@
 namespace Acms\Services\Cache\Adapters;
 
 use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
-use Symfony\Component\Cache\CacheItem;
 
 class Tag extends Standard
 {

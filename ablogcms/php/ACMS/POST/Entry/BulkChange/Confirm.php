@@ -5,7 +5,7 @@ class ACMS_POST_Entry_BulkChange_Confirm extends ACMS_POST_Entry_BulkChange
     /**
      * @var array
      */
-    protected $eids = [];
+    protected $targetEids = [];
 
     /**
      * @var array
@@ -30,7 +30,7 @@ class ACMS_POST_Entry_BulkChange_Confirm extends ACMS_POST_Entry_BulkChange
             $this->fix();
             $this->Post->set('step', '3');
         } catch (ACMS_POST_Entry_BulkChange_Exceptions_PermissionDenied $e) {
-            die('Permission denied.');
+            die403('Permission denied.');
         } catch (ACMS_POST_Entry_BulkChange_Exceptions_TargetEmpty $e) {
             $this->Post->set('step', '1');
             $this->Post->set('error', 'targetEmpty');
@@ -51,7 +51,7 @@ class ACMS_POST_Entry_BulkChange_Confirm extends ACMS_POST_Entry_BulkChange
     protected function validate()
     {
         parent::validate();
-        if (empty($this->eids)) {
+        if (empty($this->targetEids)) {
             throw new ACMS_POST_Entry_BulkChange_Exceptions_TargetEmpty();
         }
         if (empty($this->entryActions) && empty($this->fieldActions)) {
@@ -64,7 +64,7 @@ class ACMS_POST_Entry_BulkChange_Confirm extends ACMS_POST_Entry_BulkChange
      */
     protected function set()
     {
-        $this->eids = $this->Post->getArray('checks');
+        $this->targetEids = $this->Post->getArray('checks');
         $this->entryActions = $this->Post->getArray('action_entry');
         $this->fieldActions = $this->Post->getArray('action_field');
         array_shift($this->entryActions); // dummyを除去

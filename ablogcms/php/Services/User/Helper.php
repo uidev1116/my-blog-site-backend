@@ -6,8 +6,8 @@ use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Common;
 use Acms\Services\Facades\Database;
 use Acms\Services\Facades\Session;
+use Acms\Services\Facades\Database as DB;
 use SQL;
-use DB;
 use ACMS_RAM;
 
 class Helper
@@ -72,7 +72,6 @@ class Helper
         $sql->addUpdate('user_mail', $email);
         $sql->addUpdate('user_withdrawal_datetime', date('Y-m-d H:i:s', REQUEST_TIME));
         $sql->addUpdate('user_twitter_id', '');
-        $sql->addUpdate('user_facebook_id', '');
         $sql->addUpdate('user_google_id', '');
         $sql->addUpdate('user_line_id', '');
         $sql->addWhereOpr('user_id', $uid);
@@ -101,5 +100,22 @@ class Helper
         $sql->addWhereOpr('entry_user_id', $uid);
         $sql->setLimit(1);
         return !!DB::query($sql->get(dsn()));
+    }
+
+    /**
+     * IDが一番小さい（古い）管理者アカウントを取得
+     *
+     * @return bool|string
+     */
+    public function getAdminUserWithMinId()
+    {
+        $sql = SQL::newSelect('user');
+        $sql->addWhereOpr('user_status', 'open');
+        $sql->addWhereOpr('user_login_expire', date('Y-m-d', REQUEST_TIME), '>=');
+        $sql->addWhereOpr('user_auth', 'administrator');
+        $sql->setOrder('user_id', 'ASC');
+        $sql->setLimit(1);
+
+        return DB::query($sql->get(dsn()), 'row');
     }
 }

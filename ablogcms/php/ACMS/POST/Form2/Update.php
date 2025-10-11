@@ -1,18 +1,35 @@
 <?php
 
+/**
+ * @phpstan-type FormColumn array{
+ *   id: string,
+ *   type: 'text'|'textarea'|'radio'|'select'|'checkbox',
+ *   sort: int,
+ *   validator: string,
+ *   validator-value: string,
+ *   validator-message: string,
+ *   label: string,
+ *   caption: string,
+ *   values?: string,
+ * }
+ */
 class ACMS_POST_Form2_Update extends ACMS_POST_Entry
 {
+    use \Acms\Traits\Unit\UnitModelTrait;
+
+    /**
+     * @return FormColumn[]
+     */
     protected function extractFormColumn()
     {
         $Column     = [];
-        $overCount  = 0;
 
-        $typeAry = $this->Post->getArray('type');
-        if (empty($typeAry)) {
+        $types = $this->Post->getArray('unit_type');
+        if (count($types) === 0) {
             return $Column;
         }
-        foreach ($typeAry as $i => $type) {
-            $id = $this->Post->get('id', 0, $i);
+        foreach ($types as $i => $type) {
+            $id = $this->Post->get('unit_id', uuidv4(), $i);
 
             // text, textarea
             if (in_array($type, ['text', 'textarea'], true)) {
@@ -33,9 +50,8 @@ class ACMS_POST_Form2_Update extends ACMS_POST_Entry
             }
             $baseCol = [
                 'id'                => $id,
-                'clid'              => $_POST['clid'][$i],
                 'type'              => $type,
-                'sort'              => @intval($_POST['sort'][$i]),
+                'sort'              => @intval($_POST['unit_sort'][$i]),
                 'validator'         => $_POST['column_validator_' . $id],
                 'validator-value'   => $_POST['column_validator-value_' . $id],
                 'validator-message' => $_POST['column_validator-message_' . $id],
@@ -46,6 +62,12 @@ class ACMS_POST_Form2_Update extends ACMS_POST_Entry
         return $Column;
     }
 
+    /**
+     * @param FormColumn[] $Column
+     * @param int $eid
+     * @param int $bid
+     * @return void
+     */
     protected function saveFormColumn(&$Column, $eid, $bid)
     {
         $DB     = DB::singleton(dsn());
@@ -96,25 +118,19 @@ class ACMS_POST_Form2_Update extends ACMS_POST_Entry
                 $offset++;
                 continue;
             }
+            $sort = intval($data['sort'] - $offset);
 
-            if (!empty($data['clid'])) {
-                $clid   = intval($data['clid']);
-            } else {
-                $clid   = $DB->query(SQL::nextval('column_id', dsn()), 'seq');
-            }
-            $sort   = intval($data['sort'] - $offset);
-
-            $SQL    = SQL::newSelect('column');
+            $SQL = SQL::newSelect('column');
             $SQL->setSelect('column_id');
             $SQL->addWhereOpr('column_sort', $sort);
-            $SQL->addWhereOpr('column_entry_id', intval($eid));
-            $SQL->addWhereOpr('column_blog_id', intval($bid));
+            $SQL->addWhereOpr('column_entry_id', $eid);
+            $SQL->addWhereOpr('column_blog_id', $bid);
             if ($DB->query($SQL->get(dsn()), 'one')) {
-                $SQL    = SQL::newUpdate('column');
+                $SQL = SQL::newUpdate('column');
                 $SQL->setUpdate('column_sort', SQL::newOpr('column_sort', 1, '+'));
                 $SQL->addWhereOpr('column_sort', $sort, '>=');
-                $SQL->addWhereOpr('column_entry_id', intval($eid));
-                $SQL->addWhereOpr('column_blog_id', intval($bid));
+                $SQL->addWhereOpr('column_entry_id', $eid);
+                $SQL->addWhereOpr('column_blog_id', $bid);
                 $DB->query($SQL->get(dsn()), 'exec');
             }
 
@@ -122,18 +138,33 @@ class ACMS_POST_Form2_Update extends ACMS_POST_Entry
             foreach ($row as $fd => $val) {
                 $SQL->addInsert($fd, strval($val));
             }
-            $SQL->addInsert('column_id', intval($clid));
-            $SQL->addInsert('column_sort', intval($sort));
-            $SQL->addInsert('column_entry_id', intval($eid));
-            $SQL->addInsert('column_blog_id', intval($bid));
+            $SQL->addInsert('column_id', $id);
+            $SQL->addInsert('column_sort', $sort);
+            $SQL->addInsert('column_entry_id', $eid);
+            $SQL->addInsert('column_blog_id', $bid);
             $DB->query($SQL->get(dsn()), 'exec');
         }
-
-        return true;
     }
 
-    protected function update($oldField = null)
+    /**
+     * @return array{eid: int<1, max>, cid: int<1, max>|null, bid: int<1, max>}|false
+     */
+    protected function update()
     {
+        /** @var int<1, max>|null $entryId */
+        $entryId = EID;
+        if (is_null($entryId)) {
+            return false;
+        }
+        /** @var int<1, max>|null $blogId */
+        $blogId = BID;
+        if (is_null($blogId)) {
+            return false;
+        }
+
+        /** @var int<1, max>|null $categoryId */
+        $categoryId = CID;
+
         $DB     = DB::singleton(dsn());
         $Form   = $this->extract('form');
         $Form->setMethod('form_id', 'required');
@@ -144,9 +175,10 @@ class ACMS_POST_Form2_Update extends ACMS_POST_Entry
         if (!$this->Post->isValidAll()) {
             $this->Post->set('step', 'reapply');
             $this->Post->set('action', 'update');
+            $this->addMessage('failure');
             Entry::setTempUnitData($Column);
 
-            AcmsLogger::info('「' . ACMS_RAM::entryTitle(EID) . '」エントリーの動的フォームを更新に失敗しました', [
+            AcmsLogger::info('「' . ACMS_RAM::entryTitle($entryId) . '」エントリーの動的フォームを更新に失敗しました', [
                 'Form' => $Form,
                 'Column' => $Column,
             ]);
@@ -154,7 +186,7 @@ class ACMS_POST_Form2_Update extends ACMS_POST_Entry
         }
         //--------
         // column
-        $this->saveFormColumn($Column, EID, BID);
+        $this->saveFormColumn($Column, $entryId, $blogId);
 
         $SQL    = SQL::newUpdate('entry');
         $row    = [
@@ -165,35 +197,28 @@ class ACMS_POST_Form2_Update extends ACMS_POST_Entry
         foreach ($row as $key => $val) {
             $SQL->addUpdate($key, $val);
         }
-        $SQL->addWhereOpr('entry_id', EID);
-        $SQL->addWhereOpr('entry_blog_id', BID);
+        $SQL->addWhereOpr('entry_id', $entryId);
+        $SQL->addWhereOpr('entry_blog_id', $blogId);
         $DB->query($SQL->get(dsn()), 'exec');
-        ACMS_RAM::entry(EID, null);
+        ACMS_RAM::entry($entryId, null);
 
-        AcmsLogger::info('「' . ACMS_RAM::entryTitle(EID) . '」エントリーの動的フォームを更新しました', [
-            'eid' => EID,
+        AcmsLogger::info('「' . ACMS_RAM::entryTitle($entryId) . '」エントリーの動的フォームを更新しました', [
+            'eid' => $entryId,
             'Form' => $Form,
             'Column' => $Column,
         ]);
 
-        return ['eid' => EID, 'cid' => CID];
+        return ['eid' => $entryId, 'cid' => $categoryId, 'bid' => $blogId];
     }
 
     public function post()
     {
         $updatedResponse = $this->update();
 
-        $redirect   = $this->Post->get('redirect');
-        $nextstep   = $this->Post->get('nextstep');
-
         setCookieDelFlag();
 
         if (is_array($updatedResponse)) {
-            $this->redirect(acmsLink([
-                'bid'   => BID,
-                'cid'   => $updatedResponse['cid'],
-                'eid'   => EID,
-            ]));
+            $this->redirect(acmsLink($updatedResponse));
         } else {
             return $this->Post;
         }

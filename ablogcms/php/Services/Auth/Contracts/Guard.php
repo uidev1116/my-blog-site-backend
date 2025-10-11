@@ -94,6 +94,14 @@ interface Guard
     public function checkShortcut(array $ids);
 
     /**
+     * ログイン中のユーザーがそのブログにおいて権限があるか
+     *
+     * @param int $bid
+     * @return bool
+     */
+    public function isControlBlog($bid);
+
+    /**
      * 指定したユーザーの権限があるブログリストを取得
      *
      * @param int $uid

@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\PrivateStorage;
+
 class ACMS_POST_Backup_Base extends ACMS_POST
 {
     /**
@@ -28,9 +30,9 @@ class ACMS_POST_Backup_Base extends ACMS_POST
      */
     public function __construct()
     {
-        $this->backupDatabaseDir = MEDIA_STORAGE_DIR . '/backup_database/';
-        $this->backupArchivesDir = MEDIA_STORAGE_DIR . '/backup_archives/';
-        $this->backupBlogDir = MEDIA_STORAGE_DIR . '/backup_blog/';
+        $this->backupDatabaseDir = MEDIA_STORAGE_DIR . 'backup_database/';
+        $this->backupArchivesDir = MEDIA_STORAGE_DIR . 'backup_archives/';
+        $this->backupBlogDir = MEDIA_STORAGE_DIR . 'backup_blog/';
     }
 
     /**
@@ -58,15 +60,10 @@ class ACMS_POST_Backup_Base extends ACMS_POST
      */
     protected function getPath($type, $fileName)
     {
-        $path = '';
-        if ($type === 'database') {
-            $path = $this->backupDatabaseDir . $fileName;
-        }
-        if ($type === 'archives') {
-            $path = $this->backupArchivesDir . $fileName;
-        }
-        if (!Storage::exists($path)) {
-            throw new \RuntimeException('Not found the backup.');
+        $baseDir = $type === 'database' ? $this->backupDatabaseDir : $this->backupArchivesDir;
+        $path = Storage::validateDirectoryTraversal($baseDir, $fileName);
+        if (!PrivateStorage::exists($path)) {
+            throw new \RuntimeException('ファイルが存在しません。');
         }
         return $path;
     }

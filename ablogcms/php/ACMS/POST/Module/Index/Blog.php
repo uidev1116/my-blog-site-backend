@@ -51,18 +51,17 @@ class ACMS_POST_Module_Index_Blog extends ACMS_POST_Module
                 // module
                 $SQL = SQL::newUpdate('module');
                 $SQL->addUpdate('module_blog_id', $bid);
+                $SQL->addUpdate('module_updated_datetime', date('Y-m-d H:i:s', REQUEST_TIME));
                 $SQL->addWhereOpr('module_id', $mid);
                 $DB->query($SQL->get(dsn()), 'exec');
 
-                //--------
                 // config
                 $SQL    = SQL::newUpdate('config');
                 $SQL->addUpdate('config_blog_id', $bid);
                 $SQL->addWhereOpr('config_module_id', $mid);
                 $DB->query($SQL->get(dsn()), 'exec');
-                Config::forgetCache(BID, null, $mid);
+                Config::forgetCache(null, null, $mid);
 
-                //-------
                 // field
                 $SQL    = SQL::newUpdate('field');
                 $SQL->addUpdate('field_blog_id', $bid);
@@ -78,14 +77,10 @@ class ACMS_POST_Module_Index_Blog extends ACMS_POST_Module
                 ]);
             }
             if (!empty($errorModules)) {
+                $this->addError(gettext('移動に失敗したモジュールIDがあります'));
                 Logger::info('選択したモジュールIDのブログ移動に失敗しました', [
                     'errorModules' => $errorModules,
                 ]);
-            }
-            if (!empty($errorModules)) {
-                $this->Post->set('error', 'blog');
-            } else {
-                $this->Post->set('refreshed', 'refreshed');
             }
         } else {
             Logger::info('選択したモジュールIDのブログ移動に失敗しました');

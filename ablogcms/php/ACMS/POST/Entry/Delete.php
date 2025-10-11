@@ -18,28 +18,8 @@ class ACMS_POST_Entry_Delete extends ACMS_POST_Entry
     {
         $this->Post->reset(true);
         $entryId = intval($this->Post->get('eid', EID));
-        $entryBlogId = ACMS_RAM::entryBlog($entryId);
-        if (roleAvailableUser()) {
-            $this->Post->setMethod('entry', 'operable', (1
-                && $entryId > 0
-                && $entryBlogId > 0
-                && roleAuthorization('entry_delete', $entryBlogId, $entryId)
-            ));
-        } else {
-            $this->Post->setMethod('entry', 'operable', (1
-                && $entryId > 0
-                && $entryBlogId > 0
-                && ACMS_RAM::blogLeft(SBID) <= ACMS_RAM::blogLeft($entryBlogId)
-                && ACMS_RAM::blogRight(SBID) >= ACMS_RAM::blogRight($entryBlogId)
-                && (0
-                    || sessionWithCompilation()
-                    || (1
-                        && sessionWithContribution()
-                        && SUID === ACMS_RAM::entryUser($entryId)
-                    )
-                )
-            ));
-        }
+        $this->Post->setMethod('eid', 'min', 1);
+        $this->Post->setMethod('entry', 'operable', Entry::canDelete($entryId));
         $this->Post->validate();
 
         if ($this->Post->isValidAll()) {
@@ -48,6 +28,7 @@ class ACMS_POST_Entry_Delete extends ACMS_POST_Entry
             }
             $entryTitle = ACMS_RAM::entryTitle($entryId);
             $this->delete($entryId);
+            ACMS_POST_Cache::clearEntryPageCache($entryId); // このエントリのみ削除
             $redirect = $this->Post->get('redirect');
 
             AcmsLogger::info('「' . $entryTitle . '」エントリーを削除しました', [
@@ -60,7 +41,7 @@ class ACMS_POST_Entry_Delete extends ACMS_POST_Entry
                 $this->redirect(acmsLink([
                     'bid'   => BID,
                     'cid'   => CID,
-                    'eid'   => '',
+                    'eid'   => null,
                 ]));
             }
         }

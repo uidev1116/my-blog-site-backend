@@ -3,18 +3,26 @@
 /* ------------------------------
  テーブル
 ------------------------------- */
+[class*='acms-table'] {
+  --acms-table-cell-padding: #{global.$acms-table-cell-padding};
+  --acms-table-border-width: #{global.$acms-table-border-width};
+  --acms-table-border-style: #{global.$acms-table-border-style};
+  --acms-table-border-color: #{global.$acms-table-border-color};
+  --acms-table-border: var(--acms-table-border-width) var(--acms-table-border-style) var(--acms-table-border-color);
+}
+
 .acms-table {
   width: 100%;
   max-width: 100%;
-  border-top: global.$acms-table-border;
+  border-top: var(--acms-table-border);
   border-collapse: collapse;
 
   // データ
   th,
   td {
-    padding: global.$acms-table-cell-padding;
+    padding: var(--acms-table-cell-padding);
     vertical-align: top;
-    border-bottom: global.$acms-table-border;
+    border-bottom: var(--acms-table-border);
   }
 
   th {
@@ -67,16 +75,26 @@
 // テーブル 見出し
 // ------------------------------
 .acms-table-heading {
+  --acms-table-heading-border-width: #{global.$acms-table-heading-border-width};
+  --acms-table-heading-border-style: #{global.$acms-table-heading-border-style};
+  --acms-table-heading-border-color: #{global.$acms-table-heading-border-color};
+  --acms-table-heading-border: var(--acms-table-heading-border-width) var(--acms-table-heading-border-style)
+    var(--acms-table-heading-border-color);
+  --acms-table-heading-th-bg: #{global.$acms-table-heading-th-bg};
+  --acms-table-heading-th-text-color: #{global.$acms-table-heading-th-text-color};
+}
+
+.acms-table-heading {
   // データ
   th,
   td {
-    border-bottom: global.$acms-table-heading-border;
+    border-bottom: var(--acms-table-heading-border);
   }
 
   // 見出し
   th {
-    color: global.$acms-table-heading-th-text-color;
-    background: global.$acms-table-heading-th-bg;
+    color: var(--acms-table-heading-th-text-color);
+    background: var(--acms-table-heading-th-bg);
   }
 }
 
@@ -84,13 +102,21 @@
 // テーブル ボーダー
 // ------------------------------
 .acms-table-bordered {
-  border-top: global.$acms-table-bordered-border;
-  border-left: global.$acms-table-bordered-border;
+  --acms-table-bordered-border-width: #{global.$acms-table-bordered-border-width};
+  --acms-table-bordered-border-style: #{global.$acms-table-bordered-border-style};
+  --acms-table-bordered-border-color: #{global.$acms-table-bordered-border-color};
+  --acms-table-bordered-border: var(--acms-table-bordered-border-width) var(--acms-table-bordered-border-style)
+    var(--acms-table-bordered-border-color);
+}
+
+.acms-table-bordered {
+  border-top: var(--acms-table-bordered-border);
+  border-left: var(--acms-table-bordered-border);
 
   th,
   td {
-    border-right: global.$acms-table-bordered-border;
-    border-bottom: global.$acms-table-bordered-border;
+    border-right: var(--acms-table-bordered-border);
+    border-bottom: var(--acms-table-bordered-border);
   }
 }
 
@@ -98,20 +124,30 @@
 // テーブル striped
 // ------------------------------
 .acms-table-striped {
+  --acms-table-border-odd: #{global.$acms-table-border-odd};
+  --acms-table-border-even: #{global.$acms-table-border-even};
+}
+
+.acms-table-striped {
   tr:nth-of-type(odd),
   tr.odd {
-    background: global.$acms-table-border-odd;
+    background: var(--acms-table-border-odd);
   }
 
   tr:nth-of-type(even),
   tr.even {
-    background: global.$acms-table-border-even;
+    background: var(--acms-table-border-even);
   }
 }
 
 // ------------------------------
 // テーブル hover
 // ------------------------------
+.acms-table-hover {
+  --acms-table-hover-bg: #{global.$acms-table-hover-bg};
+  --acms-table-hover-line-bg: #{global.$acms-table-hover-line-bg};
+}
+
 .acms-table-hover td,
 .acms-table-hover-line tr {
   transition: 0.2s background-color;
@@ -120,14 +156,13 @@
 .acms-table-hover tr:hover td,
 .acms-table-hover tr:focus-within td,
 .acms-table-hover tr.hover td {
-  background: global.$acms-table-hover-bg;
-  cursor: pointer;
+  background: var(--acms-table-hover-bg);
 }
 
 .acms-table-hover-line tr:hover,
 .acms-table-hover-line tr:focus-within,
 .acms-table-hover tr.hover {
-  background: global.$acms-table-hover-line-bg;
+  background: var(--acms-table-hover-line-bg);
 }
 
 // ------------------------------
@@ -150,13 +185,17 @@
 // テーブル 入れ替え
 // ------------------------------
 .acms-table-sortable-active {
+  --acms-table-sortable-bg: #{global.$acms-table-sortable-bg};
+}
+
+.acms-table-sortable-active {
   th,
   td,
   tr:nth-of-type(even) th,
   tr:nth-of-type(even) td,
   tr.even th,
   tr.even td {
-    background-color: global.$acms-table-sortable-bg;
+    background-color: var(--acms-table-sortable-bg);
   }
 }
 
@@ -165,45 +204,45 @@
 // ------------------------------
 [class*='acms-table-scroll-'],
 .acms-table-responsive {
-  border: 1px solid global.$acms-color-gray50;
+  border: 1px solid var(--acms-table-border-color);
 }
 
-// global.$breakpoint-sm-max 以下
-@media (max-width: global.$breakpoint-sm-max) {
+.acms-table-scroll {
+  @include global.table-scroll;
+}
+
+@include global.media-breakpoint-down(sm) {
   .acms-table-scroll-xs {
     @include global.table-scroll;
   }
 }
 
-// global.$breakpoint-sm-max 以上 global.$breakpoint-md-max以下
-@media (min-width: global.$breakpoint-sm-min) and (max-width: global.$breakpoint-md-max) {
+@include global.media-breakpoint-between(sm, md) {
   .acms-table-scroll-sm {
     @include global.table-scroll;
   }
 }
 
-// global.$breakpoint-md-min 以上 global.$breakpoint-lg-max以下
-@media (min-width: global.$breakpoint-md-min) and (max-width: global.$breakpoint-lg-max) {
+@include global.media-breakpoint-between(md, lg) {
   .acms-table-scroll-md {
     @include global.table-scroll;
   }
 }
 
-// global.$breakpoint-lg-min 以上 global.$breakpoint-xl-max以下
-@media (min-width: global.$breakpoint-lg-min) and (max-width: global.$breakpoint-xl-max) {
+@include global.media-breakpoint-between(lg, xl) {
   .acms-table-scroll-lg {
     @include global.table-scroll;
   }
 }
 
 // global.$breakpoint-xl-min以下
-@media (min-width: global.$breakpoint-xl-min) {
+@include global.media-breakpoint-up(xl) {
   .acms-table-scroll-xl {
     @include global.table-scroll;
   }
 }
 
-@media (max-width: global.$breakpoint-md-max) {
+@include global.media-breakpoint-down(md) {
   // ------------------------------
   // テーブル レスポンシブ
   // ------------------------------
@@ -261,17 +300,30 @@
   // ------------------------------
   // テーブル 管理画面
   // ------------------------------
+  [class*='acms-table-admin'] {
+    --acms-table-admin-cell-padding: 5px;
+    --acms-table-admin-border-width: #{global.$acms-table-admin-border-width};
+    --acms-table-admin-border-style: #{global.$acms-table-admin-border-style};
+    --acms-table-admin-border-color: #{global.$acms-table-admin-border-color};
+    --acms-table-admin-border: var(--acms-table-admin-border-width)
+      var(--acms-table-admin-border-style)
+      var(--acms-table-admin-border-color);
+    --acms-table-admin-cell: #{global.$acms-table-admin-cell};
+    --acms-table-admin-td-bg: #{global.$acms-table-admin-td-bg};
+  }
+
   .acms-table-admin {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
 
     // 見出し
     thead {
-      border-bottom: global.$acms-table-admin-border;
+      border-bottom: var(--acms-table-admin-border);
     }
 
     thead th {
-      padding: 5px;
+      padding: var(--acms-table-admin-cell-padding);
       font-weight: bold;
 
       @include global.font-size(13);
@@ -279,20 +331,21 @@
 
     th,
     td {
-      padding: global.$acms-table-admin-cell;
+      padding: var(--acms-table-admin-cell);
       line-height: 1.3;
-      border-bottom: global.$acms-table-admin-border;
+      border-bottom: var(--acms-table-admin-border);
     }
 
     th {
+      position: relative;
       text-align: left;
     }
 
     td {
-      background-color: global.$acms-table-admin-td-bg;
+      background-color: var(--acms-table-admin-td-bg);
     }
 
-    @media screen and (max-width: global.$breakpoint-md-max) {
+    @include global.media-breakpoint-down(md) {
       th,
       td {
         padding: 5px;
@@ -300,18 +353,57 @@
     }
   }
 
+  .acms-table-column-resizer {
+    position: absolute;
+    top: 0;
+    width: 5px;
+    height: 100%;
+    background: rgb(0 0 0 / 50%);
+    cursor: col-resize;
+    user-select: none;
+    touch-action: none;
+  }
+
+  .acms-table-column-resizer.ltr {
+    right: 0;
+  }
+
+  .acms-table-column-resizer.rtl {
+    left: 0;
+  }
+
+  .acms-table-column-resizer.is-resizing {
+    background: blue;
+    opacity: 1;
+  }
+
+  @media (hover: hover) {
+    .acms-table-column-resizer {
+      opacity: 0;
+    }
+
+    *:hover > .acms-table-column-resizer {
+      opacity: 1;
+    }
+  }
+
   // ------------------------------
   // テーブル 管理画面 striped
   // ------------------------------
   .acms-table-admin-striped {
+    --acms-table-admin-border-odd: #{global.$acms-table-admin-border-odd};
+    --acms-table-admin-border-even: #{global.$acms-table-admin-border-even};
+  }
+
+  .acms-table-admin-striped {
     tr:nth-of-type(odd),
     tr.odd {
-      background: global.$acms-table-admin-border-odd;
+      background: var(--acms-table-admin-border-odd);
     }
 
     tr:nth-of-type(even),
     tr.even {
-      background: global.$acms-table-admin-border-even;
+      background: var(--acms-table-admin-border-even);
     }
   }
 
@@ -319,14 +411,21 @@
   // テーブル 編集画面
   // ------------------------------
   .acms-table-admin-edit {
-    width: 100%;
-    background: global.$acms-table-admin-edit-bg;
-    border: global.$acms-table-admin-edit-border;
+    --acms-table-admin-edit-bg: #{global.$acms-table-admin-edit-bg};
+    --acms-table-admin-edit-border: #{global.$acms-table-admin-edit-border};
+  }
+
+  .acms-table-admin-edit {
+    width: var(--acms-table-admin-edit-width, 100%);
+    max-width: var(--acms-table-admin-edit-max-width, auto);
+    table-layout: var(--acms-table-admin-edit-table-layout, auto);
+    background: var(--acms-table-admin-edit-bg);
+    border: var(--acms-table-admin-edit-border);
 
     @include global.font-size(14);
 
     thead {
-      border-bottom: global.$acms-table-admin-edit-border;
+      border-bottom: var(--acms-table-admin-edit-border);
 
       th,
       td {
@@ -355,7 +454,9 @@
       width: 100%;
     }
 
-    @media screen and (max-width: global.$breakpoint-md-max) {
+    @include global.media-breakpoint-down(md) {
+      table-layout: auto;
+
       thead,
       tbody {
         th,
@@ -377,7 +478,7 @@
       }
     }
 
-    @media (min-width: global.$breakpoint-md-min) {
+    @include global.media-breakpoint-up(md) {
       tr {
         border-bottom: 0;
       }
@@ -393,7 +494,7 @@
   .acms-form {
     // モーダルで開く編集画面内と、エントリーのカスタムフィールドとユニット編集画面内を考慮
     .acms-table-admin-edit {
-      @media (min-width: global.$breakpoint-md-min) {
+      @include global.media-breakpoint-up(md) {
         th {
           padding-right: 25px;
         }
@@ -463,7 +564,7 @@
       vertical-align: top;
     }
 
-    @media screen and (max-width: global.$breakpoint-md-max) {
+    @include global.media-breakpoint-down(md) {
       th {
         text-align: left;
       }
@@ -484,12 +585,16 @@
   }
 
   .acms-table-admin-edit-bordered {
+    --acms-table-admin-edit-bordered-border: #{global.$acms-table-admin-edit-bordered-border};
+  }
+
+  .acms-table-admin-edit-bordered {
     width: 100%;
 
     @include global.font-size(14);
 
     tr {
-      border: global.$acms-table-admin-edit-bordered-border;
+      border: var(--acms-table-admin-edit-bordered-border);
     }
 
     th {
@@ -505,7 +610,7 @@
     }
 
     &-th-x {
-      border-right: global.$acms-table-admin-edit-bordered-border;
+      border-right: var(--acms-table-admin-edit-bordered-border);
     }
 
     // 下階層のtableは線なし
@@ -515,7 +620,7 @@
       }
     }
 
-    @media screen and (max-width: global.$breakpoint-md-max) {
+    @include global.media-breakpoint-down(md) {
       th,
       td {
         display: block;
@@ -528,15 +633,19 @@
   // テーブル ミニ
   // ---------------
   .acms-admin-mini-table {
+    --acms-admin-mini-table-border: #{global.$acms-admin-mini-table-border};
+  }
+
+  .acms-admin-mini-table {
     box-sizing: border-box;
     width: 100%;
     margin: 0;
-    border: global.$acms-admin-mini-table-border;
+    border: var(--acms-admin-mini-table-border);
     border-collapse: collapse;
 
     thead {
       background: global.$acms-color-white;
-      border-bottom: global.$acms-admin-mini-table-border;
+      border-bottom: var(--acms-admin-mini-table-border);
     }
 
     tr,
@@ -591,17 +700,25 @@
 // ---------------
 // info
 .acms-table-info {
+  --acms-table-info-bg: #{global.$acms-table-info-bg};
+}
+
+.acms-table-info {
   & th,
   & td,
   &,
   .acms-table-hover &:hover th,
   .acms-table-hover &:hover td,
   .acms-table-hover &:hover {
-    background: global.$acms-table-info-bg;
+    background: var(--acms-table-info-bg);
   }
 }
 
 // success
+.acms-table-success {
+  --acms-table-success-bg: #{global.$acms-table-success-bg};
+}
+
 .acms-table-success {
   & th,
   & td,
@@ -609,11 +726,15 @@
   .acms-table-hover &:hover th,
   .acms-table-hover &:hover td,
   .acms-table-hover &:hover {
-    background: global.$acms-table-success-bg;
+    background: var(--acms-table-success-bg);
   }
 }
 
 // warning
+.acms-table-warning {
+  --acms-table-warning-bg: #{global.$acms-table-warning-bg};
+}
+
 .acms-table-warning {
   & th,
   & td,
@@ -621,11 +742,15 @@
   .acms-table-hover &:hover th,
   .acms-table-hover &:hover td,
   .acms-table-hover &:hover {
-    background: global.$acms-table-warning-bg;
+    background: var(--acms-table-warning-bg);
   }
 }
 
 // danger
+.acms-table-danger {
+  --acms-table-danger-bg: #{global.$acms-table-danger-bg};
+}
+
 .acms-table-danger {
   & th,
   & td,
@@ -633,8 +758,155 @@
   .acms-table-hover &:hover th,
   .acms-table-hover &:hover td,
   .acms-table-hover &:hover {
-    background: global.$acms-table-danger-bg;
+    background: var(--acms-table-danger-bg);
   }
+}
+
+// -----------------------------------------------------------
+// テーブル モダン
+// カスタムフィールドメーカーで生成されるモダンなタグのテーブルレイアウト
+// -----------------------------------------------------------
+.acms-grid-edit-table {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 12px;
+  box-sizing: border-box;
+
+  @include global.font-size(14);
+
+  * {
+    box-sizing: border-box;
+  }
+
+  .acms-icon-tooltip {
+    margin-left: 10px;
+    cursor: pointer;
+  }
+
+  .acms-grid-edit-table-heading {
+    width: 100%;
+    color: global.$acms-color-gray90;
+    font-weight: bold;
+    line-height: 1.7;
+    text-align: left;
+    vertical-align: top;
+  }
+}
+
+@include global.media-breakpoint-up(md) {
+  .acms-grid-edit-table {
+    display: grid;
+    gap: 10px;
+
+    .acms-icon-tooltip {
+      margin-right: -25px;
+    }
+
+    .acms-grid-edit-table-heading {
+      width: 250px;
+      padding-right: 35px;
+      text-align: right;
+    }
+  }
+}
+
+// ---------------
+// テーブル ソート
+// ---------------
+.acms-th-sort-btn {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: content-box;
+  width: 100%;
+  margin: calc(-1 * var(--acms-table-cell-padding));
+  padding: var(--acms-table-cell-padding);
+  color: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  column-gap: global.$acms-btn-column-gap;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  appearance: none;
+
+  &:focus-visible {
+    outline-offset: -5px;
+  }
+}
+
+.acms-th-sort-btn::after {
+  position: absolute;
+  z-index: 1;
+  border-color: global.$acms-color-black;
+  border-style: solid;
+  border-width: 0;
+  content: '';
+  inset: 0;
+}
+
+th[aria-sort='ascending'] .acms-th-sort-btn::after {
+  border-top-width: 2px;
+}
+
+th[aria-sort='descending'] .acms-th-sort-btn::after {
+  border-bottom-width: 2px;
+}
+
+@media (any-hover: hover) {
+  th:not([aria-sort]) .acms-th-sort-btn[data-next-sort='ascending']:hover::after,
+  th[aria-sort='none'] .acms-th-sort-btn[data-next-sort='ascending']:hover::after {
+    border-top-width: 2px;
+  }
+
+  th:not([aria-sort]) .acms-th-sort-btn[data-next-sort='descending']:hover::after,
+  th[aria-sort='none'] .acms-th-sort-btn[data-next-sort='descending']:hover::after {
+    border-bottom-width: 2px;
+  }
+}
+
+.acms-th-sort-btn-icon {
+  display: inline-block;
+  width: 10px;
+  height: 7px;
+  background-color: global.$acms-color-black;
+  visibility: hidden;
+}
+
+th[aria-sort='ascending'] .acms-th-sort-btn-icon {
+  visibility: visible;
+  clip-path: polygon(100% 100%, 0 100%, 50% 0);
+}
+
+th[aria-sort='descending'] .acms-th-sort-btn-icon {
+  visibility: visible;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+// ---------------
+// セル 画像
+// ---------------
+.acms-cell-image img {
+  display: block;
+  min-width: 50px;
+  max-height: 50px;
+}
+
+// ---------------
+// セル 画像
+// ---------------
+.acms-cell-file {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+
+  @include global.font-size(12);
+}
+
+.acms-cell-file img {
+  display: block;
+  min-width: 50px;
+  max-height: 50px;
 }
 
 // ---------------
@@ -666,8 +938,4 @@
 .acms-table-nowrap {
   width: 1%;
   white-space: nowrap;
-}
-
-.acms-table-break-word {
-  word-break: break-word;
 }

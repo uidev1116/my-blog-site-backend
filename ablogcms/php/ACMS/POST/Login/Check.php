@@ -1,6 +1,7 @@
 <?php
 
 use Acms\Services\Facades\Common;
+use Acms\Services\Facades\Login;
 
 class ACMS_POST_Login_Check extends ACMS_POST
 {
@@ -22,7 +23,7 @@ class ACMS_POST_Login_Check extends ACMS_POST
     function post()
     {
         Common::responseJson([
-            'isLogin' => !!SUID,
+            'isLogin' => Login::isLoggedIn(),
         ]);
     }
 }

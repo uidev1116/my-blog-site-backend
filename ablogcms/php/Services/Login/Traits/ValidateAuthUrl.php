@@ -4,6 +4,7 @@ namespace Acms\Services\Login\Traits;
 
 use Acms\Services\Login\Exceptions\BadRequestException;
 use Acms\Services\Login\Exceptions\ExpiredException;
+use Acms\Services\Facades\Common;
 use DB;
 use SQL;
 
@@ -29,10 +30,9 @@ trait ValidateAuthUrl
     /**
      * トークンのキーを取得
      *
-     * @param array $data
      * @return string
      */
-    abstract protected function getTokenKey(array $data): string;
+    abstract protected function getTokenKey(): string;
 
     /**
      * トークンのタイプを取得
@@ -71,40 +71,42 @@ trait ValidateAuthUrl
         $salt = $this->Get->get('salt');
         $context = $this->Get->get('context');
 
-        $data = $this->validateUrl($key, $salt, $context);
-        if (!isset($data['token'])) {
+        $urlData = $this->validateUrl($key, $salt, $context);
+        if (!isset($urlData['token'])) {
             throw new BadRequestException('Bad request.');
         }
-        if (!$this->validateToken($data['token'], $data)) {
-            throw new BadRequestException('Bad request.');
-        }
-        return $data;
+        $savedData = $this->validateToken($urlData['token']);
+
+        return $savedData;
     }
 
     /**
      * 認証URLのトークンと保存してあるトークンを比較
      *
      * @param string $token
-     * @param array $data
-     * @return bool
+     * @return array
      */
-    protected function validateToken(string $token, array $data): bool
+    protected function validateToken(string $token): array
     {
-        $this->key = $this->getTokenKey($data);
+        $this->key = $this->getTokenKey();
         $this->type = $this->getTokenType();
 
         if (empty($this->key) || empty($this->type)) {
-            return false;
+            throw new BadRequestException('Bad request.');
         }
         $sql = SQL::newSelect('token');
-        $sql->setSelect('token_value');
         $sql->addWhereOpr('token_key', $this->key);
         $sql->addWhereOpr('token_type', $this->type);
-        $sql->addWhereOpr('token_value', $token);
+        $sql->addWhereOpr('token_value', hash('sha256', $token));
         $sql->addWhereOpr('token_expire', date('Y-m-d H:i:s', REQUEST_TIME), '>');
-        $t = DB::query($sql->get(dsn()), 'one');
-
-        return $t === $token;
+        $t = DB::query($sql->get(dsn()), 'row');
+        if (!isset($t['token_value']) || !isset($t['token_data'])) {
+            throw new BadRequestException('Bad request.');
+        }
+        if (hash_equals((string) $t['token_value'], hash('sha256', $token))) {
+            return json_decode($t['token_data'], true);
+        }
+        throw new BadRequestException('Bad request.');
     }
 
     /**
@@ -144,9 +146,12 @@ trait ValidateAuthUrl
         if (empty($key) || empty($salt) || empty($context)) {
             throw new BadRequestException('Bad request.');
         }
-        $prk = hash_hmac('sha256', PASSWORD_SALT_1, $salt);
+        $prk = hash_hmac('sha256', Common::getCurrentSalt(), $salt);
+        $prk2 = hash_hmac('sha256', Common::getPreviousSalt(), $salt);
         $derivedKey = hash_hmac('sha256', $prk, $context);
-        if (!hash_equals($key, $derivedKey)) {
+        $derivedKey2 = hash_hmac('sha256', $prk2, $context);
+
+        if (!hash_equals($key, $derivedKey) && !hash_equals($key, $derivedKey2)) {
             throw new BadRequestException('Bad request.');
         }
         $data = acmsUnserialize($context);

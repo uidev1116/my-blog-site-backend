@@ -198,6 +198,28 @@
 
 <h3 class="acms-admin-admin-title2"><!--T-->イメージ<!--/T--></h3>
 <table class="adminTable acms-admin-table-admin-edit">
+  <tr>
+    <th><!--T-->メインイメージ対象<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->メインイメージの対象をユニットかカスタムフィールドか指定します。カスタムフィールドを指定しないとデフォルトのフィールド（{main_image_field_name}）が使用されます。<!--/T-->"></i></th>
+    <td>
+      <div class="acms-admin-form-radio">
+        <input type="radio" name="entry_photo_main_image_target" value="unit"{entry_photo_main_image_target:checked#unit} id="input-radio-entry_photo_main_image_target-unit" />
+        <label for="input-radio-entry_photo_main_image_target-unit"><i class="acms-admin-ico-radio"></i><!--T-->ユニット<!--/T--></label>
+      </div>
+      <div class="acms-admin-form-radio">
+        <input
+          type="radio"
+          name="entry_photo_main_image_target"
+          value="field"{entry_photo_main_image_target:checked#field}
+          id="input-radio-entry_photo_main_image_target-field"
+        />
+        <label for="input-radio-entry_photo_main_image_target-field"><i class="acms-admin-ico-radio"></i><!--T-->カスタムフィールド<!--/T--></label>
+      </div>
+      <input type="hidden" name="config[]" value="entry_photo_main_image_target" />
+
+      <input type="text" name="entry_photo_main_image_field_name" value="{entry_photo_main_image_field_name}" size="4" class="acms-admin-form-width-mini" placeholder="{main_image_field_name}" />
+			<input type="hidden" name="config[]" value="entry_photo_main_image_field_name" />
+    </td>
+  </tr>
 	<tr>
 		<th><!--T-->サイズ<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->このモジュールで出力する画像のサイズを設定します。<!--/T-->"></i></th>
 		<td>

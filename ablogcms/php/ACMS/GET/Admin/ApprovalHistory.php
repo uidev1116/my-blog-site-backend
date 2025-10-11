@@ -1,6 +1,6 @@
 <?php
 
-class ACMS_GET_Admin_ApprovalHistory extends ACMS_GET_Admin_Entry
+class ACMS_GET_Admin_ApprovalHistory extends ACMS_GET_Admin
 {
     public function get()
     {
@@ -8,7 +8,7 @@ class ACMS_GET_Admin_ApprovalHistory extends ACMS_GET_Admin_Entry
             return '';
         }
         if (!sessionWithApprovalAdministrator()) {
-            return '';
+            die403();
         }
 
         $order  = ORDER ? ORDER : 'desc';
@@ -62,9 +62,9 @@ class ACMS_GET_Admin_ApprovalHistory extends ACMS_GET_Admin_Entry
         $SQL->setOrder('approval_datetime', $order);
 
         $q  = $SQL->get(dsn());
-        $DB->query($q, 'fetch');
+        $statement = $DB->query($q, 'exec');
 
-        while ($row = $DB->fetch($q)) {
+        while ($row = $DB->next($statement)) {
             $_vars  = [];
             $rvid   = $row['approval_revision_id'];
             $type   = $row['approval_type'];
@@ -96,7 +96,7 @@ class ACMS_GET_Admin_ApprovalHistory extends ACMS_GET_Admin_Entry
                 'revisionUrl'       => acmsLink([
                     'bid'   => ACMS_RAM::entryBlog($eid),
                     'eid'   => $eid,
-                    'tpl'   => 'ajax/revision-preview.html',
+                    'tpl'   => 'ajax/revision/preview.html',
                     'query' => [
                         'rvid'  => $rvid,
                         'trash' => 'show',

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V2_User_Field</title>
+    <link rel="stylesheet" href="src/highlight/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="src/snippets.css" />
+    <script src="src/highlight/highlight.min.js"></script>
+    <script src="src/highlight/javascript.min.js"></script>
+    <script src="src/highlight/twig.min.js"></script>
+    <script src="src/snippets.js"></script>
+  </head>
+  <body>
+    <h1>V2_User_Field</h1>
+    <pre class="acms-admin-customfield-maker"><code class="language-twig">
+&#123;% set userField = module(&#039;V2_User_Field&#039;, null, {
+  uid: null,
+&#125;) %&#125;
+
+&lt;!-- 値が１つのフィールド --&gt;
+&#123;% if userField.fields.hoge.value %&#125;
+&lt;p&gt;&#123;&#123; userField.fields.hoge.value &#125;&#125;&lt;/p&gt;
+&#123;% endif %&#125;
+
+&lt;!-- チェックボックスなどの複数の値を持つフィールド --&gt;
+&#123;% if userField.fields.hoge.array %&#125;
+  &#123;% for item in userField.fields.hoge.array %&#125;
+    &#123;&#123; item &#125;&#125;
+    &#123;% if not loop.last %&#125;
+    &amp;nbsp;|&amp;nbsp;
+    &#123;% endif %&#125;
+  &#123;% endfor %&#125;
+&#123;% endif %&#125;
+
+&lt;!-- メディア画像 --&gt;
+&#123;% if userField.fields.hoge.value %&#125;
+  &#123;% set image = userField.fields.hoge.value %&#125;
+  &lt;img
+    src=&quot;&#123;&#123; image.path|resizeImg(640) &#125;&#125;&quot;
+    width=&quot;640&quot;
+    height=&quot;&#123;&#123; image.ratio|getHeightFromRatio(640) &#125;&#125;&quot;
+    alt=&quot;&#123;&#123; image.alt &#125;&#125;&quot;
+  /&gt;
+  &#123;% if image.caption %&#125;
+  &lt;caption&gt;&#123;&#123; image.caption &#125;&#125;&lt;/caption&gt;
+  &#123;% endif %&#125;
+&#123;% endif %&#125;
+
+&lt;!-- カスタムフィールドグループ --&gt;
+&#123;% if userField.fields.hogeGroup %&#125;
+  &lt;ul&gt;
+    &#123;% for item in userField.fields.hogeGroup %&#125;
+      &lt;li&gt;
+        &#123;% if item.hogeImage %&#125;
+          &lt;img
+            src=&quot;&#123;&#123; item.hogeImage.path|resizeImg(640) &#125;&#125;&quot;
+            width=&quot;640&quot;
+            height=&quot;&#123;&#123; item.hogeImage.ratio|getHeightFromRatio(640) &#125;&#125;&quot;
+            alt=&quot;&#123;&#123; item.hogeImage.alt &#125;&#125;&quot;
+          /&gt;
+        &#123;% endif %&#125;
+        &#123;% if item.hogeText %&#125;
+          &lt;p&gt;&#123;&#123; item.hogeText &#125;&#125;&lt;/p&gt;
+        &#123;% endif %&#125;
+      &lt;/li&gt;
+    &#123;% endfor %&#125;
+  &lt;/ul&gt;
+&#123;% endif %&#125;
+    </code></pre>
+  </body>
+</html>

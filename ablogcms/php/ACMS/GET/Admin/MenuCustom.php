@@ -24,6 +24,9 @@ class ACMS_GET_Admin_MenuCustom extends ACMS_GET_Admin_Menu
      */
     public function get()
     {
+        if (!sessionWithSubscription(BID)) {
+            die403();
+        }
         $Tpl = new Template($this->tpl, new ACMS_Corrector());
 
         $this->extractDefaultMenus();
@@ -60,7 +63,6 @@ class ACMS_GET_Admin_MenuCustom extends ACMS_GET_Admin_Menu
             $this->standardMenu('category_index', 'category');
             $this->standardMenu('tag_index', 'tag');
             $this->standardMenu('comment_index', 'comment');
-            $this->standardMenu('trackback_index', 'trackback');
             $this->standardMenu('category_edit', 'category');
             $this->standardMenu('form_index', 'form');
             $this->standardMenu('schedule_index', 'schedule');
@@ -82,6 +84,7 @@ class ACMS_GET_Admin_MenuCustom extends ACMS_GET_Admin_Menu
             $this->standardMenu('publish_index', 'publish');
             $this->standardMenu('backup_index', 'backup');
             $this->standardMenu('import_index', 'import');
+            $this->standardMenu('export_index', 'export');
             $this->standardMenu('app_index');
             $this->standardMenu('checklist');
             if (BID === RBID) {
@@ -149,7 +152,6 @@ class ACMS_GET_Admin_MenuCustom extends ACMS_GET_Admin_Menu
         }
         if (roleAuthorization('admin_etc', BID)) {
             $this->standardMenu('comment_index', 'comment');
-            $this->standardMenu('trackback_index', 'trackback');
             $this->standardMenu('blog_index');
             $this->standardMenu('blog_edit');
             $this->standardMenu('webhook_index', 'webhook');
@@ -159,6 +161,7 @@ class ACMS_GET_Admin_MenuCustom extends ACMS_GET_Admin_Menu
             $this->standardMenu('shortcut_index', 'shortcut');
             $this->standardMenu('schedule_index', 'schedule');
             $this->standardMenu('import_index', 'import');
+            $this->standardMenu('export_index', 'export');
             $this->standardMenu('app_index', 'app');
             $this->standardMenu('checklist');
             if (BID === RBID) {

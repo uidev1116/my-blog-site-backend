@@ -12,16 +12,17 @@ interface RelatedEntrySelectProps
   value: RelatedEntryOption[];
   moduleId: string;
   ctx: string;
+  thumbnail?: string;
   onChange?: (value: RelatedEntryOption | null) => void;
 }
 
 const RelatedEntrySelect = (
-  { value, moduleId, ctx, onChange, ...props }: RelatedEntrySelectProps,
+  { value, moduleId, ctx, thumbnail, onChange, ...props }: RelatedEntrySelectProps,
   ref: React.ForwardedRef<SelectInstance<RelatedEntryOption, false>>
 ) => {
   const [inputValue, setInputValue] = useState<string>('');
   const [keyword, setKeyword] = useState<string>('');
-  const { options, isLoading } = useRelatedEntryOptionsSWR(keyword ? { moduleId, ctx, keyword } : null);
+  const { options, isLoading } = useRelatedEntryOptionsSWR(keyword ? { moduleId, ctx, keyword, thumbnail } : null);
 
   const handleChange = useCallback(
     (newValue: RelatedEntryOption | null) => {

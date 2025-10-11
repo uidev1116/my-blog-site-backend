@@ -1,0 +1,74 @@
+@use '../../global/common' as global;
+
+/* ------------------------------
+ テーブル
+------------------------------ */
+@include global.editor-style(('table')) {
+  margin: var(--unit-margin-top) 0 var(--unit-margin-bottom);
+  border-collapse: collapse;
+
+  th,
+  td {
+    min-width: 100px;
+    padding: global.$acms-table-cell-padding;
+    line-height: 1.5;
+    white-space: normal;
+    text-align: left;
+    vertical-align: top;
+    border: global.$acms-table-border-width global.$acms-table-border-style global.$acms-color-system-gray40;
+
+    @include global.font-size(14);
+  }
+
+  th {
+    font-weight: normal;
+    background-color: global.$acms-color-system-gray10;
+  }
+
+  p {
+    margin-block: 0;
+  }
+
+  a {
+    color: global.$acms-color-link-text;
+    text-decoration: underline;
+    transition: color 0.2s linear;
+
+    &:hover {
+      color: color-mix(in srgb, #06c 80%, black);
+    }
+  }
+
+  @include global.media-breakpoint-up(md) {
+    th,
+    td {
+      @include global.font-size(16);
+    }
+  }
+}
+
+/* ブロックエディター内のテーブル */
+@include global.editor-style(('div:has(> table)')) {
+  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+  overflow-x: auto; // 横スクロールする時用
+
+  table {
+    width: 100%;
+    margin: 0;
+  }
+}
+
+/* テーブルユニット */
+[class*='column-table'] {
+  min-width: 0;
+}
+
+/* スクロールするテーブル */
+.acms-table-scrollable,
+.js-table-unit-scroll-hint {
+  th,
+  td {
+    white-space: nowrap;
+    word-break: keep-all; // 横スクロールするテーブルの時は常時テキスト折り返しなし
+  }
+}

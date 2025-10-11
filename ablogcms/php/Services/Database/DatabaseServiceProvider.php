@@ -19,7 +19,6 @@ class DatabaseServiceProvider extends ServiceProvider
     {
         $container->singleton('db', function () {
             return Engine\PdoEngine::singleton(dsn());
-//            return Engine\MysqliEngine::singleton(dsn());
         });
 
         $container->bind('db.replication', 'Acms\Services\Database\Replication');
@@ -38,9 +37,5 @@ class DatabaseServiceProvider extends ServiceProvider
      */
     public function init()
     {
-        \App::bootstrap('db', function ($db) {
-            $q  = "SET SESSION sql_mode='ALLOW_INVALID_DATES'";
-            $db->query($q, 'exec');
-        });
     }
 }

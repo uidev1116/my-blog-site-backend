@@ -20,10 +20,10 @@
   &lt;div&gt;
     &lt;h3 class=&quot;acms-heading&quot;&gt;&lt;a href=&quot;{categoryUrl}&quot;&gt;{categoryName}&lt;/a&gt;&lt;/h3&gt;
     &lt;!-- BEGIN notFound --&gt;&lt;p&gt;ただいまページを準備しております。もうしばらくお待ちください。&lt;/p&gt;&lt;!-- END notFound --&gt;
-      &lt;div class=&quot;acms-grid&quot;&gt;
+      &lt;div class=&quot;acms-cssgrid acms-g-cols-1 acms-g-cols-md-3&quot;&gt;
       &lt;!-- BEGIN unit:loop --&gt;
         &lt;!-- BEGIN entry:loop --&gt;
-          &lt;div class=&quot;acms-col-md-4 js-autoheight-r&quot;&gt;
+          &lt;div&gt;
             &lt;a class=&quot;acms-thumbnail&quot; href=&quot;{url}&quot;&gt;
               &lt;!-- BEGIN_IF [{path}/nem] --&gt;
               &lt;img
@@ -32,6 +32,8 @@
                 class=&quot;acms-img-responsive&quot;
                 width=&quot;{x}&quot;
                 height=&quot;{y}&quot;
+                loading=&quot;lazy&quot;
+                decoding=&quot;async&quot;
               &gt;
               &lt;!-- ELSE --&gt;
               &lt;img
@@ -40,6 +42,8 @@
                 class=&quot;acms-img-responsive&quot;
                 width=&quot;{x}&quot;
                 height=&quot;{y}&quot;
+                loading=&quot;lazy&quot;
+                decoding=&quot;async&quot;
               &gt;
               &lt;!-- END_IF --&gt;
               &lt;h4&gt;{title}&lt;/h4&gt;

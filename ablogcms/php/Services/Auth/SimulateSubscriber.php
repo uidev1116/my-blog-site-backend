@@ -95,7 +95,7 @@ class SimulateSubscriber extends General
      * @param int $bid
      * @return bool
      */
-    protected function isControlBlog($bid)
+    public function isControlBlog($bid)
     {
         return false;
     }

@@ -2,6 +2,8 @@
 
 namespace Acms\Services\Config;
 
+use Acms\Services\Facades\Application;
+use Acms\Services\Facades\LocalStorage;
 use ACMS_Filter;
 use ACMS_RAM;
 use Auth;
@@ -9,7 +11,6 @@ use Cache;
 use DB;
 use Field;
 use SQL;
-use Storage;
 use Symfony\Component\Yaml\Exception\DumpException;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
@@ -25,6 +26,24 @@ class Helper
      * @var \Acms\Services\Cache\Adapters\Tag
      */
     protected $cache;
+
+    /**
+     * 現在のコンテキストでのコンフィグセットID
+     * @var int|null
+     */
+    private $currentConfigSetId = null;
+
+    /**
+     * 現在のコンテキストでのテーマセットID
+     * @var int|null
+     */
+    private $currentThemeSetId = null;
+
+    /**
+     * 現在のコンテキストでの編集画面セットID
+     * @var int|null
+     */
+    private $currentEditorSetId = null;
 
     /**
      * Construct
@@ -105,28 +124,29 @@ class Helper
             $setid = null;
         }
         $this->resetConfig($Config, $bid, $rid, $mid, $setid);
-
-        $DB = DB::singleton(dsn());
         $fds = $Config->listFields();
         $sort = 1;
 
+        $sql = SQL::newBulkInsert('config');
         foreach ($fds as $fd) {
             $vals = $Config->getArray($fd, true);
             if (!count($vals)) {
                 $vals[0] = null;
             }
-
             foreach ($vals as $val) {
-                $SQL = SQL::newInsert('config');
-                $SQL->addInsert('config_key', $fd);
-                $SQL->addInsert('config_value', strval($val));
-                $SQL->addInsert('config_sort', $sort++);
-                $SQL->addInsert('config_rule_id', $rid);
-                $SQL->addInsert('config_module_id', $mid);
-                $SQL->addInsert('config_set_id', $setid);
-                $SQL->addInsert('config_blog_id', $bid);
-                $DB->query($SQL->get(dsn()), 'exec');
+                $sql->addInsert([
+                    'config_key' => $fd,
+                    'config_value' => strval($val),
+                    'config_sort' => $sort++,
+                    'config_rule_id' => $rid,
+                    'config_module_id' => $mid,
+                    'config_set_id' => $setid,
+                    'config_blog_id' => $bid,
+                ]);
             }
+        }
+        if ($sql->hasData()) {
+            DB::query($sql->get(dsn()), 'exec');
         }
         return true;
     }
@@ -211,7 +231,7 @@ class Helper
             return $cacheItem->get();
         }
         if (!($config = $this->yamlLoad(CONFIG_DEFAULT_FILE))) {
-            die('config is broken');
+            die500('config is broken');
         }
         if ($configUser = $this->yamlLoad(CONFIG_FILE)) {
             $config = array_merge($config, $configUser);
@@ -422,6 +442,9 @@ class Helper
      */
     public function getCurrentConfigSetId()
     {
+        if ($this->currentConfigSetId) {
+            return $this->currentConfigSetId;
+        }
         if (CID) {
             if ($configSetId = ACMS_RAM::categoryConfigSetId(CID)) {
                 return $configSetId;
@@ -444,6 +467,9 @@ class Helper
      */
     public function getCurrentThemeSetId()
     {
+        if ($this->currentThemeSetId) {
+            return $this->currentThemeSetId;
+        }
         if (CID) {
             if ($configSetId = ACMS_RAM::categoryThemeSetId(CID)) {
                 return $configSetId;
@@ -466,6 +492,9 @@ class Helper
      */
     public function getCurrentEditorSetId()
     {
+        if ($this->currentEditorSetId) {
+            return $this->currentEditorSetId;
+        }
         if (CID) {
             if ($configSetId = ACMS_RAM::categoryEditorSetId(CID)) {
                 return $configSetId;
@@ -492,6 +521,7 @@ class Helper
         if (empty($id)) {
             return '';
         }
+        $this->currentConfigSetId = $id;
         $cacheKey = "cache-config-set-name-$id";
         $cacheItem = $this->cache->getItem($cacheKey);
         if ($cacheItem->isHit()) {
@@ -514,6 +544,7 @@ class Helper
         if (empty($id)) {
             return '';
         }
+        $this->currentThemeSetId = $id;
         $cacheKey = "cache-config-set-name-$id";
         $cacheItem = $this->cache->getItem($cacheKey);
         if ($cacheItem->isHit()) {
@@ -536,6 +567,7 @@ class Helper
         if (empty($id)) {
             return '';
         }
+        $this->currentEditorSetId = $id;
         $cacheKey = "cache-config-set-name-$id";
         $cacheItem = $this->cache->getItem($cacheKey);
         if ($cacheItem->isHit()) {
@@ -744,6 +776,22 @@ class Helper
             $this->isOperable($rid, $mid, $setid)
         );
 
+        if ($Config->isExists('unit_group') && $Config->get('unit_group') === 'on') {
+            // ユニットグループが有効な場合、親ユニットをユニットメニューに追加できない
+            $registry = Application::make('unit-registry');
+            assert($registry instanceof \Acms\Services\Unit\Registry);
+            $unitTypes = $Config->getArray('column_add_type');
+            $parentUnitType = array_find(
+                $unitTypes,
+                function (string $type) use ($registry): bool {
+                    return $registry->isParentUnit(detectUnitTypeSpecifier($type));
+                }
+            );
+            if ($parentUnitType !== null) {
+                $Config->setMethod('column_add_type', 'parent_unit_not_allowed', false);
+            }
+        }
+
         return $Config;
     }
 
@@ -788,6 +836,27 @@ class Helper
     }
 
     /**
+     * コンフィグ一覧を表示する権限があるかどうか
+     * @param int $blogId
+     * @return bool
+     */
+    public function canViewIndex(int $blogId): bool
+    {
+        if (roleAvailableUser()) {
+            if (roleAuthorization('config_edit', $blogId)) {
+                return true;
+            }
+
+            return false;
+        }
+        if (sessionWithCompilation($blogId)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * タイプ指定によるデータベーススキーマの取得
      *
      * @param string $type
@@ -795,11 +864,11 @@ class Helper
      */
     public function getDataBaseSchemaInfo($type)
     {
-        $defaultYaml = Storage::get(SCRIPT_DIR . PHP_DIR . "config/schema/db.{$type}.yaml");
+        $defaultYaml = LocalStorage::get(SCRIPT_DIR . PHP_DIR . "config/schema/db.{$type}.yaml");
         $config = $this->yamlParse(str_replace('%{PREFIX}', DB_PREFIX, $defaultYaml));
 
-        if (Storage::exists(SCRIPT_DIR . "extension/schema/db.{$type}.yaml")) {
-            if ($extendYaml = Storage::get(SCRIPT_DIR . "extension/schema/db.{$type}.yaml")) {
+        if (LocalStorage::exists(SCRIPT_DIR . "extension/schema/db.{$type}.yaml")) {
+            if ($extendYaml = LocalStorage::get(SCRIPT_DIR . "extension/schema/db.{$type}.yaml")) {
                 if ($extendConfig = $this->yamlParse(str_replace('%{PREFIX}', DB_PREFIX, $extendYaml))) {
                     $config = array_merge($config, $extendConfig);
                 }
@@ -820,8 +889,8 @@ class Helper
     {
         $data = null;
         try {
-            if (Storage::exists($path)) {
-                $data = @$this->yamlParse(Storage::get($path, dirname($path)));
+            if (LocalStorage::exists($path)) {
+                $data = @$this->yamlParse(LocalStorage::get($path, dirname($path)));
             }
         } catch (ParseException $e) {
             throw $e;
@@ -844,7 +913,7 @@ class Helper
             if (empty($path)) {
                 return $yaml;
             } else {
-                Storage::put($path, $yaml);
+                LocalStorage::put($path, $yaml);
             }
         } catch (DumpException $e) {
             throw $e;
@@ -962,6 +1031,9 @@ class Helper
                     'publish' => $Config->get('navigation_publish-' . $i),
                     'attr' => $Config->get('navigation_attr', '', $i),
                     'a_attr' => $Config->get('navigation_a_attr', '', $i),
+                    'media' => $Config->get('navigation_media', '', $i),
+                    'media_type' => $Config->get('navigation_media_type', '', $i),
+                    'media_thumbnail' => $Config->get('navigation_media_thumbnail', '', $i),
                 ];
 
                 $Config->deleteField('navigation_uri-' . $i);
@@ -969,6 +1041,9 @@ class Helper
                 $Config->deleteField('navigation_publish-' . $i);
                 $Config->deleteField('navigation_attr-' . $i);
                 $Config->deleteField('navigation_a_attr-' . $i);
+                $Config->deleteField('navigation_media-' . $i);
+                $Config->deleteField('navigation_media_type-' . $i);
+                $Config->deleteField('navigation_media_thumbnail-' . $i);
             }
 
             if (count($all)) {
@@ -979,6 +1054,9 @@ class Helper
                 $Config->setField('navigation_publish');
                 $Config->setField('navigation_attr');
                 $Config->setField('navigation_a_attr');
+                $Config->setField('navigation_media');
+                $Config->setField('navigation_media_type');
+                $Config->setField('navigation_media_thumbnail');
 
                 $Parent = [];
                 foreach ($Sort as $pid => $ids) {
@@ -1001,6 +1079,9 @@ class Helper
                         $Config->addField('navigation_attr', $all[$id]['attr']);
                         $Config->addField('navigation_a_attr', $all[$id]['a_attr']);
                         $Config->addField('navigation_parent', isset($all[$pid]) ? $map[$pid] : 0);
+                        $Config->addField('navigation_media', $all[$id]['media']);
+                        $Config->addField('navigation_media_type', $all[$id]['media_type']);
+                        $Config->addField('navigation_media_thumbnail', $all[$id]['media_thumbnail']);
                         $i++;
 
                         if (isset($Parent[$id])) {
@@ -1112,27 +1193,28 @@ class Helper
             return $need;
         }
         $cur = getcwd();
-        Storage::changeDir(SCRIPT_DIR);
+        LocalStorage::changeDir(SCRIPT_DIR);
         $cacheFile = CACHE_DIR . 'cache_default_config';
-        $expire = date('Y-m-d H:i:s', Storage::lastModified(CONFIG_FILE));
-        if (Storage::exists($cacheFile)) {
-            $cacheExpire = date('Y-m-d H:i:s', Storage::lastModified($cacheFile) + 10);
+        $expire = date('Y-m-d H:i:s', LocalStorage::lastModified(CONFIG_FILE));
+        if (LocalStorage::exists($cacheFile)) {
+            $cacheExpire = date('Y-m-d H:i:s', LocalStorage::lastModified($cacheFile) + 10);
         } else {
             $cacheExpire = '1000-01-01 00:00:00';
         }
         if ($expire > $cacheExpire) {
             if (defined('CACHE_DIR')) {
                 try {
-                    Storage::makeDirectory(CACHE_DIR);
-                    Storage::put($cacheFile, 'cache');
+                    LocalStorage::makeDirectory(CACHE_DIR);
+                    LocalStorage::put($cacheFile, 'cache');
                 } catch (\Exception $e) {
                 }
             }
             $need = true;
             return true;
         }
-        Storage::changeDir($cur);
-
+        if ($cur) {
+            LocalStorage::changeDir($cur);
+        }
         $need = false;
         return false;
     }

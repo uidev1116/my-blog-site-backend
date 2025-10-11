@@ -23,7 +23,7 @@
   }
 }
 
-@media screen and (min-width: global.$breakpoint-md-min) {
+@include global.media-breakpoint-up(md) {
   .acms-navbar-admin {
     width: 50px;
     height: 100vh;
@@ -90,16 +90,22 @@
 
   @include global.font-size(13);
 
-  a {
+  button {
     display: block;
+    width: 100%;
     padding: 20px 10px 20px 20px;
     color: global.$acms-color-black;
+    font-weight: bold;
+    text-align: left;
+    background: 0;
+    border: 0;
+    appearance: none;
   }
 }
 
 // hover
 .acms-navbar-admin-nav > li > a:hover,
-.acms-title-blog a:hover {
+.acms-title-blog button:hover {
   text-decoration: none;
   opacity: 0.5;
 }
@@ -110,10 +116,10 @@
   margin: 5px 0 0;
 }
 
-@media screen and (min-width: global.$breakpoint-md-min) {
+@include global.media-breakpoint-up(md) {
   .acms-title-blog,
   .acms-title-rule {
-    a {
+    button {
       padding: 10px 20px;
     }
   }
@@ -133,7 +139,7 @@
   z-index: global.zIndex(acms-nav);
 }
 
-@media screen and (min-width: global.$breakpoint-md-min) {
+@include global.media-breakpoint-up(md) {
   .acms-nav {
     position: fixed;
     top: 0;
@@ -146,7 +152,7 @@
   // a-blog cmsのロゴを固定
   .acms-list-blog-sp {
     position: absolute;
-    top: 10px;
+    top: 15px;
     right: 15px;
     width: auto;
     margin: 0;
@@ -182,19 +188,7 @@
   overflow: auto;
 }
 
-// a-blog cmsのロゴを固定
-.acms-navbar-system .acms-list-blog-sp {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  width: auto;
-  margin: 0;
-  color: global.$acms-color-white;
-
-  @include global.font-size(30);
-}
-
-@media screen and (max-width: global.$breakpoint-md-max) {
+@include global.media-breakpoint-down(md) {
   // オフキャンバス
   .js .js-offcanvas {
     display: none;
@@ -221,4 +215,31 @@
       overflow: inherit;
     }
   }
+}
+
+.acms-navbar-admin-nav-header {
+  display: flex;
+  min-width: 210px;
+  padding: 10px 15px;
+  background-color: global.$acms-color-gray20;
+  border-bottom: 1px solid global.$acms-color-gray60;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+}
+
+.acms-navbar-admin-nav-status {
+  flex: 1;
+  padding-left: 10px;
+}
+
+.acms-navbar-admin-nav-username {
+  margin: 0 0 2px;
+  font-weight: bold;
+  font-size: 12px;
+  overflow-wrap: break-word;
+}
+
+.acms-navbar-admin-nav-usercode {
+  margin: 0 0 2px;
+  font-size: 10px;
 }

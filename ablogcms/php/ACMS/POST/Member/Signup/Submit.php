@@ -17,15 +17,11 @@ class ACMS_POST_Member_Signup_Submit extends ACMS_POST_Member_Signup_Confirm
     /**
      * トークンのキーを取得
      *
-     * @param array $data
      * @return string
      */
-    protected function getTokenKey(array $data): string
+    protected function getTokenKey(): string
     {
-        if (!isset($data['uid']) || empty($data['uid'])) {
-            return '';
-        }
-        return $data['uid'];
+        return 'signup-confirmation';
     }
 
     /**

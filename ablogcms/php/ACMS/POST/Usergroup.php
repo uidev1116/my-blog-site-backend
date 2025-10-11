@@ -8,17 +8,16 @@ class ACMS_Validator_Usergroup extends ACMS_Validator
             return true;
         }
 
-        $DB     = DB::singleton(dsn());
+        $DB = DB::singleton(dsn());
 
         //-----------
         // usergroup
-        $SQL    = SQL::newSelect('usergroup');
+        $SQL = SQL::newSelect('usergroup');
         $SQL->setSelect('usergroup_id');
         $SQL->addWhereOpr('usergroup_name', $name);
         if (!empty($ugid)) {
             $SQL->addWhereOpr('usergroup_id', $ugid, '<>');
         }
-        $SQL->setSelect(1);
         if ($DB->query($SQL->get(dsn()), 'one')) {
             return false;
         }

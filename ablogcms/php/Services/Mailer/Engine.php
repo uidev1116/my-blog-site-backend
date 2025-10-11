@@ -7,9 +7,9 @@ use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mime\Email;
 use Acms\Services\Facades\Application;
-use Acms\Services\Facades\Storage;
 use Acms\Services\Facades\Common;
 use Acms\Services\Facades\Config;
+use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Mailer\Contracts\MailerInterface;
 use Acms\Services\Mailer\Transport\GoogleApi;
 use ACMS_RAM;
@@ -85,8 +85,9 @@ class Engine implements MailerInterface
             $port = empty($config['smtp-port']) ? '25' : $config['smtp-port'];
             $user = urlencode($config['smtp-user']);
             $passwd = urlencode($config['smtp-pass']);
+            $verifyPeer = $config['smtp-verify-peer'] !== 'disable' ? '' : '?verify_peer=0';
 
-            $transport = Transport::fromDsn("smtp://$user:$passwd@$host:$port");
+            $transport = Transport::fromDsn("smtp://{$user}:{$passwd}@{$host}:{$port}{$verifyPeer}");
         } elseif (isset($config['smtp-google']) && $config['smtp-google'] === 'enable') {
             // google-smtp
             $api = Application::make('mailer.google.smtp.api');
@@ -196,7 +197,7 @@ class Engine implements MailerInterface
      */
     public function attach($path, $filename = '')
     {
-        if (!Storage::exists($path)) {
+        if (!LocalStorage::exists($path)) {
             throw new RuntimeException('Not found the attach file.');
         }
         if (!empty($filename)) {
@@ -373,7 +374,7 @@ class Engine implements MailerInterface
         $this->mailer->send($this->message);
         if ($removeAttachedFiles) {
             foreach ($this->attachedFiles as $path) {
-                Storage::remove($path);
+                LocalStorage::remove($path);
             }
         }
         return $this;

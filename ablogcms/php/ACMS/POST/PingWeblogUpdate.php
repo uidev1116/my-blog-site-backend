@@ -1,9 +1,10 @@
 <?php
 
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Facades\Common;
 use Acms\Services\Facades\Http;
 use Acms\Services\Facades\Logger;
+use Acms\Services\Logger\Deprecated;
 
 class ACMS_POST_PingWeblogUpdate extends ACMS_POST
 {
@@ -12,15 +13,16 @@ class ACMS_POST_PingWeblogUpdate extends ACMS_POST
     public function post()
     {
         if (!sessionWithCompilation()) {
-            die();
+            die403();
         }
-        if (!IS_LICENSED) {
-            die();
-        }
+
+        Deprecated::once('Ping送信', [
+            'since' => '3.2.0'
+        ]);
 
         try {
             $tplPath = THEMES_DIR . 'system/rpc/weblog-updates-ping.xml';
-            $tpl = Storage::get($tplPath);
+            $tpl = LocalStorage::get($tplPath);
         } catch (Exception $e) {
             Logger::notice('PINGのテンプレート取得に失敗しました', Common::exceptionArray($e, ['tpl' => $tplPath]));
             return false;

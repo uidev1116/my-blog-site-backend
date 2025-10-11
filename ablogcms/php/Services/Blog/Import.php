@@ -5,6 +5,7 @@ namespace Acms\Services\Blog;
 use SQL;
 use DB;
 use Common;
+use Acms\Services\Facades\BlockEditor;
 use Symfony\Component\Yaml\Yaml;
 
 class Import
@@ -57,10 +58,16 @@ class Import
      */
     public function run($bid, $yaml)
     {
-        $this->bid = $bid;
-        $this->yaml = Yaml::parse($yaml);
-        $this->ids = [];
         $this->errors = [];
+
+        $data = Yaml::parse($yaml);
+        if (!is_array($data)) {
+            $this->errors[] = 'Invalid YAML format.';
+            return $this->errors;
+        }
+        $this->bid = $bid;
+        $this->ids = [];
+        $this->yaml = $data;
 
         $this->dropData();
         $this->registerNewIDs();
@@ -118,8 +125,11 @@ class Import
             $SQL = SQL::newInsert($table);
             foreach ($record as $field => $value) {
                 $value = $this->fix($table, $field, $value);
-                if (is_callable([$this, $table . 'Fix'])) {
-                    $value = call_user_func_array([$this, $table . 'Fix'], [$field, $value, $record]);
+                $method = $table . 'Fix';
+                if (is_callable([$this, $method])) {
+                    /** @var callable $callback */
+                    $callback = [$this, $method];
+                    $value = call_user_func_array($callback, [$field, $value, $record]);
                 }
                 if ($value !== false) {
                     $SQL->addInsert($field, $value);
@@ -211,6 +221,8 @@ class Import
             $value = $this->getNewID('media', $value);
         } elseif ($key === 'set_id' || $key === 'config_set_id' || $key === 'theme_set_id' || $key === 'editor_set_id') {
             $value = $this->getNewID('config_set', $value);
+        } elseif ($key === 'unit_id') {
+            $value = $this->getNewID('column', $value);
         } elseif ($key === 'blog_id') {
             $value = $this->bid;
         }
@@ -228,7 +240,7 @@ class Import
     private function configFix($field, $value, $record)
     {
         if (!is_null($value) && $record['config_key'] === 'media_banner_mid' && $field === 'config_value') {
-            return $this->getNewID('media', $value);
+            return $this->getNewID('media', $value) ?? '';
         }
         return $value;
     }
@@ -261,55 +273,18 @@ class Import
      */
     private function columnFix($field, $value, $record)
     {
-        if (strncmp($record['column_type'], 'custom', 6) === 0 && $field === 'column_field_6') {
-            $data = acmsDangerUnserialize($value); // @phpstan-ignore-line
-            if ($data instanceof \Field && method_exists($data, 'deleteField')) {
-                $fixMediaField = [];
-                foreach ($data->listFields() as $fd) {
-                    foreach ($data->getArray($fd, true) as $i => $val) {
-                        if (strpos($fd, '@media') !== false) {
-                            $sourceFd = substr($fd, 0, -6);
-                            if (!isset($fixMediaField[$sourceFd])) {
-                                $fixMediaField[$sourceFd] = [];
-                            }
-                            $val = $this->getNewID('media', $val);
-                            $fixMediaField[$sourceFd][] = $val;
-                        } else {
-                            $val = preg_replace('@([\d]{3})/(.*)\.([^\.]{2,6})@ui', sprintf("%03d", BID) . '/$2.$3', $val, -1);
-                        }
-                        if ($i === 0) {
-                            $data->set($fd, $val);
-                        } else {
-                            $data->add($fd, $val);
-                        }
-                    }
-                }
-                // fix media id
-                foreach ($fixMediaField as $fd => $mediaIds) {
-                    foreach ($mediaIds as $j => $mid) {
-                        if ($j === 0) {
-                            $data->set($fd, $mid);
-                        } else {
-                            $data->add($fd, $mid);
-                        }
-                    }
-                }
-                return acmsSerialize($data);
-            }
-        } elseif (
-            1 &&
-            !is_null($value) &&
-            strncmp($record['column_type'], 'media', 5) === 0 &&
-            $field === 'column_field_1'
-        ) {
-            $value = $this->getNewID('media', $value);
-        } elseif (
-            1 &&
-            !is_null($value) &
-            strncmp($record['column_type'], 'module', 5) === 0 &&
-            $field === 'column_field_1'
-        ) {
-            $value = $this->getNewID('module', $value);
+        $type = detectUnitTypeSpecifier($record['column_type']);
+
+        if ($type === 'media' && $field === 'column_field_1' && $value) {
+            $newMediaId = $this->getNewID('media', $value);
+            $value = $newMediaId ? $newMediaId : 0;
+        } elseif ($type === 'block-editor' && $field === 'column_field_1' && $value) {
+            $value = $this->fixBlockEditorMedia($value);
+        } elseif ($type === 'module' && $field === 'column_field_1' && $value) {
+            $newModuleId = $this->getNewID('module', $value);
+            $value = $newModuleId ? $newModuleId : 0;
+        } elseif ($field === 'column_parent_id' && $value) {
+            $value = $this->getNewID('column', $value);
         }
         return $value;
     }
@@ -431,7 +406,6 @@ class Import
         } elseif ($field === 'field_bid' && !empty($value)) {
             $value = $this->bid;
         } elseif (
-            1 &&
             !is_null($value) &&
             $field === 'field_value' &&
             preg_match('/@media$/', $record['field_key'])
@@ -441,14 +415,25 @@ class Import
                 'name' => substr($record['field_key'], 0, -6),
                 'value' => $value,
                 'sort' => $record['field_sort'],
-                'eid' => empty($record['field_eid']) ? null : $this->getNewID('entry', $record['field_eid']),
-                'cid' => empty($record['field_cid']) ? null : $this->getNewID('category', $record['field_cid']),
-                'uid' => empty($record['field_uid']) ? null : $this->getNewID('user', $record['field_uid']),
-                'bid' => empty($record['field_bid']) ? null : $this->bid,
-                'mid' => empty($record['field_mid']) ? null : $this->getNewID('module', $record['field_mid']),
+                'eid' => !$record['field_eid'] ? null : $this->getNewID('entry', $record['field_eid']),
+                'cid' => !$record['field_cid'] ? null : $this->getNewID('category', $record['field_cid']),
+                'uid' => !$record['field_uid'] ? null : $this->getNewID('user', $record['field_uid']),
+                'bid' => !$record['field_bid'] ? null : $this->bid,
+                'mid' => !$record['field_mid'] ? null : $this->getNewID('module', $record['field_mid']),
             ];
+        } elseif (
+            !is_null($value) &&
+            $field === 'field_value' &&
+            $record['field_type'] === 'block-editor'
+        ) {
+            $value = $this->fixBlockEditorMedia($value);
         }
         return $value;
+    }
+
+    private function fixBlockEditorMedia(string $value): string
+    {
+        return BlockEditor::fixMediaId($value, $this->ids['media'] ?? []);
     }
 
     /**
@@ -459,7 +444,7 @@ class Import
      */
     private function getNewID($table, $id)
     {
-        if (is_numeric($id)) {
+        if (is_numeric($id) || $table === 'column') {
             if (!isset($this->ids[$table][$id])) {
                 return $id;
             }
@@ -513,7 +498,11 @@ class Import
             if (isset($this->ids[$table][$id])) {
                 continue;
             }
-            $this->ids[$table][$id] = DB::query(SQL::nextval($table . '_id', dsn()), 'seq');
+            if ($table === 'column') {
+                $this->ids[$table][$id] = uuidv4();
+            } else {
+                $this->ids[$table][$id] = DB::query(SQL::nextval($table . '_id', dsn()), 'seq');
+            }
         }
     }
 

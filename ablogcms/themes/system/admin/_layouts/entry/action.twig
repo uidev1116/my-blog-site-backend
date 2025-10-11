@@ -1,0 +1,120 @@
+<!-- BEGIN_MODULE Touch_SessionWithContribution -->
+<!-- BEGIN_MODULE Touch_NotPreview -->
+  {% block actionGroup %}
+  <div class="acms-admin-btn-action-group">
+    <div class="acms-admin-hstack">
+      {% if entry.editorialInfo.editBtn %}
+        {% block editEntryBtn %}
+          <form action="" method="post">
+            <button
+              type="submit"
+              class="acms-admin-btn-admin"
+              aria-label="<!--T-->エントリーを編集する<!--/T-->"
+            >
+              <!--T-->編集<!--/T-->
+            </button>
+            <input type="hidden" name="ACMS_POST_2GET" value="on">
+            <input type="hidden" name="eid" value="{{ entry.eid }}">
+            <input type="hidden" name="cid" value="{{ entry.cid }}">
+            <input type="hidden" name="bid" value="{{ entry.bid }}">
+            <input type="hidden" name="admin" value="entry-edit"/>
+            <input type="hidden" name="query" value="rvid"/>
+            <input type="hidden" name="rvid" value="{{ rvid }}"/>
+          </form>
+        {% endblock %}
+        {% block duplicateEntryBtn %}
+          <form action="" method="post">
+            <button
+              type="submit"
+              name="ACMS_POST_Entry_Duplicate"
+              class="acms-admin-btn-admin"
+              onclick="javascript:return confirm('<!--T-->エントリーを複製します。よろしいですか？<!--/T-->')"
+              aria-label="<!--T-->エントリーを複製する<!--/T-->"
+            >
+              <!--T-->複製<!--/T-->
+            </button>
+            <input type="hidden" name="eid" value="{{ entry.eid }}">
+            <input type="hidden" name="cid" value="{{ entry.cid }}">
+            <input type="hidden" name="bid" value="{{ entry.bid }}">
+          </form>
+        {% endblock %}
+        <!-- BEGIN_MODULE Touch_sessionWithApprovalAdministrator -->
+        <!-- BEGIN_MODULE Touch_Form2 -->
+        {% block editFormBtn %}
+          <form action="" method="post">
+            <button
+              type="submit"
+              class="acms-admin-btn-admin"
+              aria-label="<!--T-->動的フォームを追加する<!--/T-->"
+            >
+              <!--T-->フォーム<!--/T-->
+            </button>
+            <input type="hidden" name="ACMS_POST_2GET" value="on"/>
+            <input type="hidden" name="admin" value="form2-edit"/>
+            <input type="hidden" name="bid" value="{{ entry.bid }}"/>
+            <input type="hidden" name="cid" value="{{ entry.cid }}"/>
+            <input type="hidden" name="eid" value="{{ entry.eid }}"/>
+          </form>
+        {% endblock %}
+        <!-- END_MODULE Touch_Form2 -->
+        <!-- END_MODULE Touch_sessionWithApprovalAdministrator -->
+      {% endif %}
+      {% if entry.editorialInfo.deleteBtn %}
+        {% block deleteEntryBtn %}
+          <form action="" method="post">
+            <button
+              type="submit"
+              name="ACMS_POST_Entry_Trash"
+              class="acms-admin-btn-admin"
+              onclick="javascript:return confirm('<!--T-->エントリーを削除します。よろしいですか？<!--/T-->')"
+              aria-label="<!--T-->エントリーを削除する<!--/T-->"
+            >
+              <!--T-->削除<!--/T-->
+            </button>
+            <input type="hidden" name="bid" value="{{ entry.bid }}"/>
+            <input type="hidden" name="cid" value="{{ entry.cid }}"/>
+            <input type="hidden" name="eid" value="{{ entry.eid }}"/>
+          </form>
+        {% endblock %}
+      {% endif %}
+      <!-- BEGIN_MODULE Touch_sessionWithApprovalAdministrator -->
+      {% if entry.editorialInfo.publishBtn %}
+        {% block openEntryBtn %}
+          <form action="" method="post">
+            <button
+              type="submit"
+              name="ACMS_POST_Entry_Open"
+              class="acms-admin-btn-admin"
+              aria-label="<!--T-->エントリーを公開する<!--/T-->"
+            >
+              <!--T-->公開<!--/T-->
+            </button>
+            <input type="hidden" name="bid" value="{{ entry.bid }}"/>
+            <input type="hidden" name="cid" value="{{ entry.cid }}"/>
+            <input type="hidden" name="eid" value="{{ entry.eid }}"/>
+          </form>
+        {% endblock %}
+      {% endif %}
+      {% if not entry.editorialInfo.publishBtn %}
+        {% block closeEntryBtn %}
+          <form action="" method="post">
+            <button
+              type="submit"
+              name="ACMS_POST_Entry_Close"
+              class="acms-admin-btn-admin"
+              aria-label="<!--T-->エントリーを非公開にする<!--/T-->"
+            >
+              <!--T-->非公開<!--/T-->
+            </button>
+            <input type="hidden" name="bid" value="{{ entry.bid }}"/>
+            <input type="hidden" name="cid" value="{{ entry.cid }}"/>
+            <input type="hidden" name="eid" value="{{ entry.eid }}"/>
+          </form>
+        {% endblock %}
+      {% endif %}
+      <!-- END_MODULE Touch_sessionWithApprovalAdministrator -->
+    </div>
+  </div>
+{% endblock %}
+<!-- END_MODULE Touch_NotPreview -->
+<!-- END_MODULE Touch_SessionWithContribution -->

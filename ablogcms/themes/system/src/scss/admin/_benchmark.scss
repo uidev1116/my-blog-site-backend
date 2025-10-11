@@ -1,0 +1,47 @@
+@use '../global/common' as global;
+
+/* ------------------------------
+ ベンチマーク
+------------------------------- */
+
+.acms-benchmark-container {
+  display: flow-root;
+  width: 100%;
+}
+
+.acmsBenchmark {
+  float: left;
+  margin-bottom: 20px;
+  margin-left: 20px;
+
+  h1 {
+    text-align: center;
+
+    @include global.font-size(14);
+  }
+}
+
+.acmsBenchmarkTable {
+  margin-top: 10px;
+  text-align: left;
+  background-color: global.$acms-color-white;
+  border-collapse: collapse;
+
+  @include global.font-size(8);
+
+  thead th {
+    background-color: global.$acms-color-success30;
+  }
+
+  tbody th {
+    background-color: global.$acms-color-success10;
+  }
+
+  th,
+  td {
+    max-width: 300px;
+    padding: 5px 10px;
+    word-wrap: break-word;
+    border: 1px solid global.$acms-color-gray80;
+  }
+}

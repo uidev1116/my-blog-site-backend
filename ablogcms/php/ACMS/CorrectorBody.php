@@ -1,7 +1,10 @@
 <?php
 
-use HTMLPurifier;
-use HTMLPurifier_HTML5Config;
+use Acms\Services\Facades\PublicStorage;
+use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\Logger;
+use Acms\Services\Facades\Application;
+use Exception;
 
 class ACMS_CorrectorBody
 {
@@ -9,6 +12,11 @@ class ACMS_CorrectorBody
      * @var array
      */
     public $const = [];
+
+    public function jsonPrint($txt)
+    {
+        return json_encode($txt, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS);
+    }
 
     public function nl2br($txt)
     {
@@ -41,63 +49,86 @@ class ACMS_CorrectorBody
                 }
                 unset($rep[$val]);
             }
-            return str_replace(array_keys($rep), array_values($rep), $txt);
+            return str_replace(array_keys($rep), array_values($rep), $txt ?? '');
         } else {
-            if (is_array($txt)) {
-                $txt = implode($txt);
-            }
             if (is_null($txt)) {
                 $txt = '';
+            }
+            if (!is_string($txt)) {
+                $txt = (string)json_encode($txt);
             }
             return htmlspecialchars($txt, ENT_QUOTES, 'UTF-8');
         }
     }
 
+    public function allow_dangerous_tag($txt)
+    {
+        return $txt;
+    }
+
     /**
-     * 指定されたタグを削除する
-     * scriptやiframeなどの危険なタグを削除するなど
+     * 安全なHTMLを返す
      *
      * @param string $txt
-     * @param array $notAllowedTags
+     */
+    public function safe_html($txt): string
+    {
+        return $this->htmlPurifier($txt);
+    }
+
+    /**
+     * HTMLを洗浄する
+     *
+     * @param string $txt
      * @return string
      */
-    public function strip_select_tags($txt, $notAllowedTags = ['script', 'iframe', 'form']): string
+    public function htmlPurifier($txt): string
     {
         static $purifier;
 
         if (is_array($txt)) {
             $txt = implode($txt);
         }
-        if (empty($txt)) {
+        if (!$txt) {
             return strval($txt);
         }
         if ($purifier === null) {
-            $config = HTMLPurifier_HTML5Config::createDefault();
-            $config->set('HTML.Doctype', 'HTML5');
-            $config->set('Core.Encoding', 'UTF-8');
-            $config->set('Attr.EnableID', true); // id属性を許可する
-            $config->set('Attr.AllowedRel', ['noopener', 'noreferrer', 'alternate', 'author', 'bookmark', 'canonical', 'external', 'help', 'icon', 'license', 'manifest', 'me', 'next', 'nofollow', 'opener', 'preconnect', 'prefetch', 'preload', 'prerender', 'prev', 'privacy-policy', 'search', 'stylesheet', 'tag', 'terms-of-service']); // rel属性を許可する
-            $config->set('Attr.DefaultImageAlt', ''); // 自動でaltが入る機能をオフ
-            $config->set('Attr.ID.HTML5', true); // クラス命名規則を緩和
-            // $config->set('AutoFormat.Linkify', true); // URLを自動でリンク化
-            $config->set('Attr.AllowedFrameTargets', ['_blank', '_self']); // target属性を緩和
-            $config->set('CSS.AllowImportant', true); // CSSのimportantを許可
-            $config->set('CSS.AllowTricky', true); // トリッキーなCSSを許可（display:noneなど）
-            $config->set('CSS.MaxImgLength', '3000px'); // 画像の最大サイズを指定（HTML.MaxImgLength も同時に指定）
-            $config->set('CSS.Trusted', true); // 利用できるCSSを緩和
-            $config->set('Core.AllowHostnameUnderscore', true); // ホスト名にアンダースコアを許容
-            $config->set('Core.DisableExcludes', true);
-            $config->set('Core.EscapeInvalidTags', true); // 無効なタグを削除ではなく、エスケープして出力
-            $config->set('HTML.Attr.Name.UseCDATA', true); // name属性の命名規則の緩和
-            $config->set('HTML.MaxImgLength', 3000); // 画像の最大サイズを指定（CSS.MaxImgLength も同時に指定）
-            $config->set('HTML.Trusted', true); // 利用できるHTMLを緩和
-            $config->set('HTML.ForbiddenElements', $notAllowedTags); // 禁止にするタグ
-            $config->set('Output.FixInnerHTML', false); // http://htmlpurifier.org/live/configdoc/plain.html#Output.FixInnerHTML
-            $config->set('Cache.SerializerPath', CACHE_DIR); // キャッシュディレクトリの指定
-
-            $purifier = new HTMLPurifier($config);
+            $purifier = Application::make('html-purifier');
         }
-        return $purifier->purify($txt);
+        return $purifier->clean($txt);
+    }
+
+    /**
+     * 危険なスキームを検出して置換する
+     *
+     * @param mixed $txt
+     * @return string
+     */
+    public function sanitizeScheme($txt): string
+    {
+        if (is_array($txt)) {
+            $txt = implode($txt);
+        }
+        if (!is_string($txt)) {
+            return strval($txt);
+        }
+        $blacklist = [
+            'javascript', 'data', 'vbscript', 'file', 'blob', 'unsafe',
+            'about', 'ftp', 'ws', 'wss', 'jar', 'mocha', 'view-source',
+            'intent', 'ms-settings', 'shell', 'command', 'powershell',
+            'chrome', 'chrome-extension', 'opera', 'opera-extension', 'edge', 'ms-browser-extension',
+        ];
+        $decoded = html_entity_decode($txt, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $decoded = urldecode($decoded);
+        $trimmed = trim($decoded);
+        $scheme = parse_url($trimmed, PHP_URL_SCHEME);
+        if ($scheme === null || $scheme === false) {
+            return $txt; // URLではない、相対URLはOK
+        }
+        if (in_array(strtolower($scheme), $blacklist, true)) {
+            return '#'; // 危険なスキーマは完全に無効化
+        }
+        return $txt;
     }
 
     public function escvars($txt)
@@ -124,6 +155,9 @@ class ACMS_CorrectorBody
     public function mb_trim($txt, $args = [])
     {
         if (!isset($args[0])) {
+            return $txt;
+        }
+        if (empty($txt)) {
             return $txt;
         }
         $width = intval($args[0]);
@@ -188,7 +222,6 @@ class ACMS_CorrectorBody
             . '(?:(?:' . $m['enclosure'] . '((?:[^' . $m['enclosure'] . ']|' . $m['enclosure'] . $m['enclosure'] . ')*)' . $m['enclosure'] . ')|([^' . $m['column'] . ']*?))'
             . '(?=([[:blank:]' . $m['nowrapE'] . $m['align'] . ']*+)(?:' . $m['column'] . '|' . $m['row'] . '|$))'
             . $m['regex'] . 'u';
-        ;
 
         preg_match_all($ptn, $csv, $matches, PREG_SET_ORDER);
 
@@ -326,8 +359,8 @@ class ACMS_CorrectorBody
 
     public function number_format($txt)
     {
-        if (!empty($txt) && is_numeric($txt)) {
-            return number_format($txt);
+        if ($txt && is_numeric($txt)) {
+            return number_format((float) $txt);
         } else {
             return $txt;
         }
@@ -382,7 +415,7 @@ class ACMS_CorrectorBody
             return $txt;
         }
         $ymd = date('Ymd', $dt);
-        $y = (int)substr($ymd, 0, 4);
+        $y = (int) substr($ymd, 0, 4);
 
         $era = '';
         $year = null;
@@ -443,7 +476,7 @@ class ACMS_CorrectorBody
             return $txt;
         }
         $txt = date($args[0], $dt);
-        if ($txt === date($args[0], strtotime(REQUEST_TIME)) && isset($args[1])) {
+        if ($txt === date($args[0], REQUEST_TIME) && isset($args[1])) {
             $txt = $args[1];
         }
         return $txt;
@@ -469,11 +502,22 @@ class ACMS_CorrectorBody
         if (!isset($args[0])) {
             return $src;
         }
+        if (!$src) {
+            return '';
+        }
         $src = urldecode($src);
         $parsedSrc = parse_url($src);
         $src = $parsedSrc['path'];
         $query = isset($parsedSrc['query']) ? '?' . $parsedSrc['query'] : '';
-
+        $src = explode('?', $src, 2)[0];
+        if (strpos($src, '..') !== false) {
+            return ''; // 不正なパス
+        }
+        $hasLeadingSlash = isset($src[0]) && $src[0] === '/';
+        if ($hasLeadingSlash) {
+            $src = ltrim($src, '/'); // パスの先頭にスラッシュがあるとrealpathがfalseになるため、ltrimで削除
+        }
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp']; // 許可する拡張子
         $width = empty($args[0]) ? 0 : intval($args[0]);
         $height = (isset($args[1]) && !empty($args[1])) ? intval($args[1]) : 0;
         $color = isset($args[2]) ? strtolower($args[2]) : 'ffffff';
@@ -490,29 +534,36 @@ class ACMS_CorrectorBody
             $pfx .= '_' . $color;
         }
 
-        foreach (['', ARCHIVES_DIR, MEDIA_LIBRARY_DIR] as $archive_dir) {
+        foreach (['', MEDIA_LIBRARY_DIR, ARCHIVES_DIR] as $archive_dir) {
             $tmpPath = $archive_dir . normalSizeImagePath($src);
-            $destPath = trim(dirname($tmpPath), '/') . '/' . $pfx . '-' . Storage::mbBasename($tmpPath);
-            $destPathVars = trim(dirname($src), '/') . '/' . $pfx . '-' . Storage::mbBasename($tmpPath);
+            $destPath = trim(dirname($tmpPath), '/') . '/' . $pfx . '-' . PublicStorage::mbBasename($tmpPath);
+            $destPathVars = trim(dirname($src), '/') . '/' . $pfx . '-' . PublicStorage::mbBasename($tmpPath);
             $largePath = otherSizeImagePath($tmpPath, 'large'); // large path
-
-            if (Storage::isReadable($destPath)) {
-                return Media::urlencode($destPathVars) . $query;
+            $realTmpPath = LocalStorage::safeRealpath($tmpPath);
+            if (!$realTmpPath || strpos($realTmpPath, LocalStorage::safeRealpath(SCRIPT_DIR)) !== 0 || is_link($realTmpPath)) { // @phpstan-ignore-line
+                continue;
             }
-            if (strpos($largePath, MEDIA_LIBRARY_DIR) !== 0 && Storage::isReadable($largePath)) {
+            $ext = strtolower(pathinfo($tmpPath, PATHINFO_EXTENSION));
+            if (!in_array($ext, $allowedExtensions, true)) {
+                continue; // 不正な拡張子
+            }
+            if (PublicStorage::isReadable($destPath)) {
+                return $hasLeadingSlash ? '/' . Media::urlencode($destPathVars) . $query : Media::urlencode($destPathVars) . $query;
+            }
+            if (strpos($largePath, MEDIA_LIBRARY_DIR) !== 0 && PublicStorage::isReadable($largePath)) {
                 $srcPath = $largePath;
                 break;
             }
-            if (Storage::isReadable($tmpPath)) {
+            if (PublicStorage::isReadable($tmpPath)) {
                 $srcPath = $tmpPath;
                 break;
             }
         }
         if (empty($srcPath)) {
-            return Media::urlencode($src) . $query;
+            return $hasLeadingSlash ? '/' . Media::urlencode($src) . $query : Media::urlencode($src) . $query;
         }
-        if (!$xy = Storage::getImageSize($srcPath)) {
-            return Media::urlencode($src) . $query;
+        if (!$xy = PublicStorage::getImageSize($srcPath)) {
+            return $hasLeadingSlash ? '/' . Media::urlencode($src) . $query : Media::urlencode($src) . $query;
         }
 
         if (!$stretch) {
@@ -524,22 +575,30 @@ class ACMS_CorrectorBody
             }
         }
 
-        $image = new ImageResize($srcPath);
-        $image = $image->setMode($mode)
-            ->setBgColor($color)
-            ->setQuality(intval(config('resize_image_jpeg_quality', 75)));
-        if (empty($width)) {
-            $image = $image->resizeToHeight($height);
-        } else {
-            if (empty($height)) {
-                $image = $image->resizeToWidth($width);
+        try {
+            $image = new ImageResize($srcPath);
+            $image->setMode($mode);
+            $image->setBgColor($color);
+            $image->setQuality(intval(config('resize_image_jpeg_quality', 75)));
+            if (empty($width)) {
+                $image->resizeToHeight($height);
             } else {
-                $image = $image->resize($width, $height);
+                if (empty($height)) {
+                    $image->resizeToWidth($width);
+                } else {
+                    $image->resize($width, $height);
+                }
             }
+            $image->save($destPath);
+            return $hasLeadingSlash ? '/' . Media::urlencode($destPathVars) . $query : Media::urlencode($destPathVars) . $query;
+        } catch (Exception $e) {
+            Logger::notice('画像リサイズに失敗しました', [
+                'srcPath' => $srcPath,
+                'destPath' => $destPath,
+                'error' => $e->getMessage(),
+            ]);
         }
-        $image->save($destPath);
-
-        return Media::urlencode($destPathVars) . $query;
+        return $hasLeadingSlash ? '/' . Media::urlencode($srcPath) . $query : Media::urlencode($srcPath) . $query;
     }
 
     public function fixChars($txt)
@@ -585,7 +644,7 @@ class ACMS_CorrectorBody
 
     public function basename($txt)
     {
-        return Storage::mbBasename($txt);
+        return LocalStorage::mbBasename($txt);
     }
 
     public function dirname($txt)
@@ -615,7 +674,6 @@ class ACMS_CorrectorBody
             'center' => '中央',
             'right' => '右寄せ',
             'left' => '左寄せ',
-            'hidden' => '非表示',
         ];
         return isset($dict[$txt]) ? $dict[$txt] : $txt;
     }
@@ -648,6 +706,9 @@ class ACMS_CorrectorBody
 
     public function contrastColor($color, $args = [])
     {
+        if (empty($color)) {
+            return '';
+        }
         $black = isset($args[0]) ? $args[0] : '#000000';
         $white = isset($args[1]) ? $args[1] : '#ffffff';
 
@@ -693,7 +754,11 @@ class ACMS_CorrectorBody
         $method = isset($args[0]) ? $args[0] : false;
         if ($method) {
             $method = 'ACMS_RAM::' . $method;
-            return call_user_func($method, $id);
+            if (is_callable($method)) {
+                return call_user_func($method, $id);
+            } else {
+                return $id;
+            }
         }
         return $id;
     }
@@ -721,7 +786,7 @@ class ACMS_CorrectorBody
     public function imageRatioSizeH($src, $args = [])
     {
         foreach (['', ARCHIVES_DIR, MEDIA_LIBRARY_DIR] as $dir) {
-            $size = Storage::getImageSize($dir . urldecode($src));
+            $size = PublicStorage::getImageSize($dir . urldecode($src));
 
             if ($size) {
                 $width = isset($args[0]) ? intval($args[0]) : 200;
@@ -736,7 +801,7 @@ class ACMS_CorrectorBody
     public function imageRatioSizeW($src, $args = [])
     {
         foreach (['', ARCHIVES_DIR, MEDIA_LIBRARY_DIR] as $dir) {
-            $size = Storage::getImageSize($dir . urldecode($src));
+            $size = PublicStorage::getImageSize($dir . urldecode($src));
 
             if ($size) {
                 $height = isset($args[0]) ? intval($args[0]) : 200;
@@ -802,5 +867,37 @@ class ACMS_CorrectorBody
             $txt = config('admin_entry_title_prefix_end');
         }
         return $txt;
+    }
+
+    /**
+     * 指定された値と一致した場合、selected 属性を返す
+     *
+     * @param mixed $value
+     * @param array $args
+     * @return string
+     */
+    public function selected($value, $args = []): string
+    {
+        $expected = isset($args[0]) ? $args[0] : '';
+        if (is_array($value)) {
+            return in_array($expected, $value, true) ? 'checked' : '';
+        }
+        return $value === $expected ? 'selected' : '';
+    }
+
+    /**
+     * 指定された値と一致した場合、checked 属性を返す
+     *
+     * @param mixed $value
+     * @param array $args
+     * @return string
+     */
+    public function checked($value, $args = []): string
+    {
+        $expected = isset($args[0]) ? $args[0] : '';
+        if (is_array($value)) {
+            return in_array($expected, $value, true) ? 'checked' : '';
+        }
+        return $value === $expected ? 'checked' : '';
     }
 }

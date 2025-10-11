@@ -23,7 +23,9 @@ abstract class Factory
     public function __call($method, $arguments)
     {
         if (is_callable([$this->instance, $method])) {
-            return call_user_func_array([$this->instance, $method], $arguments);
+            /** @var callable $callback */
+            $callback = [$this->instance, $method];
+            return call_user_func_array($callback, $arguments);
         }
         throw new \BadMethodCallException("Method {$method} does not exist on " . get_class($this->instance));
     }

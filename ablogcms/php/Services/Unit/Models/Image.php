@@ -3,58 +3,142 @@
 namespace Acms\Services\Unit\Models;
 
 use Acms\Services\Unit\Contracts\ExportEntry;
-use Acms\Services\Unit\Contracts\PrimaryImageUnit;
+use Acms\Services\Unit\Contracts\ImageUnit;
 use Acms\Services\Unit\Contracts\UnitListModule;
-use Acms\Services\Unit\Contracts\ValidatePath;
+use Acms\Services\Unit\Contracts\AssetProvider;
 use Acms\Services\Unit\Contracts\Model;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Unit\Contracts\AlignableUnitInterface;
+use Acms\Traits\Unit\AlignableUnitTrait;
+use Acms\Services\Unit\Contracts\AnkerUnitInterface;
+use Acms\Traits\Unit\AnkerUnitTrait;
+use Acms\Services\Unit\Services\Image\ImageDataExtractor;
+use Acms\Services\Unit\Services\Image\ImageFileManager;
+use Acms\Services\Facades\PublicStorage;
 use Acms\Services\Facades\Entry;
-use ACMS_POST_Image;
+use Acms\Services\Facades\Common;
+use Acms\Traits\Unit\UnitMultiLangTrait;
 use Template;
+use Acms\Traits\Unit\SizeableUnitTrait;
+use Acms\Services\Unit\Contracts\SizeableUnitInterface;
 
-class Image extends Model implements PrimaryImageUnit, ValidatePath, UnitListModule, ExportEntry
+/**
+ * @phpstan-import-type ImageData from ImageDataExtractor
+ *
+ * @extends \Acms\Services\Unit\Contracts\Model<array<string, mixed>>
+ */
+class Image extends Model implements ImageUnit, AssetProvider, UnitListModule, ExportEntry, AlignableUnitInterface, AnkerUnitInterface, SizeableUnitInterface
 {
-    use \Acms\Traits\Unit\UnitTemplateTrait;
     use \Acms\Traits\Common\AssetsTrait;
+    use AlignableUnitTrait;
+    use AnkerUnitTrait;
+    use SizeableUnitTrait;
+    use UnitMultiLangTrait;
 
     /**
-     * ファイルのパスを配列で取得
-     *
-     * @return array
+     * ユニットの独自データ
+     * @var array<string, mixed>
+     */
+    private $attributes = [];
+
+    /**
+     * メイン画像ユニットかどうか
+     * @var bool
+     */
+    private $isPrimaryImage = false;
+
+    /**
+     * 編集アクション
+     * @var string
+     */
+    private $editAction = '';
+
+    /**
+     * リクエストデータから抽出した画像データ
+     * @var ImageData|null
+     */
+    private $imageData = null;
+
+    /**
+     * @inheritDoc
      */
     public function getFilePaths(): array
     {
-        return $this->explodeUnitData($this->getField2());
+        return $this->explodeUnitDataTrait($this->getField2());
     }
 
     /**
      * メイン画像のパスを取得。メディアの場合メディアIDを取得
      *
-     * @return array
+     * @inheritDoc
      */
     public function getPaths(): array
     {
-        return $this->explodeUnitData($this->getField2());
+        return $this->getFilePaths();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setFilePaths($paths): void
+    {
+        $this->setField2($this->implodeUnitDataTrait($paths));
     }
 
     /**
      * メイン画像のAltを取得
      *
-     * @return array
+     * @inheritDoc
      */
     public function getAlts(): array
     {
-        return $this->explodeUnitData($this->getField4());
+        return $this->explodeUnitDataTrait($this->getField4());
     }
 
     /**
      * メイン画像のキャプションを取得
      *
-     * @return array
+     * @inheritDoc
      */
     public function getCaptions(): array
     {
-        return $this->explodeUnitData($this->getField1());
+        return $this->explodeUnitDataTrait($this->getField1());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isPrimaryImage(): bool
+    {
+        return $this->isPrimaryImage;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setIsPrimaryImage(bool $isPrimaryImage): void
+    {
+        $this->isPrimaryImage = $isPrimaryImage;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function canBePrimaryImage(): bool
+    {
+        $paths = $this->getFilePaths();
+        if (count($paths) === 0) {
+            // ファイルパスが空の場合はメイン画像にできない
+            return false;
+        }
+        if (
+            array_all($paths, function (string $path) {
+                return $path === '';
+            })
+        ) {
+            // すべてのファイルパスが空文字の場合はメイン画像にできない
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -64,7 +148,7 @@ class Image extends Model implements PrimaryImageUnit, ValidatePath, UnitListMod
      */
     public function exportArchivesFiles(): array
     {
-        $paths = $this->explodeUnitData($this->getField2());
+        $paths = $this->explodeUnitDataTrait($this->getField2());
         $exportFiles = [];
         foreach ($paths as $path) {
             $exportFiles[] = $path;
@@ -88,11 +172,11 @@ class Image extends Model implements PrimaryImageUnit, ValidatePath, UnitListMod
     /**
      * エントリーのエクスポートでエクスポートするモジュールIDを返却
      *
-     * @return int[]
+     * @inheritDoc
      */
-    public function exportModuleIds(): array
+    public function exportModuleId(): ?int
     {
-        return [];
+        return null;
     }
 
     /**
@@ -104,19 +188,19 @@ class Image extends Model implements PrimaryImageUnit, ValidatePath, UnitListMod
     public function renderUnitListModule(Template $tpl): array
     {
         $vars = [];
-        $path = $this->explodeUnitData($this->getField2());
+        $path = $this->explodeUnitDataTrait($this->getField2());
         $normal = $path[0] ?? $path;
         $tiny = preg_replace('@(^|/)(?=[^/]+$)@', '$1tiny-', $normal);
         $large = preg_replace('@(^|/)(?=[^/]+$)@', '$1large-', $normal);
         $square = preg_replace('@(^|/)(?=[^/]+$)@', '$1square-', $normal);
 
-        $vars['tiny'] = $tiny;
-        $vars['normal'] = $normal;
-        if (Storage::isFile(ARCHIVES_DIR . $large)) {
-            $vars['large'] = $large;
+        $vars['tiny'] = $tiny ? Common::resolveUrl($tiny, ARCHIVES_DIR) : null;
+        $vars['normal'] = Common::resolveUrl($normal, ARCHIVES_DIR);
+        if (PublicStorage::isFile(ARCHIVES_DIR . $large)) {
+            $vars['large'] = Common::resolveUrl($large, ARCHIVES_DIR);
         }
-        if (Storage::isFile(ARCHIVES_DIR . $square)) {
-            $vars['square'] = $square;
+        if (PublicStorage::isFile(ARCHIVES_DIR . $square)) {
+            $vars['square'] = Common::resolveUrl($square, ARCHIVES_DIR);
         }
         return $vars;
     }
@@ -124,21 +208,44 @@ class Image extends Model implements PrimaryImageUnit, ValidatePath, UnitListMod
     /**
      * ユニットタイプを取得
      *
-     * @return string
+     * @inheritDoc
      */
-    public function getUnitType(): string
+    public static function getUnitType(): string
     {
         return 'image';
     }
 
     /**
-     * ユニットが画像タイプか取得
+     * ユニットラベルを取得
      *
-     * @return bool
+     * @inheritDoc
      */
-    public function getIsImageUnit(): bool
+    public static function getUnitLabel(): string
     {
-        return true;
+        return gettext('画像');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAttributes()
+    {
+        return [
+            'image_caption' => $this->getCaption()[0] ?? '',
+            'image_link' => $this->getLink()[0] ?? '',
+            'image_alt' => $this->getAlt()[0] ?? '',
+            'image_size' => $this->getSize(),
+            'image_edit' => $this->getEditAction(),
+            ...$this->attributes,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setAttributes($attributes): void
+    {
+        $this->attributes = $attributes;
     }
 
     /**
@@ -150,8 +257,9 @@ class Image extends Model implements PrimaryImageUnit, ValidatePath, UnitListMod
      */
     public function setDefault(string $configKeyPrefix, int $configIndex): void
     {
-        $this->setField1(config("{$configKeyPrefix}field_1", '', $configIndex));
-        $this->setField2(config("{$configKeyPrefix}field_2", '', $configIndex));
+        $this->setEditAction(config("{$configKeyPrefix}edit", '', $configIndex));
+        $this->setCaption(config("{$configKeyPrefix}field_1", '', $configIndex));
+        $this->setFilePaths(config("{$configKeyPrefix}field_2", '', $configIndex));
         $this->setField3(config("{$configKeyPrefix}field_3", '', $configIndex));
         $this->setField4(config("{$configKeyPrefix}field_4", '', $configIndex));
         $this->setField6(config("{$configKeyPrefix}field_6", '', $configIndex));
@@ -160,135 +268,100 @@ class Image extends Model implements PrimaryImageUnit, ValidatePath, UnitListMod
     /**
      * POSTデータからユニット独自データを抽出
      *
-     * @param array $post
-     * @param bool $removeOld
-     * @param bool $isDirectEdit
+     * @param array $request
      * @return void
      */
-    public function extract(array $post, bool $removeOld = true, bool $isDirectEdit = false): void
+    public function extract(array $request): void
     {
-        $id = $this->getTempId();
-        $captions = $_POST["image_caption_{$id}"] ?? null;
-        $imageHelper = new ACMS_POST_Image($removeOld, $isDirectEdit);
-        $imageFiles = [];
-
-        if (is_array($captions)) {
-            // 多言語ユニット
-            $imagePathAry = [];
-            $exifAry = [];
-            foreach ($captions as $n => $val) {
-                $_old = $_POST["image_old_{$id}"][$n] ?? $_POST["image_old_{$id}"] ?? null;
-                $edit = $_POST["image_edit_{$id}"][$n] ?? $_POST['image_edit_' . $id];
-                if ($_old && !$this->validateRemovePath('image', $_old)) {
-                    $_old = null;
-                }
-                if ($postFile = $_POST["image_file_{$id}"][$n] ?? false) {
-                    $imageHelper = new ACMS_POST_Image($removeOld, true);
-                    ACMS_POST_Image::base64DataToImage($postFile, "image_file_{$id}", $n);
-                }
-                $tmp = $_FILES["image_file_{$id}"]['tmp_name'][$n] ?? '';
-                $exifData = $_POST["image_exif_{$id}"] ?? [];
-                foreach (
-                    $imageHelper->buildAndSave(
-                        $id,
-                        $_old,
-                        $tmp,
-                        $_POST["image_size_{$id}"],
-                        $edit,
-                        $_POST["old_image_size_{$id}"]
-                    ) as $imageData
-                ) {
-                    $exif = array_shift($exifData);
-                    $imageData['exif'] = $exif;
-                    $imageFiles[$n] = $imageData;
-                }
-                if (empty($imageFiles[$n])) {
-                    $imageFiles[$n] = [
-                        'path' => '',
-                        'exif' => '',
-                    ];
-                }
-            }
-            foreach ($imageFiles as $imagePath) {
-                $imagePathAry[] = $imagePath['path'];
-                $exifAry[] = $imagePath['exif'];
-            }
-            $this->setField1($this->implodeUnitData($captions));
-            $this->setField2($this->implodeUnitData($imagePathAry));
-            $this->setField3($this->implodeUnitData($_POST["image_link_{$id}"]));
-            $this->setField4($this->implodeUnitData($_POST["image_alt_{$id}"]));
-            $this->setField6($this->implodeUnitData($exifAry));
-        } else {
-            // 通常ユニット
-            $old = $_POST["image_old_{$id}"] ?? null;
-            if ($old && !$this->validateRemovePath('image', $old)) {
-                $old = null;
-            }
-            $imageFile = is_array($_POST["image_file_{$id}"] ?? null) ? $_POST["image_file_{$id}"][0] : $_POST["image_file_{$id}"] ?? '';
-            if ($imageFile) {
-                $imageHelper = new ACMS_POST_Image($removeOld, true);
-                ACMS_POST_Image::base64DataToImage($imageFile, "image_file_{$id}");
-            }
-            $tmp = is_array($_FILES["image_file_{$id}"]['tmp_name'] ?? null) ? $_FILES["image_file_{$id}"]['tmp_name'][0] : $_FILES["image_file_{$id}"]['tmp_name'] ?? '';
-            $exif = is_array($_POST["image_exif_{$id}"] ?? null) ? $_POST["image_exif_{$id}"][0] : $_POST["image_exif_{$id}"] ?? '';
-            $oldSize = $_POST["old_image_size_{$id}"] ?? '';
-
-            $imageData = $imageHelper->buildAndSave(
-                $id,
-                $old,
-                $tmp,
-                $_POST["image_size_{$id}"],
-                $_POST["image_edit_{$id}"],
-                $oldSize
-            );
-            $imageData = is_array($imageData) ? $imageData[0] : $imageData ?? '';
-
-            $this->setField1($_POST["image_caption_{$id}"] ?? '');
-            $this->setField2($imageData['path'] ?? '');
-            $this->setField3($_POST["image_link_{$id}"] ?? '');
-            $this->setField4($_POST["image_alt_{$id}"] ?? '');
-            $this->setField6($exif);
+        $id = $this->getId();
+        if (is_null($id)) {
+            throw new \LogicException('Unit ID must be set before calling extract');
         }
 
-        [$size, $displaySize] = $this->extractUnitSizeTrait($post["image_size_{$id}"] ?? '');
+        // データ抽出
+        $extractor = new ImageDataExtractor($id);
+        $data = $extractor->extract($request);
+
+        if ($data['type'] === 'multilang') {
+            $imageRequests = $data['requests'];
+            $oldPaths = array_map(function (array $request) {
+                return $request['old'];
+            }, $imageRequests);
+            // 初期値として既存のファイルパスを保持（新しいファイルは無視）
+            // saveFilesでファイル保存処理を行うと、この値は上書きされる
+            $this->setFilePaths($oldPaths);
+            $captions = array_map(function (array $request) {
+                return $request['caption'];
+            }, $imageRequests);
+            $this->setCaption($captions);
+            $alts = array_map(function (array $request) {
+                return $request['alt'];
+            }, $imageRequests);
+            $this->setAlt($alts);
+            $links = array_map(function (array $request) {
+                return $request['link'];
+            }, $imageRequests);
+            $this->setLink($links);
+            $exifs = array_map(function (array $request) {
+                return $request['exif'];
+            }, $imageRequests);
+            $this->setExif($exifs);
+        } else {
+            $imageRequest = $data['request'];
+            // 初期値として既存のファイルパスを保持（新しいファイルは無視）
+            // saveFilesでファイル保存処理を行うと、この値は上書きされる
+            $this->setFilePaths($imageRequest['old']);
+            $this->setCaption($imageRequest['caption']);
+            $this->setAlt($imageRequest['alt']);
+            $this->setLink($imageRequest['link']);
+            $this->setExif($imageRequest['exif']);
+        }
+
+        // サイズの設定
+        [$size, $displaySize] = $this->extractUnitSizeTrait($data['size'], $this::getUnitType());
         $this->setSize($size);
         $this->setField5($displaySize);
 
-        if (Entry::isNewVersion()) {
-            $oldAry = $this->explodeUnitData($this->getField2());
-            $newAry = [];
-            foreach ($oldAry as $old) {
-                if (in_array($old, Entry::getUploadedFiles(), true)) {
-                    $newAry[] = $old;
-                    continue;
-                }
-                $info = pathinfo($old);
-                $dirname = empty($info['dirname']) ? '' : $info['dirname'] . '/';
-                Storage::makeDirectory(ARCHIVES_DIR . $dirname);
-                $ext = empty($info['extension']) ? '' : '.' . $info['extension'];
-                $newOld = $dirname . uniqueString() . $ext;
-
-                $path = ARCHIVES_DIR . $old;
-                $large = otherSizeImagePath($path, 'large');
-                $tiny = otherSizeImagePath($path, 'tiny');
-                $square = otherSizeImagePath($path, 'square');
-
-                $newPath = ARCHIVES_DIR . $newOld;
-                $newLarge = otherSizeImagePath($newPath, 'large');
-                $newTiny = otherSizeImagePath($newPath, 'tiny');
-                $newSquare = otherSizeImagePath($newPath, 'square');
-
-                copyFile($path, $newPath);
-                copyFile($large, $newLarge);
-                copyFile($tiny, $newTiny);
-                copyFile($square, $newSquare);
-
-                $newAry[] = $newOld;
-            }
-            $this->setField2($this->implodeUnitData($newAry));
-        }
+        $this->imageData = $data;
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function saveFiles(array $post, bool $removeOld = true): void
+    {
+        if (is_null($this->imageData)) {
+            throw new \LogicException('Image data must be set before calling saveFiles');
+        }
+        if (is_null($this->getId())) {
+            throw new \LogicException('Unit ID must be set before calling saveFiles');
+        }
+
+        $manager = new ImageFileManager($this->getId(), $removeOld);
+        $results = $manager->processImages($this->imageData);
+
+        $filePaths = [];
+        foreach ($results as $result) {
+            if ($result['edit'] === 'delete') {
+                // 削除モードの場合はファイルパスを空文字にする
+                $filePaths[] = '';
+                continue;
+            }
+            $filePaths[] = $result['path']; // アップロードされたファイルのパス or 既存のファイルのパス
+        }
+
+        $this->setFilePaths($filePaths);
+
+        // 新バージョンの場合、画像バリエーションを作成
+        if (Entry::isNewVersion()) {
+            $paths = $this->getFilePaths();
+            foreach ($paths as $path) {
+                if (!in_array($path, Entry::getUploadedFiles(), true)) {
+                    $manager->createImageVariations($path);
+                }
+            }
+        }
+    }
     /**
      * 保存できるユニットか判断
      *
@@ -296,7 +369,16 @@ class Image extends Model implements PrimaryImageUnit, ValidatePath, UnitListMod
      */
     public function canSave(): bool
     {
-        if (empty($this->getField2())) {
+        if (count($this->getFilePaths()) === 0) {
+            // ファイルパスが空の場合は保存できない
+            return false;
+        }
+        if (
+            array_all($this->getFilePaths(), function (string $path) {
+                return $path === '';
+            })
+        ) {
+            // すべてのファイルパスが空文字の場合は保存できない
             return false;
         }
         return true;
@@ -309,9 +391,9 @@ class Image extends Model implements PrimaryImageUnit, ValidatePath, UnitListMod
      */
     public function handleDuplicate(): void
     {
-        $imagePaths = explodeUnitData($this->getField2());
+        $imagePaths = $this->getFilePaths();
         $newImagePaths = $this->duplicateImagesTrait($imagePaths);
-        $this->setField2($this->implodeUnitData($newImagePaths));
+        $this->setFilePaths($newImagePaths);
     }
 
     /**
@@ -321,7 +403,7 @@ class Image extends Model implements PrimaryImageUnit, ValidatePath, UnitListMod
      */
     public function handleRemove(): void
     {
-        $imagePaths = $this->explodeUnitData($this->getField2());
+        $imagePaths = $this->getFilePaths();
         $this->removeImageAssetsTrait($imagePaths);
     }
 
@@ -355,52 +437,52 @@ class Image extends Model implements PrimaryImageUnit, ValidatePath, UnitListMod
      */
     public function render(Template $tpl, array $vars, array $rootBlock): void
     {
-        $path = $this->getField2();
-        if (empty($path)) {
+        $paths = $this->getFilePaths();
+        if (count($paths) === 0) {
             return;
         }
-        $pathAry = $this->explodeUnitData($path);
 
-        foreach ($pathAry as $i => $path_) {
-            if (empty($i)) {
+        foreach ($paths as $i => $path_) {
+            if ($i === 0) {
                 $i = '';
             } else {
                 $i++;
             }
             $path = ARCHIVES_DIR . $path_;
-            $xy = Storage::getImageSize($path);
+            $xy = PublicStorage::getImageSize($path);
             $vars['path' . $i] = $path;
             $vars['x' . $i] = $xy[0] ?? '';
             $vars['y' . $i] = $xy[1] ?? '';
         }
-        $vars['alt'] = $this->getField4();
-        $vars['exif'] = $this->getField6();
+        $vars['alt'] = $this->getAlt();
+        $vars['exif'] = $this->getExif();
         $vars = $this->displaySizeStyleTrait($this->getField5(), $vars);
-        $vars['caption'] = $this->getField1();
-        $vars['align'] = $this->getAlign();
-        $vars['attr'] = $this->getAttr();
+        $vars['caption'] = $this->getCaption();
+        $vars['align'] = $this->getAlign()->value;
+        $vars['anker'] = $this->getAnker();
 
-        $linkAry = $this->explodeUnitData($this->getField3());
+        /** @var string[] $linkAry */
+        $linkAry = $this->getLink();
         $path = '';
-        foreach ($pathAry as $i => $path_) {
-            $j = empty($i) ? '' : $i + 1;
+        foreach ($paths as $i => $path_) {
+            $j = $i === 0 ? '' : $i + 1;
             $link_ = $linkAry[$i] ?? '';
             $eid = $this->getEntryId();
-            if (empty($link_)) {
-                if ($pathAry[$i]) {
-                    $path = ARCHIVES_DIR . $pathAry[$i];
+            if ($link_ === '') {
+                if ($paths[$i]) {
+                    $path = ARCHIVES_DIR . $paths[$i];
                 } else {
-                    $path = ARCHIVES_DIR . $this->getField2();
+                    $path = ARCHIVES_DIR . $this->getFilePaths()[0];
                 }
-                $name = Storage::mbBasename($path);
+                $name = PublicStorage::mbBasename($path);
                 $large = substr($path, 0, strlen($path) - strlen($name)) . 'large-' . $name;
-                if ($xy = Storage::getImageSize($large)) {
+                if ($xy = PublicStorage::getImageSize($large)) {
                     $tpl->add(
                         array_merge(['link' . $j . '#front', 'unit#' . $this->getType()], $rootBlock),
                         [
                             'url' . $j => BASE_URL . $large,
                             'viewer' . $j => str_replace('{unit_eid}', strval($eid), config('entry_body_image_viewer')),
-                            'caption' . $j => $this->getField1(),
+                            'caption' . $j => $this->getCaption()[$i] ?? '',
                             'link_eid' . $j => $eid
                         ]
                     );
@@ -415,27 +497,27 @@ class Image extends Model implements PrimaryImageUnit, ValidatePath, UnitListMod
         }
         if ($path !== '') {
             $tiny = otherSizeImagePath($path, 'tiny');
-            if ($xy = Storage::getImageSize($tiny)) {
+            if ($xy = PublicStorage::getImageSize($tiny)) {
                 $vars['tinyPath'] = $tiny;
                 $vars['tinyX'] = $xy[0] ?? '';
                 $vars['tinyY'] = $xy[1] ?? '';
             }
             $square = otherSizeImagePath($path, 'square');
             $squareImgSize = config('image_size_square');
-            if (Storage::isFile($square)) {
+            if (PublicStorage::isFile($square)) {
                 $vars['squarePath'] = $square;
                 $vars['squareX'] = $squareImgSize;
                 $vars['squareY'] = $squareImgSize;
             }
             $large = otherSizeImagePath($path, 'large');
-            if ($xy = Storage::getImageSize($large)) {
+            if ($xy = PublicStorage::getImageSize($large)) {
                 $vars['largePath'] = $large;
                 $vars['largeX'] = $xy[0] ?? '';
                 $vars['largeY'] = $xy[1] ?? '';
             }
         }
         foreach ($vars as $key => $val) {
-            $this->formatMultiLangUnitData($val, $vars, $key);
+            $this->formatMultiLangUnitDataTrait($val, $vars, $key);
         }
         $tpl->add(array_merge(['unit#' . $this->getType()], $rootBlock), $vars);
     }
@@ -452,21 +534,21 @@ class Image extends Model implements PrimaryImageUnit, ValidatePath, UnitListMod
     {
         $size = $this->getSize();
         $path = $this->getField2();
-        $this->renderSizeSelectTrait($this->getUnitType(), $this->getUnitType(), $size, $tpl, $rootBlock);
+        $this->renderSizeSelectTrait(static::getUnitType(), static::getUnitType(), $size, $tpl, $rootBlock);
 
         $vars += [
             'old' => $path,
             'size_old' => $size . ':' . $this->getField5(),
-            'caption' => $this->getField1(),
-            'link' => $this->getField3(),
-            'alt' => $this->getField4(),
-            'exif' => $this->getField6(),
+            'caption' => $this->getCaption(),
+            'link' => $this->getLink(),
+            'alt' => $this->getAlt(),
+            'exif' => $this->getExif(),
         ];
-        $this->formatMultiLangUnitData($vars['old'], $vars, 'old');
-        $this->formatMultiLangUnitData($vars['caption'], $vars, 'caption');
-        $this->formatMultiLangUnitData($vars['exif'], $vars, 'exif');
-        $this->formatMultiLangUnitData($vars['link'], $vars, 'link');
-        $this->formatMultiLangUnitData($vars['alt'], $vars, 'alt');
+        $this->formatMultiLangUnitDataTrait($vars['old'], $vars, 'old');
+        $this->formatMultiLangUnitDataTrait($vars['caption'], $vars, 'caption');
+        $this->formatMultiLangUnitDataTrait($vars['exif'], $vars, 'exif');
+        $this->formatMultiLangUnitDataTrait($vars['link'], $vars, 'link');
+        $this->formatMultiLangUnitDataTrait($vars['alt'], $vars, 'alt');
 
         if ($editAction = $this->getEditAction()) {
             $vars['edit:selected#' . $editAction] = config('attr_selected');
@@ -477,12 +559,12 @@ class Image extends Model implements PrimaryImageUnit, ValidatePath, UnitListMod
             $tXYAry     = [];
             $tinyAry    = [];
             $lXYAry     = [];
-            foreach ($this->explodeUnitData($path) as $normal) {
-                $nXY   = Storage::getImageSize(ARCHIVES_DIR . $normal);
-                $tiny  = preg_replace('@[^/]+$@', 'tiny-$0', $normal);
-                $large = preg_replace('@[^/]+$@', 'large-$0', $normal);
-                $tXY   = Storage::getImageSize(ARCHIVES_DIR . $tiny);
-                if ($lXY = Storage::getImageSize(ARCHIVES_DIR . $large)) {
+            foreach ($this->getFilePaths() as $normal) {
+                $nXY   = PublicStorage::getImageSize(ARCHIVES_DIR . $normal);
+                $tiny  = preg_replace('@[^/]+$@', 'tiny-$0', $normal) ?? '';
+                $large = preg_replace('@[^/]+$@', 'large-$0', $normal) ?? '';
+                $tXY   = PublicStorage::getImageSize(ARCHIVES_DIR . $tiny);
+                if ($lXY = PublicStorage::getImageSize(ARCHIVES_DIR . $large)) {
                     $lXYAry['x'][] = $lXY[0];
                     $lXYAry['y'][] = $lXY[1];
                 } else {
@@ -496,26 +578,26 @@ class Image extends Model implements PrimaryImageUnit, ValidatePath, UnitListMod
                 $tinyAry[] = $tiny;
             }
             $popup = otherSizeImagePath($path, 'large');
-            if (!Storage::getImageSize(ARCHIVES_DIR . $popup)) {
+            if (!PublicStorage::getImageSize(ARCHIVES_DIR . $popup)) {
                 $popup = $path;
             }
             $vars += [
-                'tiny' => implodeUnitData($tinyAry),
-                'tinyX' => implodeUnitData($tXYAry['x']),
-                'tinyY' => implodeUnitData($tXYAry['y']),
+                'tiny' => $this->implodeUnitDataTrait($tinyAry),
+                'tinyX' => $tXYAry['x'],
+                'tinyY' => $tXYAry['y'],
                 'popup' => $popup,
-                'normalX' => implodeUnitData($nXYAry['x']),
-                'normalY' => implodeUnitData($nXYAry['y']),
-                'largeX' => implodeUnitData($lXYAry['x']),
-                'largeY' => implodeUnitData($lXYAry['y']),
+                'normalX' => $nXYAry['x'],
+                'normalY' => $nXYAry['y'],
+                'largeX' => $lXYAry['x'],
+                'largeY' => $lXYAry['y'],
             ];
-            $this->formatMultiLangUnitData($vars['tiny'], $vars, 'tiny');
-            $this->formatMultiLangUnitData($vars['tinyX'], $vars, 'tinyX');
-            $this->formatMultiLangUnitData($vars['popup'], $vars, 'popup');
-            $this->formatMultiLangUnitData($vars['normalX'], $vars, 'normalX');
-            $this->formatMultiLangUnitData($vars['normalY'], $vars, 'normalY');
-            $this->formatMultiLangUnitData($vars['largeX'], $vars, 'largeX');
-            $this->formatMultiLangUnitData($vars['largeY'], $vars, 'largeY');
+            $this->formatMultiLangUnitDataTrait($vars['tiny'], $vars, 'tiny');
+            $this->formatMultiLangUnitDataTrait($vars['tinyX'], $vars, 'tinyX');
+            $this->formatMultiLangUnitDataTrait($vars['popup'], $vars, 'popup');
+            $this->formatMultiLangUnitDataTrait($vars['normalX'], $vars, 'normalX');
+            $this->formatMultiLangUnitDataTrait($vars['normalY'], $vars, 'normalY');
+            $this->formatMultiLangUnitDataTrait($vars['largeX'], $vars, 'largeX');
+            $this->formatMultiLangUnitDataTrait($vars['largeY'], $vars, 'largeY');
 
             foreach ($vars as $key => $val) {
                 if ($val == '') {
@@ -523,29 +605,26 @@ class Image extends Model implements PrimaryImageUnit, ValidatePath, UnitListMod
                 }
             }
         } else {
-            $tpl->add(array_merge(['preview#none', $this->getUnitType()], $rootBlock));
+            $tpl->add(array_merge(['preview#none', static::getUnitType()], $rootBlock));
         }
         // rotate
         if (function_exists('imagerotate')) {
-            $count = count($this->explodeUnitData($path));
+            $count = count($this->getFilePaths());
             for ($i = 0; $i < $count; $i++) {
-                if (empty($i)) {
+                if ($i === 0) {
                     $n = '';
                 } else {
                     $n = $i + 1;
                 }
-                $tpl->add(array_merge(['rotate' . $n, $this->getUnitType()], $rootBlock));
+                $tpl->add(array_merge(['rotate' . $n, static::getUnitType()], $rootBlock));
             }
         }
         // primary image
-        if ($primaryImageUnitId = $this->getPrimaryImageUnitId()) {
-            $unitId = $this->getId();
-            $vars['primaryImageId'] = $this->getTempId();
-            if ($unitId && $primaryImageUnitId === $unitId) {
-                $vars['primaryImageChecked'] = config('attr_checked');
-            }
+        $vars['primaryImageId'] = $this->getId();
+        if ($this->isPrimaryImage()) {
+            $vars['primaryImageChecked'] = config('attr_checked');
         }
-        $tpl->add(array_merge([$this->getUnitType()], $rootBlock), $vars);
+        $tpl->add(array_merge([static::getUnitType()], $rootBlock), $vars);
     }
 
     /**
@@ -561,7 +640,112 @@ class Image extends Model implements PrimaryImageUnit, ValidatePath, UnitListMod
             'link' => $this->getField3(),
             'alt' => $this->getField4(),
             'exif' => $this->getField6(),
-            'display_size' => $this->getField5(),
+            'display_size' => $this->getField5()
         ];
+    }
+
+    /**
+     * キャプションを取得
+     *
+     * @return string[]
+     */
+    public function getCaption(): array
+    {
+        return $this->explodeUnitDataTrait($this->getField1());
+    }
+
+    /**
+     * キャプションを設定
+     *
+     * @param string[]|string $caption
+     * @return void
+     */
+    public function setCaption($caption): void
+    {
+        $this->setField1($this->implodeUnitDataTrait($caption));
+    }
+
+    /**
+     * 代替テキストを取得
+     *
+     * @return string[]
+     */
+    public function getAlt(): array
+    {
+        return $this->explodeUnitDataTrait($this->getField4());
+    }
+
+    /**
+     * 代替テキストを設定
+     *
+     * @param string[]|string $alt
+     * @return void
+     */
+    public function setAlt($alt): void
+    {
+        $this->setField4($this->implodeUnitDataTrait($alt));
+    }
+
+    /**
+     * リンクを取得
+     *
+     * @return string[]
+     */
+    public function getLink(): array
+    {
+        return $this->explodeUnitDataTrait($this->getField3());
+    }
+
+    /**
+     * リンクを設定
+     *
+     * @param string[]|string $link
+     * @return void
+     */
+    public function setLink($link): void
+    {
+        $this->setField3($this->implodeUnitDataTrait($link));
+    }
+
+    /**
+     * EXIFデータを取得
+     *
+     * @return string[]
+     */
+    public function getExif(): array
+    {
+        return $this->explodeUnitDataTrait($this->getField6());
+    }
+
+    /**
+     * EXIFデータを設定
+     *
+     * @param string[]|string $exif
+     * @return void
+     */
+    public function setExif($exif): void
+    {
+        $this->setField6($this->implodeUnitDataTrait($exif));
+    }
+
+    /**
+     * edit action getter
+     *
+     * @return string
+     */
+    public function getEditAction(): string
+    {
+        return $this->editAction;
+    }
+
+    /**
+     * edit action setter
+     *
+     * @param string $editAction
+     * @return void
+     */
+    public function setEditAction(string $editAction): void
+    {
+        $this->editAction = $editAction;
     }
 }

@@ -51,7 +51,7 @@ class ACMS_POST_Blog_Delete extends ACMS_POST_Blog
                 [
                     'alias', 'category', 'column', 'comment', 'config', 'config_set', 'dashboard',
                     'entry', 'field', 'form', 'fulltext', 'log_form',
-                    'module', 'rule', 'tag', 'trackback', 'user',
+                    'module', 'rule', 'tag', 'user',
                 ] as $tb
             ) {
                 $SQL    = SQL::newDelete($tb);

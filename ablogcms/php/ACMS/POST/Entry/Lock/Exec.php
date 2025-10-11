@@ -9,7 +9,8 @@ class ACMS_POST_Entry_Lock_Exec extends ACMS_POST_Entry
 
         try {
             $service = App::make('entry.lock');
-            $service->lock($eid, $rvid, SUID);
+            assert($service instanceof \Acms\Services\Entry\Lock);
+            $service->lock($eid, $rvid, SUID); // @phpstan-ignore-line
 
             Common::responseJson([
                 'locked' => true,

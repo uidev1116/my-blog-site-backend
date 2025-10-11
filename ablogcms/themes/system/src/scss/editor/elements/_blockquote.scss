@@ -1,0 +1,50 @@
+@use '../../global/common' as global;
+
+/* ------------------------------
+ 引用
+------------------------------ */
+
+@include global.editor-style('blockquote') {
+  line-height: 1.7;
+  border: 0 solid global.$acms-color-black;
+  border-inline-start-width: 2px;
+  padding-inline-start: 1rem;
+  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+  margin-inline: 0; /* リセット用 */
+
+  @include global.font-size(14);
+
+  /* ブロックエディター調整：リセット用 */
+  & > * {
+    margin-block: 0;
+  }
+
+  /* ブロックエディター調整 */
+  * + * {
+    margin-block-start: 1rem;
+  }
+
+  a {
+    color: global.$acms-color-link-text;
+    text-decoration: underline;
+    transition: color 0.2s linear;
+
+    &:hover {
+      color: color-mix(in srgb, #06c 80%, black);
+    }
+
+    /* 中に画像が入っているリンクの時 */
+    &:has(img) {
+      display: inline-block;
+      transition: opacity 0.2s ease;
+
+      &:hover {
+        opacity: 0.7;
+      }
+    }
+  }
+
+  img {
+    width: 100%;
+  }
+}

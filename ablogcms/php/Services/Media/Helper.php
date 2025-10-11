@@ -5,9 +5,11 @@ namespace Acms\Services\Media;
 use Rhukster\DomSanitizer\DOMSanitizer;
 use Acms\Services\Facades\Database as DB;
 use Acms\Services\Facades\Image;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\PublicStorage;
+use Acms\Services\Facades\PrivateStorage;
 use Acms\Services\Facades\Common;
-use Acms\Services\Unit\Contracts\Model;
+use Acms\Services\Unit\UnitCollection;
 use SQL;
 use SQL_Select;
 use ACMS_RAM;
@@ -42,7 +44,7 @@ class Helper
     }
 
     /**
-     * メディアの編集が許可されているかどうかを確認
+     * メディアを編集できるかどうかを確認
      * @param int $mid
      * @return bool
      */
@@ -76,7 +78,8 @@ class Helper
             return false;
         }
         $info = getimagesize($fileObj['tmp_name']);
-        $extension = Image::detectImageExtenstion($info['mime']);
+        $mimeType = $info['mime'] ?? null;
+        $extension = $mimeType ? Image::detectImageExtenstion($info['mime']) : '';
 
         return [
             'tags' => $tags,
@@ -106,17 +109,17 @@ class Helper
 
         $oldPath = MEDIA_LIBRARY_DIR . $oldPath;
         $info = pathinfo($oldPath);
-        $name = preg_replace('/\.[^.]*$/u', '', Storage::mbBasename($filename));
+        $name = preg_replace('/\.[^.]*$/u', '', PublicStorage::mbBasename($filename));
         $name = preg_replace('/\s/u', '_', $name);
         $dir = empty($info['dirname']) ? '' : $info['dirname'] . '/';
         $ext = empty($info['extension']) ? '' : '.' . $info['extension'];
 
         $newPath = $dir . $name . $ext;
-        $newPath = uniqueFilePath($newPath, '');
-        $newName = preg_replace("/(.+)(\.[^.]+$)/", "$1", Storage::mbBasename($newPath));
-        copyFile($oldPath, $newPath);
-        copyFile(otherSizeImagePath($oldPath, 'large'), otherSizeImagePath($newPath, 'large'));
-        copyFile(otherSizeImagePath($oldPath, 'tiny'), otherSizeImagePath($newPath, 'tiny'));
+        $newPath = PublicStorage::uniqueFilePath($newPath, '');
+        $newName = preg_replace("/(.+)(\.[^.]+$)/", "$1", PublicStorage::mbBasename($newPath));
+        $this->copyFile($oldPath, $newPath, true);
+        $this->copyFile(otherSizeImagePath($oldPath, 'large'), otherSizeImagePath($newPath, 'large'), true);
+        $this->copyFile(otherSizeImagePath($oldPath, 'tiny'), otherSizeImagePath($newPath, 'tiny'), true);
 
         return [
             'path' => substr($newPath, strlen(MEDIA_LIBRARY_DIR)),
@@ -140,19 +143,21 @@ class Helper
         $oldPath = $oldData['path'];
         $status = $oldData['status'];
         $baseDir = $status ? MEDIA_STORAGE_DIR : MEDIA_LIBRARY_DIR;
+        $storage = $status ? PrivateStorage::getInstance() : PublicStorage::getInstance();
+        assert($storage instanceof \Acms\Services\Storage\Filesystem);
         $filename = $filename ?: $oldData['name'];
 
         $oldPath = $baseDir . $oldPath;
         $info = pathinfo($oldPath);
-        $name = preg_replace('/\.[^.]*$/u', '', Storage::mbBasename($filename));
+        $name = preg_replace('/\.[^.]*$/u', '', PublicStorage::mbBasename($filename));
         $name = preg_replace('/\s/u', '_', $name);
         $dir = empty($info['dirname']) ? '' : $info['dirname'] . '/';
         $ext = empty($info['extension']) ? '' : $info['extension'];
 
         $newPath = $dir . $name . '.' . $ext;
-        $newPath = uniqueFilePath($newPath, '');
-        $newName = preg_replace("/(.+)(\.[^.]+$)/", "$1", Storage::mbBasename($newPath));
-        copyFile($oldPath, $newPath);
+        $newPath = $storage->uniqueFilePath($newPath, '');
+        $newName = preg_replace("/(.+)(\.[^.]+$)/", "$1", PublicStorage::mbBasename($newPath));
+        $this->copyFile($oldPath, $newPath, !$status);
 
         return [
             'path' => substr($newPath, strlen($baseDir)),
@@ -161,15 +166,34 @@ class Helper
     }
 
     /**
+     * ファイルをコピー
+     *
+     * @param string $from
+     * @param string $to
+     * @param bool $isPublic
+     * @return bool
+     */
+    function copyFile(string $from, string $to, bool $isPublic)
+    {
+        $res = copyFile($from, $to, $isPublic);
+
+        if (HOOK_ENABLE) {
+            $Hook = ACMS_Hook::singleton();
+            $Hook->call('mediaCreate', $to);
+        }
+        return $res;
+    }
+
+    /**
      * 画像をアップロード
      * @param string $fieldName
      * @param bool $original
      * @return array{
      *   path: string,
-     *   type: string,
+     *   type: 'image',
      *   name: string,
      *   size: string,
-     *   filesize: int<0, max>|false,
+     *   filesize: int,
      *   extension: string,
      * }
      */
@@ -202,12 +226,14 @@ class Helper
             null,
             $forceLarge
         );
-        $data['extension'] = $data['type'];
-        $data['type'] = 'image';
-        $data['name'] = Storage::mbBasename($data['path']);
-        $data['filesize'] = @filesize(MEDIA_LIBRARY_DIR . $data['path']);
-
-        return $data;
+        return [
+            'path' => $data['path'],
+            'type' => 'image',
+            'name' => PublicStorage::mbBasename($data['path']),
+            'size' => $data['size'],
+            'filesize' => PublicStorage::getFileSize(MEDIA_LIBRARY_DIR . $data['path']),
+            'extension' => $data['type'],
+        ];
     }
 
     /**
@@ -270,10 +296,8 @@ class Helper
      */
     public function uploadFile($size, $fieldName = 'file')
     {
-        Storage::makeDirectory(MEDIA_STORAGE_DIR);
-
         $data = $this->createFile(MEDIA_STORAGE_DIR, $fieldName, false);
-        if (!Storage::exists(MEDIA_STORAGE_DIR . $data['path'])) {
+        if (!PrivateStorage::exists(MEDIA_STORAGE_DIR . $data['path'])) {
             return false;
         }
         $data['extension'] = $data['type'];
@@ -326,7 +350,10 @@ class Helper
         $status = $oldData['status'];
         $path = $oldData['path'];
         $baseDir = $status ? MEDIA_STORAGE_DIR : MEDIA_LIBRARY_DIR;
-        Storage::remove($baseDir . $path);
+        $storage = $status ? PrivateStorage::getInstance() : PublicStorage::getInstance();
+        assert($storage instanceof \Acms\Services\Storage\Filesystem);
+
+        $storage->remove($baseDir . $path);
         Image::deleteImageAllSize(MEDIA_LIBRARY_DIR . $oldData['thumbnail']);
         if (HOOK_ENABLE) {
             $Hook = ACMS_Hook::singleton();
@@ -336,7 +363,13 @@ class Helper
 
     /**
      * ファイルをリネーム
-     * @param array $data
+     * @param array{
+     *  path: string,
+     *  type: 'image' | 'svg' | 'file',
+     *  name: string,
+     *  extension: string,
+     *  original: string,
+     * } $data
      * @param string $rename
      * @return array
      */
@@ -351,11 +384,11 @@ class Helper
         $path = $data['path'];
         $renamePath = trim(dirname($path), '/') . '/' . $basename;
         if ($type === 'image' || $type === 'svg') {
-            $renamePath = uniqueFilePath($renamePath, MEDIA_LIBRARY_DIR); // 名前の重複を避ける
+            $renamePath = PublicStorage::uniqueFilePath($renamePath, MEDIA_LIBRARY_DIR); // 名前の重複を避ける
         } elseif ($type === 'file') {
-            $renamePath = uniqueFilePath($renamePath, MEDIA_STORAGE_DIR); // 名前の重複を避ける
+            $renamePath = PrivateStorage::uniqueFilePath($renamePath, MEDIA_STORAGE_DIR); // 名前の重複を避ける
         }
-        $data['name'] = Storage::mbBasename($renamePath);
+        $data['name'] = PublicStorage::mbBasename($renamePath);
         $data['path'] = $renamePath;
 
         if ($type === 'image') {
@@ -363,41 +396,89 @@ class Helper
             foreach (['normal', 'large', 'tiny', 'square'] as $imageType) {
                 $fromPath = otherSizeImagePath($normalPath, $imageType);
                 $toPath = otherSizeImagePath($renamePath, $imageType);
-                Storage::move(MEDIA_LIBRARY_DIR . $fromPath, MEDIA_LIBRARY_DIR . $toPath);
-                Storage::move(MEDIA_LIBRARY_DIR . $fromPath . '.webp', MEDIA_LIBRARY_DIR . $toPath . '.webp');
+                PublicStorage::move(MEDIA_LIBRARY_DIR . $fromPath, MEDIA_LIBRARY_DIR . $toPath);
+                PublicStorage::move(MEDIA_LIBRARY_DIR . $fromPath . '.webp', MEDIA_LIBRARY_DIR . $toPath . '.webp');
             }
             $data['original'] = otherSizeImagePath($renamePath, 'large');
 
             // mode_xxxxファイルを削除
-            $cacheImagePath = trim(dirname(MEDIA_LIBRARY_DIR . $path), '/') . '/*-' . Storage::mbBasename($path);
+            $cacheImagePath = trim(dirname(MEDIA_LIBRARY_DIR . $path), '/') . '/*-' . PublicStorage::mbBasename($path);
             $cacheImages = glob($cacheImagePath);
             if (is_array($cacheImages)) {
                 foreach ($cacheImages as $filename) {
                     if (preg_match('/(tiny|large|square)-(.*)$/', $filename)) {
                         continue;
                     }
-                    Storage::remove($filename);
-                    Storage::remove($filename . '.webp');
+                    PublicStorage::remove($filename);
+                    PublicStorage::remove($filename . '.webp');
                 }
             }
         } elseif ($type === 'svg') {
-            Storage::move(MEDIA_LIBRARY_DIR . $path, MEDIA_LIBRARY_DIR . $renamePath);
+            PublicStorage::move(MEDIA_LIBRARY_DIR . $path, MEDIA_LIBRARY_DIR . $renamePath);
             $data['original'] = $renamePath;
         } elseif ($type === 'file') {
-            Storage::move(MEDIA_STORAGE_DIR . $path, MEDIA_STORAGE_DIR . $renamePath);
+            PrivateStorage::move(MEDIA_STORAGE_DIR . $path, MEDIA_STORAGE_DIR . $renamePath);
         }
         return $data;
     }
 
     /**
      * パスをURLエンコード
-     * @param string $path
+     *
+     * @param string $url
      * @return string
      */
-    public function urlencode($path)
+    public function urlencode(string $url): string
     {
-        $name = Storage::mbBasename($path);
-        return substr($path, 0, strlen($path) - strlen($name)) . rawurlencode($name);
+        // parse_urlは相対URLにもある程度対応
+        $parts = parse_url($url);
+
+        // パス部分処理
+        if ($parts['path'] ?? null) {
+            $pathParts = explode('/', $parts['path']);
+            $filename = array_pop($pathParts);
+            $encodedFilename = rawurlencode($filename);
+            $encodedPath = implode('/', $pathParts) . '/' . $encodedFilename;
+            // パス先頭のスラッシュ考慮
+            if (substr($parts['path'], 0, 1) === '/') {
+                $encodedPath = '/' . ltrim($encodedPath, '/');
+            }
+        } else {
+            $encodedPath = '';
+        }
+
+        // クエリ部分処理
+        $encodedQuery = '';
+        if ($parts['query'] ?? null) {
+            parse_str($parts['query'], $queryArray);
+            $encodedQuery = http_build_query($queryArray, '', '&', PHP_QUERY_RFC3986);
+        }
+
+        // 組み立て
+        $result = '';
+        if (($parts['scheme'] ?? null) && ($parts['host'] ?? null)) {
+            $result .= $parts['scheme'] . '://';
+            if ($parts['user'] ?? null) {
+                $result .= $parts['user'];
+                if ($parts['pass'] ?? null) {
+                    $result .= ':' . $parts['pass'];
+                }
+                $result .= '@';
+            }
+            $result .= $parts['host'];
+            if ($parts['port'] ?? null) {
+                $result .= ':' . $parts['port'];
+            }
+        }
+        $result .= $encodedPath;
+        if ($encodedQuery !== '') {
+            $result .= '?' . $encodedQuery;
+        }
+        if ($parts['fragment'] ?? null) {
+            $result .= '#' . rawurlencode($parts['fragment']);
+        }
+
+        return $result;
     }
 
     /**
@@ -441,13 +522,24 @@ class Helper
     }
 
     /**
-     * 編集されたパスを取得
+     * 編集されたアイコンのパスを取得
+     *
      * @param string $path
      * @return string
      */
-    public function getEdited($path)
+    public function getEditedIcon(string $path): string
     {
-        return '/' . DIR_OFFSET . MEDIA_LIBRARY_DIR . $path;
+        return Common::resolveUrl('/' . DIR_OFFSET . $path);
+    }
+
+    /**
+     * 画像のCMS設置ディレクトリの相対パスを取得
+     * @param string $path
+     * @return string
+     */
+    public function getImagePath($path)
+    {
+        return Common::resolveUrl('/' . DIR_OFFSET . MEDIA_LIBRARY_DIR . $path);
     }
 
     /**
@@ -457,7 +549,7 @@ class Helper
      */
     public function getImageThumbnail($path)
     {
-        return '/' . DIR_OFFSET . MEDIA_LIBRARY_DIR . otherSizeImagePath($path, 'tiny');
+        return Common::resolveUrl('/' . DIR_OFFSET . MEDIA_LIBRARY_DIR . otherSizeImagePath($path, 'tiny'));
     }
 
     /**
@@ -467,7 +559,7 @@ class Helper
      */
     public function getSvgThumbnail($path)
     {
-        return '/' . DIR_OFFSET . MEDIA_LIBRARY_DIR . $path;
+        return Common::resolveUrl('/' . DIR_OFFSET . MEDIA_LIBRARY_DIR . $path);
     }
 
     /**
@@ -477,7 +569,7 @@ class Helper
      */
     public function getFileThumbnail($extension)
     {
-        return '/' . DIR_OFFSET . pathIcon($extension);
+        return Common::resolveUrl('/' . DIR_OFFSET . pathIcon($extension));
     }
 
     /**
@@ -487,7 +579,7 @@ class Helper
      */
     public function getPdfThumbnail($path)
     {
-        return '/' . DIR_OFFSET . MEDIA_LIBRARY_DIR . $path;
+        return Common::resolveUrl('/' . DIR_OFFSET . MEDIA_LIBRARY_DIR . $path);
     }
 
     /**
@@ -497,11 +589,7 @@ class Helper
      */
     public function getImagePermalink($path)
     {
-        $permalink = BASE_URL . MEDIA_LIBRARY_DIR . $path;
-        if (ARCHIVES_CACHE_SERVER) {
-            $permalink = ARCHIVES_CACHE_SERVER . '/' . DIR_OFFSET . MEDIA_LIBRARY_DIR . $path;
-        }
-        return $permalink;
+        return Common::resolveUrl(BASE_URL . MEDIA_LIBRARY_DIR . $path);
     }
 
     /**
@@ -516,10 +604,11 @@ class Helper
             return acmsLink(['bid' => BID], false) . MEDIA_FILE_SEGMENT . '/' . $mid . '/' . $this->getDownloadLinkHash($mid) . '/' . ACMS_RAM::mediaExtension($mid) . '/';
         }
         $offset = rtrim(DIR_OFFSET . acmsPath(['bid' => BID]), '/');
-        if (strlen($offset) > 1) {
+        if (strlen($offset) > 0) {
             $offset .= '/';
         }
-        return '/' . $offset .  MEDIA_FILE_SEGMENT . '/' . $mid . '/' . $this->getDownloadLinkHash($mid) . '/' . ACMS_RAM::mediaExtension($mid) . '/';
+        $newPath = '/' . $offset .  MEDIA_FILE_SEGMENT . '/' . $mid . '/' . $this->getDownloadLinkHash($mid) . '/' . ACMS_RAM::mediaExtension($mid) . '/';
+        return Common::resolveUrl($newPath);
     }
 
     /**
@@ -544,30 +633,30 @@ class Helper
     public function getFileOldPermalink($path, $fullpath = true)
     {
         if ($fullpath) {
-            return BASE_URL . MEDIA_LIBRARY_DIR . $path;
+            return Common::resolveUrl(BASE_URL . MEDIA_LIBRARY_DIR . $path);
         }
-        return '/' . DIR_OFFSET . MEDIA_LIBRARY_DIR . $path;
+        return Common::resolveUrl('/' . DIR_OFFSET . MEDIA_LIBRARY_DIR . $path);
     }
 
     /**
-     * オリジナルパスを取得
+     * オリジナル画像のパスを取得
      * @param string $original
      * @return string
      */
     public function getOriginal($original)
     {
-        if ($original && !Storage::exists(MEDIA_LIBRARY_DIR . $original)) {
+        if ($original && !PublicStorage::exists(MEDIA_LIBRARY_DIR . $original)) {
             $original = '';
         }
         if (empty($original)) {
             return '';
         }
-        return '/' . DIR_OFFSET . MEDIA_LIBRARY_DIR . $original;
+        return Common::resolveUrl('/' . DIR_OFFSET . MEDIA_LIBRARY_DIR . $original);
     }
 
     /**
      * タグをフィルタリング
-     * @param SQL_Select $SQL
+     * @param \SQL_Select $SQL
      * @param string[] $tags
      * @return false|void
      */
@@ -602,14 +691,18 @@ class Helper
         DB::query($SQL->get(dsn()), 'exec');
 
         $tags = Common::getTagsFromString($tags);
-        foreach ($tags as $sort => $tag) {
-            $SQL = SQL::newInsert('media_tag');
-            $SQL->addInsert('media_tag_name', $tag);
-            $SQL->addInsert('media_tag_sort', $sort + 1);
-            $SQL->addInsert('media_tag_media_id', $mid);
-            $SQL->addInsert('media_tag_blog_id', $bid);
 
-            DB::query($SQL->get(dsn()), 'exec');
+        $insert = SQL::newBulkInsert('media_tag');
+        foreach ($tags as $sort => $tag) {
+            $insert->addInsert([
+                'media_tag_name' => $tag,
+                'media_tag_sort' => $sort + 1,
+                'media_tag_media_id' => $mid,
+                'media_tag_blog_id' => $bid,
+            ]);
+        }
+        if ($insert->hasData()) {
+            DB::query($insert->get(dsn()), 'exec');
         }
     }
 
@@ -644,20 +737,21 @@ class Helper
         $SQL->addWhereOpr('media_tag_blog_id', BID);
         $SQL->setGroup('media_tag_media_id');
         $SQL->setHaving(SQL::newOpr('media_tag_media_id', 2, '>=', null, 'COUNT'));
-        $q  = $SQL->get(dsn());
+        $q = $SQL->get(dsn());
+        $statement = $DB->query($q, 'exec');
 
-        if ($DB->query($q, 'fetch') and ($row = $DB->fetch($q))) {
+        if ($statement && ($row = $DB->next($statement))) {
             do {
-                $eid    = intval($row['media_tag_media_id']);
-                $Del    = SQL::newDelete('media_tag');
+                $eid = intval($row['media_tag_media_id']);
+                $Del = SQL::newDelete('media_tag');
                 $Del->addWhereOpr('media_tag_name', $newTag);
                 $Del->addWhereOpr('media_tag_media_id', $eid);
                 $Del->addWhereOpr('media_tag_blog_id', BID);
                 $DB->query($Del->get(dsn()), 'exec');
-            } while ($row = $DB->fetch($q));
+            } while ($row = $DB->next($statement));
         }
 
-        $SQL    = SQL::newUpdate('media_tag');
+        $SQL = SQL::newUpdate('media_tag');
         $SQL->setUpdate('media_tag_name', $newTag);
         $SQL->addWhereOpr('media_tag_name', $oldTag);
         $SQL->addWhereOpr('media_tag_blog_id', $bid);
@@ -722,7 +816,11 @@ class Helper
             $old = loadMedia($mid);
             if ($old->get('original') !== $data['original']) {
                 // オリジナル画像を更新する場合は古いファイルを削除
-                Storage::remove($old->get('original'));
+                if ($old->get('status')) {
+                    PrivateStorage::remove($old->get('original'));
+                } else {
+                    PublicStorage::remove($old->get('original'));
+                }
             }
         }
         $field = [
@@ -794,11 +892,16 @@ class Helper
      */
     public function buildJson($mid, $data, $tags, $bid = BID)
     {
-        $path = $this->urlencode($data['path']);
+        $path = $data['path'];
         $type = $data['type'];
         $extension = $data['extension'];
         $original = '';
         $edited = '';
+        $rootPath = '';
+        $iconFullPath = '';
+        $iconWidth = '';
+        $iconHeight = '';
+
         if ($type === 'file') {
             if (empty($data['status'])) {
                 $permalink = $this->getFileOldPermalink($path);
@@ -810,8 +913,13 @@ class Helper
             } else {
                 $thumbnail = $this->getFileThumbnail($extension);
             }
+            $iconPath = pathIcon($extension);
+            $iconFullPath = $this->getEditedIcon($iconPath);
+            $iconDimensions = Image::getImageDimensions($iconPath);
+            $iconWidth = $iconDimensions['width'] ?? '';
+            $iconHeight = $iconDimensions['height'] ?? '';
         } else {
-            $edited = $this->getEdited($path);
+            $edited = $this->getImagePath($path);
             $permalink = $this->getImagePermalink($path);
             $original = $this->urlencode($this->getOriginal($data['original']));
             if ($type === 'svg') {
@@ -819,6 +927,8 @@ class Helper
             } else {
                 $thumbnail = $this->getImageThumbnail($path);
             }
+            $thumbnail = $thumbnail . $this->cacheBusting($data['update_date']);
+            $rootPath = $this->getImagePath($path) . $this->cacheBusting($data['update_date']);
         }
         return [
             "media_status" => $data['status'],
@@ -835,11 +945,15 @@ class Helper
             'media_last_update_user_name' => isset($data['last_update_user_name']) ? $data['last_update_user_name'] : '',
             "media_size" => $data['size'],
             "media_filesize" => intval($data['filesize']),
-            "media_path" => $path,
+            "media_path" => $this->urlencode($path),
+            "media_root_path" => $rootPath,
             "media_edited" => $edited,
             "media_original" => $original,
             "media_thumbnail" => $thumbnail,
             "media_permalink" => $permalink,
+            'media_icon' => $iconFullPath,
+            'media_icon_width' => $iconWidth,
+            'media_icon_height' => $iconHeight,
             "media_type" => $type,
             "media_ext" => $extension,
             "media_caption" => isset($data['field_1']) ? $data['field_1'] : '',
@@ -924,8 +1038,8 @@ class Helper
         $SQL->addSelect('media_tag_name');
         $SQL->addWhereOpr('media_tag_media_id', $mid);
         $q = $SQL->get(dsn());
-        $DB->query($q, 'fetch');
-        while ($row = $DB->fetch($q)) {
+        $statement = $DB->query($q, 'exec');
+        while ($row = $DB->next($statement)) {
             if ($label) {
                 $label = $label . ',' . $row['media_tag_name'];
             } else {
@@ -936,39 +1050,106 @@ class Helper
     }
 
     /**
-     * Summary of mediaEagerLoadFromUnit
-     * @param Model[] $units
+     * メディアIDからメディア情報を取得
+     *
+     * @param int[] $midiaIds
      * @return array<int, array<string, mixed>>
      */
-    public function mediaEagerLoadFromUnit(array $units): array
+    public function mediaEagerLoad(array $midiaIds): array
     {
-        $mediaList = [];
         $mediaDataList = [];
-        foreach ($units as $unit) {
-            $type = $unit->getUnitType();
-            if ($type === 'media') {
-                $mediaData = $unit->getField1();
-                if (empty($mediaData)) {
-                    continue;
-                }
-                $mediaAry = $unit->explodeUnitData($mediaData);
-                foreach ($mediaAry as $i => $mediaId) {
-                    $mediaList[] = $mediaId;
-                }
-            }
-        }
-        if ($mediaList) {
+        if ($midiaIds) {
             $SQL = SQL::newSelect('media');
-            $SQL->addWhereIn('media_id', $mediaList);
+            $SQL->addWhereIn('media_id', $midiaIds);
             $q = $SQL->get(dsn());
             $DB = DB::singleton(dsn());
-            $DB->query($q, 'fetch');
-            while ($media = $DB->fetch($q)) {
+            $statement = $DB->query($q, 'exec');
+            while ($media = $DB->next($statement)) {
                 $mediaId = intval($media['media_id']);
                 $mediaDataList[$mediaId] = $media;
             }
         }
         return $mediaDataList;
+    }
+
+    /**
+     * ユニットモデル一覧からメディア情報を取得
+     *
+     * @param \Acms\Services\Unit\UnitCollection $collection
+     * @return array<int, array<string, mixed>>
+     */
+    public function mediaEagerLoadFromUnit(UnitCollection $collection): array
+    {
+        $mediaList = [];
+        foreach ($collection->flat() as $unit) {
+            if ($unit instanceof \Acms\Services\Unit\Models\Media) {
+                $mediaData = $unit->getField1();
+                if (empty($mediaData)) {
+                    continue;
+                }
+                $mediaAry = $unit->explodeUnitDataTrait($mediaData);
+                foreach ($mediaAry as $i => $mediaId) {
+                    $mediaList[] = $mediaId;
+                }
+            }
+        }
+        return $this->mediaEagerLoad($mediaList);
+    }
+
+    /**
+     * メディアIDから整形されたメディア一覧を取得
+     *
+     * @param int[] $midiaIds
+     * @return array{
+     *  path: string,
+     *  width: string,
+     *  height: string,
+     *  permalink: string,
+     *  icon: string,
+     *  iconWidth: string,
+     *  iconHeight: string
+     * }[]
+     */
+    public function getMediaList(array $midiaIds): array
+    {
+        $mediaList = $this->mediaEagerLoad($midiaIds);
+
+        return array_map(function ($media) {
+            $path = $media['media_path'];
+            [$width, $height] = array_pad(explode('x', $media['media_image_size']), 2, '');
+            $width = '';
+            $height = '';
+            $permalink = '';
+            $iconFullPath = '';
+            $iconWidth = '';
+            $iconHeight = '';
+            if ($media['media_image_size']) {
+                [$width, $height] = array_pad(explode('x', $media['media_image_size']), 2, '');
+                $width = (string) $width;
+                $height = (string) $height;
+            }
+            if ($media['media_type'] === 'file') {
+                if ($media['media_status']) {
+                    $permalink = $this->getFilePermalink($media['media_id']);
+                } else {
+                    $permalink = $this->getFileOldPermalink($path);
+                }
+                $iconPath = pathIcon($media['media_extension']);
+                $iconFullPath = $this->getEditedIcon($iconPath);
+                $iconDimensions = Image::getImageDimensions($iconPath);
+                $iconWidth = $iconDimensions['width'] ?? '';
+                $iconHeight = $iconDimensions['height'] ?? '';
+            }
+            return [
+                'path' => $this->getImagePath($path) . $this->cacheBusting($media['media_update_date']),
+                'width' => $width,
+                'height' => $height,
+                'permalink' => $permalink,
+                'icon' => $iconFullPath,
+                'iconWidth' => $iconWidth,
+                'iconHeight' => $iconHeight,
+            ];
+        }, $mediaList);
     }
 
     /**
@@ -1008,9 +1189,9 @@ class Helper
         foreach (
             [
                 [
-                    'field' => 'm.*',
+                    'field' => '*',
                     'alias' => null,
-                    'scope' => null,
+                    'scope' => 'm',
                     'function' => null
                 ],
                 [
@@ -1095,8 +1276,8 @@ class Helper
             $SQL = SQL::newSelect('media');
             $SQL->addWhereOpr('media_id', $mid);
             $q = $SQL->get(dsn());
-            $DB->query($q, 'fetch');
-            while ($row = $DB->fetch($q)) {
+            $statement = $DB->query($q, 'exec');
+            while ($row = $DB->next($statement)) {
                 $type = $row['media_type'];
                 if ($type === 'image') {
                     $path = MEDIA_LIBRARY_DIR . $row['media_path'];
@@ -1130,9 +1311,6 @@ class Helper
      */
     public function injectMediaField($Field, $mediaList, $useMediaField)
     {
-        if (empty($mediaList) || empty($useMediaField)) {
-            return;
-        }
         $useMediaField = array_unique($useMediaField);
         foreach ($useMediaField as $fd) {
             $sourceField = $Field->getArray($fd . '@media');
@@ -1157,7 +1335,7 @@ class Helper
             foreach ($sourceField as $i => $mid) {
                 if (isset($mediaList[$mid])) {
                     $media = $mediaList[$mid];
-                    $path = $this->urlencode($media['media_path']);
+                    $path = $media['media_path'];
                     $type = $media['media_type'];
 
                     $nameAry[] = $media['media_file_name'];
@@ -1172,7 +1350,7 @@ class Helper
 
                     if ($type === 'image') {
                         $path .= $this->cacheBusting($media['media_update_date']);
-                        $pathAry[] = $path;
+                        $pathAry[] = Common::resolveUrl($path, MEDIA_LIBRARY_DIR);
                         $thumbnailAry[] = $this->getImageThumbnail($path);
                         $imageSizeAry[] = $media['media_image_size'];
                         $focalPoint = $media['media_field_5'];
@@ -1189,7 +1367,7 @@ class Helper
                             if ($w > 0 && $h > 0) {
                                 $width = $w;
                                 $height = $h;
-                                $ratio = $w / $h;
+                                $ratio = round($w / $h, 2);
                             }
                         }
                         if (strpos($focalPoint, ',') !== false) {
@@ -1206,7 +1384,7 @@ class Helper
                         $ratioAry[] = $ratio;
                     } elseif ($type === 'svg') {
                         $path .= $this->cacheBusting($media['media_update_date']);
-                        $pathAry[] = $path;
+                        $pathAry[] = Common::resolveUrl($path, MEDIA_LIBRARY_DIR);
                         $thumbnailAry[] = $this->getSvgThumbnail($path);
                         $imageSizeAry[] = '';
                         $focalXAry[] = '';
@@ -1282,6 +1460,10 @@ class Helper
     {
         $media = $this->getMedia($mid);
         $download = new Download($media);
+        if (!$download->exists()) {
+            httpStatusCode('404 Not Found');
+            return;
+        }
         if (!$download->validate()) {
             httpStatusCode('403 Forbidden Media');
         } else {
@@ -1319,26 +1501,45 @@ class Helper
         if (!isset($File['tmp_name'])) {
             throw new RuntimeException('ファイルアップロードに失敗しました');
         }
+        if (is_uploaded_file($File['tmp_name']) === false) {
+            throw new RuntimeException('ファイルアップロードに失敗しました');
+        }
         $src = $File['tmp_name'];
         $fileName = $File['name'];
-        if (empty($src)) {
+        if (!$src) {
             throw new RuntimeException('ファイルアップロードに失敗しました');
         }
         if (!preg_match('@\.([^.]+)$@', $fileName, $match)) {
             throw new RuntimeException('不正なアップロードを検知しました');
         }
         $nameParts = preg_split('/\./', $fileName);
+        if ($nameParts === false) {
+            throw new RuntimeException('不正なアップロードを検知しました');
+        }
         array_pop($nameParts);
         $name = implode('.', $nameParts);
 
         $extension = $match[1];
-        $dir = Storage::archivesDir();
-        Storage::makeDirectory($archivesDir . $dir);
+        $dir = PublicStorage::archivesDir();
+        $mimeType = Common::getMimeType($src);
+        if ($mimeType === false) {
+            throw new RuntimeException('不正なアップロードを検知しました');
+        }
+        $isPublicStorage = preg_match('/svg/', strtolower($mimeType));
 
+        if ($isPublicStorage) {
+            PublicStorage::makeDirectory($archivesDir . $dir);
+        } else {
+            PrivateStorage::makeDirectory($archivesDir . $dir);
+        }
         if (!$random) {
-            $path = $dir . $name . '.' . $extension;
-            $path = uniqueFilePath($path, $archivesDir);
-            $name = preg_replace("/(.+)(\.[^.]+$)/", "$1", Storage::mbBasename($path));
+            $path = "{$dir}{$name}.{$extension}";
+            if ($isPublicStorage) {
+                $path = PublicStorage::uniqueFilePath($path, $archivesDir);
+            } else {
+                $path = PrivateStorage::uniqueFilePath($path, $archivesDir);
+            }
+            $name = preg_replace("/(.+)(\.[^.]+$)/", "$1", PublicStorage::mbBasename($path));
         } else {
             $path = $dir . uniqueString() . '.' . $extension;
         }
@@ -1362,15 +1563,13 @@ class Helper
         ) {
             throw new RuntimeException('許可されていないファイルです');
         }
-
-        $mimeType = Common::getMimeType($src);
-        if (preg_match('/svg/', strtolower($mimeType))) {
+        if ($isPublicStorage) {
             // SVGの場合、サニタイズ処理をする
-            $dirty = Storage::get($src, dirname($src));
+            $dirty = LocalStorage::get($src, dirname($src));
             $clean = $this->sanitizeSvg($dirty);
-            Storage::put($file, $clean);
-        } else {
-            Storage::copy($src, $file);
+            PublicStorage::put($file, $clean);
+        } elseif ($content = file_get_contents($src)) {
+            PrivateStorage::put($file, $content);
         }
         if (HOOK_ENABLE) {
             $Hook = ACMS_Hook::singleton();
@@ -1395,28 +1594,32 @@ class Helper
     {
         $edited = MEDIA_LIBRARY_DIR . $path;
         $original = MEDIA_LIBRARY_DIR . otherSizeImagePath($path, 'large');
-        Storage::remove($edited);
-        if (Storage::exists($edited . '.webp')) {
-            Storage::remove($edited . '.webp');
+        PublicStorage::remove($edited);
+
+        if (PublicStorage::exists($edited . '.webp')) {
+            PublicStorage::remove($edited . '.webp');
         }
         if ($dirname = dirname($edited)) {
             $dirname .= '/';
         }
-        $basename = Storage::mbBasename($edited);
-        $images = glob($dirname . '*-' . $basename);
-        if (is_array($images)) {
-            foreach ($images as $filename) {
-                if (!$removeOriginal && $filename === $original) {
-                    continue;
-                }
-                Storage::remove($filename);
-                if (Storage::exists($filename . '.webp')) {
-                    Storage::remove($filename . '.webp');
-                }
-                if (HOOK_ENABLE) {
-                    $Hook = ACMS_Hook::singleton();
-                    $Hook->call('mediaDelete', $filename);
-                }
+        $basename = PublicStorage::mbBasename($edited);
+        $fileList = PublicStorage::getFileList($dirname);
+        $pattern = '/^.*-' . preg_quote($basename) . '$/';
+
+        foreach ($fileList as $filePath) {
+            if (!$removeOriginal && $filePath === $original) {
+                continue;
+            }
+            if (!preg_match($pattern, $filePath)) {
+                continue;
+            }
+            PublicStorage::remove($filePath);
+            if (PublicStorage::exists($filePath . '.webp')) {
+                PublicStorage::remove($filePath . '.webp');
+            }
+            if (HOOK_ENABLE) {
+                $Hook = ACMS_Hook::singleton();
+                $Hook->call('mediaDelete', $filePath);
             }
         }
     }

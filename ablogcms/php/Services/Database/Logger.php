@@ -2,7 +2,8 @@
 
 namespace Acms\Services\Database;
 
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
+use stdClass;
 
 class Logger
 {
@@ -12,7 +13,7 @@ class Logger
     protected $destinationPath = '';
 
     /**
-     * @var \stdClass
+     * @var stdClass
      */
     protected $json;
 
@@ -39,14 +40,25 @@ class Logger
     }
 
     /**
+     * Get json object
+     *
+     * @return stdClass
+     */
+    public function getJson(): stdClass
+    {
+        $this->load();
+        return $this->json;
+    }
+
+    /**
      * 初期化
      */
     public function init()
     {
         if (is_writable($this->destinationPath)) {
-            Storage::remove($this->destinationPath);
+            LocalStorage::remove($this->destinationPath);
         }
-        $this->json = new \stdClass();
+        $this->json = new stdClass();
         $this->json->processing = true;
         $this->json->success = false;
         $this->json->error = '';
@@ -54,8 +66,9 @@ class Logger
         $this->json->percentage = 0;
         $this->json->processList = [];
 
-        $json = json_encode($this->json);
-        Storage::put($this->destinationPath, $json);
+        if ($json = json_encode($this->json)) {
+            LocalStorage::put($this->destinationPath, $json);
+        }
     }
 
     /**
@@ -63,7 +76,7 @@ class Logger
      */
     public function load()
     {
-        $json = Storage::get($this->destinationPath);
+        $json = LocalStorage::get($this->destinationPath);
         $this->json = json_decode($json);
     }
 
@@ -80,7 +93,7 @@ class Logger
         }
 
         sleep(3);
-        Storage::remove($this->destinationPath);
+        LocalStorage::remove($this->destinationPath);
     }
 
     /**
@@ -146,7 +159,8 @@ class Logger
         if (!is_writable($this->destinationPath)) {
             return;
         }
-        $json = json_encode($this->json);
-        Storage::put($this->destinationPath, $json);
+        if ($json = json_encode($this->json)) {
+            LocalStorage::put($this->destinationPath, $json);
+        }
     }
 }

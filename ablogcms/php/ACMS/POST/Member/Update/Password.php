@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_POST_Member_Update_Password extends ACMS_POST_Member
 {
     public function post()
@@ -28,6 +30,10 @@ class ACMS_POST_Member_Update_Password extends ACMS_POST_Member
 
     protected function validate($userField)
     {
+        if (!Login::canMemberSignin()) {
+            $userField->setMethod('updatePassword', 'operable', false);
+            httpStatusCode('403 Forbidden');
+        }
         $userField->setMethod('pass', 'required');
         $userField->setMethod('pass', 'password');
         $userField->setMethod('user', 'operable', !!SUID);

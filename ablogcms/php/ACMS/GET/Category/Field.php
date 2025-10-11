@@ -23,9 +23,12 @@ class ACMS_GET_Category_Field extends ACMS_GET
             return '';
         }
 
-        $Tpl    = new Template($this->tpl, new ACMS_Corrector());
+        $Tpl = new Template($this->tpl, new ACMS_Corrector());
         $this->buildModuleField($Tpl);
 
+        if (!$this->cid) {
+            return '';
+        }
         $Field  = loadCategoryField($this->cid);
         foreach ($row as $key => $val) {
             $Field->setField(preg_replace('@^category_@', '', $key), $val);

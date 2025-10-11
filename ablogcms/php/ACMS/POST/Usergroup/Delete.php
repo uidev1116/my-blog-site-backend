@@ -63,8 +63,8 @@ class ACMS_POST_Usergroup_Delete extends ACMS_POST
     {
         $sql1 = SQL::newSelect('workflow');
         $where = SQL::newWhere();
-        $where->addWhere(SQL::newFunction($ugid . ', workflow_start_group', 'FIND_IN_SET'), 'OR');
-        $where->addWhere(SQL::newFunction($ugid . ', workflow_last_group', 'FIND_IN_SET'), 'OR');
+        $where->addWhere(SQL::newFunction($ugid . ', workflow_start_group', 'FIND_IN_SET', null, false), 'OR');
+        $where->addWhere(SQL::newFunction($ugid . ', workflow_last_group', 'FIND_IN_SET', null, false), 'OR');
         $sql1->addWhere($where);
         $sql1->setLimit(1);
 

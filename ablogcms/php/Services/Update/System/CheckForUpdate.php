@@ -2,10 +2,11 @@
 
 namespace Acms\Services\Update\System;
 
-use HTTP;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\Http;
 use Acms\Services\Facades\Common;
 use Acms\Services\Facades\Logger;
+use stdClass;
 
 class CheckForUpdate
 {
@@ -44,7 +45,7 @@ class CheckForUpdate
      */
     protected $jsonString;
     /**
-     * @var \stdClass
+     * @var stdClass
      */
     protected $data;
 
@@ -99,14 +100,14 @@ class CheckForUpdate
      * @param string $endpoint
      * @param string $schema_path
      */
-    public function __construct($endpoint, $cache_path, $schema_path)
+    public function __construct(string $endpoint, string $cache_path, string $schema_path)
     {
         $this->endpoint = $endpoint;
         $this->schema_path = $schema_path;
         $this->cache_path = $cache_path;
 
         try {
-            $this->finalCheckTime = Storage::lastModified($this->cache_path);
+            $this->finalCheckTime = LocalStorage::lastModified($this->cache_path);
         } catch (\Exception $e) {
         }
     }
@@ -116,7 +117,7 @@ class CheckForUpdate
      *
      * @return string
      */
-    public function getUpdateVersion()
+    public function getUpdateVersion(): string
     {
         return $this->updateVersion;
     }
@@ -126,7 +127,7 @@ class CheckForUpdate
      *
      * @return string
      */
-    public function getDownGradeVersion()
+    public function getDownGradeVersion(): string
     {
         return $this->downGradeVersion;
     }
@@ -136,7 +137,7 @@ class CheckForUpdate
      *
      * @return string
      */
-    public function getPackageUrl()
+    public function getPackageUrl(): string
     {
         return $this->packageUrl;
     }
@@ -146,7 +147,7 @@ class CheckForUpdate
      *
      * @return string
      */
-    public function getDownGradePackageUrl()
+    public function getDownGradePackageUrl(): string
     {
         return $this->downGradePackageUrl;
     }
@@ -156,7 +157,7 @@ class CheckForUpdate
      *
      * @return string
      */
-    public function getRootDir()
+    public function getRootDir(): string
     {
         return $this->rootDir;
     }
@@ -166,7 +167,7 @@ class CheckForUpdate
      *
      * @return int
      */
-    public function getFinalCheckTime()
+    public function getFinalCheckTime(): int
     {
         return $this->finalCheckTime;
     }
@@ -176,7 +177,7 @@ class CheckForUpdate
      *
      * @return string
      */
-    public function getChangelogUrl()
+    public function getChangelogUrl(): string
     {
         return $this->changelogUrl;
     }
@@ -186,7 +187,7 @@ class CheckForUpdate
      *
      * @return array
      */
-    public function getChangelogArray()
+    public function getChangelogArray(): array
     {
         return $this->changelogArray;
     }
@@ -196,7 +197,7 @@ class CheckForUpdate
      *
      * @return array
      */
-    public function getReleaseNote()
+    public function getReleaseNote(): array
     {
         return $this->releaseNote;
     }
@@ -205,10 +206,10 @@ class CheckForUpdate
      * バージョンアップが存在するか確認
      *
      * @param string $php_version
-     * @param int $type
+     * @param int<1, 3> $type
      * @return bool
      */
-    public function check($php_version, $type = self::PATCH_VERSION)
+    public function check($php_version, $type = self::PATCH_VERSION): bool
     {
         $string = $this->request($this->endpoint);
 
@@ -223,13 +224,13 @@ class CheckForUpdate
      * バージョンアップが存在するか確認（キャッシュ利用）
      *
      * @param string $php_version
-     * @param int $type
+     * @param int<1, 3> $type
      * @return bool
      */
-    public function checkUseCache($php_version, $type = self::PATCH_VERSION)
+    public function checkUseCache($php_version, $type = self::PATCH_VERSION): bool
     {
         try {
-            $string = Storage::get($this->cache_path);
+            $string = LocalStorage::get($this->cache_path);
             if (empty($string)) {
                 throw new \RuntimeException('empty');
             }
@@ -248,10 +249,10 @@ class CheckForUpdate
      * @param string $php_version
      * @return bool
      */
-    public function checkDownGradeUseCache($php_version)
+    public function checkDownGradeUseCache($php_version): bool
     {
         try {
-            $string = Storage::get($this->cache_path);
+            $string = LocalStorage::get($this->cache_path);
             if (empty($string)) {
                 throw new \RuntimeException('empty');
             }
@@ -265,11 +266,70 @@ class CheckForUpdate
     }
 
     /**
+     * 最終マイナーバージョンを取得
+     *
+     * @param string $currentVersion
+     * @return array
+     */
+    public function getLatestMinorVersion(string $currentVersion): array
+    {
+        $minorVersion = $this->findLatestMinorVersion($currentVersion);
+        if (!$minorVersion) {
+            return [];
+        }
+        [$minPhpVersion, $maxPhpVersion] = $this->getPhpVersionRange($minorVersion->packages);
+
+        return [
+            'latestMinorVersion' => $minorVersion->version,
+            'minPhpVersion' => $minPhpVersion,
+            'maxPhpVersion' => $maxPhpVersion,
+        ];
+    }
+
+    /**
+     * 最新のマイナーバージョンを取得
+     *
+     * @param string $currentVersion
+     * @return stdClass|null
+     */
+    private function findLatestMinorVersion(string $currentVersion): ?stdClass
+    {
+        foreach ($this->data->versions as $item) {
+            if ($this->isMinorVersion($item->version, $currentVersion)) {
+                return $item;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 対応PHPバージョン範囲を取得
+     *
+     * @param array $packages
+     * @return array
+     */
+    private function getPhpVersionRange(array $packages): array
+    {
+        $min = null;
+        $max = null;
+
+        foreach ($packages as $package) {
+            if (is_null($min) || version_compare($package->php_min_version, $min, '<')) {
+                $min = $package->php_min_version;
+            }
+            if (is_null($max) || version_compare($package->php_max_version, $max, '>')) {
+                $max = $package->php_max_version;
+            }
+        }
+        return [$min, $max];
+    }
+
+    /**
      * 実際のチェックバージョン処理
      *
      * @param string $string
      * @param string $php_version
-     * @param int $type
+     * @param int<1, 3> $type
      * @return bool
      */
     protected function checkForUpdate($string, $php_version, $type = self::PATCH_VERSION)
@@ -278,8 +338,8 @@ class CheckForUpdate
             $php_version = strtolower($php_version);
             $this->decode($string);
 
-            $update_version = $this->checkAcmsVersion($type);
-            if (empty($update_version)) {
+            $update_version = $this->checkAcmsVersion($php_version, $type);
+            if (!$update_version) {
                 return false;
             }
             $this->releaseNote = $this->createReleaseNote($update_version->version);
@@ -287,7 +347,7 @@ class CheckForUpdate
             $this->changelogUrl = $update_version->changelog->link;
             $this->changelogArray = $update_version->changelog->logs;
             $package = $this->checkPhpVersion($update_version->packages, $php_version);
-            if (empty($package)) {
+            if (!$package) {
                 return false;
             }
             $this->packageUrl = $package->download;
@@ -314,12 +374,12 @@ class CheckForUpdate
             $this->decode($string);
 
             $down_grade_version = $this->checkAcmsDownGradeVersion();
-            if (empty($down_grade_version)) {
+            if (!$down_grade_version) {
                 return false;
             }
             $this->downGradeVersion = $down_grade_version->version;
             $package = $this->checkPhpVersion($down_grade_version->packages, $php_version);
-            if (empty($package)) {
+            if (!$package) {
                 return false;
             }
             $this->downGradePackageUrl = $package->download;
@@ -337,9 +397,9 @@ class CheckForUpdate
      *
      * @param object $packages
      * @param string $php_version
-     * @return false|\StdClass
+     * @return StdClass|null
      */
-    protected function checkPhpVersion($packages, $php_version)
+    protected function checkPhpVersion($packages, $php_version): ?stdClass
     {
         foreach ($packages as $package) {
             $php_min_version = $package->php_min_version;
@@ -352,16 +412,17 @@ class CheckForUpdate
                 return $package;
             }
         }
-        return false;
+        return null;
     }
 
     /**
      * a-blog cmsのバージョンチェック
      *
+     * @param string $phpVersion
      * @param int<1, 3> $type
-     * @return false|\stdClass
+     * @return stdClass|null
      */
-    protected function checkAcmsVersion($type = self::PATCH_VERSION)
+    protected function checkAcmsVersion(string $phpVersion, int $type = self::PATCH_VERSION): ?stdClass
     {
         $current = strtolower(VERSION);
         switch ($type) {
@@ -378,25 +439,27 @@ class CheckForUpdate
         foreach ($this->data->versions as $item) {
             $version = $item->version;
             if (call_user_func([$this, $method], $version, $current)) {
-                return $item;
+                if ($this->checkPhpVersion($item->packages, $phpVersion)) {
+                    return $item;
+                }
             }
         }
-        return false;
+        return null;
     }
 
     /**
      * a-blog cmsのダウングレードバージョンチェック
      *
-     * @return false|object
+     * @return stdClass|null
      */
-    protected function checkAcmsDownGradeVersion()
+    protected function checkAcmsDownGradeVersion(): ?stdClass
     {
         foreach ($this->data->versions as $item) {
             if ($this->isDownGradeVersion($item->version)) {
                 return $item;
             }
         }
-        return false;
+        return null;
     }
 
     /**
@@ -433,7 +496,7 @@ class CheckForUpdate
      * @param $version
      * @return bool
      */
-    protected function isDownGradeVersion($version)
+    protected function isDownGradeVersion($version): bool
     {
         $versionAry = preg_split('/[-+\.\_]/', $version);
         $licenseMajorVersion = intval(substr(LICENSE_SYSTEM_MAJOR_VERSION, 0, 1));
@@ -460,7 +523,7 @@ class CheckForUpdate
      * @param string $current
      * @return bool
      */
-    protected function isPatchVersion($version, $current)
+    protected function isPatchVersion($version, $current): bool
     {
         $versionAry = preg_split('/[-+\.\_]/', $version);
         $currentAry = preg_split('/[-+\.\_]/', $current);
@@ -482,9 +545,9 @@ class CheckForUpdate
      *
      * @param string $version
      * @param string $current
-     * @return bool|object
+     * @return bool
      */
-    protected function isMinorVersion($version, $current)
+    protected function isMinorVersion($version, $current): bool
     {
         $versionAry = preg_split('/[-+\.\_]/', $version);
         $currentAry = preg_split('/[-+\.\_]/', $current);
@@ -508,7 +571,7 @@ class CheckForUpdate
      * @param string $current
      * @return bool
      */
-    protected function isMajorVersion($version, $current)
+    protected function isMajorVersion($version, $current): bool
     {
         $tmp = preg_split('/[-+\.\_]/', $current);
         $next = ++$tmp[0];
@@ -528,7 +591,7 @@ class CheckForUpdate
      *
      * @param string $string
      */
-    protected function decode($string)
+    protected function decode($string): void
     {
         $data = json_decode($string);
         if (!property_exists($data, 'versions') || !property_exists($data, 'releaseNote')) {
@@ -565,16 +628,16 @@ class CheckForUpdate
 
         curl_close($curl);
 
-        if (empty($string) || $status !== 200) {
+        if (!$string || !is_string($string) || $status !== 200) {
             throw new \RuntimeException($status . ' : Failed to get the json');
         }
         if ($charset = mb_detect_encoding($string, 'UTF-8, EUC-JP, SJIS') and 'UTF-8' <> $charset) {
             $string = mb_convert_encoding($string, 'UTF-8', $charset);
         }
-        $this->jsonString = $string;
-
-        Storage::put($this->cache_path, $string);
-
+        $this->jsonString = (string) $string;
+        if ($this->jsonString) {
+            LocalStorage::put($this->cache_path, $this->jsonString);
+        }
         return $string;
     }
 }

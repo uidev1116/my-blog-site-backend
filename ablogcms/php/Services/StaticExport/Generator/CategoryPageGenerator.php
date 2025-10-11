@@ -2,7 +2,7 @@
 
 namespace Acms\Services\StaticExport\Generator;
 
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 use Acms\Services\StaticExport\Entities\Page;
 use React\Promise\Promise;
 use React\Promise\PromiseInterface;
@@ -82,8 +82,8 @@ class CategoryPageGenerator extends PageGenerator
         $destination = $this->destination->getDestinationPath() . $this->destination->getBlogCode();
         $destPath = $destination . $path;
         try {
-            Storage::makeDirectory(dirname($destPath));
-            Storage::put($destPath, $data);
+            LocalStorage::makeDirectory(dirname($destPath));
+            LocalStorage::put($destPath, $data);
         } catch (\Exception $e) {
             $this->logger->error('データの書き込みに失敗しました。', $destPath);
         }

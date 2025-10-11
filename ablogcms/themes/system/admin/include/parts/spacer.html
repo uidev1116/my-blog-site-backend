@@ -1,0 +1,7 @@
+<!-- BEGIN_IF [{{axis}}/eq/vertical] -->
+<span style="display: block; width: 1px; min-width: 1px; height: {{size}}px; min-height: {{size}}px;"></span>
+<!-- ELSE_IF [{{axis}}/eq/horizontal] -->
+<span style="display: block; width: {{size}}px; min-width: {{size}}px; height: 1px; min-height: 1px;"></span>
+<!-- ELSE -->
+<span style="display: block; width: {{size}}px; min-width: {{size}}px; height: {{size}}px; min-height: {{size}}px;"></span>
+<!-- END_IF -->

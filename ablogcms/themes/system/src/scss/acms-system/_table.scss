@@ -14,7 +14,7 @@
 }
 
 // スマートフォンの時
-@media screen and (max-width: global.$breakpoint-md-max) {
+@include global.media-breakpoint-down(md) {
   // テーブル全体に色
   .acms-table-heading {
     background-color: global.$acms-color-white;
@@ -147,19 +147,13 @@
   }
 }
 
-@media screen and (max-width: global.$breakpoint-md-max) {
+@include global.media-breakpoint-down(md) {
   .acms-table-admin-edit {
     // スマートフォンのときの画像
     img {
       width: auto;
       max-width: 200px !important;
       height: auto;
-    }
-
-    // スマートフォンのときのプルダウン
-    select {
-      display: block;
-      width: 100%;
     }
   }
 }

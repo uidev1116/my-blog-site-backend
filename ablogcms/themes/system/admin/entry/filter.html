@@ -27,9 +27,14 @@
 
     <div class="acms-admin-filter-item acms-admin-filter-item-full">
       <label for="filter-keyword" class="acms-admin-filter-item-name"><!--T-->キーワード<!--/T--></label>
-      <div class="acms-admin-filter-item-content">
-        <input type="text" name="keyword" value="%{KEYWORD}" class="acms-admin-form-width-large" id="filter-keyword" placeholder="<!--T-->タイトル・本文・カスタムフィールドから検索（複数指定可）<!--/T-->"/>
-      </div>
+        <input
+          type="text"
+          name="keyword"
+          value="%{KEYWORD}"
+          class="acms-admin-form-width-large"
+          id="filter-keyword"
+          placeholder="<!--T-->タイトル・本文・カスタムフィールドから検索（複数指定可）<!--/T-->"
+        />
     </div>
   </div>
 </div>
@@ -109,31 +114,27 @@
       <div class="acms-admin-filter-content">
         <div class="acms-admin-filter-item">
           <label for="filter-order" class="acms-admin-filter-item-name acms-admin-show-sp"><!--T-->ソート<!--/T--></label>
-          <div class="acms-admin-filter-item-content">
-            <select class="input-sm js-select2" name="order" id="filter-order" style="width: 9em;">
-              <option value="datetime-asc"{order:selected#datetime-asc}><!--T-->日付<!--/T--> (<!--T-->昇順<!--/T-->)</option>
-              <option value="datetime-desc"{order:selected#datetime-desc}><!--T-->日付<!--/T--> (<!--T-->降順<!--/T-->)</option>
-              <option value="updated_datetime-asc"{order:selected#updated_datetime-asc}><!--T-->更新日時<!--/T-->(<!--T-->昇順<!--/T-->)</option>
-              <option value="updated_datetime-desc"{order:selected#updated_datetime-desc}><!--T-->更新日時<!--/T-->(<!--T-->降順<!--/T-->)</option>
-              <option value="posted_datetime-asc"{order:selected#posted_datetime-asc}><!--T-->投稿日時<!--/T-->(<!--T-->昇順<!--/T-->)</option>
-              <option value="posted_datetime-desc"{order:selected#posted_datetime-desc}><!--T-->投稿日時<!--/T-->(<!--T-->降順<!--/T-->)</option>
-              <option value="code-asc"{order:selected#code-asc}><!--T-->ファイル名<!--/T-->（<!--T-->昇順<!--/T-->）</option>
-              <option value="code-desc"{order:selected#code-desc}><!--T-->ファイル名<!--/T-->（<!--T-->降順<!--/T-->）</option>
-              <option value="id-asc"{order:selected#id-asc}>ID（<!--T-->昇順<!--/T-->）</option>
-              <option value="id-desc"{order:selected#id-desc}>ID（<!--T-->降順<!--/T-->）</option>
-              <option value="sort-asc"{order:selected#sort-asc}><!--T-->表示順<!--/T-->（<!--T-->昇順<!--/T-->）</option>
-              <option value="sort-desc"{order:selected#sort-desc}><!--T-->表示順<!--/T-->（<!--T-->降順<!--/T-->）</option>
-            </select>
-          </div>
+          <select class="input-sm js-select2" name="order" id="filter-order" style="width: 9em;">
+            <option value="datetime-asc"{order:selected#datetime-asc}><!--T-->日付<!--/T--> (<!--T-->昇順<!--/T-->)</option>
+            <option value="datetime-desc"{order:selected#datetime-desc}><!--T-->日付<!--/T--> (<!--T-->降順<!--/T-->)</option>
+            <option value="updated_datetime-asc"{order:selected#updated_datetime-asc}><!--T-->更新日時<!--/T-->(<!--T-->昇順<!--/T-->)</option>
+            <option value="updated_datetime-desc"{order:selected#updated_datetime-desc}><!--T-->更新日時<!--/T-->(<!--T-->降順<!--/T-->)</option>
+            <option value="posted_datetime-asc"{order:selected#posted_datetime-asc}><!--T-->投稿日時<!--/T-->(<!--T-->昇順<!--/T-->)</option>
+            <option value="posted_datetime-desc"{order:selected#posted_datetime-desc}><!--T-->投稿日時<!--/T-->(<!--T-->降順<!--/T-->)</option>
+            <option value="code-asc"{order:selected#code-asc}><!--T-->ファイル名<!--/T-->（<!--T-->昇順<!--/T-->）</option>
+            <option value="code-desc"{order:selected#code-desc}><!--T-->ファイル名<!--/T-->（<!--T-->降順<!--/T-->）</option>
+            <option value="id-asc"{order:selected#id-asc}>ID（<!--T-->昇順<!--/T-->）</option>
+            <option value="id-desc"{order:selected#id-desc}>ID（<!--T-->降順<!--/T-->）</option>
+            <option value="sort-asc"{order:selected#sort-asc}><!--T-->表示順<!--/T-->（<!--T-->昇順<!--/T-->）</option>
+            <option value="sort-desc"{order:selected#sort-desc}><!--T-->表示順<!--/T-->（<!--T-->降順<!--/T-->）</option>
+          </select>
         </div>
 
         <div class="acms-admin-filter-item">
           <label for="filter-limit" class="acms-admin-filter-item-name acms-admin-show-sp"><!--T-->表示数<!--/T--></label>
-          <div class="acms-admin-filter-item-content">
-            <select name="limit" id="filter-limit" class="js-select2 "><!-- BEGIN limit:loop -->
-              <option value="{limit}"{selected}>{limit}</option><!-- END limit:loop -->
-            </select>
-          </div>
+          <select name="limit" id="filter-limit" class="js-select2 "><!-- BEGIN limit:loop -->
+            <option value="{limit}"{selected}>{limit}</option><!-- END limit:loop -->
+          </select>
         </div>
       </div>
     </div>

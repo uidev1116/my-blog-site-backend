@@ -1,3 +1,4 @@
+@use 'sass:meta';
 @use '../global/variables' as var;
 @use '../global/functions' as functions;
 
@@ -7,12 +8,22 @@
 
 @mixin font-size($size, $base: 16, $important: false) {
   & {
-    font-size: $size + px functions.if-important($important);
+    @if meta.type-of($size) == 'number' {
+      font-size: $size + px functions.if-important($important);
+    } @else {
+      // CSS変数対応
+      font-size: $size functions.if-important($important);
+    }
 
     //font-size: math.div($size, $base) * 1rem functions.if-important($important);
 
     @media print {
-      font-size: $size + px functions.if-important($important);
+      @if meta.type-of($size) == 'number' {
+        font-size: $size + px functions.if-important($important);
+      } @else {
+        // CSS変数対応
+        font-size: $size functions.if-important($important);
+      }
 
       //font-size: math.div($size, $base) * 1rem functions.if-important($important);
     }

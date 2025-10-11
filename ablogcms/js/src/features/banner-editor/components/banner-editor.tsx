@@ -1,6 +1,6 @@
 /* eslint camelcase: 0 */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   SortableContext,
   arraySwap,
@@ -21,7 +21,7 @@ import {
 import dayjs from 'dayjs';
 import DatePicker from '../../../components/date-picker/date-picker';
 import TimePicker from '../../../components/time-picker/time-picker';
-import { random, setTooltips, getOffset } from '../../../utils';
+import { random, getOffset } from '../../../utils';
 import { MediaItem } from '../../media/types';
 import type { ExtendedFile } from '../../../lib/read-files';
 import Menu from './menu';
@@ -89,7 +89,6 @@ const mergeMediaItemToBannerItem = (mediaItem: MediaItem, bannerItem: BannerItem
 };
 
 const BannerEditor = (props: BannerEditorProps) => {
-  const pageRef = useRef<HTMLDivElement>(null);
   const [insertModalOpened, setInsertModalOpened] = useState(false);
   const [updateModalOpened, setUpdateModalOpened] = useState(false);
   const [targetItem, setTargetItem] = useState<BannerItem | null>(null);
@@ -289,9 +288,6 @@ const BannerEditor = (props: BannerEditorProps) => {
     if (changed) {
       $('.js-config-not-saved').addClass('active');
     }
-    if (pageRef.current !== null) {
-      setTooltips(pageRef.current);
-    }
   }, [changed]);
 
   const changeBannerItemSort = useCallback(
@@ -326,7 +322,7 @@ const BannerEditor = (props: BannerEditorProps) => {
   );
 
   return (
-    <div ref={pageRef}>
+    <div>
       <div className="acms-admin-banner-edit-container">
         <DndContext
           sensors={sensors}

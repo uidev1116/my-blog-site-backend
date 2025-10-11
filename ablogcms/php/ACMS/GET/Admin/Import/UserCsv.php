@@ -1,11 +1,16 @@
 <?php
 
+use Acms\Services\Facades\LocalStorage;
+
 class ACMS_GET_Admin_Import_UserCsv extends ACMS_GET_Admin
 {
     public function get()
     {
         if ('import_user' !== ADMIN) {
             return '';
+        }
+        if (!sessionWithAdministration()) {
+            die403();
         }
 
         $tpl = new Template($this->tpl, new ACMS_Corrector());
@@ -16,7 +21,7 @@ class ACMS_GET_Admin_Import_UserCsv extends ACMS_GET_Admin
         /**
          * CSVインポート中チェック
          */
-        if (Storage::exists($logger->getDestinationPath())) {
+        if (LocalStorage::exists($logger->getDestinationPath())) {
             $rootVars['processing'] = 1;
         } else {
             $rootVars['processing'] = 0;

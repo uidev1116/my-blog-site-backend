@@ -1,6 +1,7 @@
 <?php
 
 use Acms\Services\Facades\Application;
+use Acms\Services\Unit\UnitCollection;
 
 class ACMS_GET_Entry_MembersOnlyContent extends ACMS_GET_Entry
 {
@@ -18,7 +19,11 @@ class ACMS_GET_Entry_MembersOnlyContent extends ACMS_GET_Entry
             $tpl = new Template($this->tpl, new ACMS_Corrector());
             $entry = $this->getEntry(EID, RVID);
             $summaryRange = $this->getSummaryRange($entry);
-            $this->buildMembersOnlyUnit($tpl, EID, RVID, $entry, $summaryRange);
+            /** @var int<1, max> $entryId */
+            $entryId = EID; // @phpstan-ignore-line varTag.nativeType
+            /** @var int<1, max>|null $revisionId */
+            $revisionId = RVID;
+            $this->buildMembersOnlyUnit($tpl, $entryId, $revisionId, $entry, $summaryRange);
 
             return $tpl->get();
         } catch (\Exception $e) {
@@ -85,8 +90,8 @@ class ACMS_GET_Entry_MembersOnlyContent extends ACMS_GET_Entry
      * メンバー限定の続きのユニットを組み立て
      *
      * @param Template $tpl
-     * @param int $eid
-     * @param null|int $rvid
+     * @param int<1, max> $eid
+     * @param int<1, max>|null $rvid
      * @param array $entry
      * @param int $summaryRange
      * @return void
@@ -102,30 +107,31 @@ class ACMS_GET_Entry_MembersOnlyContent extends ACMS_GET_Entry
         /** @var \Acms\Services\Unit\Rendering\Front $unitRenderingService */
         $unitRenderingService = Application::make('unit-rendering-front');
 
-        $allColumn = $unitService->loadUnits($eid, $rvid_);
+        $collection = $unitService->loadUnits($eid, $rvid_);
+        $units = $collection->flat();
         $page = 1;
-        foreach ($allColumn as $i => $col) {
+        foreach ($units as $i => $col) {
             if ($i >= $summaryRange) {
                 break;
             }
-            if ('break' === $col->getUnitType()) {
+            if ('break' === $col::getUnitType()) {
                 $page += 1;
             }
         }
-        $column = array_splice($allColumn, $summaryRange);
-        if ($column) {
+        $membersOnlyUnits = array_splice($units, $summaryRange);
+        if (count($membersOnlyUnits) > 0) {
             $break = $page;
             $micropage = intval($this->page);
             $column2 = [];
-            foreach ($column as $col) {
-                if ('break' === $col->getUnitType()) {
+            foreach ($membersOnlyUnits as $membersOnlyUnit) {
+                if ('break' === $membersOnlyUnit::getUnitType()) {
                     $break++;
                 }
                 if ($micropage === $break) {
-                    $column2[] = $col;
+                    $column2[] = $membersOnlyUnit;
                 }
             }
-            $unitRenderingService->render($column2, $tpl, $eid);
+            $unitRenderingService->render(new UnitCollection($membersOnlyUnits), $tpl, $eid);
         }
     }
 }

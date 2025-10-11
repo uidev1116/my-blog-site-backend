@@ -1,15 +1,44 @@
 /* eslint no-irregular-whitespace: 0 */
-import { createRef, Component } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import keyboardJS from 'keyboardjs';
 import classnames from 'classnames';
 import copy from 'copy-to-clipboard';
-import unescape from 'unescape';
 import styled from 'styled-components';
+import { JSONTree } from 'react-json-tree';
 import axiosLib from '../../../../lib/axios';
 import IncrementalSearch from '../../lib/incremental-search';
-import Notify from '../../../../components/notify/notify';
 import Modal from '../../../../components/modal/modal';
 import { ExpireLocalStorage } from '../../../../utils';
+import HStack from '../../../../components/stack/h-stack';
+import SyntaxHighlight from '../../../../components/syntax-highlight/syntax-highlight';
+import VisuallyHidden from '../../../../components/visually-hidden';
+import { notify } from '../../../../lib/notify';
+
+const jsonTreeTheme = {
+  scheme: 'OneDark',
+  author: 'Lalit Magant (http://github.com/tilal6991)',
+  base00: '#282c34',
+  base01: '#353b45',
+  base02: '#3e4451',
+  base03: '#545862',
+  base04: '#565c64',
+  base05: '#abb2bf',
+  base06: '#b6bdca',
+  base07: '#c8ccd4',
+  base08: '#e06c75',
+  base09: '#d19a66',
+  base0A: '#e5c07b',
+  base0B: '#98c379',
+  base0C: '#56b6c2',
+  base0D: '#61afef',
+  base0E: '#c678dd',
+  base0F: '#be5046',
+  tree: {
+    margin: 0,
+    padding: '10px', // ツリー全体のパディング
+    borderRadius: '5px',
+  },
+};
 
 const StyledVariableTable = styled.div`
   /* stylelint-disable selector-class-pattern */
@@ -131,7 +160,17 @@ const StyledQuickSearchModal = styled(Modal)`
     background-color: #1861d8;
   }
 
+  .titleButton {
+    display: block;
+    width: 100%;
+    padding: 0;
+    text-align: left;
+    background: none;
+    border: none;
+  }
+
   .mainTitle {
+    display: block;
     font-weight: bold;
     color: #333;
     text-decoration: none;
@@ -142,6 +181,7 @@ const StyledQuickSearchModal = styled(Modal)`
   }
 
   .subTitle {
+    display: block;
     color: #5e6c84;
 
     span {
@@ -285,6 +325,14 @@ const StyledQuickSearchModal = styled(Modal)`
     }
   }
 
+  .initial-v2 {
+    background-color: #b8d2c9;
+
+    &::after {
+      content: 'V2';
+    }
+  }
+
   .customFieldCopied {
     position: fixed;
     inset: -50px 0 auto;
@@ -304,154 +352,85 @@ const StyledQuickSearchModal = styled(Modal)`
   /* stylelint-enable selector-class-pattern */
 `;
 
-export default class QuickSearch extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      lists: [],
-      init: false,
-      menus: null,
-      snippets: null,
-      vars: null,
-      globalVars: null,
-      number: -1,
-      isOpen: false,
-      keyword: '',
-      isMacOs: navigator.userAgent.match(/Mac|PPC/),
-      isSnippetsModalOpen: false,
-      isVarsModalOpen: false,
-      modalContent: '',
-      copied: false,
-    };
-    this.currentItem = null;
-    this.box = null;
-    this.is = null;
-
-    this.copyButtonRef = createRef();
-    this.handleButtonClick = this.handleButtonClick.bind(this);
-    this.handleCloseSnippetsModal = this.handleCloseSnippetsModal.bind(this);
-    this.handleCloseVarsModal = this.handleCloseVarsModal.bind(this);
-    this.handleCopySnippet = this.handleCopySnippet.bind(this);
-    this.handleClose = this.handleClose.bind(this);
-    this.handleAfterOpen = this.handleAfterOpen.bind(this);
-    this.handleAfterClose = this.handleAfterClose.bind(this);
-  }
-
-  componentDidUpdate() {
-    if (this.currentItem) {
-      const boxTop = this.box.getBoundingClientRect().top;
-      const boxBottom = boxTop + this.box.offsetHeight;
-      const itemTop = this.currentItem.getBoundingClientRect().top;
-      const itemBottom = itemTop + this.currentItem.offsetHeight;
-      const positionTop = itemTop - boxTop;
-      const positionBottom = boxBottom - itemBottom;
-      if (positionTop < 0 || positionBottom < 0) {
-        this.box.scrollTop += positionTop;
-      }
+const CustomJsonLabelRenderer = ({ keyPath }) => {
+  const handleClick = (e) => {
+    e.preventDefault();
+    if (keyPath) {
+      const fixPath = keyPath
+        .slice()
+        .reverse()
+        .map((key) => (typeof key === 'number' ? `[${key}]` : key))
+        .join('.')
+        .replace(/\.([[]\d+])/g, '$1'); // ドットの後にブラケットが続く場合のドットを削除
+      copy(fixPath);
     }
+  };
+  return (
+    <span
+      onClick={handleClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          handleClick(e);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      style={{ cursor: 'pointer' }}
+    >
+      {keyPath[0]}
+    </span>
+  );
+};
+
+export default QuickSearch = ({ buttons }) => {
+  const [lists, setLists] = useState([]);
+  const [init, setInit] = useState(false);
+  const [menus, setMenus] = useState(null);
+  const [snippets, setSnippets] = useState(null);
+  const [vars, setVars] = useState(null);
+  const [globalVars, setGlobalVars] = useState(null);
+  const [number, setNumber] = useState(-1);
+  const [isOpen, setIsOpen] = useState(false);
+  const [keyword, setKeyword] = useState('');
+  const [isSnippetsModalOpen, setIsSnippetsModalOpen] = useState(false);
+  const [isVarsModalOpen, setIsVarsModalOpen] = useState(false);
+  const [isV2ModuleVarsModalOpen, setIsV2ModuleVarsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState('');
+  const [modalTitlte, setModalTitlte] = useState('');
+  const [currentItem, setCurrentItem] = useState(null);
+  const copyButtonRef = useRef(null);
+  const searchRef = useRef(null);
+  const boxRef = useRef(null);
+  const isMacOs = navigator.userAgent.match(/Mac|PPC/);
+  let v2ModuleVars = null;
+  let is = null;
+
+  const moduleEmbeddedJsonDom = document.getElementById('acms-module-data');
+  if (moduleEmbeddedJsonDom && moduleEmbeddedJsonDom.dataset.json) {
+    v2ModuleVars = JSON.parse(moduleEmbeddedJsonDom.dataset.json);
   }
 
-  handleButtonClick() {
-    this.toggleDialog();
-  }
-
-  componentDidMount() {
-    const { buttons } = this.props;
-    if (buttons && buttons.length > 0) {
-      [].forEach.call(buttons, (button) => {
-        button.addEventListener('click', this.handleButtonClick);
-      });
-    }
-
-    keyboardJS.bind(ACMS.Config.quickSearchCommand, (e) => {
-      e.preventDefault();
-      this.toggleDialog();
-    });
-
-    keyboardJS.bind(['tab', 'down'], (e) => {
-      if (this.state.isOpen && !this.state.isSnippetsModalOpen && !this.state.isVarsModalOpen) {
-        e.preventDefault();
-        this.gotoNextItem();
-      }
-    });
-
-    keyboardJS.bind(['shift + tab', 'up'], (e) => {
-      if (this.state.isOpen && !this.state.isSnippetsModalOpen && !this.state.isVarsModalOpen) {
-        e.preventDefault();
-        this.gotoPrevItem();
-      }
-    });
-
-    keyboardJS.bind(['enter'], (e) => {
-      if (this.state.isOpen && !this.state.isSnippetsModalOpen && !this.state.isVarsModalOpen) {
-        e.preventDefault();
-        const item = this.getCurrentItem();
-        this.handleClickEvent(item);
-      }
-    });
-  }
-
-  componentWillUnmount() {
-    const { buttons } = this.props;
-    if (buttons && buttons.length > 0) {
-      [].forEach.call(buttons, (button) => {
-        button.removeEventListener('click', this.handleButtonClick);
-      });
-    }
-    keyboardJS.reset();
-  }
-
-  handleAfterOpen() {
-    this.is = new IncrementalSearch();
-    this.is.addRequest(
-      this.search,
+  const handleAfterOpen = () => {
+    is = new IncrementalSearch();
+    is.addRequest(
+      searchRef.current,
       ACMS.Library.acmsLink({
         bid: ACMS.Config.bid,
       }),
-      (lists) => {
-        this.setState({ lists });
+      (data) => {
+        setLists(data);
       }
     );
-  }
+  };
 
-  handleAfterClose() {
-    this.is.destroy();
-    this.is = null;
-  }
-
-  setDefinedLists() {
-    const endpoint = `${ACMS.Library.acmsLink({
-      tpl: 'acms-code/all.json',
-    })}?cache=${new Date().getTime()}`;
-
-    const key = `acms_big_${ACMS.Config.bid}_quick_search_data`;
-    const storage = new ExpireLocalStorage();
-    const data = storage.load(key);
-    if (data) {
-      this.setState({
-        menus: data.menus,
-        snippets: data.snippets,
-        vars: data.vars,
-      });
-      this.setGlobalVars();
-    } else {
-      axiosLib
-        .get(endpoint)
-        .then((res) => {
-          this.setState({
-            menus: res.data.menus,
-            snippets: res.data.snippets,
-            vars: res.data.vars,
-          });
-          storage.save(key, res.data, 1800);
-        })
-        .then(() => {
-          this.setGlobalVars();
-        });
+  const handleAfterClose = () => {
+    if (is) {
+      is.destroy();
     }
-  }
+    is = null;
+  };
 
-  setGlobalVars() {
+  const loadGlobalVars = () => {
     const params = new URLSearchParams();
     params.append('ACMS_POST_Search_GlobalVars', true);
     params.append('formToken', window.csrfToken);
@@ -467,70 +446,39 @@ export default class QuickSearch extends Component {
         subtitle: ACMS.i18n('quick_search.root_tpl'),
         url: ACMS.Config.rootTpl,
       });
-      this.setState({
-        globalVars: res.data,
-      });
+      setGlobalVars(res.data);
     });
-  }
+  };
 
-  handleClickEvent(item) {
-    const mode = this.getMode();
-    if (mode === 'snippets') {
-      this.showSnippets(item);
-    } else if (mode === 'vars') {
-      this.showVars(item);
-    } else if (mode === 'global-vars') {
-      this.showGlobalVars(item);
+  const setDefinedLists = useCallback(() => {
+    const endpoint = `${ACMS.Library.acmsLink({
+      tpl: 'acms-code/all.json',
+    })}?cache=${new Date().getTime()}`;
+
+    const key = `acms_big_${ACMS.Config.bid}_quick_search_data`;
+    const storage = new ExpireLocalStorage();
+    const data = storage.load(key);
+    if (data) {
+      setMenus(data.menus);
+      setSnippets(data.snippets);
+      setVars(data.vars);
+      loadGlobalVars();
     } else {
-      this.gotoLink(item);
-    }
-  }
-
-  gotoLink(item) {
-    if (item) {
-      location.href = item.url;
-    }
-  }
-
-  showSnippets(item) {
-    if (item) {
-      axiosLib.get(item.url).then((res) => {
-        const parser = new DOMParser();
-        let html = parser.parseFromString(res.data, 'text/html');
-        html = html.querySelector('textarea').innerHTML;
-        html = unescape(html);
-        this.setState({
-          isSnippetsModalOpen: true,
-          modalContent: html,
+      axiosLib
+        .get(endpoint)
+        .then((res) => {
+          setMenus(res.data.menus);
+          setSnippets(res.data.snippets);
+          setVars(res.data.vars);
+          storage.save(key, res.data, 1800);
+        })
+        .then(() => {
+          loadGlobalVars();
         });
-      });
     }
-  }
+  }, []);
 
-  showVars(item) {
-    if (item) {
-      axiosLib.get(item.url).then((res) => {
-        const parser = new DOMParser();
-        const html = parser.parseFromString(res.data, 'text/html');
-        this.setState({
-          isVarsModalOpen: true,
-          modalContent: html.body.innerHTML,
-        });
-      });
-    }
-  }
-
-  showGlobalVars(item) {
-    if (item) {
-      copy(item.title);
-      this.setState({
-        copied: true,
-      });
-    }
-  }
-
-  getMode() {
-    const { keyword } = this.state;
+  const getMode = useMemo(() => {
     if (ACMS.Config.auth !== 'administrator') {
       return 'normal';
     }
@@ -543,11 +491,74 @@ export default class QuickSearch extends Component {
     if (keyword.slice(0, 1) === '%') {
       return 'global-vars';
     }
+    if (keyword.slice(0, 1) === '#') {
+      return 'v2module-vars';
+    }
     return 'normal';
-  }
+  }, [keyword]);
 
-  getFilteredSnippets() {
-    const { keyword, snippets } = this.state;
+  const handleClickEvent = useCallback(
+    (item) => {
+      if (getMode === 'snippets') {
+        showSnippets(item);
+      } else if (getMode === 'vars') {
+        showVars(item);
+      } else if (getMode === 'global-vars') {
+        showGlobalVars(item);
+      } else if (getMode === 'v2module-vars') {
+        showV2ModuleVars(item);
+      } else {
+        gotoLink(item);
+      }
+    },
+    [getMode]
+  );
+
+  const gotoLink = (item) => {
+    if (item) {
+      location.href = item.url;
+    }
+  };
+
+  const showSnippets = (item) => {
+    if (item) {
+      axiosLib.get(item.url).then((res) => {
+        const parser = new DOMParser();
+        let html = parser.parseFromString(res.data, 'text/html');
+        html = (html.querySelector('pre>code') || html.querySelector('textarea')).textContent;
+        setModalContent(html);
+        setIsSnippetsModalOpen(true);
+      });
+    }
+  };
+
+  const showVars = (item) => {
+    if (item) {
+      axiosLib.get(item.url).then((res) => {
+        const parser = new DOMParser();
+        const html = parser.parseFromString(res.data, 'text/html');
+        setModalContent(html.body.innerHTML);
+        setIsVarsModalOpen(true);
+      });
+    }
+  };
+
+  const showV2ModuleVars = (item) => {
+    if (item) {
+      setModalTitlte(item.title + (item.subtitle ? `（${item.subtitle}）` : ''));
+      setModalContent(item.data);
+      setIsV2ModuleVarsModalOpen(true);
+    }
+  };
+
+  const showGlobalVars = (item) => {
+    if (item) {
+      copy(item.title);
+      notify.info(ACMS.i18n('quick_search.copy_message'));
+    }
+  };
+
+  const getFilteredSnippets = useMemo(() => {
     const searchWord = keyword ? keyword.toLowerCase().slice(1) : '';
 
     if (snippets && snippets.items && searchWord) {
@@ -567,10 +578,9 @@ export default class QuickSearch extends Component {
       };
     }
     return snippets;
-  }
+  }, [keyword, snippets]);
 
-  getFilteredVars() {
-    const { keyword, vars } = this.state;
+  const getFilteredVars = useMemo(() => {
     const searchWord = keyword ? keyword.toLowerCase().slice(1) : '';
 
     if (vars && vars.items && searchWord) {
@@ -590,10 +600,9 @@ export default class QuickSearch extends Component {
       };
     }
     return vars;
-  }
+  }, [keyword, vars]);
 
-  getFilteredGlobalVars() {
-    const { keyword, globalVars } = this.state;
+  const getFilteredGlobalVars = useMemo(() => {
     const searchWord = keyword ? keyword.toLowerCase().slice(1) : '';
 
     if (globalVars && globalVars.items && searchWord) {
@@ -613,10 +622,31 @@ export default class QuickSearch extends Component {
       };
     }
     return globalVars;
-  }
+  }, [keyword, globalVars]);
 
-  getFilteredMenus() {
-    const { keyword, menus } = this.state;
+  const getFilteredV2ModuleVars = useMemo(() => {
+    const searchWord = keyword ? keyword.toLowerCase().slice(1) : '';
+
+    if (v2ModuleVars && v2ModuleVars.items && searchWord) {
+      const items = v2ModuleVars.items.filter((item) => {
+        if (
+          item.title.toLowerCase().indexOf(searchWord) !== -1 ||
+          item.subtitle.toLowerCase().indexOf(searchWord) !== -1
+        ) {
+          return true;
+        }
+        return false;
+      });
+      return {
+        title: v2ModuleVars.title,
+        enTitle: v2ModuleVars.enTitle,
+        items,
+      };
+    }
+    return v2ModuleVars;
+  }, [keyword, v2ModuleVars]);
+
+  const getFilteredMenus = useMemo(() => {
     if (menus && menus.items) {
       const items = menus.items.filter((item) => {
         if (!keyword) {
@@ -634,101 +664,107 @@ export default class QuickSearch extends Component {
       };
     }
     return menus;
-  }
+  }, [keyword, menus]);
 
-  getCombindLists() {
-    const { lists } = this.state;
-    const mode = this.getMode();
-    if (mode === 'snippets') {
-      return [this.getFilteredSnippets()];
+  const getCombindLists = useCallback(() => {
+    if (getMode === 'snippets') {
+      return [getFilteredSnippets];
     }
-    if (mode === 'vars') {
-      return [this.getFilteredVars()];
+    if (getMode === 'vars') {
+      return [getFilteredVars];
     }
-    if (mode === 'global-vars') {
-      return [this.getFilteredGlobalVars()];
+    if (getMode === 'global-vars') {
+      return [getFilteredGlobalVars];
     }
-    const menus = this.getFilteredMenus();
-    if (menus) {
-      return [menus, ...lists];
+    if (getMode === 'v2module-vars') {
+      return getFilteredV2ModuleVars ? [getFilteredV2ModuleVars] : [];
+    }
+    if (getFilteredMenus) {
+      return [getFilteredMenus, ...lists];
     }
     return lists;
-  }
+  }, [
+    getFilteredSnippets,
+    getFilteredVars,
+    getFilteredGlobalVars,
+    getFilteredV2ModuleVars,
+    getFilteredMenus,
+    lists,
+    getMode,
+  ]);
 
-  setKeyword(keyword) {
-    this.setState({
-      keyword,
-      number: 0,
-    });
-  }
+  const getNumber = useCallback(
+    (listIndex, index) => {
+      const combindLists = getCombindLists();
+      let num = 0;
+      while (listIndex > 0) {
+        listIndex--;
+        if (combindLists[listIndex]) {
+          if (combindLists[listIndex].items) {
+            num += combindLists[listIndex].items.length;
+          }
+        }
+      }
+      return num + index;
+    },
+    [getCombindLists]
+  );
 
-  closeDialog() {
-    this.setState({
-      isOpen: false,
-      keyword: '',
-      lists: [],
-    });
-  }
+  const handleSetKeyword = (keyword) => {
+    setKeyword(keyword);
+    setNumber(0);
+  };
 
-  openDialog() {
-    this.setState({
-      isOpen: true,
-      keyword: '',
-      lists: [],
-    });
-  }
+  const closeDialog = () => {
+    setIsOpen(false);
+    setKeyword('');
+    setLists([]);
+  };
 
-  toggleDialog() {
-    const { isOpen, init } = this.state;
+  const openDialog = () => {
+    setIsOpen(true);
+    setKeyword('');
+    setLists([]);
+  };
+
+  const toggleDialog = useCallback(() => {
     if (init === false) {
-      this.setState({
-        init: true,
-      });
-      this.setDefinedLists();
+      setInit(true);
+      setDefinedLists();
     }
     if (isOpen) {
-      this.closeDialog();
+      closeDialog();
     } else {
-      this.openDialog();
+      openDialog();
     }
-  }
+  }, [init, isOpen, setDefinedLists]);
 
-  handleClose() {
-    this.closeDialog();
-  }
+  const handleClose = () => {
+    closeDialog();
+  };
 
-  gotoNextItem() {
-    const { display, number } = this.state;
-    const lists = this.getCombindLists();
-    const maxNumber = this.getNumber(lists.length, 0) - 1;
-    if (display === 'none') {
-      return;
-    }
+  const gotoNextItem = useCallback(() => {
+    const combindLists = getCombindLists();
+    const maxNumber = getNumber(combindLists.length, 0) - 1;
     const nextNumber = number + 1 > maxNumber ? 0 : number + 1;
-    this.setState({
-      number: nextNumber,
-    });
-  }
+    setNumber(nextNumber);
+  }, [number, getCombindLists, getNumber]);
 
-  gotoPrevItem() {
-    const { isOpen, number } = this.state;
-    const lists = this.getCombindLists();
-    const maxNumber = this.getNumber(lists.length, 0) - 1;
+  const gotoPrevItem = useCallback(() => {
+    const combindLists = getCombindLists();
+    const maxNumber = getNumber(combindLists.length, 0) - 1;
     if (!isOpen) {
       return;
     }
     const nextNumber = number - 1 < 0 ? maxNumber : number - 1;
-    this.setState({
-      number: nextNumber,
-    });
-  }
+    setNumber(nextNumber);
+  }, [number, getCombindLists, getNumber, isOpen]);
 
-  getCurrentItem() {
-    const { number } = this.state;
-    const lists = this.getCombindLists();
+  const getCurrentItem = useCallback(() => {
+    const combindLists = getCombindLists();
     let itemNum = 0;
     let res = false;
-    lists.forEach((list) => {
+    combindLists.forEach((list) => {
       list.items.forEach((item) => {
         if (number === itemNum) {
           res = item;
@@ -737,54 +773,54 @@ export default class QuickSearch extends Component {
       });
     });
     return res;
-  }
+  }, [number, getCombindLists]);
 
-  setNumber(listIndex, index) {
-    const number = this.getNumber(listIndex, index);
-    this.setState({ number });
-  }
+  const handleSetNumber = (listIndex, index) => {
+    const number = getNumber(listIndex, index);
+    setNumber(number);
+  };
 
-  getNumber(listIndex, index) {
-    const lists = this.getCombindLists();
-    let number = 0;
-    while (listIndex > 0) {
-      listIndex--;
-      if (lists[listIndex]) {
-        if (lists[listIndex].items) {
-          number += lists[listIndex].items.length;
-        }
+  const handleCloseSnippetsModal = () => {
+    setIsSnippetsModalOpen(false);
+    // setKeyword(keyword.replace(/^(:|;|#)(.*)/g, '$1'));
+    requestAnimationFrame(() => {
+      if (searchRef.current) {
+        searchRef.current.focus();
       }
-    }
-    return number + index;
-  }
-
-  handleCloseSnippetsModal() {
-    const { keyword } = this.state;
-    this.setState({
-      isSnippetsModalOpen: false,
-      keyword: keyword.replace(/^(:|;)(.*)/g, '$1'),
     });
-    this.search.focus();
-  }
+  };
 
-  handleCloseVarsModal() {
-    const { keyword } = this.state;
-    this.setState({
-      isVarsModalOpen: false,
-      keyword: keyword.replace(/^(:|;)(.*)/g, '$1'),
+  const handleCloseVarsModal = () => {
+    setIsVarsModalOpen(false);
+    // setKeyword(keyword.replace(/^(:|;|#)(.*)/g, '$1'));
+    requestAnimationFrame(() => {
+      if (searchRef.current) {
+        searchRef.current.focus();
+      }
     });
-    this.search.focus();
-  }
+  };
 
-  handleCopySnippet() {
-    const { modalContent } = this.state;
+  const handleCloseV2ModuleVarsModal = () => {
+    setIsV2ModuleVarsModalOpen(false);
+    // setKeyword(keyword.replace(/^(:|;|#)(.*)/g, '$1'));
+    requestAnimationFrame(() => {
+      if (searchRef.current) {
+        searchRef.current.focus();
+      }
+    });
+  };
+
+  const handleCopySnippet = () => {
     copy(modalContent);
-    this.setState({
-      copied: true,
-    });
-  }
+    notify.info(ACMS.i18n('quick_search.copy_message'));
+  };
 
-  getInitialClassByName(name) {
+  const handleCopyV2ModuleVars = () => {
+    copy(JSON.stringify(modalContent, null, 2));
+    notify.info(ACMS.i18n('quick_search.copy_message'));
+  };
+
+  const getInitialClassByName = (name) => {
     switch (name) {
       case 'Blogs':
         return 'initial-b';
@@ -802,214 +838,296 @@ export default class QuickSearch extends Component {
         return 'initial-s';
       case 'Global vars':
         return 'initial-g';
+      case 'V2 Module vars':
+        return 'initial-v2';
       default:
         return '';
     }
-  }
+  };
 
-  render() {
-    const { isOpen, number, isMacOs, isSnippetsModalOpen, isVarsModalOpen, modalContent, copied } = this.state;
-    const lists = this.getCombindLists();
-    const mode = this.getMode();
+  useEffect(() => {
+    if (buttons && buttons.length > 0) {
+      buttons.forEach((button) => {
+        button.addEventListener('click', toggleDialog);
+      });
+    }
+    keyboardJS.bind(ACMS.Config.quickSearchCommand, (e) => {
+      e.preventDefault();
+      toggleDialog();
+    });
+    keyboardJS.bind(['tab', 'down'], (e) => {
+      if (isOpen && !isSnippetsModalOpen && !isVarsModalOpen && !isV2ModuleVarsModalOpen) {
+        e.preventDefault();
+        gotoNextItem();
+      }
+    });
+    keyboardJS.bind(['shift + tab', 'up'], (e) => {
+      if (isOpen && !isSnippetsModalOpen && !isVarsModalOpen && !isV2ModuleVarsModalOpen) {
+        e.preventDefault();
+        gotoPrevItem();
+      }
+    });
+    keyboardJS.bind(['enter'], (e) => {
+      if (isOpen && !isSnippetsModalOpen && !isVarsModalOpen && !isV2ModuleVarsModalOpen) {
+        e.preventDefault();
+        const item = getCurrentItem();
+        handleClickEvent(item);
+      }
+    });
+    return () => {
+      if (buttons && buttons.length > 0) {
+        buttons.forEach((button) => {
+          button.removeEventListener('click', toggleDialog);
+        });
+      }
+      keyboardJS.reset();
+    };
+  }, [
+    isOpen,
+    isSnippetsModalOpen,
+    isVarsModalOpen,
+    isV2ModuleVarsModalOpen,
+    buttons,
+    getCurrentItem,
+    toggleDialog,
+    handleClickEvent,
+    gotoNextItem,
+    gotoPrevItem,
+  ]);
 
-    return (
-      <>
-        <StyledQuickSearchModal
-          isOpen={isOpen}
-          onClose={this.handleClose}
-          id="quick-search-dialog"
-          className="acms-admin-modal-middle"
-          dialogClassName="acms-admin-modal-quick-search"
-          onAfterOpen={this.handleAfterOpen}
-          onAfterClose={this.handleAfterClose}
-          aria-labelledby="acms-qucik-search-dialog-title"
-        >
-          <StyledQuickSearchModal.Body>
-            <div className="acms-admin-form" style={{ paddingTop: '15px', paddingBottom: '15px' }}>
-              <label className="acms-admin-width-max">
-                <span id="acms-qucik-search-dialog-title" className="acms-admin-hide-visually">
-                  {ACMS.i18n('quick_search.title')}
-                </span>
-                <input
-                  type="text"
-                  ref={(ref) => {
-                    this.search = ref;
-                  }}
-                  style={{ fontSize: '24px', fontWeight: 'bold' }}
-                  placeholder={ACMS.i18n('quick_search.input_placeholder')}
-                  className="acms-admin-form-width-full acms-admin-form-large acms-admin-margin-bottom-small"
-                  onInput={(e) => {
-                    this.setKeyword(e.target.value);
-                  }}
-                />
-              </label>
-            </div>
-            <div
-              ref={(element) => {
-                this.box = element;
-              }}
-              className="acms-admin-modal-middle-scroll"
-            >
-              {lists.map((list, listIndex) => (
-                <div key={`label-${list.enTitle}`}>
-                  {list && list.items.length > 0 && (
-                    <div>
-                      <h2 className="acms-admin-admin-title3" style={{ background: '#FFF' }}>
-                        {list.title}
-                      </h2>
-                      <table className="acms-admin-table-admin acms-admin-form acms-admin-table-hover">
-                        <tbody key={`body-${list.enTitle}`}>
-                          {list.items.map((item, index) => (
-                            <tr
-                              key={this.getNumber(listIndex, index)}
-                              ref={(element) => {
-                                if (this.getNumber(listIndex, index) === number) this.currentItem = element;
-                              }}
-                              onClick={this.handleClickEvent.bind(this, item)}
-                              onMouseMove={this.setNumber.bind(this, listIndex, index)}
-                              className={classnames({ hover: this.getNumber(listIndex, index) === number })}
-                            >
-                              <td style={{ width: '1px', wordBreak: 'break-all' }}>
-                                <div className={classnames('initial-mark', this.getInitialClassByName(list.enTitle))} />
-                              </td>
-                              <td>
-                                <a className="mainTitle" href={item.url}>
-                                  {item.title}
+  useEffect(() => {
+    if (currentItem && boxRef.current) {
+      const boxTop = boxRef.current.getBoundingClientRect().top;
+      const boxBottom = boxTop + boxRef.current.offsetHeight;
+      const itemTop = currentItem.getBoundingClientRect().top;
+      const itemBottom = itemTop + currentItem.offsetHeight;
+      const positionTop = itemTop - boxTop;
+      const positionBottom = boxBottom - itemBottom;
+      if (positionTop < 0 || positionBottom < 0) {
+        boxRef.current.scrollTop += positionTop;
+      }
+    }
+  }, [currentItem]);
+
+  const renderJsonLabel = (keyPath, nodeType, expanded, expandable) => {
+    return <CustomJsonLabelRenderer keyPath={keyPath} />;
+  };
+
+  return (
+    <>
+      <StyledQuickSearchModal
+        isOpen={isOpen}
+        onClose={handleClose}
+        id="quick-search-dialog"
+        className="acms-admin-modal-middle"
+        dialogClassName="acms-admin-modal-quick-search"
+        onAfterOpen={handleAfterOpen}
+        onAfterClose={handleAfterClose}
+        aria-labelledby="acms-qucik-search-dialog-title"
+      >
+        <StyledQuickSearchModal.Body>
+          <div className="acms-admin-form" style={{ paddingTop: '15px', paddingBottom: '15px' }}>
+            <label className="acms-admin-width-max">
+              <VisuallyHidden id="acms-qucik-search-dialog-title">{ACMS.i18n('quick_search.title')}</VisuallyHidden>
+              <input
+                type="text"
+                ref={searchRef}
+                style={{ fontSize: '24px', fontWeight: 'bold' }}
+                placeholder={ACMS.i18n('quick_search.input_placeholder')}
+                className="acms-admin-form-width-full acms-admin-form-large acms-admin-margin-bottom-small"
+                onInput={(e) => {
+                  handleSetKeyword(e.target.value);
+                }}
+              />
+            </label>
+          </div>
+          <div ref={boxRef} className="acms-admin-modal-middle-scroll">
+            {getCombindLists().map((list, listIndex) => (
+              <div key={`label-${list.enTitle}`}>
+                {list && list.items.length > 0 && (
+                  <div>
+                    <h2 className="acms-admin-admin-title3" style={{ background: '#FFF' }}>
+                      {list.title}
+                    </h2>
+                    <table className="acms-admin-table-admin acms-admin-form acms-admin-table-hover">
+                      <tbody key={`body-${list.enTitle}`}>
+                        {list.items.map((item, index) => (
+                          <tr
+                            key={getNumber(listIndex, index)}
+                            ref={(element) => {
+                              if (getNumber(listIndex, index) === number) setCurrentItem(element);
+                            }}
+                            onMouseMove={() => handleSetNumber(listIndex, index)}
+                            className={classnames({ hover: getNumber(listIndex, index) === number })}
+                          >
+                            <td style={{ width: '1px', wordBreak: 'break-all' }}>
+                              <div className={classnames('initial-mark', getInitialClassByName(list.enTitle))} />
+                            </td>
+                            <td>
+                              {getMode === 'normal' ? (
+                                <a href={item.url}>
+                                  <span className="mainTitle">{item.title}</span>
+                                  <span className="subTitle">
+                                    {item.subtitle} <span>{item.blogName}</span>
+                                  </span>
                                 </a>
-                                <div className="subTitle">
-                                  {item.subtitle} <span>{item.blogName}</span>
-                                </div>
-                              </td>
-                              {mode !== 'normal' ? (
-                                <td style={{ textAlign: 'right', wordBreak: 'break-all' }}>
-                                  {mode === 'global-vars' && <span style={{ paddingRight: '10px' }}>{item.url}</span>}
-                                </td>
                               ) : (
-                                <td style={{ width: '1px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                                  {item.bid && (
-                                    <span className="acms-admin-label">
-                                      bid:
-                                      {item.bid}
-                                    </span>
-                                  )}
-                                  {item.cid && (
-                                    <span className="acms-admin-label">
-                                      cid:
-                                      {item.cid}
-                                    </span>
-                                  )}
-                                  {item.eid && (
-                                    <span className="acms-admin-label">
-                                      eid:
-                                      {item.eid}
-                                    </span>
-                                  )}
-                                  {item.mid && (
-                                    <span className="acms-admin-label">
-                                      mid:
-                                      {item.mid}
-                                    </span>
-                                  )}
-                                </td>
+                                <button className="titleButton" type="button" onClick={() => handleClickEvent(item)}>
+                                  <span className="mainTitle">{item.title}</span>
+                                  <span className="subTitle">
+                                    {item.subtitle} <span>{item.blogName}</span>
+                                  </span>
+                                </button>
                               )}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </StyledQuickSearchModal.Body>
-          <StyledQuickSearchModal.Footer>
-            <ul className="acms-admin-list-inline">
-              <li>
-                <kbd>tab</kbd> or
-                <kbd>⇅</kbd> {ACMS.i18n('quick_search.choice')}
-              </li>
-              <li>
-                <kbd>↵</kbd> {ACMS.i18n('quick_search.move')}
-              </li>
-              <li>
-                <kbd>esc</kbd> {ACMS.i18n('quick_search.close')}
-              </li>
-              {ACMS.Config.auth === 'administrator' && (
-                <>
-                  <li>
-                    <kbd>{isMacOs ? <span>⌘K</span> : <span>ctl+k</span>}</kbd> {ACMS.i18n('quick_search.open')}
-                  </li>
-                  <li>
-                    <kbd>;</kbd> {ACMS.i18n('quick_search.snippets')}
-                  </li>
-                  <li>
-                    <kbd>:</kbd> {ACMS.i18n('quick_search.vars')}
-                  </li>
-                  <li>
-                    <kbd>%</kbd> {ACMS.i18n('quick_search.g_vars')}
-                  </li>
-                </>
-              )}
-            </ul>
-          </StyledQuickSearchModal.Footer>
-        </StyledQuickSearchModal>
-        <Modal
-          isOpen={isSnippetsModalOpen}
-          onClose={this.handleCloseSnippetsModal}
-          focusTrapOptions={{ initialFocus: () => this.copyButtonRef.current }}
-        >
-          <Modal.Header>{ACMS.i18n('quick_search.snippets')}</Modal.Header>
-          <Modal.Body>
-            <div className="acms-admin-form">
-              <div style={{ paddingTop: '10px', paddingBottom: '10px' }}>
-                <textarea rows="10" value={modalContent} readOnly style={{ width: '100%', fontSize: '16px' }} />
+                            </td>
+                            {getMode !== 'normal' ? (
+                              <td style={{ textAlign: 'right', wordBreak: 'break-all' }}>
+                                {getMode === 'global-vars' && <span style={{ paddingRight: '10px' }}>{item.url}</span>}
+                              </td>
+                            ) : (
+                              <td style={{ width: '1px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                                {item.bid && (
+                                  <span className="acms-admin-label">
+                                    bid:
+                                    {item.bid}
+                                  </span>
+                                )}
+                                {item.cid && (
+                                  <span className="acms-admin-label">
+                                    cid:
+                                    {item.cid}
+                                  </span>
+                                )}
+                                {item.eid && (
+                                  <span className="acms-admin-label">
+                                    eid:
+                                    {item.eid}
+                                  </span>
+                                )}
+                                {item.mid && (
+                                  <span className="acms-admin-label">
+                                    mid:
+                                    {item.mid}
+                                  </span>
+                                )}
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
+            ))}
+          </div>
+        </StyledQuickSearchModal.Body>
+        <StyledQuickSearchModal.Footer>
+          <ul className="acms-admin-list-inline">
+            <li>
+              <kbd>tab</kbd> or
+              <kbd>⇅</kbd> {ACMS.i18n('quick_search.choice')}
+            </li>
+            <li>
+              <kbd>↵</kbd> {ACMS.i18n('quick_search.move')}
+            </li>
+            <li>
+              <kbd>esc</kbd> {ACMS.i18n('quick_search.close')}
+            </li>
+            {ACMS.Config.auth === 'administrator' && (
+              <>
+                <li>
+                  <kbd>{isMacOs ? <span>⌘K</span> : <span>ctl+k</span>}</kbd> {ACMS.i18n('quick_search.open')}
+                </li>
+                <li>
+                  <kbd>;</kbd> {ACMS.i18n('quick_search.snippets')}
+                </li>
+                <li>
+                  <kbd>#</kbd> {ACMS.i18n('quick_search.v2module_vars')}
+                </li>
+                <li>
+                  <kbd>:</kbd> {ACMS.i18n('quick_search.vars')}
+                </li>
+                <li>
+                  <kbd>%</kbd> {ACMS.i18n('quick_search.g_vars')}
+                </li>
+              </>
+            )}
+          </ul>
+        </StyledQuickSearchModal.Footer>
+      </StyledQuickSearchModal>
+      <Modal
+        isOpen={isSnippetsModalOpen}
+        onClose={handleCloseSnippetsModal}
+        focusTrapOptions={{ initialFocus: () => copyButtonRef.current }}
+      >
+        <Modal.Header>{ACMS.i18n('quick_search.snippets')}</Modal.Header>
+        <Modal.Body>
+          <div className="acms-admin-form">
+            <SyntaxHighlight language="twig" style={{ height: '400px', overflow: 'scroll', borderRadius: '5px' }}>
+              {modalContent}
+            </SyntaxHighlight>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <HStack display="inline-flex">
+            <button type="button" onClick={handleCloseSnippetsModal} className="acms-admin-btn">
+              {ACMS.i18n('quick_search.close')}
+            </button>
+            <button ref={copyButtonRef} type="button" onClick={handleCopySnippet} className="acms-admin-btn">
+              {ACMS.i18n('quick_search.copy')}
+            </button>
+          </HStack>
+        </Modal.Footer>
+      </Modal>
+      <Modal isOpen={isVarsModalOpen} onClose={handleCloseVarsModal}>
+        <Modal.Header>{ACMS.i18n('quick_search.vars')}</Modal.Header>
+        <Modal.Body>
+          <div className="acms-admin-form">
+            <div style={{ paddingTop: '10px', paddingBottom: '10px' }}>
+              {/* eslint-disable-next-line react/no-danger */}
+              <StyledVariableTable dangerouslySetInnerHTML={{ __html: modalContent }} />
             </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <div style={{ marginRight: '20px' }}>
-              <button type="button" onClick={this.handleCloseSnippetsModal} className="acms-admin-btn">
-                {ACMS.i18n('quick_search.close')}
-              </button>
-              <button
-                ref={this.copyButtonRef}
-                type="button"
-                onClick={this.handleCopySnippet}
-                className="acms-admin-btn"
-              >
-                {ACMS.i18n('quick_search.copy')}
-              </button>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <div>
+            <button type="button" onClick={handleCloseVarsModal} className="acms-admin-btn">
+              {ACMS.i18n('quick_search.close')}
+            </button>
+          </div>
+        </Modal.Footer>
+      </Modal>
+      <Modal isOpen={isV2ModuleVarsModalOpen} onClose={handleCloseV2ModuleVarsModal}>
+        <Modal.Header>{modalTitlte}</Modal.Header>
+        <Modal.Body>
+          <div className="acms-admin-form">
+            <div style={{ paddingTop: '10px', paddingBottom: '10px' }}>
+              <JSONTree
+                data={modalContent}
+                theme={jsonTreeTheme}
+                hideRoot
+                invertTheme={false}
+                shouldExpandNodeInitially={(keyPath, data, level) => {
+                  return level < 1;
+                }}
+                labelRenderer={renderJsonLabel}
+                style={{ padding: '10px' }}
+              />
             </div>
-          </Modal.Footer>
-        </Modal>
-        <Modal isOpen={isVarsModalOpen} onClose={this.handleCloseVarsModal}>
-          <Modal.Header>{ACMS.i18n('quick_search.vars')}</Modal.Header>
-          <Modal.Body>
-            <div className="acms-admin-form">
-              <div style={{ paddingTop: '10px', paddingBottom: '10px' }}>
-                {/* eslint-disable-next-line react/no-danger */}
-                <StyledVariableTable dangerouslySetInnerHTML={{ __html: modalContent }} />
-              </div>
-            </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <div style={{ marginRight: '20px' }}>
-              <button type="button" onClick={this.handleCloseVarsModal} className="acms-admin-btn">
-                {ACMS.i18n('quick_search.close')}
-              </button>
-            </div>
-          </Modal.Footer>
-        </Modal>
-        <Notify
-          message={ACMS.i18n('quick_search.copy_message')}
-          show={copied}
-          onFinish={() => {
-            this.setState({
-              copied: false,
-            });
-          }}
-        />
-      </>
-    );
-  }
-}
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <HStack display="inline-flex">
+            <button type="button" onClick={handleCloseV2ModuleVarsModal} className="acms-admin-btn">
+              {ACMS.i18n('quick_search.close')}
+            </button>
+            <button ref={copyButtonRef} type="button" onClick={handleCopyV2ModuleVars} className="acms-admin-btn">
+              {ACMS.i18n('quick_search.copy')}
+            </button>
+          </HStack>
+        </Modal.Footer>
+      </Modal>
+    </>
+  );
+};

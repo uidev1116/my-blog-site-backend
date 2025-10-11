@@ -1,0 +1,10 @@
+@use '../mixins/stretch' as mixins;
+
+// ---------------
+// stretch
+// ---------------
+
+// ストレッチ（ネストした要素をクリック可能にする）
+.acms-stretch {
+  @include mixins.stretch;
+}

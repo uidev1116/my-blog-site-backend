@@ -5,6 +5,7 @@ export interface FetchRelatedEntryOptionsParams {
   keyword: string;
   moduleId: string;
   ctx: string;
+  thumbnail?: string;
 }
 
 export async function fetchRelatedEntryOptions(params: FetchRelatedEntryOptionsParams): Promise<RelatedEntryOption[]> {

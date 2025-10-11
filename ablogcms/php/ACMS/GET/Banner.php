@@ -1,9 +1,16 @@
 <?php
 
+use Acms\Services\Facades\PublicStorage;
+use Acms\Services\Logger\Deprecated;
+
 class ACMS_GET_Banner extends ACMS_GET
 {
     function get()
     {
+        Deprecated::once('Banner モジュール', [
+            'since' => '3.2.0',
+            'alternative' => ' Media_Banner モジュール',
+        ]);
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());
         $this->buildModuleField($Tpl);
 
@@ -67,7 +74,7 @@ class ACMS_GET_Banner extends ACMS_GET
             }
 
             if ($img = config('banner_img', '', $i)) {
-                $xy = Storage::getImageSize(ARCHIVES_DIR . $img);
+                $xy = PublicStorage::getImageSize(ARCHIVES_DIR . $img);
                 $Tpl->add('banner#img', [
                     'img'   => $img,
                     'x'     => isset($xy[0]) ? $xy[0] : '',

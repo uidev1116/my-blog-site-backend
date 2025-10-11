@@ -25,10 +25,8 @@
   a:link,
   a:visited,
   a:hover,
-  a:active,
-  #viewing {
+  a:active {
     display: block;
-    _display: inline-block;
     padding: 0 30px;
     color: global.$acms-color-white;
     font-size: 14px;
@@ -37,8 +35,7 @@
     text-decoration: none;
   }
 
-  a:hover,
-  #viewing {
+  a:hover {
     text-decoration: none;
     background: global.$acms-color-gray90;
   }
@@ -46,10 +43,6 @@
   .stay a,
   a:active {
     background: global.$acms-color-gray90;
-  }
-
-  #viewing {
-    background: global.$acms-color-gray30;
   }
 
   /* リストの1段目 */
@@ -137,7 +130,7 @@
   white-space: normal; /* 幅に応じて改行 */
 }
 
-@media (min-width: global.$breakpoint-md-min) {
+@include global.media-breakpoint-up(md) {
   .acms-navbar {
     height: 60px;
 
@@ -156,8 +149,7 @@
     a:link,
     a:visited,
     a:hover,
-    a:active,
-    #viewing {
+    a:active {
       height: 60px;
     }
 

@@ -171,20 +171,19 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
      */
     function insertUserField()
     {
-        $DB = DB::singleton(dsn());
         $uid = $this->nextId;
 
         if (!empty($this->fields)) {
             Common::deleteField('uid', $uid);
 
+            $sql = SQL::newBulkInsert('field');
             foreach ($this->fields as $fval) {
-                $SQL    = SQL::newInsert('field');
-                foreach ($fval as $key => $val) {
-                    $SQL->addInsert($key, $val);
-                }
-                $SQL->addInsert('field_uid', $uid);
-                $SQL->addInsert('field_blog_id', ACMS_RAM::userBlog($uid));
-                $DB->query($SQL->get(dsn()), 'exec');
+                $fval['field_uid'] = $uid;
+                $fval['field_blog_id'] = ACMS_RAM::userBlog($uid);
+                $sql->addInsert($fval);
+            }
+            if ($sql->hasData()) {
+                DB::query($sql->get(dsn()), 'exec');
             }
         }
     }
@@ -215,7 +214,6 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
      */
     function updateUserField()
     {
-        $DB = DB::singleton(dsn());
         $uid = $this->csvId;
 
         if (!empty($this->fields)) {
@@ -230,17 +228,17 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
                 }
             }
             $SQL->addWhereIn('field_key', $fkey);
-            $DB->query($SQL->get(dsn()), 'exec');
+            DB::query($SQL->get(dsn()), 'exec');
             Common::deleteFieldCache('uid', $uid);
 
+            $sql = SQL::newBulkInsert('field');
             foreach ($this->fields as $fval) {
-                $SQL    = SQL::newInsert('field');
-                foreach ($fval as $key => $val) {
-                    $SQL->addInsert($key, $val);
-                }
-                $SQL->addInsert('field_uid', $uid);
-                $SQL->addInsert('field_blog_id', ACMS_RAM::userBlog($uid));
-                $DB->query($SQL->get(dsn()), 'exec');
+                $fval['field_uid'] = $uid;
+                $fval['field_blog_id'] = ACMS_RAM::userBlog($uid);
+                $sql->addInsert($fval);
+            }
+            if ($sql->hasData()) {
+                DB::query($sql->get(dsn()), 'exec');
             }
         }
     }

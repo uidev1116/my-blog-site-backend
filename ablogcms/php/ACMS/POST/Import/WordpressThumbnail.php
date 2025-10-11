@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\LocalStorage;
+
 class ACMS_POST_Import_WordpressThumbnail extends ACMS_POST_Import_Wordpress
 {
     public function init()
@@ -13,8 +15,10 @@ class ACMS_POST_Import_WordpressThumbnail extends ACMS_POST_Import_Wordpress
     {
         $this->httpFile->validateFormat(['text/xml', 'application/xml']);
         $path = $this->httpFile->getPath();
-        $data = Storage::get($path, dirname($path));
-        $data = Storage::removeIllegalCharacters($data); // 不正な文字コードを削除
+        $data = LocalStorage::get($path, dirname($path));
+        if ($data) {
+            $data = LocalStorage::removeIllegalCharacters($data); // 不正な文字コードを削除
+        }
         $this->validateXml($data);
 
         $xml = new XMLReader();
@@ -69,12 +73,16 @@ class ACMS_POST_Import_WordpressThumbnail extends ACMS_POST_Import_Wordpress
         $sql->addWhereOpr('field_blog_id', BID);
         DB::query($sql->get(dsn()), 'exec');
 
+        $sql = SQL::newBulkInsert('field');
         foreach ($eids as $eid) {
-            $sql = SQL::newInsert('field');
-            $sql->addInsert('field_key', 'wp_thumbnail_url');
-            $sql->addInsert('field_value', $url);
-            $sql->addInsert('field_eid', $eid);
-            $sql->addInsert('field_blog_id', BID);
+            $sql->addInsert([
+                'field_key' => 'wp_thumbnail_url',
+                'field_value' => $url,
+                'field_eid' => $eid,
+                'field_blog_id' => BID,
+            ]);
+        }
+        if ($sql->hasData()) {
             DB::query($sql->get(dsn()), 'exec');
         }
     }

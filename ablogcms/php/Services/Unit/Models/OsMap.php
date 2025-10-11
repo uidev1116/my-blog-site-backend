@@ -3,31 +3,75 @@
 namespace Acms\Services\Unit\Models;
 
 use Acms\Services\Unit\Contracts\Model;
-use Acms\Traits\Unit\UnitTemplateTrait;
+use Acms\Services\Unit\Contracts\AlignableUnitInterface;
+use Acms\Traits\Unit\AlignableUnitTrait;
+use Acms\Services\Unit\Contracts\AnkerUnitInterface;
+use Acms\Traits\Unit\AnkerUnitTrait;
+use Acms\Traits\Unit\SizeableUnitTrait;
+use Acms\Services\Unit\Contracts\SizeableUnitInterface;
 use Template;
 
-class OsMap extends Model
+/**
+ * @phpstan-type OsMapAttributes array{msg: string, lat: float, lng: float, zoom: int, size: string}
+ * @extends \Acms\Services\Unit\Contracts\Model<OsMapAttributes>
+ */
+class OsMap extends Model implements AlignableUnitInterface, AnkerUnitInterface, SizeableUnitInterface
 {
-    use UnitTemplateTrait;
+    use AlignableUnitTrait;
+    use AnkerUnitTrait;
+    use SizeableUnitTrait;
+
+    /**
+     * ユニットの独自データ
+     * @var OsMapAttributes
+     */
+    private $attributes = [
+        'msg' => '',
+        'lat' => 35.185574,
+        'lng' => 136.899066,
+        'zoom' => 10,
+        'size' => '',
+    ];
 
     /**
      * ユニットタイプを取得
      *
-     * @return string
+     * @inheritDoc
      */
-    public function getUnitType(): string
+    public static function getUnitType(): string
     {
         return 'osmap';
     }
 
     /**
-     * ユニットが画像タイプか取得
-     *
-     * @return bool
+     * @inheritDoc
      */
-    public function getIsImageUnit(): bool
+    public static function getUnitLabel(): string
     {
-        return false;
+        return gettext('標準マップ');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAttributes()
+    {
+        return [
+            ...$this->attributes,
+            'msg' => $this->getField1(),
+            'lat' => (float)$this->getField2(),
+            'lng' => (float)$this->getField3(),
+            'zoom' => (int)$this->getField4(),
+            'size' => $this->getSize(),
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setAttributes($attributes): void
+    {
+        $this->attributes = $attributes;
     }
 
     /**
@@ -62,22 +106,20 @@ class OsMap extends Model
     }
 
     /**
-     * POSTデータからユニット独自データを抽出
-     *
-     * @param array $post
-     * @param bool $removeOld
-     * @param bool $isDirectEdit
-     * @return void
+     * @inheritDoc
      */
-    public function extract(array $post, bool $removeOld = true, bool $isDirectEdit = false): void
+    public function extract(array $request): void
     {
-        $id = $this->getTempId();
-        $this->setField1($post["map_msg_{$id}"] ?? '');
-        $this->setField2($post["map_lat_{$id}"] ?? '');
-        $this->setField3($post["map_lng_{$id}"] ?? '');
-        $this->setField4($post["map_zoom_{$id}"] ?? '');
+        $id = $this->getId();
+        if (is_null($id)) {
+            throw new \LogicException('Unit ID must be set before calling extract');
+        }
+        $this->setField1($request["map_msg_{$id}"] ?? '');
+        $this->setField2($request["map_lat_{$id}"] ?? '');
+        $this->setField3($request["map_lng_{$id}"] ?? '');
+        $this->setField4($request["map_zoom_{$id}"] ?? '');
 
-        [$size, $displaySize] = $this->extractUnitSizeTrait($post["map_size_{$id}"] ?? '');
+        [$size, $displaySize] = $this->extractUnitSizeTrait($request["map_size_{$id}"] ?? '', 'map');
         $this->setSize($size);
         $this->setField5($displaySize);
     }
@@ -90,10 +132,10 @@ class OsMap extends Model
     public function canSave(): bool
     {
         if (
-            empty($this->getField1()) &&
-            empty($this->getField2()) &&
-            empty($this->getField3()) &&
-            empty($this->getField4())
+            $this->getField1() === '' &&
+            $this->getField2() === '' &&
+            $this->getField3() === '' &&
+            $this->getField4() === ''
         ) {
             return false;
         }
@@ -148,12 +190,13 @@ class OsMap extends Model
      */
     public function render(Template $tpl, array $vars, array $rootBlock): void
     {
-        if (empty($this->getField2())) {
+        if ($this->getField2() === '') {
             return;
         }
         $vars += $this->formatData();
+        $vars['align'] = $this->getAlign()->value;
+        $vars['anker'] = $this->getAnker();
         $vars = $this->displaySizeStyleTrait($this->getField5(), $vars);
-        $vars['attr'] = $this->getAttr();
         $tpl->add(array_merge(['unit#' . $this->getType()], $rootBlock), $vars);
     }
 
@@ -167,10 +210,6 @@ class OsMap extends Model
      */
     public function renderEdit(Template $tpl, array $vars, array $rootBlock): void
     {
-        $size = $this->getSize();
-        $this->renderSizeSelectTrait('map', $this->getUnitType(), $size, $tpl, $rootBlock);
-        $vars += $this->formatData();
-        $tpl->add(array_merge([$this->getUnitType()], $rootBlock), $vars);
     }
 
     /**
@@ -205,7 +244,6 @@ class OsMap extends Model
             'msgRaw' => $this->getField1(),
             'x' => $x,
             'y' => $y,
-            'align' => $this->getAlign(),
         ];
     }
 }

@@ -3,6 +3,11 @@
 use Acms\Services\Facades\Common;
 use Acms\Services\Facades\Media;
 
+/**
+ * @phpstan-type FindMediaListParams array{
+ *  'blogId': int,
+ * }
+ */
 class ACMS_GET_Admin_Media_ListJson extends ACMS_GET
 {
     /**
@@ -50,7 +55,8 @@ class ACMS_GET_Admin_Media_ListJson extends ACMS_GET
             $limits = configArray('admin_limit_option');
             $this->limit = LIMIT ? LIMIT : $limits[config('admin_limit_default')];
 
-            $sql = $this->buildSql();
+            $params = $this->createParams();
+            $sql = $this->buildSql($params);
             $this->archiveList = Media::getMediaArchiveList($sql);
             $this->tagList = Media::getMediaTagList($sql);
             $this->extList = Media::getMediaExtensionList($sql);
@@ -59,9 +65,7 @@ class ACMS_GET_Admin_Media_ListJson extends ACMS_GET
             $this->addMediaTagInfo($sql);
             $sql->setLimit($this->limit, (PAGE - 1) * $this->limit);
             ACMS_Filter::mediaOrder($sql, $this->order);
-            $q = $sql->get(dsn());
-
-            $json = $this->buildJson($q);
+            $json = $this->buildJson($sql);
             $json['status'] = 'success';
             Common::responseJson($json);
         } catch (\Exception $e) {
@@ -75,10 +79,21 @@ class ACMS_GET_Admin_Media_ListJson extends ACMS_GET
     }
 
     /**
-     * @param string $q
+     * 表示に必要なパラメータを生成する
+     * @return FindMediaListParams
+     */
+    protected function createParams(): array
+    {
+        return [
+            'blogId' => $this->defineBlogId()
+        ];
+    }
+
+    /**
+     * @param SQL_Select $sql
      * @return array
      */
-    protected function buildJson($q)
+    protected function buildJson(SQL_Select $sql)
     {
         $json = [
             'total' => $this->amount,
@@ -89,9 +104,10 @@ class ACMS_GET_Admin_Media_ListJson extends ACMS_GET
             'largeSize' => intval(config('image_size_large')),
         ];
         $db = DB::singleton(dsn());
-        $db->query($q, 'fetch');
+        $q = $sql->get(dsn());
+        $statement = $db->query($q, 'exec');
         $items = [];
-        while ($row = $db->fetch($q)) {
+        while ($row = $db->next($statement)) {
             $mid = $row['media_id'];
             $bid = $row['media_blog_id'];
             $data = [
@@ -124,13 +140,14 @@ class ACMS_GET_Admin_Media_ListJson extends ACMS_GET
     }
 
     /**
+     * @param array $params
      * @return \SQL_Select
      */
-    protected function buildSql()
+    protected function buildSql(array $params)
     {
         $sql = SQL::newSelect('media');
         $sql->addLeftJoin('blog', 'blog_id', 'media_blog_id');
-        ACMS_Filter::blogTree($sql, SBID, 'descendant-or-self');
+        ACMS_Filter::blogTree($sql, $params['blogId'], 'descendant-or-self');
         if (getAuthConsideringRole(SUID) === 'contributor') {
             $sql->addWhereIn('media_user_id', [0, SUID]);
         }
@@ -139,7 +156,7 @@ class ACMS_GET_Admin_Media_ListJson extends ACMS_GET
 
     protected function addMediaTagInfo(&$sql)
     {
-        $sql->addSelect(' *');
+        $sql->addSelect('*');
         $sql->addSelect('media_tag_name', 'tag_name', 'media_tag_list', 'GROUP_CONCAT');
         $sql->addLeftJoin('media_tag', 'media_tag_media_id', 'media_id', 'media_tag_list');
         $sql->addGroup('media_id');
@@ -154,7 +171,12 @@ class ACMS_GET_Admin_Media_ListJson extends ACMS_GET
             Media::filterTag($sql, $this->tags);
         }
         if (KEYWORD) {
-            $sql->addWhereOpr('media_file_name', '%' . KEYWORD . '%', 'LIKE');
+            ACMS_Filter::mediaKeyword($sql, KEYWORD, null, [
+                'media_file_name',
+                'media_field_1',
+                'media_field_3',
+                'media_field_4'
+            ]);
         }
         if (DATE) {
             $date = str_replace('/', '-', DATE) . '-01';
@@ -191,7 +213,20 @@ class ACMS_GET_Admin_Media_ListJson extends ACMS_GET
     protected function getAmount($sql)
     {
         $amount = new SQL_Select($sql);
-        $amount->setSelect('DISTINCT(media_id)', 'media_amount', null, 'count');
+        $amount->setSelect(SQL::newFunction('media_id', 'DISTINCT'), 'media_amount', null, 'COUNT');
         return intval(DB::query($amount->get(dsn()), 'one'));
+    }
+
+    /**
+     * ブログIDを返す
+     * @return FindMediaListParams['blogId']
+     */
+    protected function defineBlogId(): int
+    {
+        $blogAxis = $this->Get->get('blogAxis');
+        if ($blogAxis === 'true') {
+            return BID;
+        }
+        return defined('SBID') ? (int)SBID : BID;
     }
 }

@@ -6,11 +6,11 @@ class ACMS_GET_Admin_Category_Index extends ACMS_GET_Admin
     {
         if (roleAvailableUser()) {
             if (!roleAuthorization('category_edit', BID)) {
-                return '';
+                die403();
             }
         } else {
             if (!sessionWithCompilation()) {
-                return '';
+                die403();
             }
         }
 
@@ -39,13 +39,6 @@ class ACMS_GET_Admin_Category_Index extends ACMS_GET_Admin
         }
 
         $_cid = (int)$this->Get->get('_cid', 0);
-
-        //---------
-        // refresh
-        if (!$this->Post->isNull()) {
-            $Tpl->add('refresh');
-            $vars['notice_mess'] = 'show';
-        }
 
         //-------
         // order
@@ -125,7 +118,7 @@ class ACMS_GET_Admin_Category_Index extends ACMS_GET_Admin
 
         if ($layered) {
             $Pager = new SQL_Select($SQL);
-            $Pager->setSelect('DISTINCT(master.category_id)', 'category_amount', null, 'COUNT');
+            $Pager->setSelect(SQL::newFunction('category_id', 'DISTINCT', 'master'), 'category_amount', null, 'COUNT');
             $Pager->setGroup(null);
             if (!$pageAmount = intval($DB->query($Pager->get(dsn()), 'one'))) {
                 $Tpl->add('index#notFound');
@@ -152,9 +145,8 @@ class ACMS_GET_Admin_Category_Index extends ACMS_GET_Admin
         ACMS_Filter::categoryOrder($SQL, $order);
 
         $q = $SQL->get(dsn());
-
-        $DB->query($q, 'fetch');
-        $row = $DB->fetch($q);
+        $statement = $DB->query($q, 'exec');
+        $row = $DB->next($statement);
 
         $categoryIds = [];
         $childCategories = [];
@@ -162,7 +154,7 @@ class ACMS_GET_Admin_Category_Index extends ACMS_GET_Admin
             if (!empty($row['category_id'])) {
                 $categoryIds[] = $row['category_id'];
             }
-        } while ($row = $DB->fetch($q));
+        } while ($row = $DB->next($statement));
 
 
         if ($layered) {
@@ -182,8 +174,8 @@ class ACMS_GET_Admin_Category_Index extends ACMS_GET_Admin
         $amount = [];
         $parent = [];
         $last = [];
-        $DB->query($q, 'fetch');
-        while ($row = $DB->fetch($q)) {
+        $statement = $DB->query($q, 'exec');
+        while ($row = $DB->next($statement)) {
             $bid = intval($row['category_blog_id']);
             $cid = intval($row['category_id']);
             $pid = intval($row['category_parent']);

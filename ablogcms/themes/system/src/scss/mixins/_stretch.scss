@@ -1,0 +1,14 @@
+@use '../global/variables' as var;
+
+// ------------------------------
+// ストレッチ
+// ------------------------------
+
+@mixin stretch {
+  &::#{var.$acms-stretch-pseudo-element} {
+    position: absolute;
+    inset: 0;
+    z-index: var.$acms-stretch-z-index;
+    content: '';
+  }
+}

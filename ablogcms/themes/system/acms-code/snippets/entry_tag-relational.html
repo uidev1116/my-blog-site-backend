@@ -14,9 +14,9 @@
   &lt;!-- BEGIN_MODULE Entry_TagRelational --&gt;
   &lt;div class=&quot;acms-margin-bottom-medium&quot;&gt;
   &#64;include(&quot;/admin/module/setting.html&quot;)
-    &lt;div class=&quot;acms-grid&quot;&gt;
+    &lt;div class=&quot;acms-cssgrid acms-g-cols-1 acms-g-cols-md-3&quot;&gt;
       &lt;!-- BEGIN entry:loop --&gt;
-      &lt;div class=&quot;acms-col-md-4 js-autoheight-r&quot;&gt;
+      &lt;div&gt;
         &lt;div class=&quot;acms-thumbnail&quot;&gt;
           &lt;!-- BEGIN_IF [{path}/nem] --&gt;
           &lt;img
@@ -25,6 +25,8 @@
             class=&quot;acms-img-responsive&quot;
             width=&quot;{x}&quot;
             height=&quot;{y}&quot;
+            loading=&quot;lazy&quot;
+            decoding=&quot;async&quot;
           &gt;
           &lt;!-- ELSE --&gt;
           &lt;img
@@ -33,6 +35,8 @@
             class=&quot;acms-img-responsive&quot;
             width=&quot;{x}&quot;
             height=&quot;{y}&quot;
+            loading=&quot;lazy&quot;
+            decoding=&quot;async&quot;
           /&gt;
           &lt;!-- END_IF --&gt;
           &lt;div&gt;

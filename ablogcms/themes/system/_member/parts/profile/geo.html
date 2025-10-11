@@ -5,16 +5,26 @@
     <tr>
       <th>位置情報</th>
       <td class="acms-member-geo">
-        <!-- BEGIN_IF [{geo_lat}/nem/_and_/{geo_lng}/nem/] -->
-        <input class="js-geo_input acms-btn" type="button" data-type="delete"/>
-        <!-- ELSE -->
-        <input class="js-geo_input acms-btn" type="button" data-type="add"/>
-        <!-- END_IF -->
-        <!-- BEGIN_IF [<!-- BEGIN_MODULE Config -->{geolocation_map_type}<!-- END_MODULE Config -->/eq/gmap] -->
-        @include("/admin/map/_google-map-picker.html")
-        <!-- ELSE -->
-        @include("/admin/map/_open-street-map-picker.html")
-        <!-- END_IF -->
+        <div class="acms-stack acms-flex-column acms-align-items-stretch">
+          <div>
+            <!-- BEGIN_IF [{geo_lat}/nem/_and_/{geo_lng}/nem/] -->
+            <button class="js-geo-button acms-btn" type="button" data-type="delete" data-target="#geo-form">
+              <!--T-->位置情報を削除<!--/T-->
+            </button>
+            <!-- ELSE -->
+            <button class="js-geo-button acms-btn" type="button" data-type="add" data-target="#geo-form">
+              <!--T-->位置情報を追加<!--/T-->
+            </button>
+            <!-- END_IF -->
+          </div>
+          <div id="geo-form" style="display: none;">
+            <!-- BEGIN_IF [<!-- BEGIN_MODULE Config -->{geolocation_map_type}<!-- END_MODULE Config -->/eq/gmap] -->
+            @include("/admin/map/_google-map-picker.html")
+            <!-- ELSE -->
+            @include("/admin/map/_open-street-map-picker.html")
+            <!-- END_IF -->
+          </div>
+        </div>
       </td>
     </tr>
   </tbody>

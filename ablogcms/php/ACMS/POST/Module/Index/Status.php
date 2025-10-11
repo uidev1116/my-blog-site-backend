@@ -28,12 +28,11 @@ class ACMS_POST_Module_Index_Status extends ACMS_POST
                     continue;
                 }
 
-                $this->save($moduleId, $status, $moduleBlogId);
+                $this->save($moduleId, $status);
 
                 $module = loadModule($moduleId);
                 $targetModules[] = $module->get('label') . '（' . $module->get('identifier') . '）';
             }
-            $this->Post->set('refreshed', 'refreshed');
 
             Logger::info('選択したモジュールIDのステータスを「' . $status . '」に設定しました', [
                 'targetModules' => $targetModules,
@@ -50,14 +49,13 @@ class ACMS_POST_Module_Index_Status extends ACMS_POST
      *
      * @param int $id
      * @param 'open' | 'close' $status
-     * @param int $blogId
      **/
-    protected function save(int $id, string $status, int $blogId)
+    protected function save(int $id, string $status)
     {
         $sql = SQL::newUpdate('module');
-        $sql->setUpdate('module_status', $status);
+        $sql->addUpdate('module_status', $status);
+        $sql->addUpdate('module_updated_datetime', date('Y-m-d H:i:s', REQUEST_TIME));
         $sql->addWhereOpr('module_id', $id);
-        $sql->addWhereOpr('module_blog_id', $blogId);
         DB::query($sql->get(dsn()), 'exec');
     }
 

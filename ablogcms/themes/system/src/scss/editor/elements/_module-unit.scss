@@ -1,0 +1,8 @@
+@use '../../global/common' as global;
+
+/* ------------------------------
+ モジュールユニット
+------------------------------ */
+[class*='column-module'] {
+  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+}

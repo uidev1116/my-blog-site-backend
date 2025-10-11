@@ -8,19 +8,12 @@ class ACMS_POST_Entry_Index_Category extends ACMS_POST
             $cid = null;
         }
         $this->Post->setMethod('checks', 'required');
-
-        if (enableApproval(BID, CID)) {
-            $this->Post->setMethod('entry', 'operable', sessionWithApprovalAdministrator(BID, CID));
-        } elseif (roleAvailableUser()) {
-            $this->Post->setMethod('entry', 'operable', roleAuthorization('entry_edit', BID));
-        } else {
-            $this->Post->setMethod('entry', 'operable', sessionWithContribution());
-        }
+        $this->Post->setMethod('entry', 'operable', Entry::canBulkCategoryChange(BID, CID));
 
         $this->Post->validate(new ACMS_Validator());
 
-        if ($entryArray = $this->checkCategory($this->Post->getArray('checks'), $cid)) {
-            $this->Post->set('error_entries', $entryArray);
+        if ($this->checkCategory($this->Post->getArray('checks'), $cid)) {
+            $this->addError(gettext('子ブログのカテゴリーをグローバル（共有）カテゴリーではないものに変更することはできません。'));
             return $this->Post;
         }
 
@@ -62,7 +55,7 @@ class ACMS_POST_Entry_Index_Category extends ACMS_POST
         return $this->Post;
     }
 
-    function checkCategory($checked, $cid)
+    public function checkCategory($checked, $cid)
     {
         if (is_null($cid)) {
             return false;

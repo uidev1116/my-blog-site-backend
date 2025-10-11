@@ -577,10 +577,17 @@
 %{PREFIX}column:
   column_id:
     Field: column_id
-    Type: int(11)
+    Type: varchar(36)
     'Null': NO
     Key: PRI
     Default:
+    Extra:
+  column_status:
+    Field: column_status
+    Type: varchar(16)
+    'Null': NO
+    Key:
+    Default: open
     Extra:
   column_sort:
     Field: column_sort
@@ -599,6 +606,20 @@
   column_type:
     Field: column_type
     Type: varchar(128)
+    'Null': NO
+    Key:
+    Default:
+    Extra:
+  column_parent_id:
+    Field: column_parent_id
+    Type: varchar(36)
+    'Null': YES
+    Key:
+    Default: NULL
+    Extra:
+  column_anker:
+    Field: column_anker
+    Type: varchar(64)
     'Null': NO
     Key:
     Default:
@@ -676,6 +697,20 @@
   column_field_8:
     Field: column_field_8
     Type: longtext
+    'Null': NO
+    Key:
+    Default:
+    Extra:
+  column_group_class:
+    Field: column_group_class
+    Type: varchar(64)
+    'Null': NO
+    Key:
+    Default:
+    Extra:
+  column_group_tag:
+    Field: column_group_tag
+    Type: varchar(64)
     'Null': NO
     Key:
     Default:
@@ -697,10 +732,17 @@
 %{PREFIX}column_rev:
   column_id:
     Field: column_id
-    Type: int(11)
+    Type: varchar(36)
     'Null': NO
     Key: PRI
     Default:
+    Extra:
+  column_status:
+    Field: column_status
+    Type: varchar(16)
+    'Null': NO
+    Key:
+    Default: open
     Extra:
   column_sort:
     Field: column_sort
@@ -719,6 +761,20 @@
   column_type:
     Field: column_type
     Type: varchar(128)
+    'Null': NO
+    Key:
+    Default:
+    Extra:
+  column_parent_id:
+    Field: column_parent_id
+    Type: varchar(36)
+    'Null': YES
+    Key:
+    Default: NULL
+    Extra:
+  column_anker:
+    Field: column_anker
+    Type: varchar(64)
     'Null': NO
     Key:
     Default:
@@ -796,6 +852,20 @@
   column_field_8:
     Field: column_field_8
     Type: longtext
+    'Null': NO
+    Key:
+    Default:
+    Extra:
+  column_group_class:
+    Field: column_group_class
+    Type: varchar(64)
+    'Null': NO
+    Key:
+    Default:
+    Extra:
+  column_group_tag:
+    Field: column_group_tag
+    Type: varchar(64)
     'Null': NO
     Key:
     Default:
@@ -1199,7 +1269,7 @@
     Extra:
   entry_primary_image:
     Field: entry_primary_image
-    Type: int(11)
+    Type: varchar(36)
     'Null': YES
     Key:
     Default:
@@ -1459,7 +1529,7 @@
     Extra:
   entry_primary_image:
     Field: entry_primary_image
-    Type: int(11)
+    Type: varchar(36)
     'Null': YES
     Key:
     Default:
@@ -1651,6 +1721,13 @@
     Key:
     Default:
     Extra:
+  field_type:
+    Field: field_type
+    Type: varchar(32)
+    'Null': YES
+    Key: MUL
+    Default:
+    Extra:
   field_sort:
     Field: field_sort
     Type: int(11)
@@ -1696,6 +1773,13 @@
   field_mid:
     Field: field_mid
     Type: int(11)
+    'Null': YES
+    Key: MUL
+    Default:
+    Extra:
+  field_unit_id:
+    Field: field_unit_id
+    Type: varchar(36)
     'Null': YES
     Key: MUL
     Default:
@@ -1722,6 +1806,13 @@
     Key:
     Default:
     Extra:
+  field_type:
+    Field: field_type
+    Type: varchar(32)
+    'Null': YES
+    Key: MUL
+    Default:
+    Extra:
   field_sort:
     Field: field_sort
     Type: int(11)
@@ -1767,6 +1858,13 @@
   field_mid:
     Field: field_mid
     Type: int(11)
+    'Null': YES
+    Key: MUL
+    Default:
+    Extra:
+  field_unit_id:
+    Field: field_unit_id
+    Type: varchar(36)
     'Null': YES
     Key: MUL
     Default:
@@ -2754,6 +2852,20 @@
     Key:
     Default: off
     Extra:
+  module_created_datetime:
+    Field: module_created_datetime
+    Type: datetime
+    'Null': YES
+    Key:
+    Default: NULL
+    Extra:
+  module_updated_datetime:
+    Field: module_updated_datetime
+    Type: datetime
+    'Null': YES
+    Key:
+    Default: NULL
+    Extra:
   module_blog_id:
     Field: module_blog_id
     Type: int(11)
@@ -3313,22 +3425,8 @@
     Key:
     Default:
     Extra:
-  sequence_column_id:
-    Field: sequence_column_id
-    Type: int(11)
-    'Null': NO
-    Key:
-    Default:
-    Extra:
   sequence_comment_id:
     Field: sequence_comment_id
-    Type: int(11)
-    'Null': NO
-    Key:
-    Default:
-    Extra:
-  sequence_trackback_id:
-    Field: sequence_trackback_id
     Type: int(11)
     'Null': NO
     Key:
@@ -3421,6 +3519,13 @@
   sequence_trial:
     Field: sequence_trial
     Type: datetime
+    'Null': YES
+    Key:
+    Default:
+    Extra:
+  sequence_app_salt:
+    Field: sequence_app_salt
+    Type: varchar(64)
     'Null': YES
     Key:
     Default:
@@ -3654,91 +3759,6 @@
     Key: PRI
     Default:
     Extra:
-%{PREFIX}trackback:
-  trackback_id:
-    Field: trackback_id
-    Type: int(11)
-    'Null': NO
-    Key: PRI
-    Default:
-    Extra:
-  trackback_status:
-    Field: trackback_status
-    Type: varchar(16)
-    'Null': NO
-    Key: PRI
-    Default: open
-    Extra:
-  trackback_url:
-    Field: trackback_url
-    Type: varchar(255)
-    'Null': NO
-    Key:
-    Default:
-    Extra:
-  trackback_title:
-    Field: trackback_title
-    Type: varchar(255)
-    'Null': NO
-    Key:
-    Default:
-    Extra:
-  trackback_excerpt:
-    Field: trackback_excerpt
-    Type: varchar(255)
-    'Null': NO
-    Key:
-    Default:
-    Extra:
-  trackback_blog_name:
-    Field: trackback_blog_name
-    Type: varchar(255)
-    'Null': NO
-    Key:
-    Default:
-    Extra:
-  trackback_response:
-    Field: trackback_response
-    Type: varchar(255)
-    'Null': NO
-    Key:
-    Default:
-    Extra:
-  trackback_host:
-    Field: trackback_host
-    Type: varchar(255)
-    'Null': NO
-    Key:
-    Default:
-    Extra:
-  trackback_datetime:
-    Field: trackback_datetime
-    Type: datetime
-    'Null': NO
-    Key:
-    Default: '1000-01-01 00:00:00'
-    Extra:
-  trackback_flow:
-    Field: trackback_flow
-    Type: varchar(16)
-    'Null': NO
-    Key:
-    Default: receive
-    Extra:
-  trackback_entry_id:
-    Field: trackback_entry_id
-    Type: int(11)
-    'Null': NO
-    Key: PRI
-    Default:
-    Extra:
-  trackback_blog_id:
-    Field: trackback_blog_id
-    Type: int(11)
-    'Null': NO
-    Key:
-    Default:
-    Extra:
 %{PREFIX}user:
   user_id:
     Field: user_id
@@ -3816,13 +3836,6 @@
     'Null': YES
   user_twitter_id:
     Field: user_twitter_id
-    Type: varchar(64)
-    'Null': NO
-    Key:
-    Default:
-    Extra:
-  user_facebook_id:
-    Field: user_facebook_id
     Type: varchar(64)
     'Null': NO
     Key:
@@ -4449,10 +4462,46 @@
     Key:
     Default:
     Extra:
+  token_data:
+    Field: token_data
+    Type: text
+    'Null': NO
+    Key:
+    Default:
+    Extra:
   token_expire:
     Field: token_expire
     Type: datetime
     'Null': NO
     Key:
     Default: '9999-12-31 23:59:59'
+    Extra:
+%{PREFIX}last_access:
+  last_access_uid:
+    Field: last_access_uid
+    Type: int(255)
+    'Null': NO
+    Key: PRI
+    Default:
+    Extra:
+  last_access_datetime:
+    Field: last_access_datetime
+    Type: datetime
+    'Null': NO
+    Key:
+    Default:
+    Extra:
+  last_access_ip:
+    Field: last_access_ip
+    Type: varchar(64)
+    'Null': NO
+    Key:
+    Default:
+    Extra:
+  last_access_ua:
+    Field: last_access_ua
+    Type: varchar(512)
+    'Null': NO
+    Key:
+    Default:
     Extra:

@@ -3,7 +3,7 @@
 /* ------------------------------
  管理者ログイン ベース
 ------------------------------- */
-@media (min-width: global.$breakpoint-sm-min) {
+@include global.media-breakpoint-up(sm) {
   .login-bg {
     background-color: #e5e5e9;
   }
@@ -21,7 +21,7 @@
   background-color: global.$acms-color-white;
 }
 
-@media (min-width: global.$breakpoint-sm-min) {
+@include global.media-breakpoint-up(sm) {
   .acms-login-container {
     margin-top: 100px;
     margin-bottom: 60px;
@@ -43,7 +43,7 @@
   padding-left: var(--login-space-container-x);
 }
 
-@media (min-width: global.$breakpoint-sm-min) {
+@include global.media-breakpoint-up(sm) {
   .acms-login-main-box-bottom {
     @include global.round-bottom(var(--login-radius-container));
 
@@ -133,13 +133,16 @@
 
   &:link,
   &:visited,
-  &:focus,
-  &:active {
-    color: #006dec;
+  &:focus {
+    color: global.$acms-color-link-text;
   }
 
   &:hover {
-    color: #8ebef7;
+    color: global.$acms-color-link-text-hover;
+  }
+
+  &:active {
+    color: global.$acms-color-link-text-active;
   }
 }
 
@@ -310,23 +313,5 @@
 
   &.acms-btn:active::before {
     background-color: rgb(255 255 255 / 45%);
-  }
-}
-
-/* Facebookログインボタン */
-
-/* Facebookによるログイン機能は、将来廃止予定になります。 */
-.acms-login-sns-btn-facebook {
-  &,
-  &:hover,
-  &:focus,
-  &:active {
-    color: #fff;
-    background-color: #1877f2;
-    border-color: #1877f2;
-  }
-
-  .acms-login-sns-btn-text {
-    border-color: rgb(255 255 255 / 35%);
   }
 }

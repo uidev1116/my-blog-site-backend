@@ -1,12 +1,15 @@
 <?php
 
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 
 class ACMS_POST_Backup_ArchiveImport extends ACMS_POST_Backup_Import
 {
     public function post()
     {
         try {
+            if (env('STORAGE_DRIVER', 'local') !== 'local') {
+                throw new \RuntimeException(gettext('ストレージ設定がローカルではない（S3など）ため、リストアできません。'));
+            }
             AcmsLogger::info('アーカイブのインポートを実行しました');
 
             $this->authCheck('backup_import');
@@ -18,8 +21,9 @@ class ACMS_POST_Backup_ArchiveImport extends ACMS_POST_Backup_Import
             if (empty($file_name)) {
                 throw new \RuntimeException(gettext('バックアップファイルが指定されていません。'));
             }
+            $path = Storage::validateDirectoryTraversal($this->backupArchivesDir, $file_name);
             Common::backgroundRedirect(acmsLink(['bid' => RBID]));
-            $this->run($file_name);
+            $this->run($path);
             die();
         } catch (\Exception $e) {
             $this->addError($e->getMessage());
@@ -29,25 +33,25 @@ class ACMS_POST_Backup_ArchiveImport extends ACMS_POST_Backup_Import
     }
 
     /**
-     * @param $file_name
+     * @param $path
      * @throws Exception
      */
-    protected function run($file_name)
+    protected function run($path)
     {
         $archive_dir = ARCHIVES_DIR;
         $media_dir = MEDIA_LIBRARY_DIR;
         $storage_dir = MEDIA_STORAGE_DIR;
 
-        if (Storage::isFile($this->backupArchivesDir . $file_name)) {
-            Storage::removeDirectory($storage_dir . 'archives_tmp');
-            Storage::unzip($this->backupArchivesDir . $file_name, $storage_dir);
+        if (LocalStorage::isFile($path)) {
+            LocalStorage::removeDirectory($storage_dir . 'archives_tmp');
+            LocalStorage::unzip($path, $storage_dir);
 
             $this->renameAllFile($storage_dir . 'archives_tmp/archives/', $archive_dir);
             $this->renameAllFile($storage_dir . 'archives_tmp/media/', $media_dir);
             $this->renameAllFile($storage_dir . 'archives_tmp/storage/', $storage_dir);
 
-            if (Storage::isDirectory($storage_dir . 'archives_tmp/')) {
-                Storage::removeDirectory($storage_dir . 'archives_tmp/');
+            if (LocalStorage::isDirectory($storage_dir . 'archives_tmp/')) {
+                LocalStorage::removeDirectory($storage_dir . 'archives_tmp/');
             }
         }
         $field = new Field();
@@ -61,7 +65,7 @@ class ACMS_POST_Backup_ArchiveImport extends ACMS_POST_Backup_Import
      */
     protected function renameAllFile($dir, $new_dir)
     {
-        if (Storage::isDirectory($dir)) {
+        if (LocalStorage::isDirectory($dir)) {
             if ($dh = opendir($dir)) {
                 while (($file = readdir($dh)) !== false) {
                     if (filetype($dir . $file) === 'dir') {
@@ -70,8 +74,8 @@ class ACMS_POST_Backup_ArchiveImport extends ACMS_POST_Backup_Import
                             $this->renameAllFile($dir . $file . '/', $new_dir . $file . '/');
                         }
                     } else {
-                        Storage::makeDirectory($new_dir);
-                        Storage::move($dir . $file, $new_dir . $file);
+                        LocalStorage::makeDirectory($new_dir);
+                        LocalStorage::move($dir . $file, $new_dir . $file);
                     }
                 }
                 closedir($dh);

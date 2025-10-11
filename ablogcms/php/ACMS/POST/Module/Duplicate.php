@@ -2,6 +2,7 @@
 
 use Acms\Services\Facades\Module;
 use Acms\Services\Facades\Logger;
+use Acms\Services\Facades\Common;
 
 class ACMS_POST_Module_Duplicate extends ACMS_POST_Module
 {
@@ -21,6 +22,7 @@ class ACMS_POST_Module_Duplicate extends ACMS_POST_Module
             ]);
 
             if ($this->Post->get('ajax', false)) {
+                Common::setSafeHeadersWithoutCache(200, 'text/plain');
                 die(strval($new));
             }
 

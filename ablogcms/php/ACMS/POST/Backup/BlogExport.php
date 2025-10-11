@@ -1,7 +1,8 @@
 <?php
 
 use Acms\Services\Facades\Common;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\PrivateStorage;
 
 /**
  * Class ACMS_POST_Backup_BlogExport
@@ -42,20 +43,23 @@ class ACMS_POST_Backup_BlogExport extends ACMS_POST_Backup_Base
             $this->srcPath = MEDIA_STORAGE_DIR . 'blog_tmp/';
             $this->destPath = MEDIA_STORAGE_DIR . 'blog' . date('_Ymd_His') . '.zip';
 
-            Storage::makeDirectory($this->srcPath);
+            LocalStorage::makeDirectory($this->srcPath);
             $fp = fopen($this->srcPath . 'data.yaml', 'w');
+            if ($fp === false) {
+                throw new \RuntimeException('ファイルのオープンに失敗しました');
+            }
             $mediaPaths = $export->export($fp, BID);
             fclose($fp);
 
             $this->copyArchives();
             $this->copyMedia($mediaPaths);
 
-            Storage::compress($this->srcPath, $this->destPath, 'acms_blog_data');
-            Storage::removeDirectory($this->srcPath);
+            LocalStorage::compress($this->srcPath, $this->destPath, 'acms_blog_data');
+            LocalStorage::removeDirectory($this->srcPath);
             $this->download();
         } catch (\Exception $e) {
             $this->Post->set('error', $e->getMessage());
-            Storage::removeDirectory($this->srcPath);
+            LocalStorage::removeDirectory($this->srcPath);
 
             AcmsLogger::warning('ブログのエクスポート中にエラーが発生しました。', Common::exceptionArray($e));
         }
@@ -79,12 +83,15 @@ class ACMS_POST_Backup_BlogExport extends ACMS_POST_Backup_Base
      */
     private function copyArchives()
     {
+        if (!Common::isLocalPrivateStorage()) {
+            return;
+        }
         $archive_path = ARCHIVES_DIR . sprintf("%03d", BID) . '/';
-        if (!Storage::exists($archive_path)) {
+        if (!PrivateStorage::exists($archive_path)) {
             return;
         }
         $archive_tmp = $this->srcPath . 'archives/001';
-        Storage::copyDirectory($archive_path, $archive_tmp);
+        LocalStorage::copyDirectory($archive_path, $archive_tmp);
     }
 
     /**
@@ -94,15 +101,18 @@ class ACMS_POST_Backup_BlogExport extends ACMS_POST_Backup_Base
      */
     private function copyMedia(array $mediaPaths): void
     {
+        if (!Common::isLocalPrivateStorage()) {
+            return;
+        }
         $mediaPath = MEDIA_LIBRARY_DIR . sprintf("%03d", BID) . '/';
         $mediaFilePath = MEDIA_STORAGE_DIR . sprintf("%03d", BID) . '/';
-        if (Storage::exists($mediaPath)) {
+        if (LocalStorage::exists($mediaPath)) {
             $mediaTemp = $this->srcPath . 'media/001';
-            Storage::copyDirectory($mediaPath, $mediaTemp);
+            LocalStorage::copyDirectory($mediaPath, $mediaTemp);
         }
-        if (Storage::exists($mediaFilePath)) {
+        if (LocalStorage::exists($mediaFilePath)) {
             $mediaTemp = $this->srcPath . 'storage/001';
-            Storage::copyDirectory($mediaFilePath, $mediaTemp);
+            LocalStorage::copyDirectory($mediaFilePath, $mediaTemp);
         }
         // エクスポートブログとは異なるブログのメディアファイルを個々にコピー
         foreach ($mediaPaths as $media) {
@@ -111,29 +121,29 @@ class ACMS_POST_Backup_BlogExport extends ACMS_POST_Backup_Base
 
             if ($type === 'image' || $type === 'svg') {
                 $srcPath =  MEDIA_LIBRARY_DIR . $path;
-                if (Storage::exists($srcPath)) {
+                if (LocalStorage::exists($srcPath)) {
                     $destPath = "{$this->srcPath}media/001/" . preg_replace('/^\d{3}\//', '', $path);
-                    Storage::makeDirectory(dirname($destPath));
-                    Storage::copy($srcPath, $destPath);
+                    LocalStorage::makeDirectory(dirname($destPath));
+                    LocalStorage::copy($srcPath, $destPath);
                 }
                 if ($type === 'image') {
                     foreach (['large', 'tiny', 'square'] as $size) {
                         $otherPath = otherSizeImagePath($path, $size);
                         $srcPath =  MEDIA_LIBRARY_DIR . $otherPath;
-                        if (Storage::exists($srcPath)) {
+                        if (LocalStorage::exists($srcPath)) {
                             $destPath = "{$this->srcPath}media/001/" . preg_replace('/^\d{3}\//', '', $otherPath);
-                            Storage::makeDirectory(dirname($destPath));
-                            Storage::copy($srcPath, $destPath);
+                            LocalStorage::makeDirectory(dirname($destPath));
+                            LocalStorage::copy($srcPath, $destPath);
                         }
                     }
                 }
             }
             if ($type === 'file') {
                 $srcPath =  MEDIA_STORAGE_DIR . $path;
-                if (Storage::exists($srcPath)) {
+                if (LocalStorage::exists($srcPath)) {
                     $destPath = "{$this->srcPath}storage/001/" . preg_replace('/^\d{3}\//', '', $path);
-                    Storage::makeDirectory(dirname($destPath));
-                    Storage::copy($srcPath, $destPath);
+                    LocalStorage::makeDirectory(dirname($destPath));
+                    LocalStorage::copy($srcPath, $destPath);
                 }
             }
         }

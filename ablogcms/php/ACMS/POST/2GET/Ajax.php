@@ -11,6 +11,12 @@ class ACMS_POST_2GET_Ajax extends ACMS_POST_2GET
      */
     protected function executeRedirect(Field $post): void
     {
-        $this->redirect(acmsLink(Common::getUriObject($post), true, true, false, true));
+        $this->redirect(acmsLink(Common::getUriObject($post), [
+            'inherit' => true,
+            'isDeep' => true,
+            'baseId' => false,
+            'explicitTpl' => true,
+            'ignoreTplIfAjax' => false,
+        ]));
     }
 }

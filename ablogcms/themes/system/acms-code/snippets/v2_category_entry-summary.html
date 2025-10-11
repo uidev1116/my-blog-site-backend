@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V2_Category_EntrySummary</title>
+    <link rel="stylesheet" href="src/highlight/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="src/snippets.css" />
+    <script src="src/highlight/highlight.min.js"></script>
+    <script src="src/highlight/javascript.min.js"></script>
+    <script src="src/highlight/twig.min.js"></script>
+    <script src="src/snippets.js"></script>
+  </head>
+  <body>
+    <h1>V2_Category_EntrySummary</h1>
+    <pre class="acms-admin-customfield-maker"><code class="language-twig">
+&#123;% set categoryEntrySummary = module(&#039;V2_Category_EntrySummary&#039;, null, &#123;
+  bid: null,
+  cid: null,
+  uid: null,
+  limit: null,
+  keyword: null,
+  tag: [],
+  field: null,
+  order: null,
+  start: &#039;1000-01-01 00:00:00&#039;,
+  end: &#039;9999-12-31 23:59:59&#039;
+&#125;) %&#125;
+
+&#123;% if categoryEntrySummary.items is not empty %&#125;
+  &#123;% macro renderCategories(categories) %&#125;
+      &lt;div&gt;
+        &#123;% for category in categories %&#125;
+          &lt;h3 class=&quot;acms-heading&quot;&gt;
+            &lt;a href=&quot;&#123;&#123; category.url &#125;&#125;&quot;&gt;&#123;&#123; category.name &#125;&#125;（&#123;&#123; category.depth &#125;&#125;階層）&lt;/a&gt;
+          &lt;/h3&gt;
+          &lt;div class=&quot;acms-cssgrid acms-g-cols-1 acms-g-cols-md-3&quot;&gt;
+            &#123;% for entry in category.entries %&#125;
+              &lt;div&gt;
+                &lt;a class=&quot;acms-thumbnail&quot; href=&quot;&#123;&#123; entry.url &#125;&#125;&quot;&gt;
+                  &#123;% if entry.mainImage %&#125;
+                  &lt;img
+                    src=&quot;&#123;&#123; entry.mainImage.path|resizeImg(300) &#125;&#125;&quot;
+                    alt=&quot;&#123;&#123; entry.mainImage.alt &#125;&#125;&quot;
+                    class=&quot;acms-img-responsive&quot;
+                    width=&quot;&#123;&#123; entry.mainImage.width &#125;&#125;&quot;
+                    height=&quot;&#123;&#123; entry.mainImage.height &#125;&#125;&quot;
+                    loading=&quot;lazy&quot;
+                    decoding=&quot;async&quot;
+                  &gt;
+                  &#123;% else %&#125;
+                  &lt;img
+                    src=&quot;/images/default/noimage.gif&quot;
+                    alt=&quot;&quot;
+                    class=&quot;acms-img-responsive&quot;
+                    width=&quot;{noImgX}&quot;
+                    height=&quot;{noImgY}&quot;
+                    loading=&quot;lazy&quot;
+                    decoding=&quot;async&quot;
+                  &gt;
+                  &#123;% endif %&#125;
+                  &lt;h4&gt;&#123;&#123; entry.title &#125;&#125;&lt;/h4&gt;
+                  &lt;p&gt;&#123;&#123; entry.summary &#125;&#125;&lt;/p&gt;
+                &lt;/a&gt;
+              &lt;/div&gt;
+            &#123;% endfor %&#125;
+          &lt;/div&gt;
+          &#123;% if category.children is defined %&#125;
+            &#123;&#123; _self.renderCategories(category.children) &#125;&#125;
+          &#123;% endif %&#125;
+        &#123;% endfor %&#125;
+      &lt;/div&gt;
+    &#123;% endmacro %&#125;
+
+    &lt;div class=&quot;acms-margin-bottom-medium&quot;&gt;
+      &#123;&#123; include(&#039;/admin/module/setting.twig&#039;, &#123; moduleInfo: categoryEntrySummary.moduleInfo &#125;) &#125;&#125;
+      &#123;&#123; _self.renderCategories(categoryEntrySummary.items) &#125;&#125;
+    &lt;/div&gt;
+&#123;% endif %&#125;
+    </code></pre>
+  </body>
+</html>

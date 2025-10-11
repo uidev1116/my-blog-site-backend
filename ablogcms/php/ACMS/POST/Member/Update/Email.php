@@ -1,6 +1,7 @@
 <?php
 
 use Acms\Services\Validator\Signin as SigninValidator;
+use Acms\Services\Facades\Login;
 
 class ACMS_POST_Member_Update_Email extends ACMS_POST_Member
 {
@@ -9,12 +10,11 @@ class ACMS_POST_Member_Update_Email extends ACMS_POST_Member
     /**
      * トークンのキーを取得
      *
-     * @param array $data
      * @return string
      */
-    protected function getTokenKey(array $data): string
+    protected function getTokenKey(): string
     {
-        return strval(SUID);
+        return 'update-email-address';
     }
 
     /**
@@ -133,6 +133,10 @@ class ACMS_POST_Member_Update_Email extends ACMS_POST_Member
      */
     protected function validate(Field_Validation $inputField): void
     {
+        if (!Login::canMemberSignin()) {
+            $inputField->setMethod('updateEmail', 'operable', false);
+            httpStatusCode('403 Forbidden');
+        }
         $inputField->setMethod('mail', 'required');
         $inputField->setMethod('mail', 'email');
         if (!!$inputField->get('mail')) {

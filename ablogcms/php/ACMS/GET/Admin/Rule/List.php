@@ -4,6 +4,16 @@ class ACMS_GET_Admin_Rule_List extends ACMS_GET
 {
     function get()
     {
+        if (roleAvailableUser()) {
+            if (!roleAuthorization('rule_edit', BID)) {
+                die403();
+            }
+        } else {
+            if (!sessionWithAdministration()) {
+                die403();
+            }
+        }
+
         $rid    = isset($_GET['rid']) ? idval($_GET['rid']) : null;
 
         $DB     = DB::singleton(dsn());
@@ -11,12 +21,13 @@ class ACMS_GET_Admin_Rule_List extends ACMS_GET
         $SQL->addSelect('rule_id');
         $SQL->addSelect('rule_name');
         $SQL->addWhereOpr('rule_blog_id', BID);
-        $q  = $SQL->get(dsn());
+        $q = $SQL->get(dsn());
+        $statement = $DB->query($q, 'exec');
 
-        if (!$DB->query($q, 'fetch')) {
+        if (!$statement) {
             return '';
         }
-        if (!$row = $DB->fetch($q)) {
+        if (!($row = $DB->next($statement))) {
             return '';
         }
 
@@ -32,7 +43,7 @@ class ACMS_GET_Admin_Rule_List extends ACMS_GET
                 $vars['selected'] = config('attr_selected');
             }
             $Tpl->add('loop', $vars);
-        } while ($row = $DB->fetch($q));
+        } while ($row = $DB->next($statement));
 
         return $Tpl->get();
     }

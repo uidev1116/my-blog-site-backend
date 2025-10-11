@@ -37,7 +37,7 @@ class ACMS_GET_Media_Banner extends ACMS_GET
         $int_display = 0;
         if (is_numeric($limit) && intval($limit) > 0) {
             //$aryStatus = array_slice($aryStatus, 0, $limit, true);
-        } elseif (is_array($aryStatus)) {
+        } elseif (is_array($aryStatus)) { // @phpstan-ignore-line
             $limit = count($aryStatus);
         } else {
             $limit = 0;
@@ -107,11 +107,12 @@ class ACMS_GET_Media_Banner extends ACMS_GET
         $SQL = SQL::newSelect('media');
         $DB = DB::singleton(dsn());
         $SQL->addWhereIn('media_id', $mids);
-        $row = $DB->query($SQL->get(dsn()), 'all');
+        $query = $SQL->get(dsn());
+        $row = $DB->query($query, 'all');
 
         foreach ($items as $i => $item) {
             foreach ($row as $media) {
-                if (isset($item['banner#img']) && $item['banner#img']['mid'] == $media['media_id']) {
+                if (isset($item['banner#img']) && $item['banner#img']['mid'] == $media['media_id']) { // @phpstan-ignore-line
                     $size = $media['media_image_size'];
                     $items[$i]['banner#img']['x'] = preg_replace('/(\d*)?\sx\s(\d*)?/', '$1', $size);
                     $items[$i]['banner#img']['y'] = preg_replace('/(\d*)?\sx\s(\d*)?/', '$2', $size);
@@ -126,8 +127,20 @@ class ACMS_GET_Media_Banner extends ACMS_GET
             $items[$i]['banner:loop.class'] = $loopClass;
         }
 
-        return setGlobalVars($Tpl->render([
+        return setGlobalVars($Tpl->render(array_merge([
             'banner' => $items
-        ]));
+        ], $this->getRootVars())));
+    }
+
+    /**
+     * ルート変数を取得
+     *
+     * @return array<string, mixed>
+     */
+    protected function getRootVars(): array
+    {
+        return [
+            'parent.loop.class' => config('media_banner_parent_loop_class'),
+        ];
     }
 }

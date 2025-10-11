@@ -1,0 +1,39 @@
+// ---------------
+// リンクエディター
+// ---------------
+
+.acms-block-editor-link-editor {
+  min-width: 264px;
+  color: var(--acms-block-editor-neutral-900);
+  font-size: var(--acms-block-editor-font-size-xs);
+}
+
+// プレビュー
+// ---------------
+.acms-block-editor-link-preview {
+  display: flex;
+  align-items: center;
+  max-width: 272px;
+}
+
+.acms-block-editor-link-preview-url {
+  display: block;
+  display: -webkit-box;
+  flex: 1 1 auto;
+  max-height: 90px;
+  padding: 4px;
+  overflow: hidden;
+  color: var(--acms-block-editor-neutral-900);
+  font-size: var(--acms-block-editor-font-size-xs);
+  line-height: var(--acms-block-editor-line-height-sm);
+  text-decoration: underline;
+  text-overflow: ellipsis;
+  word-break: break-all;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+
+  &:hover {
+    color: var(--acms-block-editor-neutral-900);
+    text-decoration: none;
+  }
+}

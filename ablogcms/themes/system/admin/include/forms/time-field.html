@@ -1,0 +1,28 @@
+<div class="acms-admin-form-action">
+  <input
+    type="text"
+    name="{{ name }}"
+    value="{{ value }}"
+    size="12"
+    id="{{ id }}"
+    class="acms-admin-form-width-full js-timepicker"
+  >
+  <span
+    class="acms-admin-form-side"
+  >
+    <button
+      type="button"
+      id="{{ id }}-button"
+      class="js-acms-tooltip-hover js-time-update acms-admin-btn-unstyled"
+      data-target="#{{ id }}"
+      data-acms-tooltip="<!--T-->現在の時刻に合わせる<!--/T-->"
+    >
+      <i class="acms-admin-icon-time" aria-hidden="true"></i>
+      <span
+        class="acms-admin-hide-visually"
+      >
+        現在の時刻に合わせる
+      </span>
+    </button>
+  </span>
+</div>

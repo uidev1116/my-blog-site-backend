@@ -11,28 +11,42 @@
     <div class="acms-member-main-box">
       <h1 class="acms-member-page-title acms-hide-visually"><!--T-->サインイン<!--/T--></h1>
       <div class="acms-form">
-        <div class="validator-result-{mail:validator#restriction} acms-alert acms-alert-danger">
+        <!-- BEGIN_IF [{mail:validator#restriction}/eq/0] -->
+        <div role="alert" class="acms-alert acms-alert-danger">
           <!--T-->お使いの端末（ブラウザ）からはログインが禁止されています。<!--/T--><br><!--T-->管理者にお問い合わせ下さい。<!--/T-->
         </div>
-        <div class="validator-result-{pass:validator#auth} acms-alert acms-alert-danger">
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{pass:validator#auth}/eq/0] -->
+        <div role="alert" class="acms-alert acms-alert-danger">
           <!--T-->ユーザーIDまたはパスワードが違います<!--/T-->
         </div>
-        <div class="validator-result-{mail:validator#notFound} acms-alert acms-alert-danger">
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{mail:validator#notFound}/eq/0] -->
+        <div role="alert" class="acms-alert acms-alert-danger">
           <!--T-->ユーザーが存在しません<!--/T-->
         </div>
-        <div class="validator-result-{mail:validator#send} acms-alert acms-alert-danger">
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{mail:validator#send}/eq/0] -->
+        <div role="alert" class="acms-alert acms-alert-danger">
           <!--T-->認証メールの送信に失敗しました<!--/T-->
         </div>
-        <div class="validator-result-{mail:validator#lock} acms-alert acms-alert-danger">
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{mail:validator#lock}/eq/0] -->
+        <div role="alert" class="acms-alert acms-alert-danger">
           <!--T--><!--$1-->{trialNumber}<!--/$1-->回ログインに失敗したため、アカウントがロックされました。<!--/T-->
           <!--T--><!--$1-->{lockTime}<!--/$1-->分後にもう一度試してください。<!--/T-->
         </div>
-        <div class="validator-result-{mailAuthSignin:validator#enable} acms-alert acms-alert-danger">
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{mailAuthSignin:validator#enable}/eq/0] -->
+        <div role="alert" class="acms-alert acms-alert-danger">
           <!--T-->メール認証によるサインイン機能は無効です<!--/T-->
         </div>
-        <div class="validator-result-{passwordSignin:validator#enable} acms-alert acms-alert-danger">
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{passwordSignin:validator#enable}/eq/0] -->
+        <div role="alert" class="acms-alert acms-alert-danger">
           <!--T-->パスワードによるサインイン機能は無効です<!--/T-->
         </div>
+        <!-- END_IF -->
         @include("/_member/parts/error.html")
         @include("/_member/parts/sns-message.html")
 
@@ -79,9 +93,9 @@
 
     <!-- BEGIN subscribeLink -->
     <div class="acms-member-main-box-bottom">
-      <div class="acms-grid">
-        <p class="acms-col-6 acms-margin-none"><a href="%{BLOG_URL}%{SIGNUP_SEGMENT}/" class="acms-btn-flat acms-btn-block"><!--T-->新規会員登録<!--/T--></a></p>
-        <p class="acms-col-6 acms-margin-none"><a href="%{BLOG_URL}" class="acms-btn-flat acms-btn-block"><!--T-->サイトに戻る<!--/T--></a></p>
+      <div class="acms-cssgrid">
+        <p class="acms-g-col-6 acms-m-0"><a href="%{BLOG_URL}%{SIGNUP_SEGMENT}/" class="acms-btn-flat acms-btn-block"><!--T-->新規会員登録<!--/T--></a></p>
+        <p class="acms-g-col-6 acms-m-0"><a href="%{BLOG_URL}" class="acms-btn-flat acms-btn-block"><!--T-->サイトに戻る<!--/T--></a></p>
       </div>
     </div>
     <!-- END subscribeLink -->
@@ -95,23 +109,27 @@
         <div class="acms-alert acms-alert-info"><!--T-->本人確認のため、確認メールをお送りしました。メールに記載されている確認リンクをクリックするか、下記に確認コードを入力してください。<!--/T--></div>
         <!-- END successSent -->
 
-        <div class="validator-result-{mail:validator#lock} acms-alert acms-alert-danger">
+        <!-- BEGIN_IF [{mail:validator#lock}/eq/0] -->
+        <div role="alert" class="acms-alert acms-alert-danger">
           <!--T--><!--$1-->{trialNumber}<!--/$1-->回ログインに失敗したため、アカウントがロックされました。<!--/T-->
           <!--T--><!--$1-->{lockTime}<!--/$1-->分後にもう一度試してください。<!--/T-->
         </div>
-
-        <div class="validator-result-{code:validator#auth} acms-alert acms-alert-danger">
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{code:validator#auth}/eq/0] -->
+        <div role="alert" class="acms-alert acms-alert-danger">
           <!--T-->確認コードが違います<!--/T-->
         </div>
-
-        <div class="validator-result-{code:validator#request} acms-alert acms-alert-danger">
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{code:validator#request}/eq/0] -->
+        <div role="alert" class="acms-alert acms-alert-danger">
           <!--T-->不正なアクセスです<!--/T-->
         </div>
-
-        <div class="validator-result-{code:validator#expired} acms-alert acms-alert-danger">
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{code:validator#expired}/eq/0] -->
+        <div role="alert" class="acms-alert acms-alert-danger">
           <!--T-->確認コードの有効期限が切れています<!--/T-->
         </div>
-
+        <!-- END_IF -->
         <label for="input-text-code" class="acms-member-form-label"><!--T-->確認コード<!--/T--></label>
         <input type="text" name="code" value="{code}" id="input-text-code" class="acms-form-large acms-form-block acms-form-width-full validator-result-{code:validator#auth}" placeholder="" />
         <input type="hidden" name="login[]" value="code" />
@@ -123,8 +141,8 @@
       </div>
     </div>
     <div class="acms-member-main-box-bottom">
-      <div class="acms-grid">
-        <p class="acms-col-6 acms-margin-none"><a href="%{BLOG_URL}%{SIGNIN_SEGMENT}/" class="acms-btn-flat acms-btn-block"><!--T-->サインイン画面に戻る<!--/T--></a></p>
+      <div class="acms-cssgrid">
+        <p class="acms-g-col-6 acms-m-0"><a href="%{BLOG_URL}%{SIGNIN_SEGMENT}/" class="acms-btn-flat acms-btn-block"><!--T-->サインイン画面に戻る<!--/T--></a></p>
       </div>
     </div>
     <!-- END verifyCode -->
@@ -133,8 +151,11 @@
     <div class="acms-member-main-box">
       <h1 class="acms-member-page-title acms-hide-visually"><!--T-->サインイン<!--/T--></h1>
       <div class="acms-form">
-        <div class="validator-result-{code:validator#auth} acms-alert acms-alert-danger"><!--T-->２段階認証コードが違います。<!--/T--></div>
-
+        <!-- BEGIN_IF [{code:validator#auth}/eq/0] -->
+        <div role="alert" class="acms-alert acms-alert-danger">
+          <!--T-->２段階認証コードが違います。<!--/T-->
+        </div>
+        <!-- END_IF -->
         <p class="acms-member-notice-text"><!--T-->認証用アプリに表示されている、認証コードを入力してください。<!--/T--></p>
 
         <label for="input-password-code" class="acms-member-form-label"><!--T-->認証コード<!--/T--></label>
@@ -148,8 +169,8 @@
       </div>
     </div>
     <div class="acms-member-main-box-bottom">
-      <div class="acms-grid">
-        <p class="acms-col-6 acms-margin-none"><a href="%{BLOG_URL}" class="acms-btn-flat acms-btn-block"><!--T-->サイトに戻る<!--/T--></a></p>
+      <div class="acms-cssgrid">
+        <p class="acms-g-col-6 acms-m-0"><a href="%{BLOG_URL}" class="acms-btn-flat acms-btn-block"><!--T-->サイトに戻る<!--/T--></a></p>
       </div>
     </div>
     <!-- END tfa -->

@@ -2,6 +2,9 @@
 
 // Cart_Add & Cart_Delete の動作に限り任意のBIDのカートへのアクセスを許可する
 
+/**
+ * @deprecated カート機能は非推奨です。代替として、Shopping Cart 拡張アプリをご利用ください。
+ */
 class ACMS_POST_ShopLite2 extends ACMS_POST
 {
     function initBid(&$bid)
@@ -9,6 +12,10 @@ class ACMS_POST_ShopLite2 extends ACMS_POST
         $bid = ( is_null($bid) || !is_int($bid) ) ? BID : $bid;
     }
 }
+
+/**
+ * @deprecated カート機能は非推奨です。代替として、Shopping Cart 拡張アプリをご利用ください。
+ */
 class ACMS_POST_Shop2 extends ACMS_POST_ShopLite2
 {
     protected $session;

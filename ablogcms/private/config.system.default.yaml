@@ -13,10 +13,10 @@ forbid_tpl_url_context: off # on | off URLコンテキストのtplを無効に�
 allow_tpl_path: [] # forbid_tpl_inheritance_when_path_unresolved や forbid_tpl_url_context が on の場合、除外する tpl を設定します。例: [news.html,hoge/custom.html] カンマ区切りで指定
 forbid_tpl_inheritance_when_path_unresolved: off # on | off パス解決に失敗した時にテンプレートを継承しないようにする
 html_format_validate: on # on | off htmlフォーマットでない場合は404で返す
-session_remote_addr_check: off # on | off ログイン中に接続元IPアドレスが変更された場合にログインセッションを切るかの設定
 forbidden_blog_http_status: 404 # 404 | 403
 referrer_policy: strict-origin-when-cross-origin # no-referrer | no-referrer-when-downgrade | origin | origin-when-cross-origin | same-origin | strict-origin | strict-origin-when-cross-origin | unsafe-url
 subscriber_access_admin_page: [] # 読者権限でアクセスできる管理ページを設定
+sanitize_scheme: on # on | off 変数から標準で危険なスキームを削除するか指定
 strip_dangerous_tag: off # on | off 変数から標準で危険なタグ（dangerous_tagsで指定）を削除するか指定
 dangerous_tags: ['script', 'iframe', 'form'] # 変数から標準で削除するタグを指定
 secret_file_name: [config.server.php, .env, .htaccess] # CMSのStorageサービスで取得できないファイル名を指定
@@ -57,12 +57,17 @@ withdrawal_retention_period: 90 # 30 | 90 | 120 | 150 | 180 | -1（削除しな�
 extra_logged_in_cookie: off # on | off この値がonだと、ログイン中にユーザー権限が入ったCookieを追加で付与する。Cookieを付与するだけでログイン処理には使用しない。
 extra_logged_in_cookie_name: acms-logged-in # ログイン中に追加されるCookieの名前を指定する。extra_logged_in_cookie が on の時有効。
 logout_redirect_page: top # top | auth ログアウト時のリダイレクト先ページを設定します。
+member_login_enable: on # on | off 一般サインイン機能を有効にするか設定します。
 
-## 自動アップデート
+## オンライン更新・自動アップデート
 system_update_range: patch # patch | minor | none アップデートを行う範囲。パッチのみアップデートか、マイナーバージョンを含めてアップデートするか、更新メニューを表示しない。
 system_update_repository: http://www.a-blogcms.jp/api/update.json # http://www.a-blogcms.jp/api/update-edge.json
 system_update_ignore: [] # アップデートしないファイルを配列で指定 例: [js/config.js] カンマ区切りで指定
 system_update_ignore_config: [] # ここで指定した項目は、CMS更新で再設定されなくなります。（config.server.php の項目で除外したい対象を追加。例: [SESSION_NAME]）
+system_auto_update: off # on | off 自動更新（パッチバージョンのみ）を有効
+system_auto_update_begin_time: 2 # 自動更新する時間帯の開始時刻
+system_auto_update_end_time: 5 # 自動更新する時間帯の終了時刻
+system_auto_update_week: [1, 2, 3, 4] # 自動更新する曜日（0:日曜|1:月曜|2:火曜|3:水曜|4:木曜|5:金曜|6:土曜）
 
 ## パフォーマンス
 img_optimizer: on # on | off ロスレス圧縮をするかどうかを設定
@@ -71,6 +76,8 @@ cache_expire: 86400 # キャッシュ有効時間を設定
 cache_expire_entry: 86400 # エントリー詳細のキャッシュ有効時間を設定
 cache_clear_when_post: on # on | off エントリー保存や設定変更時にキャッシュをクリアするか設定
 cache_clear_target: all
+disable_browser_cache: on # on | off ブラウザキャッシュを無効にするか設定
+cache_expire_client: 300 # クライントキャッシュの有効時間を秒で設定。0にすると、ブラウザキャッシュを無効にします。
 zip_http: on # on | off
 mysql_optimize_table: off # on | off
 cache_busting_type: date # date | random | disable
@@ -95,7 +102,6 @@ subscribe: off
 remove_comment: off
 remove_blank: off
 mailmagazine: off
-cache_expire_client: 0
 generator: off
 generator_end_tag: on
 jquery_version: 3.6.1 # (3.6.1|3.5.1|3.4.1|2.2.3|2.1.1|2.0.3|1.12.3|1.11.1|1.10.1|1.9.1|1.8.3|1.7.2|1.6.4) 2.xはIE9〜
@@ -111,7 +117,15 @@ directory_index: []
 url_preview_expire: 48
 allow_unregistered_domain: off # on | off システムに登録されていないドメインでも表示する（デバッグモード時のみ有効）
 category_order_strict_mode: off # on | off カテゴリー親子関係を厳密に指定したURLでないと404になるモード。onだと同ブログ内でも同じ階層でなければ同名のカテゴリーコードを設定可能
-allow_template_extension: [html, htm, csv, xml, json, css, yaml, txt, js] # ここで指定した以外の拡張子のテンプレートファイルは404として処理をする
+allow_template_extension: [html, htm, twig, csv, xml, json, css, yaml, txt, js] # ここで指定した以外の拡張子のテンプレートファイルは404として処理をする
+main_image_field_name: entry_main_image # エントリーのメイン画像のフィールド名を設定します。
+
+## htmx
+htmx_ss_push_url_mark: data-acms-hx-push-url # htmxのpushUrlを有効にするためのマークを設定します。htmx_ss_push_url_markが設定されている場合、htmxのpushUrlが有効になります。
+ajax_use_tpl_context_url_vars: off # on | off ajaxリクエストでのURL変数にtplコンテキストを利用するか設定します。
+
+## エントリー管理
+entry_admin_page_version: 2 # 1 | 2 エントリー管理画面のバージョンを設定します
 
 ## エントリーロック
 entry_lock_enable: on # on | off エントリーのロック（排他制御）が利用可能か設定します
@@ -119,8 +133,8 @@ entry_lock_alert_only: off # on | off 実際のエントリーのロックはし
 entry_lock_expire: 48 # エントリーのロック有効期限。この時間を過ぎると自動的にロックを解除します。
 
 ## プレビューモード
-preview_default_device: iPhone 6/7/8
-approval_preview_default_device: iPhone 6/7/8
+preview_default_device: iPhone 16
+approval_preview_default_device: iPhone 16
 timemachine_preview_default_device: PC
 
 ## フォーム機能
@@ -135,6 +149,7 @@ form_name_duplicate_suffix: のコピー
 media_library: on # on | off メディア機能の有効・無効
 media_client_resize: on # on | off メディアでの画像アップロードで、ブラウザでのリサイズを行うかどうかを設定（onにすると、大きな画像もアップロードできるようになりますが、若干画質が劣化します）
 media_download_link: v2 # v1: media-download/xxx/ v2: media-download/xxx/hash値/
+media_disallow_download_if_unused: off # on | off メディアファイルで「エントリーの公開状態に従う」ステータスの時、未使用のメディアファイルをダウンロードできないようにするか設定します
 media_image_ramdom_filename: off # on | off メディアでの画像アップロードしたファイル名をランダムファイル名にするか設定します。
 image_magick: on # 画像処理エンジンにImagickを利用するかどうか
 
@@ -142,29 +157,32 @@ image_magick: on # 画像処理エンジンにImagickを利用するかどうか
 file_icon_size: fix # fix | dynamic ファイルアイコンの{x},{y}変数を固定にするか、常に画像サイズを取得するか設定します。常に画像サイズを取得する場合、パフォーマンスに影響します。
 schedule_admin_authority: editor # administrator | editor
 entry_edit_page_type: normal # normal | front | admin
-acms_no_rewrite   : acms_no_rewrite
-manage_revisions    : on
-form_edit_action_direct : off
-manage_approval   : on
-blog_manage_approval : on
-blog_theme_color  :
+acms_no_rewrite: acms_no_rewrite
+manage_revisions: on
+form_edit_action_direct: off
+manage_approval: on
+blog_manage_approval: on
+blog_theme_color:
 gettext_lang_region: [ja_JP.UTF-8, en_US.UTF-8]
 gettext_lang_convert_source: [ja, en]
 gettext_lang_convert_dest: [ja_JP.UTF-8, en_US.UTF-8]
 admin_category_layered: off
 post_cache_delete: on
 global_category_sort: DESC
-cache_publish_fail_continue : on
-update_datetime_as_entry_open : on
-update_datetime_as_duplicate_entry : on
-timemachine_auth : # subscriber | contributor | editor | administrator
+cache_publish_fail_continue: on
+update_datetime_as_entry_open: on
+update_datetime_as_duplicate_entry: on
+timemachine_auth: # subscriber | contributor | editor | administrator
 global_rule_config_load: each # each (default) | global
-archives_cache_offset_except : off # on | off
-feed_output_disable : off # on | off サイトマップや、RSSにこの設定がされたブログを含めない
-static_export_name_server : 8.8.8.8
+archives_cache_offset_except: off # on | off
+feed_output_disable: off # on | off サイトマップや、RSSにこの設定がされたブログを含めない
+static_export_name_server: 8.8.8.8
+static_export_exclude_log_status_codes: [404] # 静的エクスポートで、配列で指定されたステータスコードのログを出力しないようにします。例: [404,403]
+# モジュールのキーワード検索で検索するカラム
+module_keyword_search_column: ['module_identifier', 'module_name', 'module_label', 'module_description']
 
 # メディアをインラインでダウンロードする拡張子とMIME設定
-media_inline_download_extension :
+media_inline_download_extension:
   - pdf
   - mp3
   - mp4
@@ -188,31 +206,20 @@ bulkChangeFieldKey:
   - bulkChangeFieldLabel
   - bulkChangeFieldKey
 
-## 校正オプション
-corrector_regex :
-  -
-corrector_match :
-  -
-
-## メタ
-meta_keywords:
-meta_description:
-
 ## テーマ
-theme : blog
-load_yaml_tpl : on
+theme: blog
+load_yaml_tpl: on
 
 ## テンプレート
 tpl_top: _top.html
 tpl_index: index.html
 tpl_detail: _entry.html
+tpl_400: 400.html
 tpl_404: 404.html
 tpl_403: 403.html
 tpl_500: 500.html
 tpl_503: 503.html
 tpl_admin: admin.html
-tpl_entry_edit: _entry.html
-tpl_entry_add: _entry.html
 tpl_login: _member-admin/login.html
 tpl_admin-reset-password: _member-admin/reset-password.html
 tpl_admin-reset-password-auth: _member-admin/reset-password-auth.html
@@ -229,11 +236,11 @@ tpl_update-fta: _member/update-tfa.html
 tpl_withdrawal: _member/withdrawal.html
 tpl_subscribe: subscribe.html
 
-tpl_rss2  : rss2.xml
+tpl_rss2: rss2.xml
 
 ## 定数
-const_file_path : private/const/pc.php
-const_mail_convert_dir : private/const/mail/
+const_file_path: private/const/pc.php
+const_mail_convert_dir: private/const/mail/
 
 ## ロガー
 mail_logger_from: info@example.com
@@ -243,81 +250,75 @@ mail_logger_tpl_subject: mail/logger/subject.txt
 mail_logger_tpl_body: mail/logger/body.txt
 
 # バージョン管理
-revision_temp_memo    : '作業領域'
-revision_default_memo : 'バージョン%d'
+revision_temp_memo: '作業領域'
+revision_default_memo: 'バージョン%d'
 
 # 有効期限
-signup_expire   : 864000
-remind_expire   : 864000
-subscribe_expire  : 864000
-login_cookie_lifetime : 864000
-comment_cookie_lifetime : 864000
+signup_expire: 864000
+remind_expire: 864000
+subscribe_expire: 864000
+login_cookie_lifetime: 864000
+comment_cookie_lifetime: 864000
 
-twitter_consumer_key  :
-twitter_consumer_secret :
+twitter_consumer_key:
+twitter_consumer_secret:
 
 ## コメント
-comment     : off
-comment_status  : open
+comment: off
+comment_status: open
 comment_black_list:
 
-## トラックバック
-trackback   : off
-trackback_status: awaiting
-trackback_byte_check  : off
-trackback_link_check  : off
-
 ## Feed
-feed_rss_order:   datetime-desc
-feed_rss_limit:   10
-feed_rss2_order:  datetime-desc
-feed_rss2_limit:  10
-feed_rss2_outsidelink_description   : on
-feed_atom_order:  datetime-desc
-feed_atom_limit:  10
+feed_rss_order: datetime-desc
+feed_rss_limit: 10
+feed_rss2_order: datetime-desc
+feed_rss2_limit: 10
+feed_rss2_outsidelink_description: on
+feed_atom_order: datetime-desc
+feed_atom_limit: 10
 feed_rss2_blog_field: blog_meta_rss/em
 feed_rss2_category_field: category_meta_rss/em
 feed_rss2_entry_field: entry_meta_rss/em
 
 ## 会員登録
-mail_subscribe_from : info@example.com
-mail_subscribe_to   :
-mail_subscribe_cc   :
-mail_subscribe_bcc  :
-mail_subscribe_reply-to :
-mail_subscribe_tpl_subject  : mail/subscribe/subject.txt
-mail_subscribe_tpl_body : mail/subscribe/body.txt
-mail_subscribe_tpl_body_html : mail/subscribe/body.html
+mail_subscribe_from: info@example.com
+mail_subscribe_to:
+mail_subscribe_cc:
+mail_subscribe_bcc:
+mail_subscribe_reply-to:
+mail_subscribe_tpl_subject: mail/subscribe/subject.txt
+mail_subscribe_tpl_body: mail/subscribe/body.txt
+mail_subscribe_tpl_body_html: mail/subscribe/body.html
 
 ## 会員登録（管理者宛）
-mail_subscribe_admin_from   : info@example.com
-mail_subscribe_admin_to :
-mail_subscribe_admin_cc :
-mail_subscribe_admin_bcc    :
-mail_subscribe_admin_reply-to   :
-mail_subscribe_admin_tpl_subject    : mail/subscribe/adminSubject.txt
-mail_subscribe_admin_tpl_body   : mail/subscribe/adminBody.txt
-mail_subscribe_admin_tpl_body_html  : mail/subscribe/adminBody.html
+mail_subscribe_admin_from: info@example.com
+mail_subscribe_admin_to:
+mail_subscribe_admin_cc:
+mail_subscribe_admin_bcc:
+mail_subscribe_admin_reply-to:
+mail_subscribe_admin_tpl_subject: mail/subscribe/adminSubject.txt
+mail_subscribe_admin_tpl_body: mail/subscribe/adminBody.txt
+mail_subscribe_admin_tpl_body_html: mail/subscribe/adminBody.html
 
 ## ユーザ情報変更
-mail_update_user_from : info@example.com
-mail_update_user_to   :
-mail_update_user_cc   :
-mail_update_user_bcc  :
-mail_update_user_reply-to :
-mail_update_user_tpl_subject  : mail/updateuser/subject.txt
-mail_update_user_tpl_body : mail/updateuser/body.txt
-mail_update_user_tpl_body_html : mail/updateuser/body.html
+mail_update_user_from: info@example.com
+mail_update_user_to:
+mail_update_user_cc:
+mail_update_user_bcc:
+mail_update_user_reply-to:
+mail_update_user_tpl_subject: mail/updateuser/subject.txt
+mail_update_user_tpl_body: mail/updateuser/body.txt
+mail_update_user_tpl_body_html: mail/updateuser/body.html
 
 ## ユーザ情報変更（管理者）
-mail_update_user_admin_from   :
-mail_update_user_admin_to : info@example.com
-mail_update_user_admin_cc :
-mail_update_user_admin_bcc    :
-mail_update_user_admin_reply-to   :
-mail_update_user_admin_tpl_subject    : mail/updateuser/adminSubject.txt
-mail_update_user_admin_tpl_body   : mail/updateuser/adminBody.txt
-mail_update_user_admin_tpl_body_html  : mail/updateuser/adminBody.html
+mail_update_user_admin_from:
+mail_update_user_admin_to: info@example.com
+mail_update_user_admin_cc:
+mail_update_user_admin_bcc:
+mail_update_user_admin_reply-to:
+mail_update_user_admin_tpl_subject: mail/updateuser/adminSubject.txt
+mail_update_user_admin_tpl_body: mail/updateuser/adminBody.txt
+mail_update_user_admin_tpl_body_html: mail/updateuser/adminBody.html
 
 ## メール認証管理ログイン
 mail_auth_login_from: info@example.com
@@ -354,46 +355,62 @@ mail_update_email_tpl_body: mail/update-email/body.txt
 mail_update_email_tpl_body_html: mail/update-email/body.html
 
 ## コメント
-mail_comment_from   : info@example.com
-mail_comment_to :
-mail_comment_cc :
-mail_comment_bcc    :
-mail_comment_reply-to   :
-mail_comment_tpl_subject    : mail/comment/subject.txt
-mail_comment_tpl_body   : mail/comment/body.txt
-mail_comment_tpl_body_html  : mail/comment/body.html
+mail_comment_from: info@example.com
+mail_comment_to:
+mail_comment_cc:
+mail_comment_bcc:
+mail_comment_reply-to:
+mail_comment_tpl_subject: mail/comment/subject.txt
+mail_comment_tpl_body: mail/comment/body.txt
+mail_comment_tpl_body_html: mail/comment/body.html
 
 ## 承認
-mail_approval_from : info@example.com
-mail_approval_to   :
-mail_approval_cc   :
-mail_approval_bcc  :
-mail_approval_reply-to :
-mail_approval_tpl_subject : mail/approval/subject.txt
-mail_approval_tpl_body : mail/approval/body.txt
-mail_approval_tpl_body_html : mail/approval/body.html
+mail_approval_from: info@example.com
+mail_approval_to:
+mail_approval_cc:
+mail_approval_bcc:
+mail_approval_reply-to:
+mail_approval_tpl_subject: mail/approval/subject.txt
+mail_approval_tpl_body: mail/approval/body.txt
+mail_approval_tpl_body_html: mail/approval/body.html
 
 ## メールマガジン
-mail_entry_from : info@example.com
-mail_entry_to   : # 送信先がないメールはスパムになることがあります。
-mail_entry_cc   :
-mail_entry_bcc  :
-mail_entry_reply-to :
-mail_entry_tpl_subject  : mail/entry/subject.txt
-mail_entry_tpl_body_plain   : mail/entry/body.txt #テンプレートの文字コードが使用される文字コードになります
-mail_entry_tpl_body_html    : mail/entry/body.html
-mail_entry_bcc_limit    : 50 #一通のメールでBCCに設定するメールアドレスの最大数
+mail_entry_from: info@example.com
+mail_entry_to: # 送信先がないメールはスパムになることがあります。
+mail_entry_cc:
+mail_entry_bcc:
+mail_entry_reply-to:
+mail_entry_tpl_subject: mail/entry/subject.txt
+mail_entry_tpl_body_plain: mail/entry/body.txt #テンプレートの文字コードが使用される文字コードになります
+mail_entry_tpl_body_html: mail/entry/body.html
+mail_entry_bcc_limit: 50 #一通のメールでBCCに設定するメールアドレスの最大数
+
+## システム更新
+system_update_from: info@example.com
+system_update_to: # 送信先がない場合、IDが一番小さい管理者のメールアドレスに送信されます
+system_update_tpl_subject: mail/update/subject.txt
+system_update_tpl_body_plain: mail/update/body.txt #テンプレートの文字コードが使用される文字コードになります
+system_update_tpl_body_html: mail/update/body.html
 
 ## SMTP
-mail_smtp-host  :
-mail_smtp-port  :
-mail_smtp-user  :
-mail_smtp-pass  :
-mail_from   :
-mail_sendmail_path  :
+mail_smtp-host:
+mail_smtp-port:
+mail_smtp-user:
+mail_smtp-pass:
+mail_smtp-verify_peer:
+mail_from:
+mail_sendmail_path:
 
 ## 検索
 #ngram  : 2 #「my.cnf」ft_min_word_lenの値と合わせる
+
+## ブログセレクト
+blog_select_global_order: sort-desc
+blog_select_limit: 999
+
+## ユーザーセレクト
+user_select_global_order: sort-desc
+user_select_limit: 999
 
 ## カテゴリーセレクト
 category_select_global_order: sort-desc
@@ -414,7 +431,7 @@ ogp_title_tag_delimiter: ・
 ogp_title_date_format: Y/m/d
 ogp_title_admin_label: 管理ページ
 ogp_title_404_label: お探しのページは見つかりませんでした
-ogp_image_entry_field_name: ogp_image
+ogp_image_entry_field_name: entry_main_image
 ogp_image_category_field_name: ogp_image
 ogp_image_blog_field_name: ogp_image
 ogp_description_entry_field_name: entry_meta_description
@@ -426,267 +443,277 @@ ogp_keywords_blog_field_name: blog_meta_keywords
 
 ## 記事本文
 entry_summary_relational: off
-entry_body_limit        : 5
-entry_body_order        : datetime-desc
-entry_body_order2       : id-desc
-entry_body_offset       : 0
-entry_body_indexing       : on
-entry_body_sub_category   : on
-entry_body_image_viewer     : 'data-rel="SmartPhoto"'
-entry_body_newtime        : 259200
-entry_body_tag_on       : on
-entry_body_summary_on     : on
-entry_body_fulltext_width : 300
-entry_body_fulltext_marker : ...
-entry_body_show_all_index : off
-entry_body_comment_on     : on
-entry_body_trackback_on     : on
-entry_body_date_on   : on
-entry_body_detail_date_on   : on
-entry_body_pager_on       : on
-entry_body_pager_delta      : 3
-entry_body_pager_cur_attr   : ' class="cur"'
-entry_body_micropager_on    : on
-entry_body_micropager_delta   : 1
-entry_body_micropager_cur_attr  : ' class="cur"'
-entry_body_serial_navi_on   : on
-entry_body_serial_navi_ignore_category : off
-entry_body_simple_pager_on    : off
-entry_body_category_info_on   : on
-entry_body_user_info_on     : off
-entry_body_blog_info_on     : off
-entry_body_entry_field_on   : on
-entry_body_category_field_on  : off
-entry_body_user_field_on    : off
-entry_body_blog_field_on    : off
-entry_body_fix_summary_range  :
-entry_body_notfound_status_404  : off
-entry_body_link_url         : on
-entry_summary_hidden_current_entry  : 'off'
-entry_body_image_on : on
+entry_body_limit: 5
+entry_body_order: datetime-desc
+entry_body_order2: id-desc
+entry_body_offset: 0
+entry_body_indexing: on
+entry_body_sub_category: on
+entry_body_image_viewer: 'data-rel="SmartPhoto"'
+entry_body_newtime: 259200
+entry_body_tag_on: on
+entry_body_summary_on: on
+entry_body_fulltext_width: 300
+entry_body_fulltext_marker: ...
+entry_body_show_all_index: off
+entry_body_comment_on: on
+entry_body_date_on: on
+entry_body_detail_date_on: on
+entry_body_pager_on: on
+entry_body_pager_delta: 3
+entry_body_pager_cur_attr: ' class="cur"'
+entry_body_micropager_on: on
+entry_body_micropager_delta: 1
+entry_body_micropager_cur_attr: ' class="cur"'
+entry_body_serial_navi_on: on
+entry_body_serial_navi_ignore_category: off
+entry_body_simple_pager_on: off
+entry_body_category_info_on: on
+entry_body_user_info_on: off
+entry_body_blog_info_on: off
+entry_body_entry_field_on: on
+entry_body_category_field_on: off
+entry_body_user_field_on: off
+entry_body_blog_field_on: off
+entry_body_fix_summary_range:
+entry_body_notfound_status_404: off
+entry_body_link_url: on
+entry_summary_hidden_current_entry: 'off'
+entry_body_image_on: on
+entry_body_main_image_target: field
+entry_body_main_image_field_name:
 
 ## 記事続き
-entry_continue_field    : on
+entry_continue_field: on
 
 ## 記事リスト
-entry_list_order  : datetime-desc
-entry_list_order2 : id-desc
-entry_list_limit  : 10
-entry_list_offset : 0
-entry_list_indexing : on
-entry_list_sub_category : on
-entry_list_secret : off
-entry_list_newtime  : 259200
-entry_list_unit : 1
-entry_list_noimage  : on
-entry_list_image_x : 100
-entry_list_image_y : 100
-entry_list_image_trim : off
-entry_list_image_zoom : off
-entry_list_image_center : off
-entry_list_pager_delta  : 3
-entry_list_pager_cur_attr : ' class="cur"'
-mo_entry_list_notfound  : off
-entry_list_notfound_status_404  : off
-entry_list_hidden_current_entry : off
+entry_list_order: datetime-desc
+entry_list_order2: id-desc
+entry_list_limit: 10
+entry_list_offset: 0
+entry_list_indexing: on
+entry_list_sub_category: on
+entry_list_secret: off
+entry_list_newtime: 259200
+entry_list_unit: 1
+entry_list_noimage: on
+entry_list_image_x: 100
+entry_list_image_y: 100
+entry_list_image_trim: off
+entry_list_image_zoom: off
+entry_list_image_center: off
+entry_list_pager_delta: 3
+entry_list_pager_cur_attr: ' class="cur"'
+mo_entry_list_notfound: off
+entry_list_notfound_status_404: off
+entry_list_hidden_current_entry: off
 
 ## ヘッドライン
-entry_headline_order  : datetime-desc
-entry_headline_order2 : id-desc
-entry_headline_limit  : 5
-entry_headline_offset : 0
-entry_headline_indexing : on
-entry_headline_sub_category : on
-entry_headline_secret : off
-entry_headline_newtime  : 259200
-entry_headline_simple_pager_on : off
-entry_headline_pager_on : off
-entry_headline_pager_delta  : 3
-entry_headline_pager_cur_attr : ' class="cur"'
+entry_headline_order: datetime-desc
+entry_headline_order2: id-desc
+entry_headline_limit: 5
+entry_headline_offset: 0
+entry_headline_indexing: on
+entry_headline_sub_category: on
+entry_headline_secret: off
+entry_headline_newtime: 259200
+entry_headline_simple_pager_on: off
+entry_headline_pager_on: off
+entry_headline_pager_delta: 3
+entry_headline_pager_cur_attr: ' class="cur"'
 
-entry_headline_unit : 1
-entry_headline_noimage  : on
-entry_headline_image_x : 100
-entry_headline_image_y : 100
-entry_headline_image_trim : off
-entry_headline_image_zoom : off
-entry_headline_image_center : off
-mo_entry_headline_notfound  : off
-entry_headline_notfound_status_404  : off
-entry_headline_hidden_current_entry : off
-
+entry_headline_unit: 1
+entry_headline_noimage: on
+entry_headline_image_x: 100
+entry_headline_image_y: 100
+entry_headline_image_trim: off
+entry_headline_image_zoom: off
+entry_headline_image_center: off
+mo_entry_headline_notfound: off
+entry_headline_notfound_status_404: off
+entry_headline_hidden_current_entry: off
 
 ## フォト
-entry_photo_order : datetime-desc
+entry_photo_order: datetime-desc
 entry_photo_order2: id-desc
-entry_photo_limit : 3
+entry_photo_limit: 3
 entry_photo_offset: 0
-entry_photo_indexing  : on
-entry_photo_sub_category : on
-entry_photo_secret : off
-entry_photo_noimage : off
-entry_photo_image_x : 160
-entry_photo_image_y : 160
-entry_photo_image_trim  : off
-entry_photo_image_zoom  : off
-entry_photo_image_center  : on
+entry_photo_indexing: on
+entry_photo_sub_category: on
+entry_photo_secret: off
+entry_photo_noimage: off
+entry_photo_image_x: 160
+entry_photo_image_y: 160
+entry_photo_image_trim: off
+entry_photo_image_zoom: off
+entry_photo_image_center: on
 
-entry_photo_newtime : 259200
-entry_photo_unit  : 1
-entry_photo_pager_delta : 3
-entry_photo_pager_cur_attr  : ' class="cur"'
-mo_entry_photo_notfound : off
-entry_photo_notfound_status_404 : off
-entry_photo_hidden_current_entry : off
+entry_photo_newtime: 259200
+entry_photo_unit: 1
+entry_photo_pager_delta: 3
+entry_photo_pager_cur_attr: ' class="cur"'
+mo_entry_photo_notfound: off
+entry_photo_notfound_status_404: off
+entry_photo_hidden_current_entry: off
+entry_photo_main_image_target: field
+entry_photo_main_image_field_name:
 
 ## サマリー
-entry_summary_order       : datetime-desc
-entry_summary_order2      : id-desc
-entry_summary_limit       : 6
-entry_summary_offset      : 0
-entry_summary_indexing      : on
-entry_summary_sub_category  : on
-entry_summary_secret      : off
-entry_summary_newtime     : 259200
-entry_summary_unit        : 3
-entry_summary_noimage     : on
-entry_summary_image_x     : 100
-entry_summary_image_y     : 100
-entry_summary_image_trim    : on
-entry_summary_image_zoom    : off
-entry_summary_image_center    : off
-entry_summary_pager_delta   : 3
-entry_summary_pager_cur_attr  : ' class="cur"'
-mo_entry_summary_notfound   : on
-entry_summary_notfound_status_404 : off
-entry_summary_entry_field     : on
-entry_summary_date        : on
-entry_summary_fulltext      : on
-entry_summary_fulltext_width : 200
-entry_summary_fulltext_marker : ...
-entry_summary_tag           : on
-entry_summary_image_on      : on
-entry_summary_pager_on      : on
-entry_summary_simple_pager_on : off
-entry_summary_category_on     : on
-entry_summary_user_on       : off
-entry_summary_blog_on       : off
-entry_summary_category_field_on : off
-entry_summary_user_field_on   : off
-entry_summary_blog_field_on   : off
+entry_summary_order: datetime-desc
+entry_summary_order2: id-desc
+entry_summary_limit: 6
+entry_summary_offset: 0
+entry_summary_indexing: on
+entry_summary_sub_category: on
+entry_summary_secret: off
+entry_summary_newtime: 259200
+entry_summary_unit: 3
+entry_summary_noimage: on
+entry_summary_image_x: 100
+entry_summary_image_y: 100
+entry_summary_image_trim: on
+entry_summary_image_zoom: off
+entry_summary_image_center: off
+entry_summary_pager_delta: 3
+entry_summary_pager_cur_attr: ' class="cur"'
+mo_entry_summary_notfound: on
+entry_summary_notfound_status_404: off
+entry_summary_entry_field: on
+entry_summary_base_date: on
+entry_summary_date: on
+entry_summary_fulltext: on
+entry_summary_fulltext_width: 200
+entry_summary_fulltext_marker: ...
+entry_summary_tag: on
+entry_summary_image_on: on
+entry_summary_main_image_target: field
+entry_summary_main_image_field_name:
+entry_summary_pager_on: on
+entry_summary_simple_pager_on: off
+entry_summary_category_on: on
+entry_summary_user_on: off
+entry_summary_blog_on: off
+entry_summary_category_field_on: off
+entry_summary_user_field_on: off
+entry_summary_blog_field_on: off
 
 # エントリー位置リスト
-entry_geo-list_reference_point : url_context
-entry_geo-list_limit       : 6
-entry_geo-list_offset      : 0
-entry_geo-list_indexing    : on
-entry_geo-list_secret      : off
-entry_geo-list_newtime     : 259200
-entry_geo-list_unit        : 3
-entry_geo-list_noimage     : on
-entry_geo-list_image_x     : 100
-entry_geo-list_image_y     : 100
-entry_geo-list_image_trim    : on
-entry_geo-list_image_zoom    : off
-entry_geo-list_image_center    : off
-entry_geo-list_pager_delta   : 3
-entry_geo-list_pager_cur_attr  : ' class="cur"'
-entry_geo-list_notfound_status_404 : off
-entry_geo-list_entry_field     : on
-entry_geo-list_date        : on
-entry_geo-list_fulltext      : on
-entry_geo-list_fulltext_width : 200
-entry_geo-list_fulltext_marker : ...
-entry_geo-list_tag           : on
-entry_geo-list_image_on      : on
-entry_geo-list_pager_on      : on
-entry_geo-list_simple_pager_on : off
-entry_geo-list_category_on     : on
-entry_geo-list_user_on       : off
-entry_geo-list_blog_on       : off
-entry_geo-list_category_field_on : off
-entry_geo-list_user_field_on   : off
-entry_geo-list_blog_field_on   : off
-
+entry_geo-list_reference_point: url_context
+entry_geo-list_limit: 6
+entry_geo-list_offset: 0
+entry_geo-list_indexing: on
+entry_geo-list_secret: off
+entry_geo-list_newtime: 259200
+entry_geo-list_unit: 3
+entry_geo-list_noimage: on
+entry_geo-list_image_x: 100
+entry_geo-list_image_y: 100
+entry_geo-list_image_trim: on
+entry_geo-list_image_zoom: off
+entry_geo-list_image_center: off
+entry_geo-list_pager_delta: 3
+entry_geo-list_pager_cur_attr: ' class="cur"'
+entry_geo-list_notfound_status_404: off
+entry_geo-list_entry_field: on
+entry_geo-list_date: on
+entry_geo-list_fulltext: on
+entry_geo-list_fulltext_width: 200
+entry_geo-list_fulltext_marker: ...
+entry_geo-list_tag: on
+entry_geo-list_image_on: on
+entry_geo-list_main_image_target: field
+entry_geo-list_main_image_field_name:
+entry_geo-list_pager_on: on
+entry_geo-list_simple_pager_on: off
+entry_geo-list_category_on: on
+entry_geo-list_user_on: off
+entry_geo-list_blog_on: off
+entry_geo-list_category_field_on: off
+entry_geo-list_user_field_on: off
+entry_geo-list_blog_field_on: off
 
 ## アーカイブリスト
-entry_archive_list_order : desc
-entry_archive_list_limit : 10
-entry_archive_list_chunk : month
+entry_archive_list_order: desc
+entry_archive_list_limit: 10
+entry_archive_list_chunk: month
 
 ## タグリレーショナル
-entry_tag-relational_order  : relationality
-entry_tag-relational_limit  : 6
+entry_tag-relational_order: relationality
+entry_tag-relational_limit: 6
 entry_tag-relational_offset: 0
-entry_tag-relational_indexing : on
-entry_tag-relational_secret : off
-entry_tag-relational_noimage  : on
-entry_tag-relational_image_x  : 100
-entry_tag-relational_image_y  : 100
-entry_tag-relational_image_trim : on
-entry_tag-relational_image_zoom : off
-entry_tag-relational_image_center : off
-entry_tag-relational_pager_delta  : 3
-entry_tag-relational_pager_cur_attr : ' class="cur"'
-mo_entry_tag-relational_notfound  : on
-entry_tag-relational_notfound_status_404  : off
-entry_tag-relational_newtime  : 259200
-entry_tag-relational_unit : 1
-entry_tag-relational_entry_field : on
-entry_tag-relational_category_on : on
-entry_tag-relational_user_on : off
-entry_tag-relational_blog_on : off
-entry_tag-relational_category_field_on : off
-entry_tag-relational_user_field_on : off
-entry_tag-relational_blog_field_on : off
+entry_tag-relational_indexing: on
+entry_tag-relational_secret: off
+entry_tag-relational_noimage: on
+entry_tag-relational_image_x: 100
+entry_tag-relational_image_y: 100
+entry_tag-relational_image_trim: on
+entry_tag-relational_image_zoom: off
+entry_tag-relational_image_center: off
+entry_tag-relational_pager_delta: 3
+entry_tag-relational_pager_cur_attr: ' class="cur"'
+mo_entry_tag-relational_notfound: on
+entry_tag-relational_notfound_status_404: off
+entry_tag-relational_newtime: 259200
+entry_tag-relational_unit: 1
+entry_tag-relational_main_image_target: field
+entry_tag-relational_main_image_field_name:
+entry_tag-relational_entry_field: on
+entry_tag-relational_category_on: on
+entry_tag-relational_user_on: off
+entry_tag-relational_blog_on: off
+entry_tag-relational_category_field_on: off
+entry_tag-relational_user_field_on: off
+entry_tag-relational_blog_field_on: off
 
 ## カテゴリーリスト
-category_list_order     : amount-desc
-category_list_amount    : on
-category_list_amount_zero : on
-category_list_level :
-category_list_field_search : entry
-category_list_field : on
+category_list_order: amount-desc
+category_list_amount: on
+category_list_amount_zero: on
+category_list_level:
+category_list_field_search: entry
+category_list_field: on
 
 ## カテゴリー位置リスト
-category_geo-list_reference_point : url_context
-category_geo-list_limit   : 5
-category_geo-list_order   : sort-asc
+category_geo-list_reference_point: url_context
+category_geo-list_limit: 5
+category_geo-list_order: sort-asc
 
 ## カテゴリーエントリーリスト
-category_entry_list_category_order  : sort-asc
-category_entry_list_entry_order   : datetime-desc
-category_entry_list_entry_limit   : 5
-category_entry_list_category_indexing : on
-category_entry_list_entry_indexing    : on
-category_entry_list_entry_amount_zero : on
-category_entry_list_field_search : entry
-category_entry_list_level : 1
+category_entry_list_category_order: sort-asc
+category_entry_list_entry_order: datetime-desc
+category_entry_list_entry_limit: 5
+category_entry_list_category_indexing: on
+category_entry_list_entry_indexing: on
+category_entry_list_entry_amount_zero: on
+category_entry_list_field_search: entry
+category_entry_list_level: 1
 
 ## カテゴリーエントリーサマリー
-category_entry_summary_category_order : sort-asc
-category_entry_summary_category_indexing  : on
-category_entry_summary_entry_amount_zero  : on
-category_entry_summary_level  : 1
-category_entry_summary_order  : datetime-desc
-category_entry_summary_limit  : 6
+category_entry_summary_category_order: sort-asc
+category_entry_summary_category_indexing: on
+category_entry_summary_entry_amount_zero: on
+category_entry_summary_level: 1
+category_entry_summary_order: datetime-desc
+category_entry_summary_limit: 6
 category_entry_summary_offset: 0
-category_entry_summary_indexing : on
-category_entry_summary_secret : off
-category_entry_summary_newtime  : 259200
-category_entry_summary_unit : 1
-category_entry_summary_noimage  : on
-category_entry_summary_image_x  : 100
-category_entry_summary_image_y  : 100
-category_entry_summary_image_trim : on
-category_entry_summary_image_zoom : off
-category_entry_summary_image_center : off
-category_entry_summary_field_search : entry
-mo_category_entry_summary_notfound  : on
-category_entry_summary_image_on   : on
+category_entry_summary_indexing: on
+category_entry_summary_secret: off
+category_entry_summary_newtime: 259200
+category_entry_summary_unit: 1
+category_entry_summary_noimage: on
+category_entry_summary_image_x: 100
+category_entry_summary_image_y: 100
+category_entry_summary_image_trim: on
+category_entry_summary_image_zoom: off
+category_entry_summary_image_center: off
+category_entry_summary_field_search: entry
+mo_category_entry_summary_notfound: on
+category_entry_summary_image_on: on
+category_entry_summary_main_image_target: field
+category_entry_summary_main_image_field_name:
 
 ##エントリーカレンダー
-entry_calendar_begin_week : 1
+entry_calendar_begin_week: 1
 entry_calendar_week_label:
   - 日
   - 月
@@ -695,27 +722,57 @@ entry_calendar_week_label:
   - 木
   - 金
   - 土
-entry_calendar_order : sort-asc
-entry_calendar_max_entry_count : 5
-entry_calendar_mode : month
-entry_calendar_pager_count : 7
+entry_calendar_order: sort-asc
+entry_calendar_max_entry_count: 5
+entry_calendar_mode: month
+entry_calendar_pager_count: 7
+entry_calendar_around: on
+
+# V2カレンダー
+v2_calendar_begin_week: 1
+v2_calendar_week_label:
+  - 日
+  - 月
+  - 火
+  - 水
+  - 木
+  - 金
+  - 土
+v2_calendar_order: sort-asc
+v2_calendar_max_entry_count: 5
+v2_calendar_mode: month
+v2_calendar_past_days: 3
+v2_calendar_future_days: 3
+
+# V2スケジュール
+v2_schedule_begin_week: 1
+v2_schedule_week_label:
+  - 日
+  - 月
+  - 火
+  - 水
+  - 木
+  - 金
+  - 土
+v2_schedule_mode: month
+v2_schedule_past_days: 3
+v2_schedule_future_days: 3
 
 ## カラムリスト
-column_list_limit : 20
-column_list_order : datetime-desc
-column_list_type  : [image, ]
-column_list_pager_on : on
-column_list_pager_delta : 3
-column_list_pager_cur_attr : ' class="cur"'
-
+column_list_limit: 20
+column_list_order: datetime-desc
+column_list_type: [image]
+column_list_pager_on: on
+column_list_pager_delta: 3
+column_list_pager_cur_attr: ' class="cur"'
 
 ## タグクラウド
-tag_cloud_threshold : 1
-tag_cloud_order   : name-asc
-tag_cloud_limit   : 400
+tag_cloud_threshold: 1
+tag_cloud_order: name-asc
+tag_cloud_limit: 400
 
 ## カレンダー
-calendar_begin_week : 1
+calendar_begin_week: 1
 calendar_week_label:
   - 日
   - 月
@@ -726,9 +783,9 @@ calendar_week_label:
   - 土
 
 ## 年間カレンダー
-calendar_year_unit : 3
-calendar_year_begin_week : 1
-calendar_year_week_label :
+calendar_year_unit: 3
+calendar_year_begin_week: 1
+calendar_year_week_label:
   - 日
   - 月
   - 火
@@ -738,261 +795,369 @@ calendar_year_week_label :
   - 土
 
 ## リンク集
-links_value :
-links_label :
+links_value:
+links_label:
 '@linkgroup': [links_value, links_label]
 
 ## バナー
-banner_status :
-banner_src    :
-banner_img    :
-banner_url    :
-banner_alt    :
-banner_attr1  :
-banner_attr2  :
-banner_target :
+banner_status:
+banner_src:
+banner_img:
+banner_url:
+banner_alt:
+banner_attr1:
+banner_attr2:
+banner_target:
 
 ## ナビゲーション
-navigation_label  :
-navigation_parent :
-navigation_uri    :
-navigation_target :
-navigation_attr   :
-navigation_a_attr   :
-navigation_ul_level : ['nav', 'dropdown-menu']
+navigation_label:
+navigation_parent:
+navigation_uri:
+navigation_target:
+navigation_attr:
+navigation_a_attr:
+navigation_ul_level: ['nav', 'dropdown-menu']
 
 ## トピックパス
-mo_topicpath_blog_base  : bottom
-mo_topicpath_blog_limit : 1
-mo_topicpath_blog_order : asc
-mo_topicpath_blog_self  : on
-mo_topicpath_blog_field : off
-mo_topicpath_category_base  : top
-mo_topicpath_category_limit :
-mo_topicpath_category_order : asc
-mo_topicpath_category_self  : on
-mo_topicpath_category_field : off
-mo_topicpath_entry      : on
-mo_topicpath_entry_field : off
-mo_topicpath_ignore_ecdempty  : on
-mo_topicpath_root_label :
+mo_topicpath_blog_base: bottom
+mo_topicpath_blog_limit: 1
+mo_topicpath_blog_order: asc
+mo_topicpath_blog_self: on
+mo_topicpath_blog_field: off
+mo_topicpath_category_base: top
+mo_topicpath_category_limit:
+mo_topicpath_category_order: asc
+mo_topicpath_category_self: on
+mo_topicpath_category_field: off
+mo_topicpath_entry: on
+mo_topicpath_entry_field: off
+mo_topicpath_ignore_ecdempty: on
+mo_topicpath_root_label:
 
 ## コメント本文
 #スレッド形式の場合は無効
-comment_body_display  : thread
-comment_body_order : datetime-desc
-comment_body_limit  : 5
-comment_body_reverse  : off
+comment_body_display: thread
+comment_body_order: datetime-desc
+comment_body_limit: 5
+comment_body_reverse: off
 
 ## コメントリスト
-comment_list_limit  : 10
-comment_list_order  : datetime-desc
-
-## トラックバック本文
-trackback_body_limit  : 20
-trackback_body_order  : datetime-desc
-trackback_body_reverse  : on
-
-## トラックバックリスト
-trackback_list_limit  : 10
-trackback_list_order  : datetime-desc
+comment_list_limit: 10
+comment_list_order: datetime-desc
 
 ## タグフィルター
-tag_filter_limit  : 100
-tag_filter_selected_limit  : 3
-tag_filter_order    : name-asc
-tag_filter_threshold : 1
+tag_filter_limit: 100
+tag_filter_selected_limit: 3
+tag_filter_order: name-asc
+tag_filter_threshold: 1
 
 ## タグアシスト
 tag_assist_threshold: 1
-tag_assist_limit  : 400
-tag_assist_order  : name-asc
+tag_assist_limit: 400
+tag_assist_order: name-asc
 
 ## プロフィール
-user_profile_limit  : 5
-user_profile_order  : sort-asc
-user_profile_administrator  : on
-user_profile_editor     : on
-user_profile_contributor  : on
-user_profile_subscriber   : off
-user_profile_indexing  : on
+user_profile_limit: 5
+user_profile_order: sort-asc
+user_profile_administrator: on
+user_profile_editor: on
+user_profile_contributor: on
+user_profile_subscriber: off
+user_profile_indexing: on
 
 ## ユーザー検索
-user_search_limit   : 5
-user_search_order   : field-asc # ((code|id|sort|login_datetime|updated_datetime|field|intfield)-(asc|desc)|random)
-user_search_auth    :
- - subscriber
-user_search_pager_delta     : 3
-user_search_pager_cur_attr  : ' class="cur"'
-user_search_indexing  : on
-user_search_entry_list_enable   : off
-user_search_entry_list_order    : datetime-desc
-user_search_entry_list_limit    : 5
+user_search_limit: 5
+user_search_order: field-asc # ((code|id|sort|login_datetime|updated_datetime|field|intfield)-(asc|desc)|random)
+user_search_auth:
+  - subscriber
+user_search_pager_delta: 3
+user_search_pager_cur_attr: ' class="cur"'
+user_search_indexing: on
+user_search_entry_list_enable: off
+user_search_entry_list_order: datetime-desc
+user_search_entry_list_limit: 5
 
 ## ユーザ位置リスト
-user_geo-list_reference_point : url_context
-user_geo-list_limit   : 5
-user_geo-list_auth    :
- - subscriber
-user_geo-list_pager_delta     : 3
-user_geo-list_pager_cur_attr  : ' class="cur"'
-user_geo-list_indexing  : on
-user_geo-list_entry_list_enable   : off
-user_geo-list_entry_list_order    : datetime-desc
-user_geo-list_entry_list_limit    : 5
+user_geo-list_reference_point: url_context
+user_geo-list_limit: 5
+user_geo-list_auth:
+  - subscriber
+user_geo-list_pager_delta: 3
+user_geo-list_pager_cur_attr: ' class="cur"'
+user_geo-list_indexing: on
+user_geo-list_entry_list_enable: off
+user_geo-list_entry_list_order: datetime-desc
+user_geo-list_entry_list_limit: 5
 
 ## 子ブログリスト
-blog_child_list_limit   : 5
-blog_child_list_order   : sort-asc
+blog_child_list_limit: 5
+blog_child_list_order: sort-asc
 
 # ブログ位置リスト
-blog_geo-list_reference_point : url_context
-blog_geo-list_limit   : 5
-blog_geo-list_order   : sort-asc
+blog_geo-list_reference_point: url_context
+blog_geo-list_limit: 5
+blog_geo-list_order: sort-asc
 
 # メディアバナー
 media_banner_label_attr1: 属性1
 media_banner_label_attr2: 属性2
 
 ## エイリアスリスト
-alias_list_limit    : 5
-alias_list_order    : sort-asc
+alias_list_limit: 5
+alias_list_order: sort-asc
 
 ## フィールドバリューリスト
-field_value-list_limit : 100
-field_value-list_order : asc
+field_value-list_limit: 100
+field_value-list_order: asc
 
 ## 外部フィードリスト
-feed_exlist_source    :
-feed_exlist_kind    : rss20
-feed_exlist_limit   : 5
-feed_exlist_offset    : 0
-feed_exlist_newtime   : 25920
-feed_exlist_cache_expire : 300
-mo_feed_exlist_notfound : off
+feed_exlist_source:
+feed_exlist_kind: rss20
+feed_exlist_limit: 5
+feed_exlist_offset: 0
+feed_exlist_newtime: 25920
+feed_exlist_cache_expire: 300
+mo_feed_exlist_notfound: off
 
 ## サイトマップ
-sitemap_blog_order      : id-asc
-sitemap_blog_indexing   : on
-sitemap_category_order    : id-asc
-sitemap_category_indexing : on
-sitemap_entry_order     : id-asc
-sitemap_entry_limit     :
-sitemap_entry_indexing    : on
+sitemap_blog_order: id-asc
+sitemap_blog_indexing: on
+sitemap_category_order: id-asc
+sitemap_category_indexing: on
+sitemap_entry_order: id-desc
+sitemap_entry_limit: 5000
+sitemap_entry_indexing: on
 sitemap_blog_field: blog_meta_sitemap/em
 sitemap_category_field: category_meta_sitemap/em
 sitemap_entry_field: entry_meta_sitemap/em
-
-## Google Analytics Ranking
-ga_ranking_max_results  : 30
-ga_ranking_start_date   : 7daysAgo
-ga_ranking_end_date     : today
-ga_ranking_filters      :
-
-## Googleカレンダー
-api_gcalendar_id            :
-api_gcalendar_cache_expire  : 21600
-api_gcalendar_fetch_limit   : 100
-
-# Statuses_HomeTimeline
-twitter_statuses_hometl_private : on
-twitter_statuses_hometl_limit   : 20
-twitter_statuses_hometl_cache_expire : 60
-
-# Statuses_UserTimeline
-twitter_statuses_usertl_private : on
-twitter_statuses_usertl_limit   : 20
-twitter_statuses_usertl_cache_expire : 60
-
-# Search
-twitter_search_private : on
-twitter_search_limit   : 20
-twitter_search_cache_expire : 60
-twitter_search_locale  : off
-#twitter_search_lat    :
-#twitter_search_lon    :
-#twitter_search_radius :
-
-# List_Statuses
-twitter_list_statuses_private : on
-twitter_list_statuses_limit   : 20
-twitter_list_statuses_cache_expire : 60
-
-# List_Members
-twitter_list_members_cache_expire : 3600
-
-# Facebook Warn Messages
-api_facebook_warn_invalid_sign : '<p>デバッグ：Facebookからのリクエスト署名が正しくないため、%CLASS%を利用できません。プロパティ設定内の、Facebookアプリケーションの設定を確認してください。</p>'
-
-# Instagram_Users_Media_Recent
-instagram_users_media_recet_limit       : 20
-instagram_users_media_recet_cache_expre : 3600
-
-# Instagram_Users_Media_Liked
-instagram_users_media_liked_limit       : 20
-instagram_users_media_liked_cache_expre : 3600
-
-# Bing WebSearch API
-api_bing_web_search_limit      : 10
-api_bing_web_search_adult      : 'Strict'
-api_bing_web_search_base_url   : 'https://api.datamarket.azure.com/Bing/Search/Web'
-
-# Bing ImageSearch API
-api_bing_image_search_limit      : 10
-api_bing_image_search_adult      : 'Strict'
-api_bing_image_search_base_url     : 'https://api.datamarket.azure.com/Bing/Search/Image'
 
 ###########
 # エントリー編集
 ###########
 
+# 画像のリサイズ（横幅）
+block_editor_resize_image_size: 1200
+
+# Lightboxクラス
+block_editor_lightbox_class: js-smartphoto
+
+# ブロックタイプ
+block_editor_block_menu_type:
+  - paragraph
+  - heading2
+  - heading3
+  - heading4
+  - bulletList
+  - numberedList
+  - blockquote
+  - codeBlock
+  - image
+  - file
+  - linkButton
+  - table
+  - horizontalRule
+  - columns2
+  - columns3
+block_editor_block_menu_label:
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+block_editor_block_menu_class:
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+block_editor_block_menu_group:
+  - 基本
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  - 挿入
+  -
+  -
+  -
+  -
+  - レイアウト
+  -
+
+'@block_editor_block_menu':
+  [
+    block_editor_block_menu_type,
+    block_editor_block_menu_label,
+    block_editor_block_menu_class,
+    block_editor_block_menu_group,
+  ]
+
+## 拡張テキストメニュー
+block_editor_block_menu_text_italic_display: on
+block_editor_block_menu_text_underline_display: off
+block_editor_block_menu_text_strike_through_display: on
+block_editor_block_menu_text_code_display: on
+block_editor_block_menu_text_marker_display: off
+block_editor_block_menu_text_color_display: off
+block_editor_block_menu_text_sub_display: off
+block_editor_block_menu_text_sup_display: off
+block_editor_block_menu_font_size_display: off
+block_editor_block_menu_font_family_display: off
+block_editor_block_menu_custom_class_display: off
+block_editor_block_menu_table_bg_color: off
+
+## 画像サイズ
+block_editor_image_size_label:
+  - 1/1 (100%)
+  - 3/4 (75%)
+  - 2/3 (66%)
+  - 1/2 (50%)
+  - 1/3 (33%)
+  - 1/4 (25%)
+
+block_editor_image_size_value:
+  - 100%
+  - 75%
+  - 66%
+  - 50%
+  - 33%
+  - 25%
+
+'@block_editor_image_size': [block_editor_image_size_label, block_editor_image_size_value]
+
+## カラーパレット
+block_editor_color_palette_value:
+  - '#888888'
+  - '#ececec'
+  - '#ff4762'
+  - '#ffd8de'
+  - '#4766fd'
+  - '#d9dfff'
+  - '#fbad59'
+  - '#ffe6cb'
+  - '#2aa26a'
+  - '#c0f7dd'
+
+'@block_editor_color_palette': [block_editor_color_palette_value]
+
+## フォントサイズ
+block_editor_font_size_label:
+  - 極小
+  - 小さい
+  - 標準
+  - 大きい
+  - 特大
+
+block_editor_font_size_value:
+  - 0.625rem
+  - 0.75rem
+  -
+  - 1.25rem
+  - 1.5rem
+
+'@block_editor_font_size': [block_editor_font_size_label, block_editor_font_size_value]
+
+## フォントファミリー
+block_editor_font_family_label:
+  - デフォルト
+  - 游ゴシック
+  - メイリオ
+  - MS ゴシック
+  - ヒラギノ角ゴ（macのみ）
+  - Arial
+  - 游明朝
+  - MS 明朝
+  - ヒラギノ明朝（macのみ）
+  - Times New Roman
+  - Consolas（等幅）
+  - Courier New（等幅）
+
+block_editor_font_family_value:
+  -
+  - '"Yu Gothic", sans-serif'
+  - '"Meiryo", sans-serif'
+  - '"MS Gothic", sans-serif'
+  - '"Hiragino Kaku Gothic ProN", sans-serif'
+  - 'Arial, sans-serif'
+  - '"Yu Mincho", serif'
+  - '"MS Mincho", serif'
+  - '"Hiragino Mincho ProN", serif'
+  - '"Times New Roman", serif'
+  - 'Consolas, monospace'
+  - '"Courier New", monospace'
+
+'@block_editor_font_family': [block_editor_font_family_label, block_editor_font_family_value]
+
 # イメージ
 
-image_size_large_criterion : width
-image_size_large  : w1400
-image_size_tiny_criterion  : width
-image_size_tiny   : w280
-image_size_square : 0
+image_size_large_criterion: width
+image_size_large: w1400
+image_size_tiny_criterion: width
+image_size_tiny: w280
+image_size_square: 0
 image_jpeg_quality: 75
 resize_image_jpeg_quality: 75
 
-
 # ファイル
 
-file_extension_document : [txt, doc, pdf, ppt, xls, csv, docx, pptx, xlsx]
-file_extension_archive  : [lzh, zip, rar, gca, sit]
-file_extension_movie  : [3gp, 3g2, asf, avi, dat, fli, flc, flv, mkv, mpg, mov, mp4, ogg, qt, rm, ram, rmvb, str, swf, ts, viv, vob, wmv, amc]
-file_extension_audio  : [aac, ac3, amr, mmf, mp2, mp3, mp4, mpc, ogg, ra, wav, wma]
+file_extension_document: [txt, doc, pdf, ppt, xls, csv, docx, pptx, xlsx]
+file_extension_archive: [lzh, zip, rar, gca, sit]
+file_extension_movie:
+  [3gp, 3g2, asf, avi, dat, fli, flc, flv, mkv, mpg, mov, mp4, ogg, qt, rm, ram, rmvb, str, swf, ts, viv, vob, wmv, amc]
+file_extension_audio: [aac, ac3, amr, mmf, mp2, mp3, mp4, mpc, ogg, ra, wav, wma]
 
-file_savename   : rawfilename # (random|rawfilename)
+file_savename: rawfilename # (random|rawfilename)
 
-file_prohibit_textfile  : on
+file_prohibit_textfile: on
 
-category_code_prefix  : category-
+category_code_prefix: category-
 
 entry_title_duplicate_suffix: のコピー
 entry_duplicate_random_filename: 'on'
 
-entry_code_title    : off
-entry_code_prefix   : entry-
-entry_code_extension  : html
+entry_code_title: off
+entry_code_prefix: entry-
+entry_code_extension: html
 
-admin_entry_title_prefix_close            : 【非公開】
-admin_entry_title_prefix_draft            : 【下書き】
-admin_entry_title_prefix_secret           : 【秘密】
-admin_entry_title_prefix_trash            : 【ゴミ箱】
-admin_entry_title_prefix_pre_approval     : 【承認前】
-admin_entry_title_prefix_trash_approval   : 【削除依頼】
-admin_entry_title_prefix_awaiting         : 【承認中】
-admin_entry_title_prefix_start            : 【公開予定】
-admin_entry_title_prefix_end              : 【公開終了】
+admin_entry_title_prefix_close: 【非公開】
+admin_entry_title_prefix_draft: 【下書き】
+admin_entry_title_prefix_secret: 【秘密】
+admin_entry_title_prefix_trash: 【ゴミ箱】
+admin_entry_title_prefix_pre_approval: 【承認前】
+admin_entry_title_prefix_trash_approval: 【削除依頼】
+admin_entry_title_prefix_awaiting: 【承認中】
+admin_entry_title_prefix_start: 【公開予定】
+admin_entry_title_prefix_end: 【公開終了】
 
 ###########
 # ユニット
 ###########
 
 ## テキスト
-column_text_tag :
+column_text_tag:
   - p
   - h2
   - h3
@@ -1001,14 +1166,9 @@ column_text_tag :
   - ul
   - ol
   - dl
-  - table
-  - pre
   - blockquote
-  - none
-  - markdown
-  - wysiwyg
 
-column_text_tag_label :
+column_text_tag_label:
   - 本文
   - 見出し２
   - 見出し３
@@ -1017,33 +1177,13 @@ column_text_tag_label :
   - リスト
   - 番号付きリスト
   - 記述リスト
-  - テーブル
-  - ソース
   - 引用
-  - 自由入力
-  - マークダウン
-  - WYSIWYG
 
-'@column_text_tag_group' : [column_text_tag, column_text_tag_label]
-
-column_text_attr  :
-column_text_attr_label  :
-
-
-## テーブル
-column_table_attr :
-column_table_attr_label :
+'@column_text_tag_group': [column_text_tag, column_text_tag_label]
 
 ## ダイレクト編集
-entry_edit_inplace : on
-entry_edit_inplace_enable : off
-entry_edit_action_direct : on
-action_direct_def_text : ここをクリックしてテキストを変更します。ここをクリックしてテキストを変更します。ここをクリックしてテキストを変更します。ここをクリックしてテキストを変更します。
-action_direct_def_eximage : http://www.a-blogcms.jp/images/ablogcms.gif
-action_direct_def_eximage_size : 265x65
-action_direct_def_youtubeid : sample
-action_direct_def_videoid   : sample
-action_direct_def_quote_url : http://www.a-blogcms.jp
+entry_edit_inplace: on
+entry_edit_inplace_enable: off
 
 ## エントリー編集画面
 entry_edit_status_display: 'true'
@@ -1057,28 +1197,57 @@ entry_edit_date_display: 'true'
 entry_edit_file_name_display: 'true'
 entry_edit_start_date_display: 'true'
 entry_edit_end_date_display: 'true'
-entry_edit_summary_range_display: 'true'
 entry_edit_indexing_display: 'true'
 entry_edit_indexing_default: 'on'
 entry_edit_link_url_display: 'true'
+entry_edit_unit_display: 'true'
 entry_edit_members_only_default: 'off'
 
-## ユニットグループ
-unit_group          : on
-unit_group_clear    : 'acms-column-clear'
-'@nesting_unit_group' : [unit_group_class, unit_group_label]
+## グループユニット
 
-unit_group_class  :
+group_unit_class_value:
+  - acms-hstack acms-align-items-start
+  - acms-cssgrid acms-g-cols-2
+  - acms-cssgrid acms-g-cols-1 acms-g-cols-sm-3
+
+group_unit_class_label:
+  - 横並び
+  - 2列グリッド
+  - 3列グリッド
+
+'@group_unit_class': [group_unit_class_value, group_unit_class_label]
+
+group_unit_tag_value:
+  - div
+  - section
+  - aside
+
+group_unit_tag_label:
+  - <div>
+  - <section>
+  - <aside>
+
+'@group_unit_tag': [group_unit_tag_value, group_unit_tag_label]
+
+## ユニットグループ
+unit_group: on
+unit_group_clear: 'acms-column-clear'
+'@nesting_unit_group': [unit_group_class, unit_group_label]
+
+unit_group_class:
   -
   - acms-column-clear
   - acms-col-sm-6
   - acms-col-sm-4
 
-unit_group_label  :
+unit_group_label:
   - '---'
   - 1カラム
   - 2カラム
   - 3カラム
+
+## 配置
+unit_align_version: 'v1'
 
 ## イメージ
 column_image_size:
@@ -1089,9 +1258,9 @@ column_image_size:
 
 column_image_display_size:
   -
-  - acms-col-sm-12
-  - acms-col-sm-6
-  - acms-col-sm-4
+  -
+  -
+  -
 
 column_image_size_label:
   - そのまま
@@ -1105,16 +1274,8 @@ column_image_size_criterion:
   - width
   - width
 
-'@column_image_size_group' : [column_image_size_criterion, column_image_size, column_image_size_label, column_image_display_size]
-
-column_image_attr :
-column_image_attr_label :
-# column_image_attr : ['', '1']
-# column_image_attr_label : [枠付き, 枠無し]
-
-# ファイル
-column_file_attr  :
-column_file_attr_label  :
+'@column_image_size_group':
+  [column_image_size_criterion, column_image_size, column_image_size_label, column_image_display_size]
 
 # 地図
 column_map_size:
@@ -1123,19 +1284,16 @@ column_map_size:
   - 220x200
 
 column_map_display_size:
-  - acms-col-sm-12
-  - acms-col-sm-6
-  - acms-col-sm-4
+  -
+  -
+  -
 
 column_map_size_label:
   - 大 (700x433)
   - 中 (340x320)
   - 小 (220x200)
 
-'@column_map_size_group' : [column_map_size, column_map_size_label, column_map_display_size]
-
-column_map_attr :
-column_map_attr_label :
+'@column_map_size_group': [column_map_size, column_map_size_label, column_map_display_size]
 
 ## youtube
 column_youtube_size:
@@ -1144,19 +1302,16 @@ column_youtube_size:
   - 220x123
 
 column_youtube_display_size:
-  - acms-col-sm-12
-  - acms-col-sm-6
-  - acms-col-sm-4
+  -
+  -
+  -
 
 column_youtube_size_label:
   - 大 (700x393)
   - 中 (340x191)
   - 小 (220x123)
 
-'@column_youtube_size_group' : [column_youtube_size, column_youtube_size_label, column_youtube_display_size]
-
-column_youtube_attr :
-column_youtube_attr_label :
+'@column_youtube_size_group': [column_youtube_size, column_youtube_size_label, column_youtube_display_size]
 
 ## video
 column_video_size:
@@ -1165,19 +1320,16 @@ column_video_size:
   - 220x124
 
 column_video_display_size:
-  - acms-col-sm-12
-  - acms-col-sm-6
-  - acms-col-sm-4
+  -
+  -
+  -
 
 column_video_size_label:
   - 大 (700x405)
   - 中 (340x192)
   - 小 (220x124)
 
-'@column_video_size_group' : [column_video_size, column_video_size_label, column_video_display_size]
-
-column_video_attr :
-column_video_attr_label :
+'@column_video_size_group': [column_video_size, column_video_size_label, column_video_display_size]
 
 ## media
 column_media_size:
@@ -1186,19 +1338,16 @@ column_media_size:
   - 220
 
 column_media_display_size:
-  - acms-col-sm-12
-  - acms-col-sm-6
-  - acms-col-sm-4
+  -
+  -
+  -
 
 column_media_size_label:
   - 大：幅1/1 ( 700px )
   - 中：幅1/2 ( 340px )
   - 小：幅1/3 ( 220px )
 
-'@column_media_size_group' : [column_media_size, column_media_size_label, column_media_display_size]
-
-column_media_attr :
-column_media_attr_label :
+'@column_media_size_group': [column_media_size, column_media_size_label, column_media_display_size]
 
 ## 画像URL
 column_eximage_size:
@@ -1207,217 +1356,293 @@ column_eximage_size:
   - 220
 
 column_eximage_display_size:
-  - acms-col-sm-12
-  - acms-col-sm-6
-  - acms-col-sm-4
+  -
+  -
+  -
 
 column_eximage_size_label:
   - 大 ( 長辺700px )
   - 中 ( 長辺340px )
   - 小 ( 長辺220px )
 
-'@column_eximage_size_group' : [column_eximage_size, column_eximage_size_label, column_eximage_display_size]
+'@column_eximage_size_group': [column_eximage_size, column_eximage_size_label, column_eximage_display_size]
 
-column_eximage_attr :
-column_eximage_attr_label :
+column_eximage_attr:
+column_eximage_attr_label:
 
 # デフォルト定義
-column_def_insert_type    : [media, text]
-column_def_insert_align   : [center, auto]
-column_def_insert_class   : ['', '']
-column_def_insert_size_criterion  : [width, '']
-column_def_insert_size    : [w700, '']
-column_def_insert_edit    : [none, '']
-column_def_insert_field_1 : ['', '']
-column_def_insert_field_2 : ['', p]
-column_def_insert_field_3 : ['', '']
-column_def_insert_field_4 : ['', '']
-column_def_insert_field_5 : ['', '']
+column_def_insert_type: [block-editor]
+column_def_insert_align: ['']
+column_def_insert_class: ['']
+column_def_insert_size_criterion: ['']
+column_def_insert_size: ['']
+column_def_insert_edit: ['']
+column_def_insert_field_1: ['']
+column_def_insert_field_2: ['']
+column_def_insert_field_3: ['']
+column_def_insert_field_4: ['']
+column_def_insert_field_5: ['']
 
-column_add_type : [text, media, osmap]
-column_add_type_label : [テキスト, 画像・ファイル, 地図]
-'@column_add_type_group' : [column_add_type, column_add_type_label]
+column_add_type: [block-editor, media, osmap]
+column_add_type_label: [ブロックエディター, メディア, 地図]
+'@column_add_type_group': [column_add_type, column_add_type_label]
 
-layout_add_type : [col12, col6-6, col3-9, col4-8, col9-3, col8-4, col4-4-4]
-layout_add_type_set : [layout-column-1, layout-column-2, layout-column-2, layout-column-2, layout-column-2, layout-column-2, layout-column-3]
-layout_add_type_label : [col12, col6-6, col3-9, col4-8, col9-3, col8-4, col4-4-4]
-'@layout_add_type_group' : [layout_add_type, layout_add_type_set, layout_add_type_label]
+layout_add_type: [col12, col6-6, col3-9, col4-8, col9-3, col8-4, col4-4-4]
+layout_add_type_set:
+  [
+    layout-column-1,
+    layout-column-2,
+    layout-column-2,
+    layout-column-2,
+    layout-column-2,
+    layout-column-2,
+    layout-column-3,
+  ]
+layout_add_type_label: [col12, col6-6, col3-9, col4-8, col9-3, col8-4, col4-4-4]
+'@layout_add_type_group': [layout_add_type, layout_add_type_set, layout_add_type_label]
 
-layout_group_class  : [layout-column-1, layout-column-2, layout-column-3, layout-column-4]
-layout_group_label  : [1カラム, 2カラム, 3カラム, 4カラム]
-'@layout_group'     : [layout_group_class, layout_group_label]
+layout_group_class: [layout-column-1, layout-column-2, layout-column-3, layout-column-4]
+layout_group_label: [1カラム, 2カラム, 3カラム, 4カラム]
+'@layout_group': [layout_group_class, layout_group_label]
 
-column_form_add_type : [text, textarea, radio, select, checkbox]
-column_form_add_type_label : [テキスト, テキストエリア, ラジオ, セレクト, チェックボックス]
-'@column_form_add_type_group' : [column_form_add_type, column_form_add_type_label]
+column_form_add_type: [text, textarea, radio, select, checkbox]
+column_form_add_type_label: [テキスト, テキストエリア, ラジオ, セレクト, チェックボックス]
+'@column_form_add_type_group': [column_form_add_type, column_form_add_type_label]
 
-column_map_layer_type : ['map', 'photo', 'map-b1', 'railway', 'monotone', 'bold', 'midnight']
-column_map_layer_type_label : [標準, 航空写真, 地下街, 路線図, モノトーン, ボールド, ミッドナイト]
+column_def_add_text_type: [text, '']
+column_def_add_text_align: ['', '']
+column_def_add_text_class: ['', '']
+column_def_add_text_size: ['', '']
+column_def_add_text_edit: ['', '']
+column_def_add_text_field_1: ['', '']
+column_def_add_text_field_2: [p, '']
+column_def_add_text_field_3: ['', '']
+column_def_add_text_field_4: ['', '']
+column_def_add_text_field_5: ['', '']
 
-column_def_add_text_type  : [text, '']
-column_def_add_text_align : [auto, '']
-column_def_add_text_class : ['', '']
-column_def_add_text_size  : ['', '']
-column_def_add_text_edit  : ['', '']
-column_def_add_text_field_1 : ['', '']
-column_def_add_text_field_2 : [p, '']
-column_def_add_text_field_3 : ['', '']
-column_def_add_text_field_4 : ['', '']
-column_def_add_text_field_5 : ['', '']
+column_def_add_table_type: [table, '']
+column_def_add_table_align: ['', '']
+column_def_add_table_class: ['', '']
+column_def_add_table_size: ['', '']
+column_def_add_table_edit: ['', '']
+column_def_add_table_field_1:
+  [
+    "<table class=\"js-table-unit-scroll-hint\">\r\n\t<tr>\r\n\t\t<td></td>\r\n\t\t<td></td>\r\n\t\t<td></td>\r\n\t</tr>\r\n\t<tr>\r\n\t\t<td></td>\r\n\t\t<td></td>\r\n\t\t<td></td>\r\n\t</tr>\r\n\t<tr>\r\n\t\t<td></td>\r\n\t\t<td></td>\r\n\t\t<td></td>\r\n\t</tr>\r\n</table>\r\n",
+    '',
+  ]
+column_def_add_table_field_2: ['', '']
+column_def_add_table_field_3: ['', '']
+column_def_add_table_field_4: ['', '']
+column_def_add_table_field_5: ['', '']
 
-column_def_add_table_type  : [table, '']
-column_def_add_table_align : [auto, '']
-column_def_add_table_class : ['', '']
-column_def_add_table_size  : ['', '']
-column_def_add_table_edit  : ['', '']
-column_def_add_table_field_1 : ["<table class=\"js-table-unit-scroll-hint\">\r\n\t<tr>\r\n\t\t<td></td>\r\n\t\t<td></td>\r\n\t\t<td></td>\r\n\t</tr>\r\n\t<tr>\r\n\t\t<td></td>\r\n\t\t<td></td>\r\n\t\t<td></td>\r\n\t</tr>\r\n\t<tr>\r\n\t\t<td></td>\r\n\t\t<td></td>\r\n\t\t<td></td>\r\n\t</tr>\r\n</table>\r\n", '']
-column_def_add_table_field_2 : ['', '']
-column_def_add_table_field_3 : ['', '']
-column_def_add_table_field_4 : ['', '']
-column_def_add_table_field_5 : ['', '']
+column_def_add_image_type: [image, '']
+column_def_add_image_align: ['', '']
+column_def_add_image_class: ['', '']
+column_def_add_image_size: [w340]
+column_def_add_image_edit: ['', '']
+column_def_add_image_field_1: ['', '']
+column_def_add_image_field_2: ['', '']
+column_def_add_image_field_3: ['', '']
+column_def_add_image_field_4: ['', '']
+column_def_add_image_field_5: ['', '']
 
-column_def_add_image_type   : [image, '']
-column_def_add_image_align    : [left, '']
-column_def_add_image_class    : ['', '']
-column_def_add_image_size   : [w340, ]
-column_def_add_image_edit   : ['', '']
-column_def_add_image_field_1  : ['', '']
-column_def_add_image_field_2  : ['', '']
-column_def_add_image_field_3  : ['', '']
-column_def_add_image_field_4  : ['', '']
-column_def_add_image_field_5  : ['', '']
+column_def_add_file_type: [file, '']
+column_def_add_file_align: ['', '']
+column_def_add_file_class: ['', '']
+column_def_add_file_size: ['', '']
+column_def_add_file_edit: ['', '']
+column_def_add_file_field_1: ['', '']
+column_def_add_file_field_2: ['', '']
+column_def_add_file_field_3: ['', '']
+column_def_add_file_field_4: ['', '']
+column_def_add_file_field_5: ['', '']
 
-column_def_add_file_type  : [file, '']
-column_def_add_file_align : [auto, '']
-column_def_add_file_class : ['', '']
-column_def_add_file_size  : ['', '']
-column_def_add_file_edit  : ['', '']
-column_def_add_file_field_1 : ['', '']
-column_def_add_file_field_2 : ['', '']
-column_def_add_file_field_3 : ['', '']
-column_def_add_file_field_4 : ['', '']
-column_def_add_file_field_5 : ['', '']
+column_def_add_map_type: [map, '']
+column_def_add_map_align: ['', '']
+column_def_add_map_class: ['', '']
+column_def_add_map_size: [700x405, '']
+column_def_add_map_edit: ['', '']
+column_def_add_map_field_1: ['', '']
+column_def_add_map_field_2: [35.185574, '']
+column_def_add_map_field_3: [136.899066, '']
+column_def_add_map_field_4: [10, '']
+column_def_add_map_field_5: [1, '']
 
-column_def_add_map_type   : [map, '']
-column_def_add_map_align  : [auto, '']
-column_def_add_map_class  : ['', '']
-column_def_add_map_size   : [700x405, '']
-column_def_add_map_edit   : ['', '']
-column_def_add_map_field_1  : ['', '']
-column_def_add_map_field_2  : [35.185574, '']
-column_def_add_map_field_3  : [136.899066, '']
-column_def_add_map_field_4  : [10, '']
-column_def_add_map_field_5  : [1, '']
+column_def_add_osmap_type: [osmap, '']
+column_def_add_osmap_align: ['', '']
+column_def_add_osmap_class: ['', '']
+column_def_add_osmap_size: [700x405, '']
+column_def_add_osmap_edit: ['', '']
+column_def_add_osmap_field_1: ['', '']
+column_def_add_osmap_field_2: [35.185574, '']
+column_def_add_osmap_field_3: [136.899066, '']
+column_def_add_osmap_field_4: [10, '']
+column_def_add_osmap_field_5: [1, '']
 
-column_def_add_osmap_type   : [osmap, '']
-column_def_add_osmap_align  : [auto, '']
-column_def_add_osmap_class  : ['', '']
-column_def_add_osmap_size   : [700x405, '']
-column_def_add_osmap_edit   : ['', '']
-column_def_add_osmap_field_1  : ['', '']
-column_def_add_osmap_field_2  : [35.185574, '']
-column_def_add_osmap_field_3  : [136.899066, '']
-column_def_add_osmap_field_4  : [10, '']
-column_def_add_osmap_field_5  : [1, '']
+column_def_add_youtube_type: [youtube, '']
+column_def_add_youtube_align: ['', '']
+column_def_add_youtube_class: ['', '']
+column_def_add_youtube_size: [700x405, '']
+column_def_add_youtube_edit: ['', '']
+column_def_add_youtube_field_1: ['', '']
+column_def_add_youtube_field_2: ['', '']
+column_def_add_youtube_field_3: ['', '']
+column_def_add_youtube_field_4: ['', '']
+column_def_add_youtube_field_5: ['', '']
 
-column_def_add_youtube_type   : [youtube, '']
-column_def_add_youtube_align  : [auto, '']
-column_def_add_youtube_class  : ['', '']
-column_def_add_youtube_size   : [700x405, '']
-column_def_add_youtube_edit   : ['', '']
-column_def_add_youtube_field_1  : ['', '']
-column_def_add_youtube_field_2  : ['', '']
-column_def_add_youtube_field_3  : ['', '']
-column_def_add_youtube_field_4  : ['', '']
-column_def_add_youtube_field_5  : ['', '']
+column_def_add_video_type: [video, '']
+column_def_add_video_align: ['', '']
+column_def_add_video_class: ['', '']
+column_def_add_video_size: [700x405, '']
+column_def_add_video_edit: ['', '']
+column_def_add_video_field_1: ['', '']
+column_def_add_video_field_2: ['', '']
+column_def_add_video_field_3: ['', '']
+column_def_add_video_field_4: ['', '']
+column_def_add_video_field_5: ['', '']
 
-column_def_add_video_type   : [video, '']
-column_def_add_video_align  : [auto, '']
-column_def_add_video_class  : ['', '']
-column_def_add_video_size   : [700x405, '']
-column_def_add_video_edit   : ['', '']
-column_def_add_video_field_1  : ['', '']
-column_def_add_video_field_2  : ['', '']
-column_def_add_video_field_3  : ['', '']
-column_def_add_video_field_4  : ['', '']
-column_def_add_video_field_5  : ['', '']
+column_def_add_eximage_type: [eximage, '']
+column_def_add_eximage_align: ['', '']
+column_def_add_eximage_class: ['', '']
+column_def_add_eximage_size: [700, '']
+column_def_add_eximage_edit: ['', '']
+column_def_add_eximage_field_1: ['', '']
+column_def_add_eximage_field_2: ['', '']
+column_def_add_eximage_field_3: ['', '']
+column_def_add_eximage_field_4: ['', '']
+column_def_add_eximage_field_5: ['', '']
 
-column_def_add_eximage_type   : [eximage, '']
-column_def_add_eximage_align  : [auto, '']
-column_def_add_eximage_class  : ['', '']
-column_def_add_eximage_size   : [700, '']
-column_def_add_eximage_edit   : ['', '']
-column_def_add_eximage_field_1  : ['', '']
-column_def_add_eximage_field_2  : ['', '']
-column_def_add_eximage_field_3  : ['', '']
-column_def_add_eximage_field_4  : ['', '']
-column_def_add_eximage_field_5  : ['', '']
+column_def_add_break_type: [break, '']
+column_def_add_break_align: ['', '']
+column_def_add_break_class: ['', '']
+column_def_add_break_size: ['', '']
+column_def_add_break_edit: ['', '']
+column_def_add_break_field_1: [続き, '']
+column_def_add_break_field_2: ['', '']
+column_def_add_break_field_3: ['', '']
+column_def_add_break_field_4: ['', '']
+column_def_add_break_field_5: ['', '']
 
-column_def_add_break_type   : [break, '']
-column_def_add_break_align  : [auto, '']
-column_def_add_break_class  : ['', '']
-column_def_add_break_size   : ['', '']
-column_def_add_break_edit   : ['', '']
-column_def_add_break_field_1  : [続き, '']
-column_def_add_break_field_2  : ['', '']
-column_def_add_break_field_3  : ['', '']
-column_def_add_break_field_4  : ['', '']
-column_def_add_break_field_5  : ['', '']
+column_def_add_quote_type: [quote, '']
+column_def_add_quote_align: ['', '']
+column_def_add_quote_class: ['', '']
+column_def_add_quote_size: ['', '']
+column_def_add_quote_edit: ['', '']
+column_def_add_quote_field_1: ['', '']
+column_def_add_quote_field_2: ['', '']
+column_def_add_quote_field_3: ['', '']
+column_def_add_quote_field_4: ['', '']
+column_def_add_quote_field_5: ['', '']
 
-column_def_add_quote_type   : [quote, '']
-column_def_add_quote_align  : [auto, '']
-column_def_add_quote_class  : ['', '']
-column_def_add_quote_size   : ['', '']
-column_def_add_quote_edit   : ['', '']
-column_def_add_quote_field_1  : ['', '']
-column_def_add_quote_field_2  : ['', '']
-column_def_add_quote_field_3  : ['', '']
-column_def_add_quote_field_4  : ['', '']
-column_def_add_quote_field_5  : ['', '']
+column_def_add_media_type: [media, '']
+column_def_add_media_align: ['', '']
+column_def_add_media_class: ['', '']
+column_def_add_media_size: ['', '']
+column_def_add_media_edit: ['', '']
+column_def_add_media_field_1: ['', '']
+column_def_add_media_field_2: ['', '']
+column_def_add_media_field_3: ['', '']
+column_def_add_media_field_4: ['', '']
+column_def_add_media_field_5: ['', '']
 
-column_def_add_media_type   : [media, '']
-column_def_add_media_align  : [auto, '']
-column_def_add_media_class  : ['', '']
-column_def_add_media_size   : ['', '']
-column_def_add_media_edit   : ['', '']
-column_def_add_media_field_1  : ['', '']
-column_def_add_media_field_2  : ['', '']
-column_def_add_media_field_3  : ['', '']
-column_def_add_media_field_4  : ['', '']
-column_def_add_media_field_5  : ['', '']
+column_def_add_rich-editor_type: [rich-editor, '']
+column_def_add_rich-editor_align: ['', '']
+column_def_add_rich-editor_class: ['', '']
+column_def_add_rich-editor_size: ['', '']
+column_def_add_rich-editor_edit: ['', '']
+column_def_add_rich-editor_field_1: ['', '']
+column_def_add_rich-editor_field_2: ['', '']
+column_def_add_rich-editor_field_3: ['', '']
+column_def_add_rich-editor_field_4: ['', '']
+column_def_add_rich-editor_field_5: ['', '']
 
-column_def_add_rich-editor_type  : [rich-editor, '']
-column_def_add_rich-editor_align : [auto, '']
-column_def_add_rich-editor_class : ['', '']
-column_def_add_rich-editor_size  : ['', '']
-column_def_add_rich-editor_edit  : ['', '']
-column_def_add_rich-editor_field_1 : ['', '']
-column_def_add_rich-editor_field_2 : ['', '']
-column_def_add_rich-editor_field_3 : ['', '']
-column_def_add_rich-editor_field_4 : ['', '']
-column_def_add_rich-editor_field_5 : ['', '']
+column_def_add_block-editor_type: [block-editor, '']
+column_def_add_block-editor_align: ['', '']
+column_def_add_block-editor_class: ['', '']
+column_def_add_block-editor_size: ['', '']
+column_def_add_block-editor_edit: ['', '']
+column_def_add_block-editor_field_1: ['', '']
+column_def_add_block-editor_field_2: ['', '']
+column_def_add_block-editor_field_3: ['', '']
+column_def_add_block-editor_field_4: ['', '']
+column_def_add_block-editor_field_5: ['', '']
 
-column_def_add_module_type   : [module, '']
-column_def_add_module_align  : [auto, '']
-column_def_add_module_class  : ['', '']
-column_def_add_module_size   : ['', '']
-column_def_add_module_edit   : ['', '']
-column_def_add_module_field_1  : ['', '']
-column_def_add_module_field_2  : ['', '']
-column_def_add_module_field_3  : ['', '']
-column_def_add_module_field_4  : ['', '']
-column_def_add_module_field_5  : ['', '']
+column_def_add_module_type: [module, '']
+column_def_add_module_align: ['', '']
+column_def_add_module_class: ['', '']
+column_def_add_module_size: ['', '']
+column_def_add_module_edit: ['', '']
+column_def_add_module_field_1: ['', '']
+column_def_add_module_field_2: ['', '']
+column_def_add_module_field_3: ['', '']
+column_def_add_module_field_4: ['', '']
+column_def_add_module_field_5: ['', '']
 
-column_def_add_custom_type  : [custom, '']
-column_def_add_custom_align : [auto, '']
-column_def_add_custom_class : ['', '']
-column_def_add_custom_size  : ['', '']
-column_def_add_custom_edit  : ['', '']
-column_def_add_custom_field_1 : ['', '']
-column_def_add_custom_field_2 : ['', '']
-column_def_add_custom_field_3 : ['', '']
-column_def_add_custom_field_4 : ['', '']
-column_def_add_custom_field_5 : ['', '']
+column_def_add_code_type: [code, '']
+column_def_add_code_align: ['', '']
+column_def_add_code_class: ['', '']
+column_def_add_code_size: ['', '']
+column_def_add_code_edit: ['', '']
+column_def_add_code_field_1: ['', '']
+column_def_add_code_field_2: ['', '']
+column_def_add_code_field_3: ['', '']
+column_def_add_code_field_4: ['', '']
+column_def_add_code_field_5: ['', '']
+
+column_def_add_html_type: [html, '']
+column_def_add_html_align: ['', '']
+column_def_add_html_class: ['', '']
+column_def_add_html_size: ['', '']
+column_def_add_html_edit: ['', '']
+column_def_add_html_field_1: ['', '']
+column_def_add_html_field_2: ['', '']
+column_def_add_html_field_3: ['', '']
+column_def_add_html_field_4: ['', '']
+column_def_add_html_field_5: ['', '']
+
+column_def_add_wysiwyg_type: [wysiwyg, '']
+column_def_add_wysiwyg_align: ['', '']
+column_def_add_wysiwyg_class: ['', '']
+column_def_add_wysiwyg_size: ['', '']
+column_def_add_wysiwyg_edit: ['', '']
+column_def_add_wysiwyg_field_1: ['', '']
+column_def_add_wysiwyg_field_2: ['', '']
+column_def_add_wysiwyg_field_3: ['', '']
+column_def_add_wysiwyg_field_4: ['', '']
+column_def_add_wysiwyg_field_5: ['', '']
+
+column_def_add_markdown_type: [markdown, '']
+column_def_add_markdown_align: ['', '']
+column_def_add_markdown_class: ['', '']
+column_def_add_markdown_size: ['', '']
+column_def_add_markdown_edit: ['', '']
+column_def_add_markdown_field_1: ['', '']
+column_def_add_markdown_field_2: ['', '']
+column_def_add_markdown_field_3: ['', '']
+column_def_add_markdown_field_4: ['', '']
+column_def_add_markdown_field_5: ['', '']
+
+column_def_add_group_type: [group, '']
+column_def_add_group_align: ['', '']
+column_def_add_group_class: ['', '']
+column_def_add_group_size: ['', '']
+column_def_add_group_edit: ['', '']
+column_def_add_group_field_1: ['', '']
+column_def_add_group_field_2: ['', '']
+column_def_add_group_field_3: ['', '']
+column_def_add_group_field_4: ['', '']
+column_def_add_group_field_5: ['', '']
+
+column_def_add_custom_type: [custom, '']
+column_def_add_custom_align: ['', '']
+column_def_add_custom_class: ['', '']
+column_def_add_custom_size: ['', '']
+column_def_add_custom_edit: ['', '']
+column_def_add_custom_field_1: ['', '']
+column_def_add_custom_field_2: ['', '']
+column_def_add_custom_field_3: ['', '']
+column_def_add_custom_field_4: ['', '']
+column_def_add_custom_field_5: ['', '']
 
 ## Ping
 
@@ -1428,9 +1653,9 @@ ping_weblog_updates_endpoint:
 ping_weblog_updates_extended_endpoint:
 
 ## Module
-module_identifier_duplicate_suffix  : _copy
-module_label_duplicate_suffix       : のコピー
-module_allow_multiple_arguments : []
+module_identifier_duplicate_suffix: _copy
+module_label_duplicate_suffix: のコピー
+module_allow_multiple_arguments: []
 
 ##########
 ## Common
@@ -1449,10 +1674,10 @@ week_label:
 ## Admin
 #########
 
-admin_image_size  : 240
+admin_image_size: 240
 
-admin_limit_default : 2
-admin_limit_option  :
+admin_limit_default: 2
+admin_limit_option:
   - 5
   - 10
   - 20
@@ -1462,9 +1687,9 @@ admin_limit_option  :
   - 200
   - 300
 
-admin_tag_limit   : 3
-admin_tag_order   : amount-desc
-admin_tag_threshold : 1
+admin_tag_limit: 3
+admin_tag_order: amount-desc
+admin_tag_threshold: 1
 admin_tag_limit_option:
   - 50
   - 100
@@ -1473,8 +1698,8 @@ admin_tag_limit_option:
   - 400
   - 500
 
-admin_pager_delta : 3
-admin_pager_cur_attr : ' class="cur"'
+admin_pager_delta: 3
+admin_pager_cur_attr: ' class="cur"'
 
 ###########
 ## Admin Menu
@@ -1510,6 +1735,7 @@ admin_menu_card_id:
   - fix_index # データ修正
   - backup_index # バックアップ
   - import_index # インポート
+  - export_index # エクスポート
   - static-export_index # 静的書き出し
   - app_index # 拡張アプリ
 admin_menu_card_url:
@@ -1529,7 +1755,7 @@ admin_menu_card_laneid:
   - lane3 # ユーザーグループ
   - lane3 # 承認履歴
   - lane3 # スケジュール
-  - lane3 # カート
+  - lane1 # カート
   - lane4 # コンフィグセット
   - lane4 # テーマセット
   - lane4 # 編集画面セット
@@ -1544,6 +1770,7 @@ admin_menu_card_laneid:
   - lane5 # データ修正
   - lane5 # バックアップ
   - lane5 # インポート
+  - lane5 # エクスポート
   - lane5 # 静的書き出し
   - lane5 # 拡張アプリ
 admin_menu_card_icon:
@@ -1577,9 +1804,11 @@ admin_menu_card_icon:
   - acms-admin-icon-config_function # データ修正
   - acms-admin-icon-backup # バックアップ
   - acms-admin-icon-config_import # インポート
+  - acms-admin-icon-config_export # エクスポート
   - acms-admin-icon-publish # 静的書き出し
   - acms-admin-icon-app # 拡張アプリ
 admin_menu_card_admin:
+  - 'true'
   - 'true'
   - 'true'
   - 'true'
@@ -1665,6 +1894,7 @@ admin_menu_card_title:
   - データ修正
   - バックアップ
   - インポート
+  - エクスポート
   - 静的書き出し
   - 拡張アプリ
 
@@ -1672,42 +1902,42 @@ admin_menu_card_title:
 ## System
 ###########
 
-file_icon_dir:  themes/system/images/fileicon/
+file_icon_dir: themes/system/images/fileicon/
 
 indent_marks:
-  - "&nbsp;┗&nbsp;"
-  - "&nbsp;┣&nbsp;"
-  - "&nbsp;　&nbsp;"
-  - "&nbsp;┃&nbsp;"
+  - '&nbsp;┗&nbsp;'
+  - '&nbsp;┣&nbsp;'
+  - '&nbsp;　&nbsp;'
+  - '&nbsp;┃&nbsp;'
 
-attr_selected:  ' selected="selected"'
+attr_selected: ' selected="selected"'
 attr_checked: ' checked="checked"'
-attr_disabled:  ' disabled="disabled"'
-attr_multiple:  ' multiple="multiple"'
+attr_disabled: ' disabled="disabled"'
+attr_multiple: ' multiple="multiple"'
 
-ua_default  : 12
+ua_default: 12
 
-ua_label  :
+ua_label:
   - 携帯電話
-  - "&nbsp;&nbsp;&nbsp;&nbsp;docomo"
-  - "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i-mode2.0"
-  - "&nbsp;&nbsp;&nbsp;&nbsp;au"
-  - "&nbsp;&nbsp;&nbsp;&nbsp;SoftBank"
-  - "&nbsp;&nbsp;&nbsp;&nbsp;WILLCOM"
+  - '&nbsp;&nbsp;&nbsp;&nbsp;docomo'
+  - '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i-mode2.0'
+  - '&nbsp;&nbsp;&nbsp;&nbsp;au'
+  - '&nbsp;&nbsp;&nbsp;&nbsp;SoftBank'
+  - '&nbsp;&nbsp;&nbsp;&nbsp;WILLCOM'
   - スマートフォン
-  - "&nbsp;&nbsp;&nbsp;&nbsp;iPhone"
-  - "&nbsp;&nbsp;&nbsp;&nbsp;Androidフォン"
-  - "&nbsp;&nbsp;&nbsp;&nbsp;Windowsフォン"
+  - '&nbsp;&nbsp;&nbsp;&nbsp;iPhone'
+  - '&nbsp;&nbsp;&nbsp;&nbsp;Androidフォン'
+  - '&nbsp;&nbsp;&nbsp;&nbsp;Windowsフォン'
   - タブレット
-  - "&nbsp;&nbsp;&nbsp;&nbsp;Androidタブレット"
+  - '&nbsp;&nbsp;&nbsp;&nbsp;Androidタブレット'
   - PC
-  - "&nbsp;&nbsp;&nbsp;&nbsp;Internet Explorer"
-  - "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6.x"
-  - "&nbsp;&nbsp;&nbsp;&nbsp;Safari / Chrome / Edge"
-  - "&nbsp;&nbsp;&nbsp;&nbsp;Firefox"
-  - "Web Signage"
+  - '&nbsp;&nbsp;&nbsp;&nbsp;Internet Explorer'
+  - '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6.x'
+  - '&nbsp;&nbsp;&nbsp;&nbsp;Safari / Chrome / Edge'
+  - '&nbsp;&nbsp;&nbsp;&nbsp;Firefox'
+  - 'Web Signage'
 
-ua_value  :
+ua_value:
   - Mobile
   - docomo
   - i-mode2.0
@@ -1727,27 +1957,27 @@ ua_value  :
   - Firefox
   - Web Signage
 
-ua_regex  :
+ua_regex:
   -
-  - "@^DoCoMo@"
+  - '@^DoCoMo@'
   - "@^DoCoMo.+\\(c500;@"
   - "@^KDDI-|^UP\\.Browser@"
-  - "@^SoftBank|^Semulator|^Vodafone|^Vemulator|^MOT-|^MOTEMULATOR|^J-PHONE|^J-EMULATOR@"
+  - '@^SoftBank|^Semulator|^Vodafone|^Vemulator|^MOT-|^MOTEMULATOR|^J-PHONE|^J-EMULATOR@'
   - "@^Mozilla/3\\.0\\((?:DDIPOCKET|WILLCOM);@"
   -
-  - "@^.+iPhone.+AppleWebKit.+Mobile.+$@"
-  - "@^.+Android.+AppleWebKit.+Mobile.+$@"
-  - "@^.+MSIE.+Windows Phone.+$@"
+  - '@^.+iPhone.+AppleWebKit.+Mobile.+$@'
+  - '@^.+Android.+AppleWebKit.+Mobile.+$@'
+  - '@^.+MSIE.+Windows Phone.+$@'
   -
-  - "@^.+Android.+AppleWebKit.+$@"
+  - '@^.+Android.+AppleWebKit.+$@'
   -
-  - "@MSIE|Trident@"
-  - "@MSIE 6@"
-  - "@Safari@"
-  - "@Firefox@"
-  - "@WebSignageApp@"
+  - '@MSIE|Trident@'
+  - '@MSIE 6@'
+  - '@Safari@'
+  - '@Firefox@'
+  - '@WebSignageApp@'
 
-ua_parent :
+ua_parent:
   -
   - 0
   - 1
@@ -1767,14 +1997,14 @@ ua_parent :
   - 12
   -
 
-session_host_group  :
+session_host_group:
   - docomo
   - au
   - softbank
 
 # "docomo" last checked: 2021-03-31
 # http://www.nttdocomo.co.jp/service/developer/make/content/ip/index.html
-session_host_group_docomo :
+session_host_group_docomo:
   - 210.153.84.0/24
   - 210.136.161.0/24
   - 210.153.86.0/24
@@ -1787,7 +2017,7 @@ session_host_group_docomo :
 
 # "au" last checked: 2021-03-31
 # http://www.au.kddi.com/ezfactory/tec/spec/ezsava_ip.html
-session_host_group_au :
+session_host_group_au:
   - 27.90.207.224/28
   - 27.90.207.240/28
   - 27.90.220.224/28
@@ -1803,7 +2033,7 @@ session_host_group_au :
 
 # "softbank" last checked: 2021-03-31
 # http://creation.mb.softbank.jp/mc/tech/tech_web/web_ipaddress.html
-session_host_group_softbank :
+session_host_group_softbank:
   - 123.108.237.112/28
   - 123.108.239.224/28
   - 202.253.96.144/28
@@ -1888,94 +2118,94 @@ webhook_event_blog_label:
 ###########
 
 ##スケジュール
-schedule_layout_year     : grid
-schedule_layout_month    : list
-schedule_layout_days     : list
-schedule_forwardM        : 0
-schedule_backM           : 0
-schedule_forwardD        : 0
-schedule_backD           : 0
-schedule_viewmode        : month
-schedule_formatY         : Y
-schedule_formatM         : n
-schedule_formatD         : j
-schedule_formatW         : JP
-schedule_unit            : 3
-schedule_key             : 0
-schedule_label_separator : __sep__
-schedule_multi_plan      : off
-schedule_weekRowNo       : ' wr'
-schedule_weekNo          : ' w'
-schedule_week_start      : 0
+schedule_layout_year: grid
+schedule_layout_month: list
+schedule_layout_days: list
+schedule_forwardM: 0
+schedule_backM: 0
+schedule_forwardD: 0
+schedule_backD: 0
+schedule_viewmode: month
+schedule_formatY: Y
+schedule_formatM: n
+schedule_formatD: j
+schedule_formatW: JP
+schedule_unit: 3
+schedule_key: 0
+schedule_label_separator: __sep__
+schedule_multi_plan: off
+schedule_weekRowNo: ' wr'
+schedule_weekNo: ' w'
+schedule_week_start: 0
 
 ###########
 ## ショップ
 ###########
 
 ## ショップ機能の有効化
-shop                : off
+shop: off
 
 ## セッションとクッキー
-shop_session        : acms_shop
-shop_cart           : acms_cart
+shop_session: acms_shop
+shop_cart: acms_cart
 
 ## 注文時のログイン
-shop_order_login    : without
+shop_order_login: without
 
 ## カートに入れた後のbidに基づく遷移
-shop_cart_elevate   : on
+shop_cart_elevate: on
 
 ## テンプレート
-shop_tpl_added  : order.html
-shop_tpl_order  : order.html
-shop_tpl_login  : login.html
-shop_tpl_regist : login.html/alt/customer/
-shop_tpl_cart   : mail/order/cartTpl.txt
+shop_tpl_added: order.html
+shop_tpl_order: order.html
+shop_tpl_login: login.html
+shop_tpl_regist: login.html/alt/customer/
+shop_tpl_cart: mail/order/cartTpl.txt
 
 ## 商品情報フィールド (not config)
-shop_item_id        : item_id
-shop_item_name      : item_name
-shop_item_price     : item_price
-shop_item_qty       : item_quantity
-shop_item_sku       : item_stock
-shop_item_exception : item_except
-shop_item_category  : item_category
+shop_item_id: item_id
+shop_item_name: item_name
+shop_item_price: item_price
+shop_item_qty: item_quantity
+shop_item_sku: item_stock
+shop_item_exception: item_except
+shop_item_category: item_category
 
 ## カートのリストイメージ設定
-shop_cart_list_image_x      : 60
-shop_cart_list_image_y      : 60
-shop_cart_list_image_trim   : off
-shop_cart_list_image_zoom   : off
-shop_cart_list_image_center : off
+shop_cart_list_image_x: 60
+shop_cart_list_image_y: 60
+shop_cart_list_image_trim: off
+shop_cart_list_image_zoom: off
+shop_cart_list_image_center: off
 
 ## 支払い方法と手数料
-shop_order_payment_label    :
+shop_order_payment_label:
   - 代金引換
   - 銀行振込
   - クレジットカード
 
-shop_order_payment_charge   :
+shop_order_payment_charge:
   - 324
   - 0
   - 0
 
-shop_order_payment_block   :
+shop_order_payment_block:
   - ''
   - ''
   - card
 
 ## 配送方法と手数料
-shop_order_deliver_label    :
+shop_order_deliver_label:
   - 通常配送
 
-shop_order_deliver_charge   :
+shop_order_deliver_charge:
   -
 
 ## 配送の希望日時
-shop_order_request_date_min     : 3
-shop_order_request_date_max     : 30
+shop_order_request_date_min: 3
+shop_order_request_date_max: 30
 
-shop_order_request_time         :
+shop_order_request_time:
   - 午前中 (8:00 ~ 12:00)
   - 12:00 ~ 14:00
   - 14:00 ~ 16:00
@@ -1983,41 +2213,40 @@ shop_order_request_time         :
   - 18:00 ~ 20:00
   - 19:00 ~ 21:00
 
-shop_order_request_others_label     :
+shop_order_request_others_label:
   - ラッピング希望
   - ネームカード希望
 
-shop_order_request_others_charge    :
+shop_order_request_others_charge:
   - 324
   - 108
 
 ## 税金設定
-shop_tax_rate       : 0.08
-shop_tax_calculate  : extax #(intax|extax)
+shop_tax_rate: 0.08
+shop_tax_calculate: extax #(intax|extax)
 
 ## 合計金額に含める項目
-shop_total_involve          : deliver-others
+shop_total_involve: deliver-others
 
 ## トラッキングコード
-shop_order_tracking_code    :
+shop_order_tracking_code:
 
 ## メール添付ファイル
-mail_attachment_temp_dir:  temp/
+mail_attachment_temp_dir: temp/
 
 ## 購入による在庫数減少機能
-shop_stock_change    : off
-
+shop_stock_change: off
 
 ################################################
 
 ## 送料無料の閾値
-shop_order_shipping_limit   : 10800
+shop_order_shipping_limit: 10800
 
 ## 一括の送料設定
-shop_order_shipping_common  :
+shop_order_shipping_common:
 
 ## 送料の全国定義
-shop_order_shipping_label   :
+shop_order_shipping_label:
   - 北海道
   - 青森県
   - 秋田県
@@ -2067,7 +2296,7 @@ shop_order_shipping_label   :
   - 沖縄県
   - その他離島
 
-shop_order_shipping_charge  :
+shop_order_shipping_charge:
   - 1260
   - 950
   - 950
@@ -2116,131 +2345,3 @@ shop_order_shipping_charge  :
   - 950
   - 1830
   - 1830
-
-mail_file_mime :
-  - pdf@application/pdf
-  - zip@application/zip
-  - txt@text/plain
-  - png@image/x-png
-  - gif@image/gif
-  - bmp@image/x-bmp
-  - jpg@image/jpeg
-
-###########
-## CRM
-###########
-
-## フォームセット
-crm_form_set_label  :
-  - 名前セット
-  - メールアドレスセット
-  - 電話番号セット
-  - 住所セット
-
-crm_form_set_value  :
-  - name_set
-  - mail_set
-  - phone_set
-  - address_set
-
-crm_thread_status_default : 未対応
-crm_thread_status_replied : 対応済み
-crm_thread_status_value :
-  - new
-  - finish
-  - wait
-
-crm_thread_status_label :
-  - 未対応
-  - 対応済み
-  - 対応中
-
-mbacrm_event_status :
-  - 未入金
-  - 入金済み
-  - キャンセル
-  - 参加
-  - 連絡なし不参加
-
-mbacrm_event_option :
-  - 　
-  - 要注意
-
-crm_limit_default : 0
-crm_limit_option :
-  - 10
-  - 20
-  - 30
-  - 50
-  - 100
-  - 200
-  - 300
-
-crm_file_mime :
-  - pdf@application/pdf
-  - zip@application/zip
-  - txt@text/plain
-  - png@image/x-png
-  - gif@image/gif
-  - bmp@image/x-bmp
-  - jpg@image/jpeg
-
-crm_graph_type :
-  - LineChart
-  - AreaChart
-
-crm_mail_tpl_subject : mail/crm/subject.txt
-crm_mail_tpl_body_plain : mail/crm/body.txt #テンプレートの文字コードが使用される文字コードになります
-crm_mail_tpl_body_html : mail/crm/body.html
-
-crm_mail_deadline_hour : 24
-
-crm_customer_province_sort :
-  - 北海道
-  - 青森県
-  - 秋田県
-  - 岩手県
-  - 宮城県
-  - 山形県
-  - 福島県
-  - 茨城県
-  - 栃木県
-  - 群馬県
-  - 埼玉県
-  - 千葉県
-  - 東京都
-  - 神奈川県
-  - 山梨県
-  - 長野県
-  - 新潟県
-  - 静岡県
-  - 愛知県
-  - 岐阜県
-  - 三重県
-  - 富山県
-  - 石川県
-  - 福井県
-  - 京都府
-  - 滋賀県
-  - 奈良県
-  - 和歌山県
-  - 大阪府
-  - 兵庫県
-  - 岡山県
-  - 広島県
-  - 山口県
-  - 鳥取県
-  - 島根県
-  - 香川県
-  - 徳島県
-  - 高知県
-  - 愛媛県
-  - 福岡県
-  - 佐賀県
-  - 長崎県
-  - 大分県
-  - 熊本県
-  - 宮崎県
-  - 鹿児島県
-  - 沖縄県
-  - その他離島

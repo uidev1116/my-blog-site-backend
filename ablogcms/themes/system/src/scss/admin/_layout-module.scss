@@ -1,0 +1,543 @@
+@use '../global/common' as global;
+
+/* ------------------------------
+ レイアウトモジュール
+------------------------------- */
+
+// ---------------
+// レイアウトモジュール編集画面
+// ---------------
+.acms_layout_row {
+  cursor: move;
+}
+
+// サイドメニュー
+.acms-layout-menu {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: global.zIndex(acms-layout-menu);
+  width: 220px;
+  background: global.$acms-color-gray50;
+  box-shadow: 0 2px 4px 0 rgb(0 0 0 / 50%);
+
+  @include global.translateZ(0);
+}
+
+.acms-layout-menu-header {
+  min-width: 200px;
+  padding: 10px;
+  color: global.$acms-color-white;
+  background: global.$acms-color-black;
+  border-radius: 3px 3px 0 0;
+  cursor: move;
+
+  @include global.font-size(13);
+}
+
+.acms-layout-menu-delete {
+  color: global.$acms-color-white;
+}
+
+.acms-layout-menu-half {
+  float: left;
+  box-sizing: border-box;
+  width: 50%;
+  padding: 0 5px;
+}
+
+// アコーディオン
+.acms-layout-menu-group-heading {
+  display: block;
+  padding: 7px 10px 7px 28px;
+  color: global.$acms-color-white;
+  font-weight: bold;
+  background: url('../images/marker/arrow_black05.png') no-repeat 10px center global.$acms-color-system-gray70;
+  background-size: 8px 5px;
+  border-top: 1px solid global.$acms-color-white;
+  border-radius: 0;
+
+  @include global.font-size(13);
+
+  &:link {
+    color: global.$acms-color-white;
+    text-decoration: none;
+  }
+
+  &:hover {
+    background-color: global.$acms-color-system-gray80;
+  }
+
+  &:visited,
+  &:active {
+    color: global.$acms-color-white;
+  }
+
+  &:first-child {
+    border: 0;
+  }
+}
+
+.acms-layout-menu-group-body {
+  padding: 10px 10px 0;
+  overflow: hidden; // 簡易clearfix
+  background: global.$acms-color-white;
+}
+
+.acms-layout-menu-inner {
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+.acms-layout-unit-menu {
+  overflow-y: scroll;
+}
+
+.acms-layout-menu-order {
+  margin: 0;
+  background: global.$acms-color-white;
+}
+
+.acms-layout-menu-text {
+  margin: 0;
+  color: global.$acms-color-black;
+
+  @include global.font-size(14);
+}
+
+.acms-layout-menu-step-label {
+  margin: 0 5px 0 0;
+}
+
+.js-acms_layout_list {
+  .acms-layout-unit {
+    display: none;
+  }
+}
+
+// 挿入ボックス
+.acms-insert-box {
+  display: block;
+  width: 100%;
+  padding: 12px 0;
+  color: global.$acms-color-black;
+  text-align: center;
+  border: 1px solid global.$acms-color-gray60;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 30%);
+
+  @include global.font-size(14);
+}
+
+.acms-insert-box-layout {
+  margin: 0 0 10px;
+  background: global.$acms-color-system-gray20;
+}
+
+.acms-insert-box-module {
+  margin: 10px 0 0;
+  font-weight: bold;
+  background: global.$acms-color-white;
+  border-radius: 6px;
+
+  @include global.font-size(18);
+
+  .acms-icon-module {
+    margin: 0 5px 0 0;
+    color: global.$acms-color-gray80;
+
+    @include global.font-size(20);
+  }
+}
+
+// レイアウトモジュールメイン
+.js-acms_layout_frame {
+  position: relative;
+  padding: 5px 0;
+
+  &::before {
+    position: absolute;
+    inset: -2px;
+    border: 2px dashed global.$acms-color-black-dark;
+
+    // レイアウト範囲表示
+    content: '';
+  }
+}
+
+.acms-layout-edit {
+  .acms-layout-menu-inner {
+    display: none;
+  }
+
+  // レイアウトユニット
+  .acms-layout-unit {
+    box-sizing: border-box;
+    margin-bottom: 5px;
+    padding: 0 3px 3px;
+    background-color: global.$layout-unit-bg;
+    border: 1px solid global.$layout-unit-border;
+    border-radius: 4px;
+    cursor: move;
+
+    .acms-layout-contents {
+      padding: 3px;
+
+      @include global.clearfix;
+    }
+
+    .acms-layout-contents-inner {
+      min-height: 130px;
+      padding: 5px 5px 0;
+      background-color: global.$acms-color-white;
+      border: 1px dashed global.$layout-contents-border;
+    }
+  }
+
+  // ユニット内ラベルの名前
+  .acms-layout-label-name {
+    color: global.$acms-color-gray90;
+    font-weight: bold;
+
+    @include global.font-size(13);
+  }
+
+  // モジュールユニット
+  .acms-layout-module-unit {
+    margin-bottom: 5px;
+    padding: 0 5px 5px;
+    background: #7096cd;
+
+    .acms-layout-contents {
+      min-height: 130px;
+      background-color: global.$acms-color-white;
+      border: 0;
+    }
+  }
+
+  .acms-layout-edit-box {
+    position: relative;
+    padding: 5px 10px;
+    color: global.$acms-color-gray90;
+
+    @include global.font-size(13);
+
+    &::before {
+      position: absolute;
+      right: 0;
+      left: 0;
+      display: block;
+      width: 100%;
+      height: 13px;
+      background: url('../images/marker/ico_dragabble.png') no-repeat center center;
+      background-size: 23px 13px;
+      content: '';
+    }
+
+    [class*='acms-icon'] {
+      &::before {
+        vertical-align: middle;
+
+        @include global.font-size(12);
+      }
+    }
+
+    .acms-layout-control-btn {
+      position: relative;
+      vertical-align: middle;
+    }
+  }
+
+  .acms-layout-module-unit .acms-layout-edit-box {
+    padding: 10px 5px 5px 0;
+    color: global.$acms-color-white;
+
+    .acms-icon-delete {
+      &::before {
+        color: global.$acms-color-white;
+      }
+    }
+  }
+}
+
+.acms-layout-placeholder {
+  position: relative;
+  box-sizing: border-box;
+  min-height: 80px;
+  margin: 10px 0;
+  background-color: global.$layout-placeholder-bg;
+  border: 2px solid global.$layout-placeholder-border;
+
+  @include global.font-size(13);
+
+  &::after {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    margin-left: -70px;
+    color: global.$layout-placeholder-color;
+    content: '\30EC\30A4\30A2\30A6\30C8\3092\3053\3053\306B\30C9\30E9\30C3\30B0';
+  }
+}
+
+.acms-module-placeholder {
+  position: relative;
+  box-sizing: border-box;
+  min-height: 80px;
+  margin: 10px 0;
+  background-color: global.$module-placeholder-bg;
+  border: 2px solid global.$module-placeholder-border;
+
+  @include global.font-size(13);
+
+  &::after {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    margin-left: -70px;
+    color: global.$module-placeholder-color;
+    content: '\30E2\30B8\30E5\30FC\30EB\3092\3053\3053\306B\30C9\30E9\30C3\30B0';
+  }
+}
+
+.preview-container {
+  position: fixed;
+  inset: 0;
+  z-index: global.zIndex(preview-container);
+  overflow: hidden;
+  background: global.$acms-color-white;
+}
+
+// ---------------
+// レイアウトモジュール モジュール選択画面
+// ---------------
+.acms-layout-module-edit {
+  .acms-filter {
+    padding: 10px;
+    background: global.$acms-color-white;
+    border: 1px solid global.$layout-edit-border;
+    border-top: 0;
+  }
+}
+
+.acms-layout-sidebar {
+  padding: 0;
+
+  ul {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+  }
+
+  dl {
+    margin-top: 0;
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.acms-layout-module-edit-inner {
+  background-color: global.$acms-color-white;
+  border: 1px solid global.$layout-edit-border;
+
+  @include global.clearfix;
+}
+
+.acms-layout-module-edit-tpl-type {
+  margin: 0 10px 0 0;
+  color: global.$acms-color-gray90;
+  font-weight: bold;
+}
+
+.acms-layout-sidebar-item {
+  padding: 10px;
+  font-weight: bold;
+  line-height: 1.2;
+  background: global.$edit-entry-bg-color-light;
+  border-right: 1px solid global.$acms-color-gray60;
+  border-bottom: 1px solid global.$acms-color-gray60;
+
+  @include global.font-size(14);
+  @include global.transition(all 0.2s linear);
+
+  &.acms-layout-sidebar-item-selected {
+    background: global.$edit-entry-bg-color-darker;
+  }
+
+  &.acms-layout-sidebar-item-active {
+    background: global.$edit-entry-bg-color-white;
+    border-right: 1px solid global.$acms-color-white;
+  }
+
+  &:hover {
+    background: global.$edit-entry-bg-color-white;
+    border-right: 1px solid global.$acms-color-white;
+    cursor: pointer;
+  }
+
+  [class*='acms-label'] {
+    font-weight: normal;
+  }
+}
+
+.acms-layout-sidebar-item-inner {
+  display: table;
+  width: 100%;
+}
+
+.acms-layout-sidebar-item-cell {
+  display: table-cell;
+}
+
+.acms-layout-sidebar-item-cell-full {
+  width: 100%;
+}
+
+.acms-layout-sidebar-item-cell-middle {
+  vertical-align: middle;
+}
+
+// サイドバー中身
+.acms-layout-sidebar-item-main-inner {
+  display: table;
+  width: 100%;
+}
+
+.acms-layout-sidebar-item-main {
+  margin: 0;
+  font-size: 14px;
+}
+
+.acms-layout-sidebar-item-sub {
+  display: block;
+  margin: 0 0 8px;
+  color: global.$acms-color-gray90;
+  font-weight: normal;
+  font-size: 12px;
+
+  p {
+    margin: 0;
+  }
+}
+
+.acms-layout-sidebar-link a {
+  padding: 20px 10px 20px 20px;
+  padding-left: calc(10px + constant(safe-area-inset-left));
+  color: global.$acms-color-black;
+  font-weight: bold;
+
+  @include global.font-size(14);
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.acms-layout-scroll-area {
+  overflow: auto;
+}
+
+// ---------------
+// レイアウトモジュール確認画面
+// ---------------
+//レイアウトプレビューモードのときのルートのhtml要素
+.js-layout_preview_mode {
+  position: fixed;
+}
+
+// PC画面表示
+.acms-layout-desktop-preview {
+  right: 420px;
+  left: 0;
+  border-right: 1px solid global.$acms-color-gray60;
+}
+
+// モバイル画面表示
+.acms-layout-mobile-preview {
+  position: fixed;
+  right: 0;
+  width: 420px;
+  overflow: scroll;
+  background: global.$acms-color-gray50;
+}
+
+.acms-layout-mobile-preview * {
+  box-sizing: border-box;
+}
+
+.acms-layout-mobile-phone-frame {
+  position: relative;
+  clear: both;
+  width: 360px;
+  height: 680px;
+  margin: 20px auto;
+  padding-top: 50px;
+  padding-left: 18px;
+  background: global.$acms-color-white;
+  border: 2px solid global.$acms-color-gray60;
+  border-radius: 35px;
+
+  &::before {
+    position: absolute;
+    bottom: 10px;
+    left: 158px;
+    box-sizing: border-box;
+    width: 40px;
+    height: 40px;
+    border: 2px solid global.$acms-color-gray60;
+    border-radius: 20px;
+    content: '';
+  }
+
+  &::after {
+    position: absolute;
+    top: 25px;
+    left: 138px;
+    box-sizing: border-box;
+    width: 80px;
+    height: 6px;
+    border: 3px solid global.$acms-color-gray60;
+    border-radius: 5px;
+    content: '';
+  }
+}
+
+.acms-layout-preview-iframe-wrapper {
+  z-index: global.zIndex(acms-preview-iframe-wrapper);
+  width: 320px;
+  height: 568px;
+  border: 2px solid global.$acms-color-gray60;
+  border-radius: 3px;
+}
+
+.acms-layout-desktop-preview-inner {
+  position: absolute;
+  inset: 0;
+  background: global.$acms-color-gray20;
+}
+
+.acms-layout-preview-col {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.acms-layout-preview-split-left {
+  right: 420px;
+  left: 0;
+}
+
+@media screen and (width <= 1000px) {
+  .acms-layout-preview-split-left {
+    right: 40px;
+  }
+
+  .acms-layout-mobile-preview {
+    width: 40px;
+  }
+
+  .acms-layout-mobile-phone-frame {
+    display: none;
+  }
+}

@@ -3,31 +3,67 @@
 namespace Acms\Services\Unit\Models;
 
 use Acms\Services\Unit\Contracts\Model;
-use Acms\Traits\Unit\UnitTemplateTrait;
+use Acms\Services\Unit\Contracts\AlignableUnitInterface;
+use Acms\Services\Unit\Contracts\AnkerUnitInterface;
+use Acms\Traits\Unit\AlignableUnitTrait;
+use Acms\Traits\Unit\AnkerUnitTrait;
+use Acms\Traits\Unit\SizeableUnitTrait;
+use Acms\Services\Unit\Contracts\SizeableUnitInterface;
+use Acms\Traits\Unit\UnitMultiLangTrait;
 use Template;
 
-class YouTube extends Model
+/**
+ * @extends \Acms\Services\Unit\Contracts\Model<array<string, mixed>>
+ */
+class YouTube extends Model implements AlignableUnitInterface, AnkerUnitInterface, SizeableUnitInterface
 {
-    use UnitTemplateTrait;
+    use AlignableUnitTrait;
+    use AnkerUnitTrait;
+    use SizeableUnitTrait;
+    use UnitMultiLangTrait;
+
+    /**
+     * ユニットの独自データ
+     * @var array<string, mixed>
+     */
+    private $attributes = [];
 
     /**
      * ユニットタイプを取得
      *
-     * @return string
+     * @inheritDoc
      */
-    public function getUnitType(): string
+    public static function getUnitType(): string
     {
         return 'youtube';
     }
 
     /**
-     * ユニットが画像タイプか取得
-     *
-     * @return bool
+     * @inheritDoc
      */
-    public function getIsImageUnit(): bool
+    public static function getUnitLabel(): string
     {
-        return false;
+        return gettext('YouTube') . gettext('（非推奨）');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAttributes()
+    {
+        return [
+            'youtube_id' => $this->getField2(),
+            'youtube_size' => $this->getSize(),
+            ...$this->attributes,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setAttributes($attributes): void
+    {
+        $this->attributes = $attributes;
     }
 
     /**
@@ -43,28 +79,23 @@ class YouTube extends Model
     }
 
     /**
-     * POSTデータからユニット独自データを抽出
-     *
-     * @param array $post
-     * @param bool $removeOld
-     * @param bool $isDirectEdit
-     * @return void
+     * @inheritDoc
      */
-    public function extract(array $post, bool $removeOld = true, bool $isDirectEdit = false): void
+    public function extract(array $request): void
     {
-        $id = $this->getTempId();
-        $youtubeId = $this->implodeUnitData($_POST["youtube_id_{$id}"]);
-        if ($isDirectEdit && strlen($youtubeId) === 0) {
-            $youtubeId = config('action_direct_def_youtubeid');
+        $id = $this->getId();
+        if (is_null($id)) {
+            throw new \LogicException('Unit ID must be set before calling extract');
         }
+        $youtubeId = $this->implodeUnitDataTrait($request["youtube_id_{$id}"] ?? '');
         if (preg_match(REGEX_VALID_URL, $youtubeId)) {
             $parsed_url = parse_url($youtubeId);
             if (!empty($parsed_url['query'])) {
-                $youtubeId = preg_replace('/v=([\w\-_]+).*/', '$1', $parsed_url['query']);
+                $youtubeId = preg_replace('/v=([\w\-_]+).*/', '$1', $parsed_url['query']) ?? '';
             }
         }
         $this->setField2($youtubeId);
-        [$size, $displaySize] = $this->extractUnitSizeTrait($post["youtube_size_{$id}"] ?? '');
+        [$size, $displaySize] = $this->extractUnitSizeTrait($request["youtube_size_{$id}"] ?? '', $this::getUnitType());
         $this->setSize($size);
         $this->setField3($displaySize);
     }
@@ -76,7 +107,7 @@ class YouTube extends Model
      */
     public function canSave(): bool
     {
-        if (empty($this->getField2())) {
+        if ($this->getField2() === '') {
             return false;
         }
         return true;
@@ -131,7 +162,7 @@ class YouTube extends Model
     public function render(Template $tpl, array $vars, array $rootBlock): void
     {
         $youtubeId = $this->getField2();
-        if (empty($youtubeId)) {
+        if ($youtubeId === '') {
             return;
         }
         list($x, $y) = explode('x', $this->getSize());
@@ -139,11 +170,11 @@ class YouTube extends Model
             'youtubeId' => $youtubeId,
             'x' => $x,
             'y' => $y,
-            'align' => $this->getAlign(),
+            'align' => $this->getAlign()->value,
+            'anker' => $this->getAnker(),
         ];
-        $this->formatMultiLangUnitData($vars['youtubeId'], $vars, 'youtubeId');
+        $this->formatMultiLangUnitDataTrait($vars['youtubeId'], $vars, 'youtubeId');
         $vars = $this->displaySizeStyleTrait($this->getField3(), $vars);
-        $vars['attr'] = $this->getAttr();
         $tpl->add(array_merge(['unit#' . $this->getType()], $rootBlock), $vars);
     }
 
@@ -158,9 +189,9 @@ class YouTube extends Model
     public function renderEdit(Template $tpl, array $vars, array $rootBlock): void
     {
         $size = $this->getSize();
-        $this->renderSizeSelectTrait($this->getUnitType(), $this->getUnitType(), $size, $tpl, $rootBlock);
-        $this->formatMultiLangUnitData($this->getField2(), $vars, 'youtubeId');
-        $tpl->add(array_merge([$this->getUnitType()], $rootBlock), $vars);
+        $this->renderSizeSelectTrait($this::getUnitType(), $this::getUnitType(), $size, $tpl, $rootBlock);
+        $this->formatMultiLangUnitDataTrait($this->getField2(), $vars, 'youtubeId');
+        $tpl->add(array_merge([$this::getUnitType()], $rootBlock), $vars);
     }
 
     /**
@@ -172,7 +203,7 @@ class YouTube extends Model
     {
         return [
             'youtube_id' => $this->getField2(),
-            'display_size' => $this->getField3(),
+            'display_size' => $this->getField3()
         ];
     }
 }

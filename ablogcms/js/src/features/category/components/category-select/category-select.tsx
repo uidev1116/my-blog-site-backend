@@ -1,45 +1,86 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { InputActionMeta, SelectInstance } from 'react-select';
+import { forwardRef, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { ControlProps, type InputActionMeta, type SelectInstance, components } from 'react-select';
 import { debounce } from 'throttle-debounce';
 import styled from 'styled-components';
 import RichSelect from '../../../../components/rich-select/rich-select';
 import useCategoryOptionsSWR from '../../hooks/use-category-options-swr';
 import type { CategoryOption, CreatedCategoryDTO } from '../../types';
 import CategoryCreateModal from '../category-create-modal/category-create-modal';
+import useMergeRefs from '../../../../hooks/use-merge-refs';
+import { Tooltip } from '../../../../components/tooltip';
+import { isString } from '../../../../utils/typeGuard';
 
 interface CategorySelectProps
   extends Partial<
     Pick<
       React.ComponentPropsWithoutRef<typeof RichSelect>,
-      'id' | 'inputId' | 'isDisabled' | 'form' | 'name' | 'isClearable' | 'menuPortalTarget'
+      | 'id'
+      | 'inputId'
+      | 'isDisabled'
+      | 'form'
+      | 'name'
+      | 'isClearable'
+      | 'menuPortalTarget'
+      | 'className'
+      | 'aria-label'
+      | 'aria-labelledby'
+      | 'placeholder'
     >
   > {
-  defaultValue?: number;
+  defaultValue?: CategoryOption | CategoryOption['value'];
   narrowDown?: boolean;
   isCreatable?: boolean;
-  customOptions?: CategoryOption[];
   onChange?: (value: CategoryOption | null) => void;
+  noOption?: boolean;
+  mtOption?: boolean;
 }
 
 const CategorySelectContainer = styled.div`
   display: flex;
   gap: 4px;
   align-items: center;
+  width: 100%;
 `;
 
 const CategorySelectFormArea = styled.div`
   flex: 1;
 `;
 
-const CategorySelect = ({
-  defaultValue: defaultValueProp,
-  narrowDown = false,
-  isCreatable = false,
-  isClearable = true,
-  customOptions = [],
-  onChange,
-  ...props
-}: CategorySelectProps) => {
+const CategorySelectControl = (props: ControlProps<CategoryOption, false>) => {
+  const id = useId();
+  return (
+    <div id={`${id}-category-select-control`}>
+      <components.Control {...props} />
+      <Tooltip
+        anchorSelect={`#${CSS.escape(id)}-category-select-control`}
+        content={props.getValue()?.[0]?.label}
+        delayShow={500}
+        openEvents={{
+          mouseover: true,
+          focus: false,
+        }}
+        closeEvents={{
+          mouseout: true,
+          blur: false,
+        }}
+      />
+    </div>
+  );
+};
+
+const CategorySelectWithoutRef = (
+  {
+    defaultValue: defaultValueProp,
+    narrowDown = false,
+    isCreatable = false,
+    isClearable = true,
+    onChange,
+    noOption = false,
+    mtOption = false,
+    ...props
+  }: CategorySelectProps,
+  ref: React.ForwardedRef<SelectInstance<CategoryOption, false>>
+) => {
   const selectRef = useRef<SelectInstance<CategoryOption, false>>(null);
   const [inputValue, setInputValue] = useState<string>('');
   const [keyword, setKeyword] = useState<string>('');
@@ -51,25 +92,37 @@ const CategorySelect = ({
     if (value !== null) {
       return parseInt(value.value, 10);
     }
-    return defaultValueProp;
+    if (defaultValueProp != null) {
+      return isString(defaultValueProp) ? parseInt(defaultValueProp, 10) : parseInt(defaultValueProp.value, 10);
+    }
+    return null;
   }, [value, defaultValueProp]);
   const { options: apiOptions, isLoading } = useCategoryOptionsSWR({ keyword, narrowDown, currentCid });
 
-  const options = useMemo(() => [...customOptions, ...(apiOptions || [])], [apiOptions, customOptions]);
+  const options = useMemo(() => {
+    return [
+      ...(mtOption ? [{ value: '-1', label: ACMS.i18n('category.select_mt_option_label') }] : []),
+      ...(noOption ? [{ value: '0', label: ACMS.i18n('category.select_no_option_label') }] : []),
+      ...(apiOptions || []),
+    ];
+  }, [apiOptions, mtOption, noOption]);
 
   const handleChange = useCallback(
     (newValue: CategoryOption | null) => {
-      setValue(newValue);
-      onChange?.(newValue);
+      const value = options.find((option) => option.value === newValue?.value) || newValue;
+      setValue(value);
+      onChange?.(value);
     },
-    [onChange]
+    [onChange, options]
   );
 
   useEffect(() => {
     if (defaultValue === null && options && options.length > 0) {
       // カテゴリーのデフォルト値を設定
       // カテゴリーのデータ（option）は、サーバーから現在選択しているカテゴリーが含まれていることが保証されている前提
-      setDefaultValue(options.find((option) => option.value === defaultValueProp?.toString()) || null);
+      const defaultValueString = isString(defaultValueProp) ? defaultValueProp : defaultValueProp?.value.toString();
+
+      setDefaultValue(options.find((option) => option.value === defaultValueString) || null);
     }
   }, [options, defaultValue, defaultValueProp]);
 
@@ -116,7 +169,7 @@ const CategorySelect = ({
     <CategorySelectContainer>
       <CategorySelectFormArea>
         <RichSelect<CategoryOption, false>
-          ref={selectRef}
+          ref={useMergeRefs(selectRef, ref)}
           value={value}
           inputValue={inputValue}
           isSearchable
@@ -127,6 +180,11 @@ const CategorySelect = ({
           isLoading={!!keyword && isLoading}
           onInputChange={handleInputChange}
           onChange={handleChange}
+          aria-label={ACMS.i18n('category.select_label')}
+          components={{
+            Control: CategorySelectControl,
+          }}
+          filterOption={null}
           {...props}
         />
       </CategorySelectFormArea>
@@ -144,4 +202,6 @@ const CategorySelect = ({
   );
 };
 
-export default CategorySelect;
+CategorySelectWithoutRef.displayName = 'CategorySelect';
+
+export default forwardRef(CategorySelectWithoutRef);

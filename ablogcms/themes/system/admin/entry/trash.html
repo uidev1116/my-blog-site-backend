@@ -8,11 +8,11 @@
   </div>
 </header>
 
-<!-- BEGIN refresh -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->エントリー一覧を更新しました。<!--/T--></p><!-- END refresh -->
+@include("/admin/include/action-result.html", {
+  "successMessage": "<!--T-->ゴミ箱を更新しました。<!--/T-->",
+  "errorMessage": "<!--T-->ゴミ箱の更新に失敗しました。<!--/T-->"
+})
 
-
-<!-- BEGIN_IF [<!-- BEGIN index#notFound -->1<!-- END index#notFound -->/neq/1/_or_/%{CURRENT_ROOT}/neq//bid/%{BID}/admin/%{ADMIN}] -->
 <div class="acms-admin-filter">
   <form action="" method="post" class="acms-admin-form">
     <div class="acms-admin-filter-body">
@@ -83,29 +83,25 @@
             <div class="acms-admin-filter-content">
               <div class="acms-admin-filter-item">
                 <label for="filter-order" class="acms-admin-filter-item-name acms-admin-show-sp"><!--T-->ソート<!--/T-->:</label>
-                <div class="acms-admin-filter-item-content">
-                  <select class="input-sm js-select2" name="order" id="filter-order">
-                    <option value="updated_datetime-asc"{order:selected#updated_datetime-asc}><!--T-->削除日時<!--/T--> (<!--T-->昇順<!--/T-->)</option>
-                    <option value="updated_datetime-desc"{order:selected#updated_datetime-desc}><!--T-->削除日時<!--/T--> (<!--T-->降順<!--/T-->)</option>
-                    <option value="datetime-asc"{order:selected#datetime-asc}><!--T-->日付<!--/T--> (<!--T-->昇順<!--/T-->)</option>
-                    <option value="datetime-desc"{order:selected#datetime-desc}><!--T-->日付<!--/T--> (<!--T-->降順<!--/T-->)</option>
-                    <option value="code-asc"{order:selected#code-asc}><!--T-->ファイル名<!--/T-->（<!--T-->昇順<!--/T-->）</option>
-                    <option value="code-desc"{order:selected#code-desc}><!--T-->ファイル名<!--/T-->（<!--T-->降順<!--/T-->）</option>
-                    <option value="id-asc"{order:selected#id-asc}>ID（<!--T-->昇順<!--/T-->）</option>
-                    <option value="id-desc"{order:selected#id-desc}>ID（<!--T-->降順<!--/T-->）</option>
-                    <option value="sort-asc"{order:selected#sort-asc}>表示順（<!--T-->昇順<!--/T-->）</option>
-                    <option value="sort-desc"{order:selected#sort-desc}>表示順（<!--T-->降順<!--/T-->）</option>
-                  </select>
-                </div>
+                <select class="input-sm js-select2" name="order" id="filter-order">
+                  <option value="updated_datetime-asc"{order:selected#updated_datetime-asc}><!--T-->削除日時<!--/T--> (<!--T-->昇順<!--/T-->)</option>
+                  <option value="updated_datetime-desc"{order:selected#updated_datetime-desc}><!--T-->削除日時<!--/T--> (<!--T-->降順<!--/T-->)</option>
+                  <option value="datetime-asc"{order:selected#datetime-asc}><!--T-->日付<!--/T--> (<!--T-->昇順<!--/T-->)</option>
+                  <option value="datetime-desc"{order:selected#datetime-desc}><!--T-->日付<!--/T--> (<!--T-->降順<!--/T-->)</option>
+                  <option value="code-asc"{order:selected#code-asc}><!--T-->ファイル名<!--/T-->（<!--T-->昇順<!--/T-->）</option>
+                  <option value="code-desc"{order:selected#code-desc}><!--T-->ファイル名<!--/T-->（<!--T-->降順<!--/T-->）</option>
+                  <option value="id-asc"{order:selected#id-asc}>ID（<!--T-->昇順<!--/T-->）</option>
+                  <option value="id-desc"{order:selected#id-desc}>ID（<!--T-->降順<!--/T-->）</option>
+                  <option value="sort-asc"{order:selected#sort-asc}>表示順（<!--T-->昇順<!--/T-->）</option>
+                  <option value="sort-desc"{order:selected#sort-desc}>表示順（<!--T-->降順<!--/T-->）</option>
+                </select>
               </div>
 
               <div class="acms-admin-filter-item">
                 <label for="filter-limit" class="acms-admin-filter-item-name acms-admin-show-sp"><!--T-->表示数<!--/T-->:</label>
-                <div class="acms-admin-filter-item-content">
-                  <select name="limit" id="filter-limit" class="js-select2"><!-- BEGIN limit:loop -->
-                    <option value="{limit}"{selected}>{limit}</option><!-- END limit:loop -->
-                  </select>
-                </div>
+                <select name="limit" id="filter-limit" class="js-select2"><!-- BEGIN limit:loop -->
+                  <option value="{limit}"{selected}>{limit}</option><!-- END limit:loop -->
+                </select>
               </div>
             </div>
           </div>
@@ -119,39 +115,39 @@
       <input type="submit" name="ACMS_POST_2GET" value="<!--T-->検索<!--/T-->" class="acms-admin-btn-admin acms-admin-btn-admin-info acms-admin-btn-admin-search" />
       <input type="hidden" name="admin" value="entry_trash" />
 
-      <p class="acms-admin-filter-detail-btn"><a href="#search-detail" class="js-fader"><span class="acms-admin-icon-arrow-right"></span>詳細検索</a></p>
+      <p class="acms-admin-filter-detail-btn"><a href="#search-detail" class="js-admin-fader"><span class="acms-admin-icon-arrow-right"></span>詳細検索</a></p>
     </div>
   </form>
 </div>
-<!-- END_IF -->
 
-<!-- BEGIN_IF [<!-- BEGIN index#notFound -->1<!-- END index#notFound -->/eq/1/_and_/%{CURRENT_ROOT}/neq//bid/%{BID}/admin/%{ADMIN}] -->
+<!-- BEGIN index#notFound -->
 <div class="acms-admin-announce">
   <h2 class="acms-admin-announce-title"><span class="acms-admin-icon acms-admin-icon-news"></span><!--T-->該当するエントリーが見つかりませんでした<!--/T--></h2>
   <p class="acms-admin-announce-text"><!--T-->検索内容に一致したエントリーはありませんでした。<!--/T--></p>
 </div>
-<!-- ELSE -->
-<!-- BEGIN index#notFound -->
-<div class="acms-admin-announce">
-  <h2 class="acms-admin-announce-title"><span class="acms-admin-icon acms-admin-icon-news"></span><!--T-->ゴミ箱は空です<!--/T--></h2>
-  <p class="acms-admin-announce-text"><!--T-->削除されたエントリーはありません。<!--/T--></p>
-</div><!-- END index#notFound -->
-<!-- END_IF -->
+<!-- END index#notFound -->
 
 
 <!-- BEGIN_IF [<!-- BEGIN index#notFound -->1<!-- END index#notFound -->/neq/1] -->
 <form method="post" action="" id="entry-list-form" class="acms-admin-form">
-  <!-- BEGIN adminDeleteAction -->
   <div class="js-acms-tab-select clearfix js-acms_fix_marker">
+    <!-- BEGIN_IF [<!-- BEGIN bulkAction:loop -->1<!-- END bulkAction:loop -->/nem] -->
     <div class="acms-admin-inline-block acms-admin-margin-bottom-mini acms-admin-float-left">
       <select name="action-entry" class="js-acms-tab-select-value acms-admin-float-left">
-        <option value="action-delete"{action-entry:selected#action-delete}>
+        <!-- BEGIN bulkAction:loop -->
+        <!-- BEGIN_IF [{bulkAction}/eq/delete] -->
+        <option value="action-delete" {action-entry:selected#action-delete}>
           <!--T-->完全削除<!--/T-->
         </option>
-        <option value="action-restore"{action-entry:selected#action-delete}>
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{bulkAction}/eq/restore] -->
+        <option value="action-restore" {action-entry:selected#action-delete}>
           <!--T-->復元<!--/T-->
         </option>
+        <!-- END_IF -->
+        <!-- END bulkAction:loop -->
       </select>
+      <!-- BEGIN_IF [<!-- BEGIN bulkAction:loop -->{bulkAction}<!-- END bulkAction:loop -->/lk/delete] -->
       <div id="action-delete" class="js-acms-tab-select-panel js-acms-tab-select-active acms-admin-float-left">
         <button
           type="submit"
@@ -162,6 +158,8 @@
           <!--T-->削除<!--/T-->
         </button>
       </div>
+      <!-- END_IF -->
+      <!-- BEGIN_IF [<!-- BEGIN bulkAction:loop -->{bulkAction}<!-- END bulkAction:loop -->/lk/restore] -->
       <div id="action-restore" class="js-acms-tab-select-panel acms-admin-float-left">
         <button
           type="submit"
@@ -172,23 +170,22 @@
           <!--T-->復元<!--/T-->
         </button>
       </div>
+      <!-- END_IF -->
     </div>
+    <!-- END_IF -->
     <!-- BEGIN_MODULE Touch_SessionWithAdministration -->
     <div class="acms-admin-inline-block acms-admin-margin-bottom-mini acms-admin-float-right">
-      <span class="js-fake-form" data-method="post">
-        <input type="hidden" name="ACMS_POST_Entry_Index_TrashAll" value="Delete All" />
-        <button
-          type="button"
-          class="js-submit acms-admin-btn-admin acms-admin-btn-admin-danger"
-          data-confirm="<!--T-->このブログ以下の全てのブログのゴミ箱を空にします。\nこの操作は取り消せません。よろしいですか？<!--/T-->"
-        >
-          <!--T-->ゴミ箱を空にする<!--/T-->
-        </button>
-      </span>
+      <button
+        type="submit"
+        form="entry-list-trash-all-form"
+        class="acms-admin-btn-admin acms-admin-btn-admin-danger"
+        onclick="return confirm('<!--T-->このブログ以下の全てのブログのゴミ箱を空にします。\nこの操作は取り消せません。よろしいですか？<!--/T-->')"
+      >
+        <!--T-->ゴミ箱を空にする<!--/T-->
+      </button>
     </div>
     <!-- END_MODULE Touch_SessionWithAdministration -->
   </div>
-  <!-- END adminDeleteAction -->
   <div class="acms-admin-table-scroll-xs acms-admin-table-scroll-sm acms-admin-table-scroll-md">
     <table
       class="acms-admin-table-admin acms-admin-table-hover"
@@ -198,10 +195,10 @@
       <thead class="acms-admin-table-heading">
         <tr>
           <th class="acms-admin-table-center acms-admin-th-checkbox acms-admin-table-nowrap">
-            <div class="acms-admin-form-checkbox acms-admin-margin-none">
+            <div class="acms-admin-form-checkbox acms-admin-m-0">
               <input type="checkbox" id="checkAll" />
               <label for="checkAll">
-                <i class="acms-admin-ico-checkbox acms-admin-margin-none"></i>
+                <i class="acms-admin-ico-checkbox acms-admin-m-0"></i>
                 <span class="acms-admin-hide-visually">
                   <!--T-->すべてのエントリーを選択する<!--/T-->
                 </span>
@@ -222,10 +219,10 @@
         <!-- BEGIN entry:loop -->
         <tr data-sort-level="parallel" data-sort-name="sort-{sort#eid}">
           <td class="acms-admin-table-center acms-admin-td-checkbox acms-admin-table-nowrap">
-            <div class="acms-admin-form-checkbox acms-admin-margin-none">
+            <div class="acms-admin-form-checkbox acms-admin-m-0">
               <input type="checkbox" name="checks[]" value="{bid}:{eid}" id="check-eid{sort#eid}" />
               <label for="check-eid{sort#eid}">
-                <i class="acms-admin-ico-checkbox acms-admin-margin-none"></i>
+                <i class="acms-admin-ico-checkbox acms-admin-m-0"></i>
                 <span class="acms-admin-hide-visually">
                   <!--T-->エントリータイトル「{title}」を選択する<!--/T-->
                 </span>
@@ -244,7 +241,7 @@
             <a href="{entryUrl}?trash=show" class="acms-admin-td-title">
               <p class="acms-admin-entryTitle">{title}</p>
             </a>
-            <p class="acms-admin-margin-none">{code}</p>
+            <p class="acms-admin-m-0">{code}</p>
           </td>
           <td>
             {datetime}[date('Y/n/d')]<br>{datetime}[date('H:i')]
@@ -285,29 +282,28 @@
 
           @include("/admin/entry/field-list.html")
           <td class="acms-admin-td-edit acms-admin-table-nowrap">
-            <div class="acms-admin-btn-group acms-admin-btn-group-entry admin-entry-dropdown-toggle">
-              <div class="js-acms-dropdown-toggle">
-                <!-- BEGIN adminDeleteActionLoop -->
-                <button
-                  type="button"
-                  class="acms-admin-btn-admin js-acms_entry_index_trash"
-                >
-                  <!--T-->復元<!-- /T -->
-                </button>
-                <!-- END adminDeleteActionLoop -->
+            <div class="js-acms-dropdown-toggle acms-admin-btn-group">
+              <!-- BEGIN action:loop -->
+              <!-- BEGIN_IF [{id}/eq/restore] -->
+              <button
+                type="button"
+                class="acms-admin-btn-admin js-acms_entry_index_trash"
+              >
+                <!--T-->復元<!-- /T -->
+              </button>
+              <!-- END_IF -->
+              <!-- END action:loop -->
+              <!-- BEGIN action:loop -->
+              <!-- BEGIN_IF [{id}/eq/approval-history] -->
+              <button type="button" class="acms-admin-btn-admin js-acms-dropdown-btn" >
+                <span class="acms-admin-arrow-bottom"></span>
+              </button>
 
-                <!-- BEGIN_MODULE Touch_Approval -->
-                <!-- BEGIN_MODULE Touch_sessionWithApprovalAdministrator -->
-                <button type="button" class="acms-admin-btn-admin js-acms-dropdown-btn" >
-                  <span class="acms-admin-arrow-bottom"></span>
-                </button>
-
-                <ul class="js-acms-dropdown-menu" role="menu">
-                  <li><a href="/bid/%{BID}/eid/{eid}/admin/entry_approval-history/"><!--T-->承認履歴<!--/T--></a></li>
-                </ul>
-                <!-- END_MODULE Touch_sessionWithApprovalAdministrator -->
-                <!-- END_MODULE Touch_Approval -->
-              </div>
+              <ul class="js-acms-dropdown-menu" role="menu">
+                <li><a href="{url}"><!--T-->承認履歴<!--/T--></a></li>
+              </ul>
+              <!-- END_IF -->
+              <!-- END action:loop -->
             </div>
           </td>
         </tr>
@@ -316,16 +312,13 @@
     </table>
   </div>
 
-  <!-- BEGIN pager:veil -->
-  <div class="acms-admin-pager-container">
-    <ul class="acms-admin-pager"><!-- BEGIN backLink -->
-      <li class="prev"><a href="{url}">&laquo;<!--T-->前へ<!--/T--></a></li><!-- END backLink --><!-- BEGIN page:loop -->
-      <li{pageCurAttr}[raw]><span><!-- BEGIN link#front --><a href="{url}"><!-- END link#front -->{page}<!-- BEGIN link#rear --></a><!-- END link#rear --></span></li><!-- END page:loop --><!-- BEGIN lastPage:veil -->
-      <li class="last"><a href="{lastPageUrl}">...{lastPage}</a></li><!-- END lastPage:veil --><!-- BEGIN forwardLink -->
-      <li class="next"><a href="{url}"><!--T-->次へ<!--/T-->&raquo;</a></li><!-- END forwardLink -->
-    </ul>
-  </div><!-- END pager:veil -->
-  <!-- END index:veil -->
+  <div class="acms-admin-cssgrid acms-admin-mt-5">
+    @include("/admin/include/pagination.html")
+  </div>
+	<!-- END index:veil -->
+</form>
+<form action="" method="post" id="entry-list-trash-all-form" class="acms-admin-form">
+  <input type="hidden" name="ACMS_POST_Entry_Index_TrashAll" value="Delete All" />
 </form>
 <!-- END_IF -->
 

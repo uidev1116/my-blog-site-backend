@@ -66,3 +66,10 @@
     background-position: 0 0;
   }
 }
+
+@if global.$admin == true {
+  // プログレスバー内エラー文
+  .acms-progress-bar span {
+    display: inline-block;
+  }
+}

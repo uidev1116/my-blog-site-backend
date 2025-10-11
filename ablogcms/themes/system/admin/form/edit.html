@@ -9,42 +9,113 @@
 </header>
 
 <!-- BEGIN msg#insert -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
-	<button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->フォームIDを作成しました<!--/T--></p><!-- END msg#insert --><!-- BEGIN msg#update -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
-	<button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->フォームIDを保存しました<!--/T--></p><!-- END msg#update --><!-- BEGIN msg#delete -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger"><span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
-	<button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->フォームIDを削除しました<!--/T--></p><!-- END msg#delete --><!-- BEGIN form:validator#operative -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger"><span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
-	<button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->この操作は許可されていません。<!--/T--></p><!-- END form:validator#operative -->
+<div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info" role="alert">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    aria-label="アラートを閉じる"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+  >
+    ×
+  </button>
+  <!--T-->フォームIDを作成しました<!--/T-->
+</div>
+<!-- END msg#insert -->
 
-<!-- BEGIN headline#insert --><!-- END headline#insert -->
-<!-- BEGIN headline#update --><!-- END headline#update -->
+<!-- BEGIN msg#update -->
+<div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info" role="alert">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    aria-label="アラートを閉じる"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+  >
+    ×
+  </button>
+  <!--T-->フォームIDを保存しました<!--/T-->
+</div>
+<!-- END msg#update -->
+
+<!-- BEGIN msg#delete -->
+<div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger" role="alert">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    aria-label="アラートを閉じる"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+  >
+    ×
+  </button>
+  <!--T-->フォームIDを削除しました<!--/T-->
+</div>
+<!-- END msg#delete -->
+
+<!-- BEGIN form:validator#operative -->
+<div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger" role="alert">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    aria-label="アラートを閉じる"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+  >
+    ×
+  </button>
+  <!--T-->この操作は許可されていません。<!--/T-->
+</div>
+<!-- END form:validator#operative -->
+
+<form action="" method="post" id="form-delete-form">
+  <input type="hidden" name="takeover" value="{takeover}" />
+  <input type="hidden" name="ACMS_POST_Form_Delete" value="on" />
+</form>
+<form action="" method="post" id="form-duplicate-form">
+  <input type="hidden" name="takeover" value="{takeover}" />
+  <input type="hidden" name="ACMS_POST_Form_Duplicate" value="on" />
+</form>
 <form method="post" action="" class="acms-admin-form">
-
-
 	<div class="js-acms_fix_marker acms_fix_bg">
 		<div class="acms_fix_bg_index">
 			<a href="%{HTTP_ROOT}bid/%{BID}/admin/form_index/" class="acms-admin-btn-admin"><!--T-->一覧<!--/T--></a>
 
 			<!-- BEGIN submit#insert -->
-			<input type="submit" name="ACMS_POST_Form_Insert" value="<!--T-->作成<!--/T-->" class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-admin-save js-saving-splash"/>
+			<button
+        type="submit"
+        name="ACMS_POST_Form_Insert"
+        class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-admin-save js-saving-splash"
+      >
+        <!--T-->作成<!--/T-->
+      </button>
 			<!-- END submit#insert -->
 
 			<!-- BEGIN submit#update -->
-			<input type="submit" name="ACMS_POST_Form_Update" value="<!--T-->保存<!--/T-->" class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-admin-save js-saving-splash"/>
+			<button
+        type="submit"
+        name="ACMS_POST_Form_Update"
+        class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-admin-save js-saving-splash"
+      >
+        <!--T-->保存<!--/T-->
+      </button>
 
-			<input type="submit" name="ACMS_POST_Form_Delete" value="<!--T-->削除<!--/T-->" onclick="return confirm('<!--T-->フォームIDに関連づけられたログも一緒に削除されます。\nこの操作は元に戻せません。よろしいですか？<!--/T-->');" class="acms-admin-btn-admin acms-admin-btn-admin-danger js-hide-on-modal"/>
+			<button
+        type="submit"
+        form="form-delete-form"
+        class="acms-admin-btn-admin acms-admin-btn-admin-danger js-hide-on-modal"
+        onclick="return confirm('<!--T-->フォームIDに関連づけられたログも一緒に削除されます。\nこの操作は元に戻せません。よろしいですか？<!--/T-->');"
+      >
+        <!--T-->削除<!--/T-->
+      </button>
 			<input type="hidden" name="takeover" value="{takeover}"/>
 			<!-- END submit#update -->
 
       <!-- BEGIN footer#update -->
-      <div class="acms-admin-float-right" data-method="post">
-        <div class="js-fake-form acms-admin-inline-btn" data-method="post">
-          <input type="hidden" name="ACMS_POST_Form_Duplicate" value="on" />
-          <input type="hidden" name="takeover" value="{takeover}" />
-          <button class="js-submit acms-admin-btn-admin"><!--T-->複製<!--/T--></button>
-        </div>
+      <div class="acms-admin-float-right">
+        <button
+          type="submit"
+          form="form-duplicate-form"
+          class="acms-admin-btn-admin"
+        >
+          <!--T-->複製<!--/T-->
+        </button>
 
         <a href="%{HTTP_ROOT}bid/%{BID}/admin/form_log/?fmid=%{fmid}" class="acms-admin-btn-admin"><!--T-->投稿データ<!--/T--></a>
       </div>

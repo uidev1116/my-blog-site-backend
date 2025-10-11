@@ -13,12 +13,8 @@
       <div class="acms-admin-modal-body acms-admin-modal-body-fit">
         <div class="acms-admin-form">
           <div class="acms-grid">
-            <div class="acms-admin-col-4 acms-admin-padding-none">
+            <div class="acms-admin-col-4 acms-admin-p-0">
               <!-- BEGIN_MODULE Admin_Module_Index -->
-
-              <!-- BEGIN index#notFound -->
-              <p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger"><span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->モジュールIDがありません。<!--/T--></p><!-- END index#notFound -->
-
               <div class="acms-admin-filter acms-admin-filter-fit">
                 <button class="js-acms_layout_create_module acms-admin-btn acms-admin-btn-success acms-admin-float-right acms-admin-margin-bottom-small" data-mid="new"><!--T-->モジュールIDを作成<!--/T--></button>
                 <div>
@@ -26,19 +22,30 @@
                   <input type="text" id="searchModuleId" class="js-incremental_search_box acms-admin-form-width-full acms-admin-font" placeholder="&#xe99e 例）banner">
                 </div>
               </div>
-
-              <!-- BEGIN index:touch#result -->
-              <div class="js-resize_to_window_height acms-admin-layout-scroll-area acms-admin-layout-sidebar acms-admin-bg-light-gray acms-admin-padding-none" data-offset="200">
+              <!-- BEGIN index#notFound -->
+              <div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+                <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+                <!--T-->モジュールIDがありません。<!--/T-->
+                <button
+                  type="button"
+                  class="js-acms-alert-close acms-admin-alert-icon-after"
+                >
+                  ×
+                </button>
+              </div>
+              <!-- END index#notFound -->
+              <!-- BEGIN modules:veil -->
+              <div class="js-resize_to_window_height acms-admin-layout-scroll-area acms-admin-layout-sidebar acms-admin-bg-light-gray acms-admin-p-0" data-offset="200">
                 <ul class="js-module_index_table js-incremental_search">
-                  <!-- BEGIN module:loop -->
-                  <li class="search_element acms-admin-layout-sidebar-item js-layout_preview_module_id" data-mid="{mid}" data-tpl="<!-- BEGIN_IF [{mid}/eq/%{mid}] -->%{tpl}<!-- END_IF -->">
+                  <!-- BEGIN modules:loop -->
+                  <li class="search_element acms-admin-layout-sidebar-item js-layout_preview_module_id" data-mid="{id}" data-tpl="<!-- BEGIN_IF [{id}/eq/%{mid}] -->%{tpl}<!-- END_IF -->">
                     <div class="acms-admin-layout-sidebar-item-inner">
                       <div class="acms-admin-layout-sidebar-item-cell">
                         <div class="acms-admin-layout-sidebar-item-sub clearfix">
                           <p class="acms-admin-float-left">
-                            <span class="acms-admin-label acms-admin-margin-right-mini acms-admin-label-min-width">{mid}</span>
+                            <span class="acms-admin-label acms-admin-margin-right-mini acms-admin-label-min-width">{id}</span>
                           </p>
-                          <p class="acms-admin-float-left"><!-- BEGIN_IF [{mid}/eq/%{mid}] -->
+                          <p class="acms-admin-float-left"><!-- BEGIN_IF [{id}/eq/%{mid}] -->
                             <span class="acms-admin-label acms-admin-label-success acms-admin-margin-right-mini acms-admin-label-min-width"><!--T-->選択中<!--/T--></span><!-- END_IF -->
                           </p>
                           <p class="acms-admin-float-left">{identifier}</p>
@@ -50,19 +57,21 @@
                           </div>
 
                           <div class="acms-admin-layout-sidebar-item-cell acms-table-nowrap">
-                            <!-- BEGIN scope:touch#global --><span class="acms-admin-label acms-admin-label-info acms-admin-text-nowrap"><!--T-->グローバル<!--/T--></span><!-- END scope:touch#global -->
+                            <!-- BEGIN_IF [{scope}/eq/global] -->
+                            <span class="acms-admin-label acms-admin-label-info acms-admin-text-nowrap"><!--T-->グローバル<!--/T--></span>
+                            <!-- END_IF -->
                           </div>
                         </div>
                       </div>
                     </div>
                   </li>
-                  <!-- END module:loop -->
+                  <!-- END modules:loop -->
                 </ul>
-              </div><!-- END index:touch#result -->
+              </div><!-- END modules:veil -->
               <!-- END_MODULE Admin_Module_Index -->
             </div>
 
-            <div class="acms-admin-col-8 acms-admin-padding-none">
+            <div class="acms-admin-col-8 acms-admin-p-0">
               <div class="acms-admin-layout-scroll-area">
                 <script id="js-module_info_tpl" type="text/template">
                   <% if ( module.mid ===  0  || module.mid === '') { %>
@@ -74,12 +83,12 @@
                   <% if ( module.mid >  0 ) { %>
                   <header>
                     <div class="acms-admin-module-title-sub clearfix">
-                      <p class="acms-admin-margin-none acms-admin-float-left"><span class="acms-admin-label acms-admin-margin-right-small"><%- module.mid %></span><%- module.moduleID %></p>
-                      <p class="acms-admin-margin-none acms-admin-float-right"><%- module.module %></p>
+                      <p class="acms-admin-m-0 acms-admin-float-left"><span class="acms-admin-label acms-admin-margin-right-small"><%- module.mid %></span><%- module.moduleID %></p>
+                      <p class="acms-admin-m-0 acms-admin-float-right"><%- module.module %></p>
                     </div>
                     <div class="acms-admin-module-title-main clearfix">
                       <h1 class="acms-admin-module-title acms-admin-float-left"><%- module.name %></h1>
-                      <ul class="acms-admin-list-nostyle acms-admin-margin-none acms-admin-float-right">
+                      <ul class="acms-admin-list-nostyle acms-admin-m-0 acms-admin-float-right">
                         <% if ( module.template.length > 0 ) { %>
                           <li class="acms-admin-margin-left-small acms-admin-float-left"><span class="acms-admin-label"><%- module.template %></span></li>
                           <% } %>

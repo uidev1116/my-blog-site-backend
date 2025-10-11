@@ -170,17 +170,12 @@
       <!-- BEGIN_MODULE Touch_BlogGlobal -->
       <!-- BEGIN_IF [%{edit}/neq/insert] -->
       <div
-        class="js-fake-form acms-admin-float-right acms-admin-float-none-sp acms-admin-inline-block acms-admin-margin-bottom-mini"
-        data-method="post"
+        class="acms-admin-float-right acms-admin-float-none-sp acms-admin-inline-block acms-admin-margin-bottom-mini"
       >
-        <input type="hidden" name="bid" value="%{BID}" />
-        <input type="hidden" name="admin" value="blog_edit" />
-        <input type="hidden" name="edit" value="insert" />
-        <input type="hidden" name="query[]" value="edit" />
-        <input type="hidden" value="New Blog" name="ACMS_POST_2GET" />
         <button
-          type="button"
-          class="js-submit acms-admin-btn acms-admin-btn-success js-hide-on-modal"
+          type="submit"
+          form="create-blog-form"
+          class="acms-admin-btn acms-admin-btn-success js-hide-on-modal"
         >
           <!--T-->子ブログを作成<!--/T-->
         </button>
@@ -710,26 +705,36 @@
         <tr>
           <th><!--T-->位置情報<!--/T--></th>
           <td>
-            <div class="acms-admin-form-group">
-              <!-- BEGIN_IF [{geo_lat}/nem/_and_/{geo_lng}/nem/] -->
-              <input
-                class="js-geo_input acms-admin-btn"
-                type="button"
-                data-type="delete"
-              />
-              <!-- ELSE -->
-              <input
-                class="js-geo_input acms-admin-btn"
-                type="button"
-                data-type="add"
-              />
-              <!-- END_IF -->
+            <div class="acms-admin-vstack acms-admin-align-items-stretch">
+              <div>
+                <!-- BEGIN_IF [{geo_lat}/nem/_and_/{geo_lng}/nem/] -->
+                <button
+                  class="js-geo-button acms-admin-btn"
+                  type="button"
+                  data-type="delete"
+                  data-target="#geo-form"
+                >
+                  <!--T-->位置情報を削除<!--/T-->
+                </button>
+                <!-- ELSE -->
+                <button
+                  class="js-geo-button acms-admin-btn"
+                  type="button"
+                  data-type="add"
+                  data-target="#geo-form"
+                >
+                  <!--T-->位置情報を追加<!--/T-->
+                </button>
+                <!-- END_IF -->
+              </div>
+              <div id="geo-form" style="display: none;">
+                <!-- BEGIN_IF [<!-- BEGIN_MODULE Config -->{geolocation_map_type}<!-- END_MODULE Config -->/eq/gmap] -->
+                @include("/admin/map/_google-map-picker.html")
+                <!-- ELSE -->
+                @include("/admin/map/_open-street-map-picker.html")
+                <!-- END_IF -->
+              </div>
             </div>
-            <!-- BEGIN_IF [<!-- BEGIN_MODULE Config -->{geolocation_map_type}<!-- END_MODULE Config -->/eq/gmap] -->
-            @include("/admin/map/_google-map-picker.html")
-            <!-- ELSE -->
-            @include("/admin/map/_open-street-map-picker.html")
-            <!-- END_IF -->
           </td>
         </tr>
         <!-- END_IF -->
@@ -838,20 +843,14 @@
             <!--T-->このブログのデータ（データ、アーカイブ）をzip形式でダウンロードします。<!--/T-->
           </td>
           <td class="acms-admin-text-right">
-            <div class="js-fake-form" data-method="post">
-              <button
-                type="button"
-                class="js-submit acms-admin-btn-admin acms-admin-btn-admin-primary"
-                data-confirm="<!--T-->このブログのデータをエクスポートします。よろしいですか？<!--/T-->"
-              >
-                <!--T-->エクスポート<!--/T-->
-              </button>
-              <input
-                type="hidden"
-                name="ACMS_POST_Backup_BlogExport"
-                value="on"
-              />
-            </div>
+            <button
+              type="submit"
+              form="backup-blog-export-form"
+              class="acms-admin-btn-admin acms-admin-btn-admin-primary"
+              onclick="return confirm('<!--T-->このブログのデータをエクスポートします。よろしいですか？<!--/T-->')"
+            >
+              <!--T-->エクスポート<!--/T-->
+            </button>
           </td>
         </tr>
       </table>
@@ -869,7 +868,7 @@
           <td class="acms-admin-text-right">
             <!-- BEGIN_MODULE Admin_Backup_ArchiveZipList -->
             <!-- BEGIN import:veil -->
-            <div class="js-fake-form" data-method="post">
+            <div>
               <div
                 class="acms-admin-inline-block acms-admin-margin-bottom-mini"
               >
@@ -882,7 +881,7 @@
                 <div
                   class="acms-admin-inline-block acms-admin-margin-bottom-mini"
                 >
-                  <select name="zipfile" class="js-select2">
+                  <select name="zipfile" form="backup-blog-import-form" class="js-select2">
                     <!-- BEGIN export:loop -->
                     <option value="{zip}">{zip}</option>
                     <!-- END export:loop -->
@@ -893,16 +892,13 @@
                 class="acms-admin-inline-block acms-admin-margin-bottom-mini"
               >
                 <button
-                  class="js-submit acms-admin-btn-admin acms-admin-btn-admin-primary"
-                  data-confirm="<!--T-->このブログのデータをすべて削除しインポート処理を行います。よろしいですか？<!--/T-->"
+                  type="submit"
+                  form="backup-blog-import-form"
+                  class="acms-admin-btn-admin acms-admin-btn-admin-primary"
+                  onclick="return confirm('<!--T-->このブログのデータをすべて削除しインポート処理を行います。よろしいですか？<!--/T-->')"
                 >
                   <!--T-->インポート<!--/T-->
                 </button>
-                <input
-                  type="hidden"
-                  name="ACMS_POST_Backup_BlogImport"
-                  value="on"
-                />
               </div>
             </div>
             <!-- END import:veil -->
@@ -913,6 +909,20 @@
     </div>
     <!-- END_MODULE Touch_SessionWithAdministration -->
   </div>
+</form>
+
+<form id="create-blog-form" action="" method="post">
+  <input type="hidden" name="bid" value="%{BID}" />
+  <input type="hidden" name="admin" value="blog_edit" />
+  <input type="hidden" name="edit" value="insert" />
+  <input type="hidden" name="query[]" value="edit" />
+  <input type="hidden" name="ACMS_POST_2GET" value="Create Blog"/>
+</form>
+<form id="backup-blog-export-form" action="" method="post">
+  <input type="hidden" name="ACMS_POST_Backup_BlogExport" value="on"/>
+</form>
+<form id="backup-blog-import-form" action="" method="post">
+  <input type="hidden" name="ACMS_POST_Backup_BlogImport" value="on"/>
 </form>
 <!-- END_MODULE Admin_Blog_Edit -->
 

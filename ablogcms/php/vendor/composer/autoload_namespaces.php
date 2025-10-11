@@ -6,6 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname(dirname($vendorDir));
 
 return array(
+    'ML\\IRI' => array($vendorDir . '/ml/iri'),
     'ImageOptimizer' => array($vendorDir . '/ps/image-optimizer/src'),
     'HTMLPurifier' => array($vendorDir . '/ezyang/htmlpurifier/library'),
 );

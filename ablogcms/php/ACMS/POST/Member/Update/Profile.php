@@ -57,6 +57,10 @@ class ACMS_POST_Member_Update_Profile extends ACMS_POST_Member
      */
     protected function validate(Field_Validation $user): void
     {
+        if (!Login::canMemberSignin()) {
+            $user->setMethod('updateProfile', 'operable', false);
+            httpStatusCode('403 Forbidden');
+        }
         $user->setMethod('name', 'required');
         $user->setMethod('code', 'doubleCode', SUID);
         $user->setMethod('mail_magazine', 'in', ['on', 'off']);

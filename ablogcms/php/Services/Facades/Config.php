@@ -39,6 +39,7 @@ namespace Acms\Services\Facades;
  * @method static array getArray(string $key, bool $strict = false) 指定されたキーに該当するコンフィグを配列で取得する
  * @method static true set(string $key, mixed $val = null) 現在のコンテキストにおける，指定されたキーのコンフィグを一時的に書き換える
  * @method static \Field_Validation setValide(\Field_Validation $Config, int $rid = null, int $mid = null, int $setid = null) コンフィグへのアクセス権限チェック
+ * @method static bool canViewIndex(int $blogId) コンフィグ一覧を表示する権限があるかどうか
  * @method static bool isOperable(?int $rid = null, ?int $mid = null, ?int $setid = null) コンフィグの操作権限があるかどうか
  * @method static array getDataBaseSchemaInfo(string $type) タイプ指定によるデータベーススキーマの取得
  * @method static mixed yamlLoad(string $path) yamlファイルの取得

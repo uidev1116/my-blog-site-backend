@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Application;
+
 class ACMS_POST_Cache extends ACMS_POST
 {
     public $isCacheDelete  = false;
@@ -12,6 +14,9 @@ class ACMS_POST_Cache extends ACMS_POST
 
         $targets = $this->Post->getArray('target');
         $this->clear($targets);
+
+        $purifier = Application::make('html-purifier');
+        $purifier->clearCache();
 
         if (HOOK_ENABLE) {
             $Hook = ACMS_Hook::singleton();
@@ -78,6 +83,10 @@ class ACMS_POST_Cache extends ACMS_POST
         foreach ($targets as $target) {
             if ($target === 'page') {
                 self::clearPageCache();
+            } elseif ($target === 'template') {
+                Cache::flush($target);
+                $twigTplEngine = Application::make('template.twig');
+                $twigTplEngine->clearCache();
             } else {
                 Cache::flush($target);
             }

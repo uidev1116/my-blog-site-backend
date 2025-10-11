@@ -23,6 +23,9 @@ class ACMS_GET_User_Field extends ACMS_GET
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());
         $this->buildModuleField($Tpl);
 
+        if (!$this->uid) {
+            return '';
+        }
         $Field = new Field();
         $Field->overload(loadUserField($this->uid));
         foreach ($row as $key => $val) {

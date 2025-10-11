@@ -18,10 +18,10 @@
   &lt;p&gt;エントリーが見つかりませんでした。&lt;/p&gt;
   &lt;!-- END notFound --&gt;
 
-    &lt;div class=&quot;acms-grid-r&quot;&gt;
+    &lt;div class=&quot;acms-cssgrid acms-g-cols-1 acms-g-cols-md-3&quot;&gt;
     &lt;!-- BEGIN unit:loop --&gt;
       &lt;!-- BEGIN entry:loop --&gt;
-      &lt;div class=&quot;acms-col-md-4&quot;&gt;
+      &lt;div&gt;
         &lt;a href=&quot;{url}&quot; class=&quot;acms-thumbnail&quot;&gt;
           &lt;!-- BEGIN_IF [{path}/nem] --&gt;
           &lt;img
@@ -30,6 +30,8 @@
             class=&quot;acms-img-responsive&quot;
             width=&quot;{x}&quot;
             height=&quot;{y}&quot;
+            loading=&quot;lazy&quot;
+            decoding=&quot;async&quot;
           &gt;
           &lt;!-- ELSE --&gt;
           &lt;!-- BEGIN noimage --&gt;
@@ -39,6 +41,8 @@
             class=&quot;acms-img-responsive&quot;
             width=&quot;{noImgX}&quot;
             height=&quot;{noImgY}&quot;
+            loading=&quot;lazy&quot;
+            decoding=&quot;async&quot;
           &gt;
           &lt;!-- END noimage --&gt;
           &lt;!-- END_IF --&gt;

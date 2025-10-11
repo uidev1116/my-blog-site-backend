@@ -64,17 +64,18 @@ class ACMS_Corrector
             $opt = 'escape|' . $opt;
         }
 
+        // デフォルトで、sanitizeSchemeオプションを付与
+        if (config('sanitize_scheme') !== 'off' && strpos($opt, 'sanitizeScheme') === false && strpos($opt, 'allow_dangerous_scheme') === false) {
+            $opt = 'sanitizeScheme|' . $opt;
+        }
+
+        // [raw]校正オプションがあり、かつ[allow_dangerous_tag]校正オプションが指定されてなければ、危険なタグを削除する校正オプションを付与
         if (
             config('strip_dangerous_tag') === 'on' &&
             strpos($opt, 'allow_dangerous_tag') === false &&
             strpos($opt, 'raw') !== false
         ) {
-            // [raw]校正オプションがあり、かつ[allow_dangerous_tag]校正オプションが指定されてなければ、危険なタグを削除する校正オプションを付与
-            $dangerousTags = configArray('dangerous_tags');
-            if (empty($dangerousTags)) {
-                $dangerousTags = ['script', 'iframe'];
-            }
-            $opt = 'strip_select_tags(\'' . implode('\',\'', $dangerousTags) . '\')|' . $opt;
+            $opt = "htmlPurifier|{$opt}";
         }
 
         // 校正オプションをコール
@@ -86,13 +87,13 @@ class ACMS_Corrector
             if (!empty($match[2])) {
                 while (
                     preg_match('@' . '(?:'
-                    . '([-\d.]+)' . '|'
-                    . '"((?:[^"]|\\\")*)"' . '|'
-                    . "'((?:[^']|\\\')*)'"
-                    . ')' . '\s*(,|\))\s*(.*)@', $opt, $match)
+                        . '([-\d.]+)' . '|'
+                        . '"((?:[^"]|\\\")*)"' . '|'
+                        . "'((?:[^']|\\\')*)'"
+                        . ')' . '\s*(,|\))\s*(.*)@', $opt, $match)
                 ) {
                     $args[] = $match[1] | $match[2] | $match[3];
-                    $opt    = $match[5];
+                    $opt = $match[5];
                     if (')' == $match[4]) {
                         break;
                     }
@@ -100,6 +101,9 @@ class ACMS_Corrector
             }
             if ('list' == $method) {
                 $method = 'acms_corrector_list';
+            }
+            if ('allow_dangerous_tag' === $method) {
+                continue;
             }
             $res = $this->factory->call($method, $txt, $args);
 

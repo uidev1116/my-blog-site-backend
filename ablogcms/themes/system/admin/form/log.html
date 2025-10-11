@@ -8,8 +8,10 @@
 	</div>
 </header>
 
-<!-- BEGIN refresh -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->投稿データ一覧を更新しました<!--/T--></p><!-- END refresh -->
+@include("/admin/include/action-result.html", {
+  "successMessage": "<!--T-->投稿データ一覧を更新しました。<!--/T-->",
+  "errorMessage": "<!--T-->投稿データ一覧の更新に失敗しました。<!--/T-->"
+})
 
 <!-- BEGIN_IF [<!-- BEGIN index#notFound -->1<!-- END index#notFound -->/neq/1/_or_/%{CURRENT_ROOT}/neq//bid/%{BID}/admin/%{ADMIN}] -->
 	<div class="acms-admin-filter">
@@ -77,7 +79,11 @@
 				<input type="hidden" name="span" value="true">
 				<input type="hidden" name="admin" value="form_log">
 				<input type="submit" name="ACMS_POST_2GET" value="<!--T-->表示<!--/T-->" class="acms-admin-btn acms-admin-btn-info acms-admin-btn-search">
-				<p class="acms-admin-filter-detail-btn"><a href="#search-detail" class="js-fader"><span class="acms-admin-icon-arrow-right"></span><!--T-->詳細検索<!--/T--></a></p>
+				<p class="acms-admin-filter-detail-btn">
+          <a href="#search-detail" class="js-admin-fader">
+            <span class="acms-admin-icon-arrow-right"></span><!--T-->詳細検索<!--/T-->
+          </a>
+        </p>
 			</div>
 		</form>
 	</div>
@@ -128,7 +134,7 @@
 			<table class="acms-admin-table-admin">
 				<thead class="acms-admin-table-heading">
 					<tr>
-						<th class="acms-admin-table-center acms-admin-th-checkbox acms-admin-table-nowrap"><div class="acms-admin-form-checkbox acms-admin-margin-none"><input type="checkbox" id="checkAll"><label for="checkAll"><i class="acms-admin-ico-checkbox acms-admin-margin-none"></i><span class="acms-admin-hide-visually"><!--T-->すべての投稿データを選択する<!--/T--></span></label></div></th>
+						<th class="acms-admin-table-center acms-admin-th-checkbox acms-admin-table-nowrap"><div class="acms-admin-form-checkbox acms-admin-m-0"><input type="checkbox" id="checkAll"><label for="checkAll"><i class="acms-admin-ico-checkbox acms-admin-m-0"></i><span class="acms-admin-hide-visually"><!--T-->すべての投稿データを選択する<!--/T--></span></label></div></th>
 						<th><!--T-->日時<!--/T--></th>
 						<th class="acms-admin-table-nowrap"><!--T-->通番<!--/T--></th>
 						<th><!--T-->宛先<!--/T--></th>
@@ -138,7 +144,7 @@
 				<tbody><!-- BEGIN log:loop -->
 					<tr>
 						<td class="acms-admin-table-center acms-admin-td-checkbox">
-							<div class="acms-admin-form-checkbox acms-admin-margin-none">
+							<div class="acms-admin-form-checkbox acms-admin-m-0">
 								<input type="checkbox" name="checks[]" value="{fmid}:{serial}:{mail_to}" id="input-checkbox-{fmid}:{serial}:{mail_to}">
 								<label for="input-checkbox-{fmid}:{serial}:{mail_to}"><i class="acms-admin-ico-checkbox"></i><span class="acms-admin-hide-visually"><!--T-->件名「{mail_subject}」を選択する<!--/T--></span></label>
 							</div>
@@ -148,10 +154,12 @@
 						<td><p><a href="mailto:{mail_to}">{mail_to}</a></p></td>
 						<td>
 							<div class="acms-admin-margin-bottom-mini"><!--T-->件名<!--/T-->: {mail_subject}</div>
-							<a href="#" class="{datetime}[datetime('YmdHis')]-fade-head acms-admin-btn-admin acms-admin-margin-bottom-mini" data-fade-replace="<!--T-->本文を非表示<!--/T-->"><!--T-->本文を表示<!--/T--></a>
-							<div class="{datetime}[datetime('YmdHis')]-fade-body" style="border-top:1px solid silver;">
-								<div class="acms-admin-margin-top-mini"><!--T-->本文<!--/T-->:<br>{mail_body}[escape|nl2br]</div>
-							</div>
+							<details>
+								<summary class="acms-admin-btn-admin acms-admin-margin-bottom-mini"><!--T-->本文<!--/T--></summary>
+								<div>
+									<div class="acms-admin-margin-top-mini">{mail_body}[escape|nl2br]</div>
+								</div>
+							</details>
 						</td>
 					</tr><!-- END log:loop -->
 				</tbody>
@@ -159,24 +167,8 @@
 		</div>
 	</form>
 	<!-- BEGIN index -->
-	<div class="acms-admin-grid">
-		<div class="acms-admin-col-md-6 acms-admin-col-sm-12">
-			<!-- BEGIN pager:veil -->
-			<div class="acms-admin-pager-container">
-				<ul class="acms-admin-pager"><!-- BEGIN backLink -->
-					<li class="prev"><a href="{url}">&laquo;&nbsp;<!--T-->前へ<!--/T--></a></li><!-- END backLink --><!-- BEGIN page:loop -->
-					<li{pageCurAttr}[raw]><span><!-- BEGIN link#front --><a href="{url}"><!-- END link#front -->{page}<!-- BEGIN link#rear --></a><!-- END link#rear --></span></li><!-- END page:loop --><!-- BEGIN lastPage:veil -->
-					<li class="last"><a href="{lastPageUrl}">...{lastPage}</a></li><!-- END lastPage:veil --><!-- BEGIN forwardLink -->
-					<li class="next"><a href="{url}"><!--T-->次へ<!--/T-->&nbsp;&raquo;</a></li><!-- END forwardLink -->
-				</ul>
-			</div>
-			<!-- END pager:veil -->
-		</div>
-		<div class="acms-admin-col-md-6 acms-admin-col-sm-12">
-			<div class="acms-admin-itemsAmount-container">
-				<p>{itemsFrom}<!--T-->件<!--/T--> - {itemsTo}<!--T-->件<!--/T--> / <!--T-->全<!--/T-->{itemsAmount}<!--T-->件<!--/T--></p>
-			</div>
-		</div>
+	<div class="acms-admin-cssgrid acms-admin-mt-5">
+		@include("/admin/include/pagination.html")
 	</div><!-- /.acms-grid -->
 	<!-- END index -->
 <!-- END_IF -->

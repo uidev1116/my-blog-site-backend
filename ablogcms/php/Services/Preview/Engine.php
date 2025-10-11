@@ -3,10 +3,12 @@
 namespace Acms\Services\Preview;
 
 use Acms\Services\Preview\Contracts\Base;
+use Acms\Services\Facades\Common;
 use Session;
 use App;
 use DB;
 use SQL;
+use RuntimeException;
 
 class Engine implements Base
 {
@@ -103,6 +105,10 @@ class Engine implements Base
                 return true;
             }
         }
+        if ($this->isValidPreviewSharingUrl()) {
+            setConfig('x_frame_options', 'off');
+            return true;
+        }
         return false;
     }
 
@@ -157,6 +163,9 @@ class Engine implements Base
      */
     public function getShareUrl($url, $lifetime = false)
     {
+        if (!Common::isSafeUrl($url)) {
+            throw new RuntimeException('The provided URL is not safe.');
+        }
         $token = uniqueString() . uniqueString();
         if (empty($lifetime)) {
             $lifetime = $this->lifetime;
@@ -179,7 +188,7 @@ class Engine implements Base
     {
         $token = $this->get->get('token');
         if (empty($token)) {
-            throw new \RuntimeException('Empty token');
+            throw new RuntimeException('Empty token');
         }
         $SQL = SQL::newSelect('preview_share');
         $SQL->addSelect('preview_share_uri');
@@ -195,7 +204,7 @@ class Engine implements Base
             }
             return $url;
         }
-        throw new \RuntimeException('Failed get preview url.');
+        throw new RuntimeException('Failed get preview url.');
     }
 
     /**
@@ -249,10 +258,10 @@ class Engine implements Base
      * @param string $url
      * @return string
      */
-    protected function shareUrlFormat($url)
+    protected function shareUrlFormat($url): string
     {
-        $url = preg_replace('/(\?|&|&amp;)(acms-preview-mode|timestamp|preview-token)=[^&]+/', '', $url);
-        return htmlspecialchars_decode($url, ENT_COMPAT);
+        $url = htmlspecialchars_decode($url, ENT_QUOTES);
+        return preg_replace('/(\?|&)(acms-preview-mode|timestamp|preview-token)=[^&]+/', '', $url) ?? '';
     }
 
     /**

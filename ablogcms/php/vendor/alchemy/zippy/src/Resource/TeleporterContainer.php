@@ -46,13 +46,14 @@ class TeleporterContainer implements \ArrayAccess, \Countable
      */
     public function fromResource(ZippyResource $resource)
     {
+        $original = $resource->getOriginal();
+
         switch (true) {
-            case is_resource($resource->getOriginal()):
+            case isStreamLike($original):
                 $teleporter = 'stream-teleporter';
                 break;
-            case is_string($resource->getOriginal()):
-                $data = parse_url($resource->getOriginal());
-
+            case is_string($original):
+                $data = parse_url($original);
                 if (!isset($data['scheme']) || 'file' === $data['scheme']) {
                     $teleporter = 'local-teleporter';
                 } elseif (in_array($data['scheme'], array('http', 'https')) && isset($this->factories['guzzle-teleporter'])) {

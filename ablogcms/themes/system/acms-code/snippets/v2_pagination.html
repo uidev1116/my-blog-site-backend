@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ページネーション</title>
+    <link rel="stylesheet" href="src/highlight/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="src/snippets.css" />
+    <script src="src/highlight/highlight.min.js"></script>
+    <script src="src/highlight/javascript.min.js"></script>
+    <script src="src/highlight/twig.min.js"></script>
+    <script src="src/snippets.js"></script>
+  </head>
+  <body>
+    <h1>ページネーション</h1>
+    <pre class="acms-admin-customfield-maker"><code class="language-twig">
+&lt;!-- ページネーション呼び出し --&gt;
+&#123;&#123;
+  include(&#039;/include/pagination.twig&#039;, &#123;
+    pagination: entryBody.pagination ?? entryBody.microPagination,
+    serialNavi: entryBody.serialNavi
+	pager: entryBody.pager,
+  &#125;)
+&#125;&#125;
+
+&lt;!-- ページネーション --&gt;
+&#123;% if pagination and pagination.totalPages &gt; 1 %&#125;
+  &lt;nav class=&quot;pager&quot; aria-label=&quot;ページ送り&quot;&gt;
+    &lt;p class=&quot;acms-margin-bottom-small acms-margin-top-large&quot;&gt;
+      &lt;span class=&quot;font-medium&quot;&gt;&#123;&#123; pagination.total &#125;&#125;&lt;/span&gt;件中
+      &lt;span class=&quot;font-medium&quot;&gt;&#123;&#123; pagination.from &#125;&#125;&lt;/span&gt; 〜
+      &lt;span class=&quot;font-medium&quot;&gt;&#123;&#123; pagination.to &#125;&#125;&lt;/span&gt;件を表示中
+    &lt;/p&gt;
+    &lt;ul class=&quot;clearfix&quot;&gt;
+      &lt;!-- 最初のページ --&gt;
+      &#123;% if pagination.firstPage %&#125;
+        &#123;% if pagination.firstPage.current %&#125;
+          &lt;li class=&quot;pager-item&quot;&gt;&lt;span&gt;1&lt;/span&gt;&lt;/li&gt;
+        &#123;% else %&#125;
+          &lt;li class=&quot;pager-item&quot;&gt;&lt;a href=&quot;&#123;&#123; pagination.firstPage.url &#125;&#125;&quot;&gt;&lt;span&gt;1&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+        &#123;% endif %&#125;
+      &#123;% endif %&#125;
+      &lt;!-- 前方省略記号 --&gt;
+      &#123;% if pagination.prevEllipsis %&#125;
+        &lt;li class=&quot;pager-item&quot;&gt;...&lt;/li&gt;
+      &#123;% endif %&#125;
+      &lt;!-- ページループ --&gt;
+      &#123;% for page in pagination.pages %&#125;
+        &#123;% if page.current %&#125;
+          &lt;li class=&quot;pager-item&quot;&gt;&lt;span&gt;&#123;&#123; page.page &#125;&#125;&lt;/span&gt;&lt;/li&gt;
+        &#123;% else %&#125;
+          &lt;li class=&quot;pager-item&quot;&gt;&lt;a href=&quot;&#123;&#123; page.url &#125;&#125;&quot;&gt;&lt;span&gt;&#123;&#123; page.page &#125;&#125;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+        &#123;% endif %&#125;
+      &#123;% endfor %&#125;
+      &lt;!-- 後方省略記号 --&gt;
+      &#123;% if pagination.nextEllipsis %&#125;
+        &lt;li class=&quot;pager-item&quot;&gt;...&lt;/li&gt;
+      &#123;% endif %&#125;
+      &lt;!-- 最後のページ --&gt;
+      &#123;% if pagination.lastPage %&#125;
+        &#123;% if pagination.lastPage.current %&#125;
+          &lt;li class=&quot;pager-item&quot;&gt;&lt;span&gt;&#123;&#123; pagination.lastPage.page &#125;&#125;&lt;/span&gt;&lt;/li&gt;
+        &#123;% else %&#125;
+          &lt;li class=&quot;pager-item&quot;&gt;&lt;a href=&quot;&#123;&#123; pagination.lastPage.url &#125;&#125;&quot;&gt;&lt;span&gt;&#123;&#123; pagination.lastPage.page &#125;&#125;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+        &#123;% endif %&#125;
+      &#123;% endif %&#125;
+    &lt;/ul&gt;
+  &lt;/nav&gt;
+&#123;% endif %&#125;
+
+&lt;!-- 前後リンク --&gt;
+&#123;% if serialNavi %&#125;
+  &lt;nav class=&quot;serial-nav clearfix&quot; aria-label=&quot;ページ送り&quot;&gt;
+    &lt;ul class=&quot;serial-nav-list&quot;&gt;
+      &lt;li class=&quot;serial-nav-prev&quot;&gt;
+        &#123;% if serialNavi.prevLink %&#125;
+          &lt;a href=&quot;&#123;&#123; serialNavi.prevLink.url &#125;&#125;&quot;&gt;
+            &lt;span class=&quot;acms-icon-arrow-small-left serial-nav-prev-icon&quot; /&gt;
+            &lt;span class=&quot;serial-nav-prev-title&quot;&gt;&#123;&#123; serialNavi.prevLink.name|trim(54, &#039;...&#039;) &#125;&#125;&lt;/span&gt;
+          &lt;/a&gt;
+        &#123;% endif %&#125;
+      &lt;/li&gt;
+      &lt;li class=&quot;serial-nav-next&quot;&gt;
+        &#123;% if serialNavi.nextLink %&#125;
+          &lt;a href=&quot;&#123;&#123; serialNavi.nextLink.url &#125;&#125;&quot;&gt;
+            &lt;span class=&quot;serial-nav-next-title&quot;&gt;&#123;&#123; serialNavi.nextLink.name|trim(54, &#039;...&#039;) &#125;&#125;&lt;/span&gt;
+            &lt;span class=&quot;acms-icon-arrow-small-right serial-nav-next-icon&quot; /&gt;
+          &lt;/a&gt;
+        &#123;% endif %&#125;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/nav&gt;
+&#123;% endif %&#125;
+
+&lt;!-- シンプルなページ送り --&gt;
+&#123;% if pager %&#125;
+  &lt;nav class=&quot;serial-nav clearfix&quot; aria-label=&quot;ページ送り&quot;&gt;
+    &lt;ul class=&quot;serial-nav-list&quot;&gt;
+      &lt;li class=&quot;serial-nav-prev&quot;&gt;
+        &#123;% if pager.prevPageLink %&#125;
+          &lt;a href=&quot;&#123;&#123; pager.prevPageLink &#125;&#125;&quot;&gt;
+            &lt;span class=&quot;acms-icon-arrow-small-left serial-nav-prev-icon&quot; /&gt;
+            前ページ
+          &lt;/a&gt;
+        &#123;% endif %&#125;
+      &lt;/li&gt;
+      &lt;li class=&quot;serial-nav-next&quot;&gt;
+        &#123;% if pager.nextPageLink %&#125;
+          &lt;a href=&quot;&#123;&#123; pager.nextPageLink &#125;&#125;&quot;&gt;
+            次ページ
+            &lt;span class=&quot;acms-icon-arrow-small-right serial-nav-next-icon&quot; /&gt;
+          &lt;/a&gt;
+        &#123;% endif %&#125;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/nav&gt;
+&#123;% endif %&#125;
+    </code></pre>
+  </body>
+</html>

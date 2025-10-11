@@ -10,6 +10,9 @@ class ACMS_GET_Admin_Config_GmailSmtp_Callback extends ACMS_GET
 {
     public function get()
     {
+        if (!sessionWithAdministration()) {
+            die403();
+        }
         try {
             $api = Application::make('mailer.google.smtp.api');
             assert($api instanceof GoogleApi);

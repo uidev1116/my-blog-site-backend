@@ -1,0 +1,77 @@
+@use 'global/common' as global;
+
+/* ------------------------------
+ 通知バー
+------------------------------- */
+.acms-notification-bar {
+  --acms-notification-bar-color: #{global.$acms-color-white};
+  --acms-notification-bar-bg-color: #{global.$acms-color-system-gray70};
+  --acms-notification-bar-bg-color-info: #{global.$acms-color-info60};
+  --acms-notification-bar-bg-color-danger: #{global.$acms-color-danger60};
+  --acms-notification-bar-bg-color-warning: #{global.$acms-color-warning60};
+  --acms-notification-bar-bg-color-success: #{global.$acms-color-success60};
+
+  position: relative;
+  width: 100%;
+  padding: 10px;
+  color: var(--acms-notification-bar-color);
+  text-align: center;
+  background: var(--acms-notification-bar-bg-color);
+  border-radius: 0;
+  visibility: hidden;
+  touch-action: none;
+
+  @include global.font-size(13);
+}
+
+// アニメーション定義
+@keyframes slide-in {
+  from {
+    transform: translateY(-100%); // 上部から始まる
+  }
+
+  to {
+    transform: translateY(0); // 表示位置
+  }
+}
+
+@keyframes slide-out {
+  from {
+    transform: translateY(0); // 表示位置
+  }
+
+  to {
+    transform: translateY(-100%); // 上部に戻る
+  }
+}
+
+// 通知表示用アニメーション
+.acms-notification-bar.is-after-show {
+  visibility: visible;
+  animation: slide-in 0.3s ease-in forwards;
+}
+
+// 通知非表示用アニメーション
+.acms-notification-bar.is-before-hide {
+  animation: slide-out 0.3s ease-in forwards;
+}
+
+// info
+.acms-notification-bar.acms-notification-bar-info {
+  --acms-notification-bar-bg-color: var(--acms-notification-bar-bg-color-info);
+}
+
+// danger
+.acms-notification-bar.acms-notification-bar-danger {
+  --acms-notification-bar-bg-color: var(--acms-notification-bar-bg-color-danger);
+}
+
+// warning
+.acms-notification-bar.acms-notification-bar-warning {
+  --acms-notification-bar-bg-color: var(--acms-notification-bar-bg-color-warning);
+}
+
+// success
+.acms-notification-bar.acms-notification-bar-success {
+  --acms-notification-bar-bg-color: var(--acms-notification-bar-bg-color-success);
+}

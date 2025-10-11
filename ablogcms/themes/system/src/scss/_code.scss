@@ -1,8 +1,15 @@
 @use 'global/common' as global;
 
-/* ------------------------------
- コード pre code
-------------------------------- */
+/* ソースコード */
+.code-highlight {
+  max-width: 100%;
+  margin: 0 0 28px;
+  padding: 15px;
+  overflow: auto;
+  border: solid 1px global.$acms-color-gray50;
+  border-radius: 5px;
+}
+
 .acms-pre,
 .acms-style pre {
   padding: 10px;

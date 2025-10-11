@@ -18,6 +18,11 @@ class Role extends General
     protected $attached = [];
 
     /**
+     * @var bool
+     */
+    protected $ignoreBlogScope = false;
+
+    /**
      * @param $method
      * @param array $args
      * @return mixed
@@ -29,8 +34,12 @@ class Role extends General
         if (isset($this->cache[$key])) {
             return $this->cache[$key];
         }
+        $callback = [$this, $method];
+        if (!is_callable($callback)) {
+            throw new \BadMethodCallException("Method {$method} is not callable on " . static::class);
+        }
         $this->attached[$method] = true;
-        $ret = call_user_func_array([$this, $method], $args);
+        $ret = call_user_func_array($callback, $args);
         $this->attached[$method] = false;
         $this->cache[$key] = $ret;
 
@@ -47,6 +56,15 @@ class Role extends General
             return $this->attached[$method];
         }
         return false;
+    }
+
+    /**
+     * @param bool $ignore
+     * @return void
+     */
+    public function setIgnoreBlogScope($ignore = true): void
+    {
+        $this->ignoreBlogScope = $ignore;
     }
 
     /**
@@ -361,6 +379,9 @@ class Role extends General
      */
     protected function isControlBlogByRole($role, $bid)
     {
+        if ($this->ignoreBlogScope) {
+            return true;
+        }
         if (!$this->cacheAttached(__FUNCTION__)) {
             return $this->cacheMethod(__FUNCTION__, func_get_args());
         }
@@ -423,7 +444,7 @@ class Role extends General
             && $eid
             && $role['role_entry_edit_all'] !== 'on'
         ) {
-            if (SUID == \ACMS_RAM::entryUser($eid) && $role[$action] === 'on') {
+            if (SUID == \ACMS_RAM::entryUser($eid) && $role[$action] === 'on' && $this->isControlBlogByRole($role, \ACMS_RAM::entryBlog($eid))) {
                 return true;
             }
         } elseif ($role[$action] === 'on') {

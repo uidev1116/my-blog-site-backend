@@ -1,8 +1,81 @@
 {
+  "deprecated": {
+    "message": "{{feature}}は{{since}}非推奨の機能です。{{remove}}{{alternative}}{{link}}{{hint}}",
+    "option": {
+      "since": " version {{since}} から",
+      "will_be_removed": " version {{version}} で削除予定です。",
+      "may_be_removed": "今後のアップデートで削除される可能性があります。",
+      "alternative": "代わりに{{alternative}}を使用してください。",
+      "link": "参照: {{link}}",
+      "hint": "注: {{hint}}"
+    },
+    "feature": {
+      "incremental_search": {
+        "name": "組み込みJS「インクリメンタルサーチ（incremental search）」"
+      },
+      "external_form_submit_button": {
+        "name": "組み込みJS「external form submit button」",
+        "alternative": "HTMLの「form 属性」"
+      },
+      "hover": {
+        "name": "組み込みJS「hover」",
+        "alternative": "CSSの「hover 擬似クラス」"
+      },
+      "rollover": {
+        "name": "組み込みJS「rollover」",
+        "alternative": "CSSの「hover 擬似クラス」と「background-image プロパティ」"
+      },
+      "switch_style": {
+        "name": "組み込みJS「style switch」"
+      },
+      "zebra": {
+        "name": "組み込みJS「zebra」",
+        "alternative": "CSSの「:nth-child() 擬似クラス」"
+      },
+      "selection": {
+        "name": "組み込みJS「selection」"
+      },
+      "datepicker": {
+        "name": "組み込みJS「Datepicker」",
+        "alternative": "Flatpicker"
+      },
+      "autoheight_r": {
+        "name": "組み込みJS「autoheightR」",
+        "alternative": "CSSの「Flexbox」や 「Grid」"
+      },
+      "accordion": {
+        "name": "組み込みJS「accordion」",
+        "alternative": "HTMLの「details タグ」と「summary タグ」"
+      },
+      "toggle": {
+        "name": "組み込みJS「toggle」",
+        "alternative": "HTMLの「details タグ」と「summary タグ」"
+      },
+      "tabs": {
+        "name": "組み込みJS「tabs」",
+        "alternative": "acms tabs"
+      },
+      "fade": {
+        "name": "組み込みJS「fade」",
+        "alternative": "HTMLの「details タグ」と「summary タグ」"
+      },
+      "fader": {
+        "name": "組み込みJS「fader」",
+        "alternative": "HTMLの「details タグ」と「summary タグ」"
+      },
+      "rich-editor": {
+        "name": "リッチエディター",
+        "alternative": "ブロックエディター"
+      },
+      "postinclude": {
+        "name": "組み込みJS「post include」",
+        "alternative": "htmx"
+      }
+    }
+  },
   "splash": {
     "default": "読み込み中...",
-    "save": "保存中...",
-    "loading": "ロード中です..."
+    "save": "保存中..."
   },
   "related": {
     "message1": "すでに追加されています。"
@@ -21,9 +94,6 @@
     "message8": "ファイルサイズを小さくしてから登録してください｡",
     "message9": "複数回に分けて登録してください｡",
     "message10": "バイト"
-  },
-  "submitlock": {
-    "message1": "送信中です"
   },
   "direct_edit_sort": {
     "message1": "更新に失敗しました"
@@ -48,6 +118,31 @@
     "message1": "このユニットを削除します。\nよろしいですか？",
     "message2": "このユニットのコンテンツ部分を閉じる",
     "message3": "このユニットのコンテンツ部分を開く"
+  },
+  "unit_editor": {
+    "align": {
+      "auto": "おまかせ",
+      "center": "中央",
+      "left": "左",
+      "right": "右",
+      "full": "全体"
+    },
+    "error": {
+      "unit_definition_not_found": "ユニット定義が見つかりません",
+      "cannot_be_nested": "このユニットは他のユニット内に追加できません",
+      "only_one_instance_allowed": "このユニットタイプは1つしか追加できません",
+      "cannot_be_duplicated": "このユニットは複製できません",
+      "contains_non_duplicatable_unit": "複製できないユニットが含まれています",
+      "cannot_move_hierarchy": "このユニットは異なる階層に移動できません",
+      "contains_non_movable_unit": "異なる階層に移動できないユニットが含まれています",
+      "cannot_be_wrapped": "このユニットはラップできません",
+      "contains_non_wrappable_unit": "ラップできないユニットが含まれています",
+      "cannot_be_wrapped_with_unknown_unit": "不正なユニットが含まれているため、ラップできません",
+      "cannot_be_wrapped_with_non_consecutive_units": "連続していないユニットが含まれているため、ラップできません",
+      "cannot_be_wrapped_with_same_parent": "異なる親ユニットが含まれているため、ラップできません",
+      "cannot_be_unwraped_with_unknown_unit": "不正なユニットが含まれているため、アンラップできません",
+      "cannot_be_unwraped_with_empty_unit": "空のユニットはアンラップできません"
+    }
   },
   "geo": {
     "message1": "位置情報を削除",
@@ -99,12 +194,6 @@
       "fri": "金",
       "sat": "土"
     }
-  },
-  "highslide": {
-    "loading_text": "読み込み中...",
-    "loading_title": "クリックでキャンセルします",
-    "expand_title": "実寸で表示します",
-    "restore_title": "クリックで元の大きさに戻ります"
   },
   "module_management": {
     "reload_msg": "リロードして画面を更新しますか？",
@@ -193,6 +282,7 @@
     "copy_message": "クリップボードにコピーしました",
     "snippets": "スニペット",
     "vars": "変数表",
+    "v2module_vars": "V2モジュール変数",
     "g_vars": "グローバル変数",
     "root_tpl": "現在表示中のルートテンプレート"
   },
@@ -216,7 +306,7 @@
     "scope": "スコープ",
     "scope_global": "下の階層のブログと共有する",
     "add_title": "カテゴリー追加",
-    "add":"追加",
+    "add": "追加",
     "error": {
       "name": {
         "required": "名前が入力されていません。"
@@ -232,6 +322,7 @@
         "shared": "子ブログのエントリーが登録されています。"
       }
     },
+    "select_label": "カテゴリーを選択します（キーワードを入れて絞り込みできます）",
     "select_placeholder": "カテゴリーを選択します（キーワードを入れて絞り込み）",
     "select_notfound": "カテゴリーが見つかりません",
     "select_no_option_label": "カテゴリーなし",
@@ -311,16 +402,17 @@
     "update_date": "更新日時",
     "created_date": "登録日時",
     "clear_button_label": "メディアの選択を解除",
+    "keyword": "キーワード",
     "file_name": "ファイル名",
     "file_size": "ファイルサイズ",
-    "select": "選択してください",
+    "select": "一括操作",
     "remove_media_confirm": "選択したメディアが削除されます。削除しますか？",
     "filter_search": "検索条件",
     "year": "年",
     "month": "月",
     "tag": "タグ",
     "detailed_condition": "詳しい条件",
-    "search_by_filename": "ファイル名から検索",
+    "search_by_keyword": "ファイル名・キャプション・代替テキスト・メモから検索",
     "narrow_down": "絞り込み",
     "number_of_items": "表示件数",
     "type": "表示タイプ",
@@ -329,6 +421,7 @@
     "file": "ファイル",
     "extension": "拡張子",
     "owner": "自分のメディアのみ表示",
+    "blog_axis": "このブログ以下のメディアを表示",
     "search": "検索",
     "detailed_search": "詳細検索",
     "image2": "イメージ",
@@ -344,16 +437,16 @@
     "tag_select_placeholder": "タグを選択もしくは、新しいタグを入力します。（キーワードを入れて絞り込み）",
     "tag_search_select_placeholder": "タグを選択します。（キーワードを入れて絞り込み）",
     "action": "アクション",
-    "prev": "前へ",
-    "next": "次へ",
-    "add_tags_to_media_confirm": "選択されたメディアにタグを追加しました。",
+    "add_tags_to_media_success": "選択されたメディアにタグを追加しました。",
+    "add_tags_to_media_error": "選択されたメディアへのタグの追加に失敗しました。",
+    "remove_media_success": "選択されたメディアを削除しました。",
+    "remove_media_error": "選択されたメディアの削除に失敗しました。",
     "more_than_20_not_allowed": "20以上のメディアは一度に登録できません。",
     "sending": "送信中です",
     "no_staged_media": "読み込み待機中のメディアがありません。アップロードしてください。",
     "on_banner_remove": "アイテムを削除します。よろしいですか？",
     "add_tags_to_checked_items": "現在選択中の$1件にタグを追加",
     "checked_items": "現在選択中の$1件を",
-    "items": "件",
     "file_changed": "ファイルが変更されています。このメディアが使用されているすべてのページに影響します。保存してもよろしいですか？",
     "img_changed": "画像が変更されています。このメディアが使用されているすべてのページに影響します。保存してもよろしいですか？",
     "cannnot_change_type": "別のメディアタイプには変更できません。",
@@ -383,7 +476,7 @@
     "filename": "ファイル名",
     "filename_settings": "ファイル名を変更できます。",
     "alt_settings": "代替テキストを設定します。設定した内容は、このメディアを使用時に継承して適用されます。",
-    "title": "タイトル",
+    "title": "ファイル名",
     "memo": "メモ",
     "memo_settings": "管理用のメモとして利用してください。",
     "cancel": "キャンセル",
@@ -402,9 +495,7 @@
     "size": "サイズ",
     "updated_date": "更新日時",
     "banner_open_date": "このバナーの公開日時を指定します。バナーを表示するには、日時の設定に加え、公開ステータスを「公開」にする必要があります。",
-    "media_unit_use1": "機能を利用するには",
-    "media_unit_use2": "機能設定",
-    "media_unit_use3": "にてメディア管理を利用可能にしてください",
+    "media_unit_use": "機能を利用するには、コンフィグ > 機能設定にてメディア管理を利用可能にしてください",
     "open_config_menu": "設定メニューを開く",
     "display_switch_list": "リスト形式で表示する",
     "display_switch_grid": "グリッド形式で表示する",
@@ -414,6 +505,9 @@
     "remove_file": "ファイルを削除する",
     "error": {
       "unknown": "不明なエラーが発生しました。"
+    },
+    "validate_message": {
+      "alt_maxlength": "150字以内で入力してください。"
     }
   },
   "media_banner": {
@@ -507,6 +601,519 @@
     "event_select_no_options_message": "イベントが見つかりません"
   },
   "modal": {
-    "close": "モーダルを閉じる"
+    "close": "モーダルを閉じる",
+    "reload": "リロードして画面を更新しますか？"
+  },
+  "drawer": {
+    "close": "ドロワーを閉じる"
+  },
+  "entry_index": {
+    "id": "ID",
+    "sort": "表示順",
+    "edit": "編集",
+    "title": "タイトル",
+    "code": "コード",
+    "status": "ステータス",
+    "datetime": "日時",
+    "posted_datetime": "投稿日時",
+    "updated_datetime": "更新日時",
+    "start_datetime": "開始日時",
+    "end_datetime": "終了日時",
+    "members_only": "会員限定",
+    "approval": "承認ステータス",
+    "form_status": "フォームステータス",
+    "primary_image": "メイン画像",
+    "link": "リンク先URL",
+    "indexing": "インデキシング",
+    "tag": "タグ",
+    "category": "カテゴリー",
+    "user": "ユーザー",
+    "last_update_user": "最終更新者",
+    "blog": "ブログ",
+    "form": "フォーム",
+    "members_only_value": {
+      "on": "有効",
+      "off": "無効"
+    },
+    "indexing_value": {
+      "on": "有効",
+      "off": "無効"
+    },
+    "action": {
+      "edit": "編集",
+      "approval-history": "承認履歴",
+      "duplicate": "複製",
+      "trash": "ゴミ箱",
+      "lock": "{{name}}さんが編集中です",
+      "unlock": "編集ロックを解除する",
+      "feedback": {
+        "duplicate": {
+          "success": "エントリーを複製しました。",
+          "error": "エントリーの複製に失敗しました。",
+          "pending": "複製しています…"
+        },
+        "trash": {
+          "success": "エントリーをゴミ箱に移動しました。",
+          "error": "エントリーのゴミ箱移動に失敗しました。",
+          "pending": "ゴミ箱に移動しています…"
+        },
+        "unlock": {
+          "success": "「{{title}}」の編集ロックを解除しました。",
+          "error": "「{{title}}」の編集ロック解除に失敗しました。",
+          "pending": "編集ロックを解除しています…",
+          "confirm": "ロックを解除してもよろしいですか？"
+        }
+      }
+    },
+    "bulk_action": {
+      "order": "表示順",
+      "status": "ステータス",
+      "user": "ユーザー",
+      "category": "カテゴリー",
+      "blog": "ブログ",
+      "duplicate": "複製",
+      "export": "エクスポート",
+      "trash": "ゴミ箱",
+      "feedback": {
+        "order": {
+          "success": "エントリーの表示順を変更しました。",
+          "error": "エントリーの表示順変更に失敗しました。",
+          "pending": "表示順を変更しています…"
+        },
+        "status": {
+          "success": "選択したエントリーのステータスを変更しました。",
+          "error": "選択したエントリーのステータス変更に失敗しました。",
+          "pending": "ステータスを変更しています…"
+        },
+        "user": {
+          "success": "選択したエントリーのユーザーを変更しました。",
+          "error": "選択したエントリーのユーザー変更に失敗しました。",
+          "pending": "ユーザーを変更しています…"
+        },
+        "category": {
+          "success": "選択したエントリーのカテゴリーを変更しました。",
+          "error": "選択したエントリーのカテゴリー変更に失敗しました。",
+          "pending": "カテゴリーを変更しています…"
+        },
+        "blog": {
+          "success": "選択したエントリーのブログを変更しました。",
+          "error": "選択したエントリーのブログ変更に失敗しました。",
+          "pending": "ブログを変更しています…"
+        },
+        "duplicate": {
+          "success": "選択したエントリーを複製しました。",
+          "error": "選択したエントリーの複製に失敗しました。",
+          "pending": "複製しています…"
+        },
+        "export": {
+          "success": "選択したエントリーをエクスポートしました。",
+          "error": "選択したエントリーのエクスポートに失敗しました。",
+          "pending": "エクスポートしています…"
+        },
+        "trash": {
+          "success": "選択したエントリーをゴミ箱に移動しました。",
+          "error": "選択したエントリーのゴミ箱移動に失敗しました。",
+          "confirm": "ゴミ箱に移します。\nよろしいですか？",
+          "pending": "ゴミ箱に移動しています…"
+        }
+      }
+    },
+    "bulk_change": "一括変更",
+    "exec": "実行",
+    "bulk_blog_note": "( ※変更されたエントリーはログイン中のユーザーの所有になり、カテゴリーの設定は解除されます。ただし、グローバルカテゴリーとして設定されている場合はカテゴリーが保持されます )",
+    "bulk_duplicate_note": "※この操作は、件数が多いと処理に時間がかかることがあります",
+    "empty_state_title": "該当するエントリーが見つかりませんでした",
+    "empty_state_message": "検索内容に一致したエントリーはありませんでした。\n再検索または新規作成してください。",
+    "menu": {
+      "clear_sort_mode": "並び替えを終了する",
+      "import": "インポート",
+      "bulk_update": "まとめて操作",
+      "entry_create": "エントリー作成",
+      "more": "その他",
+      "admin_menu_title": "その他の操作",
+      "sort_menu_title": "エントリーの表示順を並び替える"
+    },
+    "sort_mode": {
+      "entry_sort": "全てのエントリー",
+      "category_sort": "カテゴリー別",
+      "user_sort": "ユーザー別",
+      "alert": {
+        "entry": "エントリーの表示順を並び替えてください。",
+        "category": "\"{{name}}\"で絞り込み時のエントリーの表示順を並び替えてください。",
+        "user": "\"{{name}}\"で絞り込み時のエントリーの表示順を並び替えてください。"
+      },
+      "modal": {
+        "title": "対象の{{object}}を選択してください",
+        "help_message": "※一覧画面で設定した検索条件は引き継がれません。",
+        "error_message": "{{object}}を選択してください。",
+        "apply": "確定する",
+        "cancel": "キャンセル",
+        "error": {
+          "id": "{{object}}を選択してください。"
+        }
+      },
+      "object": {
+        "category": "カテゴリー",
+        "user": "ユーザー"
+      }
+    },
+    "entry_create_form": {
+      "category_select_placeholder": "カテゴリーを選択",
+      "submit": "エントリー作成"
+    },
+    "filter": {
+      "keyword": "キーワード",
+      "status": "ステータス",
+      "user": "ユーザー",
+      "category": "カテゴリー",
+      "blog": "ブログ",
+      "session": "掲載期間",
+      "category_axis": {
+        "self": "子カテゴリーを含めない",
+        "descendant-or-self": "子カテゴリーを含める"
+      },
+      "blog_axis": {
+        "self": "子ブログを含めない",
+        "descendant-or-self": "子ブログを含める"
+      },
+      "keyword_placeholder": "タイトル・本文・カスタムフィールドから検索（複数指定可）",
+      "submit": "検索",
+      "clear": "クリア",
+      "advance": {
+        "title": "高度な絞り込み",
+        "open": "高度な絞り込みを開く",
+        "close": "高度な絞り込みを閉じる"
+      },
+      "tooltip": {
+        "category_axis": "有効にすると、選択したカテゴリーの下にある\n全ての子カテゴリーも検索対象に含まれます。",
+        "blog_axis": "有効にすると、選択したブログの下にある\n全ての子ブログも検索対象に含まれます。",
+        "advance": "高度な絞り込み"
+      }
+    },
+    "error": {
+      "unknown": {
+        "title": "予期しないエラーが発生しました",
+        "message": "時間をおいて、やり直してください。"
+      }
+    },
+    "dataview": {
+      "label": "エントリー一覧"
+    }
+  },
+  "entry_bulk_change": {
+    "select": {
+      "label": "選択したエントリーを操作"
+    }
+  },
+  "module_index": {
+    "edit": "編集",
+    "id": "ID",
+    "identifier": "モジュールID",
+    "status": "ステータス",
+    "label": "名前",
+    "name": "適応モジュール",
+    "scope": "グローバル",
+    "custom_field": "カスタムフィールド",
+    "api_use": "API",
+    "layout_use": "レイアウト/ユニット",
+    "cache": "キャッシュ",
+    "created_datetime": "作成日時",
+    "updated_datetime": "更新日時",
+    "blog": "ブログ",
+    "blog_parent": "親ブログに所属",
+    "empty_state_title": "該当するモジュールIDが見つかりませんでした",
+    "empty_state_message": "検索内容に一致したモジュールIDはありませんでした。\n再検索または新規作成してください。",
+    "custom_field_value": {
+      "on": "有効",
+      "off": "無効"
+    },
+    "layout_use_value": {
+      "on": "有効",
+      "off": "無効"
+    },
+    "api_use_value": {
+      "on": "有効",
+      "off": "無効"
+    },
+    "cache_suffix": "分",
+    "exec": "実行",
+    "action": {
+      "edit": "編集"
+    },
+    "bulk_action": {
+      "status": "ステータス",
+      "blog": "ブログ",
+      "export": "エクスポート",
+      "delete": "削除",
+      "feedback": {
+        "status": {
+          "success": "選択したモジュールIDのステータスを変更しました。",
+          "error": "選択したモジュールIDのステータス変更に失敗しました。",
+          "pending": "ステータスを変更しています…"
+        },
+        "blog": {
+          "success": "選択したモジュールIDのブログを変更しました。",
+          "error": "選択したモジュールIDのブログ変更に失敗しました。",
+          "pending": "ブログを変更しています…"
+        },
+        "export": {
+          "success": "選択したモジュールIDをエクスポートしました。",
+          "error": "選択したモジュールIDのエクスポートに失敗しました。",
+          "pending": "エクスポートしています…"
+        },
+        "delete": {
+          "success": "選択したモジュールIDを削除しました。",
+          "error": "選択したモジュールIDの削除に失敗しました。",
+          "confirm": "削除します。\nよろしいですか？",
+          "pending": "削除しています…"
+        }
+      }
+    },
+    "bulk_change": "一括変更",
+    "module_create_form": {
+      "submit": "モジュール作成"
+    },
+    "menu": {
+      "create": "モジュール作成",
+      "import": "インポート"
+    },
+    "filter": {
+      "quick_search": "クイック検索",
+      "status": "ステータス",
+      "scope": "グローバル",
+      "session": "掲載期間",
+      "blog_axis": "ブログの検索範囲",
+      "quick_search_placeholder": "例）banner",
+      "submit": "検索",
+      "clear": "クリア",
+      "tooltip": {
+        "blog_axis": "このブログの下にある全ての子ブログも検索対象に含むか選択します。"
+      }
+    },
+    "error": {
+      "unknown": {
+        "title": "予期しないエラーが発生しました",
+        "message": "時間をおいて、やり直してください。"
+      }
+    },
+    "dataview": {
+      "label": "モジュールID一覧"
+    }
+  },
+  "pagination": {
+    "label": "ページネーション",
+    "prev": "前へ",
+    "next": "次へ",
+    "items": "件",
+    "all": "全て"
+  },
+  "dataview": {
+    "header": {
+      "actions": "アクション"
+    },
+    "select_all_rows": "全ての行を選択する",
+    "deselect_all_rows": "全ての行の選択を解除する",
+    "select_rows": "行を選択する",
+    "deselect_rows": "行の選択を解除する",
+    "bulk_actions": "一括操作",
+    "empty_state_title": "データがありません",
+    "menu": {
+      "column_visibility": "表示項目設定"
+    },
+    "column_visibility": {
+      "title": "表示項目設定",
+      "edit": "カスタムフィールド設定",
+      "save": "保存する",
+      "cancel": "キャンセル",
+      "pending": "保存中です。",
+      "failure": "表示項目設定の保存に失敗しました。"
+    },
+    "custom_column": {
+      "title": "カスタムフィールド設定",
+      "handle": {
+        "label": "ハンドル"
+      },
+      "label": {
+        "label": "ラベル",
+        "tooltip": "カラムに追加するカスタムフィールドのラベルを設定します。",
+        "placeholder": "例）氏名"
+      },
+      "accessor_key": {
+        "label": "フィールド名",
+        "tooltip": "カラムに追加するカスタムフィールドのフィールド名を設定します。",
+        "placeholder": "例）name"
+      },
+      "sort": {
+        "label": "ソートを有効"
+      },
+      "type": {
+        "label": "タイプ",
+        "tooltip": "カラムに追加するカスタムフィールドのタイプを設定します。",
+        "text": "テキスト",
+        "textarea": "テキストエリア",
+        "number": "数値",
+        "select": "セレクトボックス",
+        "checkbox": "チェックボックス",
+        "radio": "ラジオボタン",
+        "datetime": "日時",
+        "image": "画像",
+        "file": "ファイル",
+        "media": "メディア",
+        "rich-editor": "リッチエディター",
+        "block-editor": "ブロックエディター",
+        "group": "フィールドグループ"
+      },
+      "action": "アクション",
+      "add": "追加",
+      "delete": "削除",
+      "save": "保存する",
+      "cancel": "キャンセル",
+      "success": "カスタムフィールド設定を保存しました。",
+      "failure": "カスタムフィールド設定の保存に失敗しました。",
+      "pending": "保存中です。",
+      "error": {
+        "column_id": {
+          "required": "IDが登録されていない項目があります。システム管理者にお問い合わせください。",
+          "all_unique": "IDが重複している項目があります。システム管理者にお問い合わせください。"
+        },
+        "column_accessor_key": {
+          "required": "フィールド名が入力されていない項目があります。",
+          "all_unique": "フィールド名が重複している項目があります。"
+        },
+        "column_label": {
+          "required": "ラベルが入力されていない項目があります。"
+        },
+        "column_type": {
+          "required": "タイプが入力されていない項目があります。"
+        }
+      }
+    },
+    "actions": {
+      "row_selection": {
+        "info": "{{count}}件選択中",
+        "clear": "すべて解除"
+      },
+      "limit": "{{limit}}件表示",
+      "limit_label": "表示件数"
+    },
+    "filter": {
+      "value_control": {
+        "not_selected": "未選択"
+      },
+      "operator": {
+        "eq": "等しい",
+        "neq": "等しくない",
+        "gt": "より大きい",
+        "gte": "以上",
+        "lt": "より小さい",
+        "lte": "以下",
+        "lk": "含む",
+        "nlk": "含まない"
+      },
+      "thead": {
+        "field": "項目名",
+        "operator": "条件",
+        "value": "値",
+        "action": "アクション"
+      },
+      "delete": "削除",
+      "add": "追加"
+    },
+    "group_cell_value": "{{length}}件のフィールドグループ",
+    "pagination": {
+      "top": {
+        "label": "ページネーション（上部）"
+      },
+      "bottom": {
+        "label": "ページネーション（下部）"
+      }
+    }
+  },
+  "entry": {
+    "status": {
+      "draft": "下書き",
+      "open": "公開",
+      "close": "非公開",
+      "trash": "ゴミ箱"
+    },
+    "session": {
+      "public": "掲載期間内",
+      "expiration": "掲載期間終了",
+      "future": "掲載期間前"
+    },
+    "approval": {
+      "pre_approval": "承認前",
+      "none": "承認済"
+    },
+    "form_status": {
+      "open": "公開",
+      "close": "非公開"
+    }
+  },
+  "module": {
+    "status": {
+      "open": "有効",
+      "close": "無効"
+    },
+    "scope": {
+      "global": "グローバル",
+      "local": "ローカル"
+    },
+    "blog_axis": {
+      "self": "子ブログ以下を含めない",
+      "descendant-or-self": "子ブログ以下を含める"
+    }
+  },
+  "select": {
+    "not_selected": "未選択",
+    "on": "有効",
+    "off": "無効"
+  },
+  "alert": {
+    "close": "アラートを閉じる"
+  },
+  "draggable_button": {
+    "label": "ドラッグで並び変えできます"
+  },
+  "blog": {
+    "select": {
+      "not_selected": "未選択",
+      "label": "ブログを選択します（キーワードを入れて絞り込みできます）",
+      "placeholder": "ブログを選択します（キーワードを入れて絞り込み）",
+      "notfound": "ブログが見つかりません"
+    }
+  },
+  "user": {
+    "select": {
+      "not_selected": "未選択",
+      "label": "ユーザーを選択します（キーワードを入れて絞り込みできます）",
+      "placeholder": "ユーザーを選択します（キーワードを入れて絞り込み）",
+      "notfound": "ユーザーが見つかりません"
+    }
+  },
+  "table": {
+    "label": {
+      "sort": {
+        "asc": "昇順",
+        "desc": "降順",
+        "none": "並び替えなし"
+      }
+    }
+  },
+  "dropdown_menu": {
+    "trigger_label": "メニューを開く",
+    "submenu_trigger_label": "サブメニューを開く"
+  },
+  "tooltip": {
+    "trigger": {
+      "label": "ツールチップを表示"
+    }
+  },
+  "dialog": {
+    "cancel": "キャンセル",
+    "ok": "OK",
+    "confirm_title": "本当に実行しますか？",
+    "warning_title": "警告",
+    "prompt_title": "入力してください"
   }
 }

@@ -2,7 +2,6 @@
 // スクロールテーブル
 // ------------------------------
 @mixin table-scroll() {
-  margin-bottom: 15px;
   overflow: scroll hidden;
   -webkit-overflow-scrolling: touch;
 

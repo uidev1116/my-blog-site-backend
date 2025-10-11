@@ -1,13 +1,9 @@
 <!DOCTYPE html>
-<!--[if lt IE 7]>
-<html class="is-admin-page no-js lt-ie9 lt-ie8 lt-ie7" lang="ja"> <![endif]--><!--[if IE 7]>
-<html class="is-admin-page no-js lt-ie9 lt-ie8" lang="ja"> <![endif]--><!--[if IE 8]>
-<html class="is-admin-page no-js lt-ie9" lang="ja"> <![endif]--><!--[if gt IE 8]><!-->
-<html class="is-admin-page no-js" lang="ja"><!--<![endif]-->
+<html class="is-admin-page no-js" lang="ja">
 <head>
   @section("admin-meta")
   @include("/include/head/admin-meta.html")
-  <meta name="viewport" content="width=device-width,  user-scalable=no, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   @endsection
 
   @section("admin-title")
@@ -20,24 +16,29 @@
   @include("/include/head/admin-css.html")
   @endsection
 
+  @section("editor-css")
+  <link rel="stylesheet" href="/css/acms-editor.min.css">
+  @endsection
+
   @section("admin-js")
   @include("/include/head/admin-js.html")
   @endsection
 </head>
-<body id="top">
+<body id="top" class="%{ADMIN}">
+  <!-- BEGIN_IF [%{ADMIN}/nre/^(entry-edit|form2-edit)$] -->
   <div class="acms-admin-nav">
     <!-- BEGIN_MODULE Admin_Menu -->
     <header class="acms-admin-navbar-system">
       @section("navbar-admin")
-      <nav class="acms-admin-navbar-admin">
-        <a class="nav-btn acms-admin-btn js-offcanvas-btn js-offcanvas-btn-l" id="nav-open-btn" href="#nav">
+      <nav class="acms-admin-navbar-admin" aria-label="<!--T-->管理用ナビゲーション<!--/T-->">
+        <button class="nav-btn js-offcanvas-btn js-offcanvas-btn-l" id="nav-open-btn" data-target="#nav">
           <i class="acms-admin-icon-sort acms-admin-bg-black"></i>
           <span class="acms-admin-hide-visually"><!--T-->メニュー<!--/T--></span>
-        </a>
+        </button>
         <div class="acms-admin-list-blog acms-admin-hide-sp">
           <!-- BEGIN dashboard -->
           <p class="acms-admin-title-cms">
-            <a href="{url}">
+            <a href="{url}" class="js-acms-tooltip" data-acms-position="right" data-acms-tooltip="ダッシュボード">
               <i class="acms-admin-icon acms-admin-icon-logo acms-admin-blog-color"></i>
               <span class="acms-admin-hide-visually">a-blog cms ダッシュボードへ</span>
             </a>
@@ -57,12 +58,10 @@
         <div class="acms-admin-navbar-admin-right acms-admin-hide-sp">
           <ul class="acms-admin-navbar-admin-nav">
             <li>
-              <a href="%{BLOG_URL}">
+              <a href="%{BLOG_URL}" class="js-acms-tooltip" data-acms-position="right" data-acms-tooltip="サイトを表示">
                 <i
-                  class="acms-admin-icon acms-admin-icon-exit js-acms-tooltip-hover"
+                  class="acms-admin-icon acms-admin-icon-exit"
                   aria-hidden="true"
-                  data-acms-position="right"
-                  data-acms-tooltip="サイトを表示"
                 ></i>
                 <span class="acms-admin-hide-visually">
                   <!--T-->サイトを表示<!--/T-->
@@ -72,33 +71,35 @@
             <li>
               <button
                 type="button"
-                class="js-search-everything"
+                class="js-search-everything js-acms-tooltip"
+                data-acms-position="right"
+                data-acms-tooltip="検索"
               >
                 <i
-                  class="acms-admin-icon acms-admin-icon-search js-acms-tooltip-hover"
-                  data-acms-position="right"
+                  class="acms-admin-icon acms-admin-icon-search"
                   aria-hidden="true"
-                  data-acms-tooltip="検索"
                 ></i>
                 <span class="acms-admin-hide-visually"><!--T-->検索<!--/T--></span>
               </button>
             </li>
             <!-- BEGIN user#profile -->
             @section("navbar-admin-profile")
-            <li class="js-acms-dropdown-toggle acms-admin-dropdown-right acms-admin-dropdown-toggle-sp">
-              <a href="#" class="js-acms-dropdown-btn">
+            <li class="js-acms-dropdown-toggle acms-admin-dropdown-right">
+              <button
+                type="button"
+                class="js-acms-dropdown-btn js-acms-tooltip acms-admin-btn-unstyled"
+                data-acms-position="right"
+                data-acms-tooltip="<!--T-->ユーザー情報を表示<!--/T-->"
+              >
                 <img
                   src="%{ARCHIVES_DIR}{icon}"
                   width="26"
                   height="26"
-                  alt="%{SESSION_USER_NAME}"
-                  class="acms-admin-user-profile js-acms-tooltip-hover"
-                  aria-hidden="true"
-                  data-acms-position="right"
-                  data-acms-tooltip="<!--T-->ユーザー情報を表示<!--/T-->"
+                  alt=""
+                  class="acms-admin-user-profile"
                 >
-              </a>
-              <div class="js-acms-dropdown-menu">
+              </button>
+              <div class="js-acms-dropdown-menu acms-admin-dropdown-menu acms-admin-dropdown-menu-lg acms-admin-padding-left-right-none acms-admin-padding-top-none">
                 <div class="acms-admin-navbar-admin-nav-header">
                   <div class="acms-admin-navbar-admin-nav-icon-wrap">
                     <img
@@ -125,98 +126,100 @@
                     </span>
                   </div>
                 </div>
-                <ul class="acms-admin-navbar-admin-nav-dropdown-menu">
+                <ul>
                   <li>
                     <a href="{url}">
                       <!--T-->プロフィール変更<!--/T-->
                     </a>
                   </li>
                   <li>
-                    <button type="button" class="js-admin_action_toggle">
-                      <!--T-->管理ボックス<!--/T-->
+                    <button type="submit" form="navbar-logout-form">
+                      <!--T-->ログアウト<!--/T-->
                     </button>
-                  </li>
-                  <li>
-                    <form action="" method="post">
-                      <button type="submit" name="ACMS_POST_Logout">
-                        <!--T-->ログアウト<!--/T-->
-                      </button>
-                    </form>
                   </li>
                 </ul>
               </div>
+              <form id="navbar-logout-form" action="" method="post">
+                <input type="hidden" name="ACMS_POST_Logout">
+              </form>
             </li>
             @endsection
             <!-- END user#profile -->
             @section("navbar-admin-help")
-            <li class="js-acms-dropdown-toggle acms-admin-dropdown-right acms-admin-dropdown-toggle-sp">
-              <a href="#" class="js-acms-dropdown-btn">
+            <li class="js-acms-dropdown-toggle acms-admin-dropdown-right">
+              <button type="button" class="js-acms-dropdown-btn acms-admin-btn-unstyled js-acms-tooltip" data-acms-position="right" data-acms-tooltip="ヘルプ">
                 <i class="acms-admin-icon acms-admin-icon-tooltip" aria-hidden="true"></i>
                 <span class="acms-admin-hide-visually"><!--T-->ヘルプ<!--/T--></span>
-              </a>
-              <ul class="js-acms-dropdown-menu acms-admin-navbar-admin-nav-dropdown-menu">
-                <li>
-                  <a href="%{BLOG_URL}">
+              </button>
+              <div role="menu" class="js-acms-dropdown-menu acms-admin-dropdown-menu">
+                <div role="group" class="acms-admin-dropdown-menu-group">
+                  <span class="acms-admin-dropdown-menu-group-title"><!--T-->管理画面<!--/T--></span>
+                  <a role="menuitem" href="%{BLOG_URL}">
                     <!--T-->サイトを表示<!--/T-->
                   </a>
-                </li>
-                <li>
+                  <button
+                    role="menuitem"
+                    type="button"
+                    class="js-keyboard-shortcut-modal-open"
+                  >
+                    <!--T-->キーボードショートカット<!--/T-->
+                  </button>
+                </div>
+                <div role="group" class="acms-admin-dropdown-menu-group">
+                  <span class="acms-admin-dropdown-menu-group-title"><!--T-->外部リンク<!--/T--></span>
                   <a
                     href="https://developer.a-blogcms.jp/document/introduction.html"
                     target="_blank"
                     rel="noopener noreferrer"
+                    role="menuitem"
                   >
                     <!--T-->ドキュメント<!--/T-->
                   </a>
-                </li>
-                <li>
                   <a
                     href="https://www.a-blogcms.jp/manual/"
                     target="_blank"
                     rel="noopener noreferrer"
+                    role="menuitem"
                   >
                     <!--T-->運用マニュアル<!--/T-->
                   </a>
-                </li>
-                <li>
                   <a
                     href="https://www.a-blogcms.jp/support/"
                     target="_blank"
                     rel="noopener noreferrer"
+                    role="menuitem"
                   >
                     <!--T-->サポート<!--/T-->
                   </a>
-                </li>
-                <li>
                   <a
                     href="https://developer.a-blogcms.jp/forum.html"
                     target="_blank"
                     rel="noopener noreferrer"
+                    role="menuitem"
                   >
                     <!--T-->フォーラム<!--/T-->
                   </a>
-                </li>
-                <li>
                   <a
                     href="https://mypage.a-blogcms.jp"
                     target="_blank"
                     rel="noopener noreferrer"
+                    role="menuitem"
                   >
                     <!--T-->ライセンス購入<!--/T-->
                   </a>
-                </li>
-              </ul>
+                </div>
+              </div>
             </li>
             @endsection
 
             @section("navbar-admin-usefull")
             <!-- BEGIN_MODULE Touch_SessionWithAdministration -->
-            <li class="js-acms-dropdown-toggle acms-admin-dropdown-right acms-admin-dropdown-toggle-sp">
-              <a href="#" class="js-acms-dropdown-btn">
+            <li class="js-acms-dropdown-toggle acms-admin-dropdown-right">
+              <button type="button" class="js-acms-dropdown-btn js-acms-tooltip" data-acms-position="right" data-acms-tooltip="開発">
                 <i class="acms-admin-icon acms-admin-icon-config_function" aria-hidden="true"></i>
                 <span class="acms-admin-hide-visually">開発</span>
-              </a>
-              <ul class="js-acms-dropdown-menu acms-admin-navbar-admin-nav-dropdown-menu">
+              </button>
+              <ul class="js-acms-dropdown-menu acms-admin-dropdown-menu acms-admin-dropdown-menu-lg">
                 <li>
                   <a href="%{ADMIN_BASE_URL}bid/%{BID}/admin/customfield_maker/">カスタムフィールドメーカー</a>
                 </li>
@@ -230,7 +233,7 @@
                   </a>
                 </li>
                 <li>
-                  <hr>
+                  <hr class="acms-admin-divider">
                 </li>
                 <li>
                   <a
@@ -312,7 +315,7 @@
       <div id="sidebar">
         <div class="sidebar-container">
           <nav class="acms-admin-sidebar">
-            <div class="acms-admin-sidebar-header js-scroll-fixed">
+            <div class="acms-admin-sidebar-header">
               <div class="acms-admin-sidebar-sp">
                 <ul class="acms-admin-sidebar-sp-list">
                   <li class="acms-admin-sidebar-sp-list-item">
@@ -351,13 +354,13 @@
               </div>
               <div class="js-acms-dropdown-toggle acms-admin-dropdown-right acms-admin-dropdown-toggle-sp">
                 <h1 class="acms-admin-title-blog">
-                  <a href="#" class="js-acms-dropdown-btn" aria-haspopup="true">
+                  <button type="button" class="js-acms-dropdown-btn acms-admin-btn-unstyled" aria-haspopup="true">
                     %{BLOG_NAME}
                     <span class="acms-admin-arrow-right"></span>
-                  </a>
+                  </button>
                 </h1>
                 <!-- BEGIN_MODULE Admin_Blog_SelectGlobal -->
-                <ul class="js-acms-dropdown-menu acms-admin-list-scroll" data-pos-my="left top" data-pos-at="right top">
+                <ul class="js-acms-dropdown-menu acms-admin-dropdown-menu acms-admin-list-scroll" data-pos-my="left top" data-pos-at="right top">
                   <!-- BEGIN loop -->
                   <li<!-- BEGIN_IF [{value}/eq/%{BID}] --> class="acms-admin-dropdown-current"<!-- END_IF -->>
                     <a href="{adminUrl}">
@@ -373,7 +376,7 @@
               </div>
             </div>
 
-            <div class="acms-admin-sidebar-main js-scroll-contents">
+            <div class="acms-admin-sidebar-main">
               @section("admin-menu")
               @section("admin-menu-license")
               <div class="acms-admin-sidebar-link">
@@ -443,129 +446,52 @@
               @endsection
             </div>
           </nav>
-          <a class="js-offcanvas-close" href="#">
+          <!-- キーボードでアクセス可能な閉じるボタン -->
+          <button type="button" class="js-offcanvas-close acms-admin-btn-unstyled">
             <span class="acms-admin-hide-visually">コンテンツに戻る</span>
-          </a>
+          </button>
         </div>
       </div>
     </div>
     <!-- END_MODULE Admin_Menu -->
   </div>
+  <!-- END_IF -->
 
-  <div id="acms-admin-main" class="acms-admin-margin-bottom-large">
+  <div id="acms-admin-main">
     <main id="main" role="main">
-      @section("admin-action-box")
-      <div id="js-admin_action_box"<!-- BEGIN_MODULE Touch_NotAdminActionBox --> style="display: none;"<!-- END_MODULE Touch_NotAdminActionBox -->>
-      @include("/admin/action.html")
-      </div>
-      @endsection
+      <div id="admin-toast">
+        <div class="acms-admin-hide-tablet">
+        <!-- 開発モード用のトースト -->
+        @include("/admin/include/parts/toasts/development.html", {
+          "static": "on"
+        })
 
-      @section("admin-error")
-      <!-- BEGIN_MODULE SystemError -->
-      <!-- BEGIN IllegalPostData -->
-      <div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
-        <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
-        <button
-          type="button"
-          class="js-acms-alert-close acms-admin-alert-icon-after"
-          aria-label="アラートを閉じる"
-        >
-          ×
-        </button>
-        <!--T-->送信データが不完全です。<!--/T-->
-      </div>
-      <!-- END IllegalPostData -->
-      <!-- BEGIN CsrfTokenExpired -->
-      <div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
-        <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
-        <button
-          type="button"
-          class="js-acms-alert-close acms-admin-alert-icon-after"
-          aria-label="アラートを閉じる"
-        >
-          ×
-        </button>
-        <!--T-->ページの有効期限が切れています。<!--/T-->
-      </div>
-      <!-- END CsrfTokenExpired -->
-      <!-- BEGIN DoubleTransmission -->
-      <div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
-        <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
-        <button
-          type="button"
-          class="js-acms-alert-close acms-admin-alert-icon-after"
-          aria-label="アラートを閉じる"
-        >
-          ×
-        </button>
-        <!--T-->連続送信は禁止されています。<!--/T-->
-      </div>
-      <!-- END DoubleTransmission -->
-      <!-- BEGIN IllegalAccess -->
-      <div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
-        <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
-        <button
-          type="button"
-          class="js-acms-alert-close acms-admin-alert-icon-after"
-          aria-label="アラートを閉じる"
-        >
-          ×
-        </button>
-        <!--T-->不正なアクセスです。<!--/T-->
-      </div>
-      <!-- END IllegalAccess -->
-      <!-- END_MODULE SystemError -->
-      @endsection
-
-      @section("admin-main")
-
-      <!-- BEGIN_IF [%{IS_DEVELOPMENT}/eq/on] -->
-      <div class="js-admin-toast-toggle acms-admin-toast acms-admin-toast-danger acms-admin-toast-static-md acms-admin-toast-closed">
-        <div class="acms-admin-toast-header">
-          <i class="acms-admin-icon-news" aria-hidden="true"></i>
-          <h2 class="acms-admin-toast-heading"><!--T-->開発モードで動作中<!--/T--></h2>
-        </div>
-        <div class="acms-admin-toast-body">
-          <p class="acms-admin-toast-lead"><!--T-->開発モードが適用されています<!--/T--></p>
-          <p class="acms-admin-toast-desc">現在は開発モードで動作しています。本番運用の場合はマイページから認証用ライセンスをご購入ください。（※現在、検索エンジンから検索されていません。）</p>
-        </div>
-        <div class="acms-admin-toast-footer">
-          <a href="https://mypage.a-blogcms.jp" target="_blank" rel="noopener noreferrer" class="acms-admin-btn acms-admin-btn-primary acms-admin-btn-large acms-admin-btn-block">
-            マイページから購入する
-          </a>
+        <!-- トライアルモード用のトースト -->
+        @include("/admin/include/parts/toasts/trial.html", {
+          "static": "on"
+        })
         </div>
       </div>
-      <!-- END_IF -->
 
-      <!-- BEGIN_IF [%{IS_TRIAL}/eq/on] -->
-      <div class="js-admin-toast-toggle acms-admin-toast acms-admin-toast-warning acms-admin-toast-static-md acms-admin-toast-closed">
-        <div class="acms-admin-toast-header">
-          <i class="acms-admin-icon-news" aria-hidden="true"></i>
-          <h2 class="acms-admin-toast-heading"><!--T-->トライアルモードで動作中<!--/T--></h2>
-        </div>
-        <div class="acms-admin-toast-body">
-          <p class="acms-admin-toast-lead"><!--T-->マイナーバージョン（２桁目）のアップデートにはライセンスの更新が必要です。<!--/T--></p>
-          <p class="acms-admin-toast-desc"><!--T-->現在はトライアルモードで動作しています。バージョンをダウングレードするか、新しいライセンスファイルを適用してください。<br>アップデート期間が終了している場合、アップデート期間延長オプションをマイページより購入する必要があります。<!--/T-->（※<!--T-->トライアルモードが終了すると、検索エンジンから検索されない開発モードに切り替わります。<!--/T-->）</p>
-          <p><strong><!--T-->トライアル期間<!--/T-->：<span style="font-size:125%;">残り<span style="font-size:150%;">%{TRIAL_COUNT_DOWN}</span>日</span></strong></p>
-
-          <!-- BEGIN_MODULE Touch_SessionWithAdministration -->
-          <div>
-            <a href="%{ADMIN_BASE_URL}bid/%{BID}/admin/update/" class="acms-admin-btn acms-admin-btn-large acms-admin-btn-block acms-admin-margin-bottom-small">
-              <!--T-->ダウングレードする（無料）<!--/T-->
-            </a>
-            <a href="https://mypage.a-blogcms.jp" target="_blank" rel="noopener noreferrer" class="acms-admin-btn acms-admin-btn-large acms-admin-btn-block acms-admin-btn-primary">
-              <!--T-->マイページに移動する<!--/T-->
-            </a>
-          </div>
-          <!-- END_MODULE Touch_SessionWithAdministration -->
-        </div>
+      <div id="admin-error">
+        @section("admin-error")
+        @include("/admin/include/system-error.html")
+        @endsection
       </div>
-      <!-- END_IF -->
-
-      @include("/admin/%{ADMIN_PATH}.html")
-      <!-- BEGIN_MODULE Admin_InjectTemplate id="admin-main" --><!-- END_MODULE Admin_InjectTemplate -->
-      @endsection
+      <div id="admin-main">
+        @section("admin-main")
+        @include("/admin/%{ADMIN_PATH}.html")
+        <!-- BEGIN_MODULE Admin_InjectTemplate id="admin-main" --><!-- END_MODULE Admin_InjectTemplate -->
+        @endsection
+      </div>
     </main>
+  </div>
+  <div class="acms-admin-hide-sp">
+    <!-- 開発モード用のトースト -->
+    @include("/admin/include/parts/toasts/development.html")
+
+    <!-- トライアルモード用のトースト -->
+    @include("/admin/include/parts/toasts/trial.html")
   </div>
 </body>
 </html>

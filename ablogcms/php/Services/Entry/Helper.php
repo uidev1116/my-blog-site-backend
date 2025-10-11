@@ -3,18 +3,19 @@
 namespace Acms\Services\Entry;
 
 use Acms\Services\Facades\Common;
-use Acms\Services\Facades\Entry;
-use Acms\Services\Facades\Database as DB;
-use Acms\Services\Facades\Logger as AcmsLogger;
 use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Preview;
-use SQL;
+use Acms\Services\Facades\Auth;
+use Acms\Services\Facades\Database as DB;
+use Acms\Services\Facades\Entry;
 use ACMS_RAM;
 use Field;
+use SQL;
 
 class Helper
 {
     use \Acms\Traits\Common\AssetsTrait;
+    use \Acms\Traits\Unit\UnitModelTrait;
 
     /**
      * サマリーの表示で使うユニットの範囲を取得
@@ -40,7 +41,7 @@ class Helper
     /**
      * 一時保存したユニットデータ
      *
-     * @var array|null
+     * @var \Acms\Services\Unit\UnitCollection|array|null
      */
     protected $tempUnitData = null;
 
@@ -113,10 +114,10 @@ class Helper
     /**
      * 一時的にユニットを保存
      *
-     * @param array $data
+     * @param \Acms\Services\Unit\UnitCollection|array $data
      * @return void
      */
-    public function setTempUnitData(array $data): void
+    public function setTempUnitData($data): void
     {
         $this->tempUnitData = $data;
     }
@@ -124,9 +125,9 @@ class Helper
     /**
      * 一時ユニットデータを取得
      *
-     * @return array|null
+     * @return \Acms\Services\Unit\UnitCollection|array|null
      */
-    public function getTempUnitData(): ?array
+    public function getTempUnitData()
     {
         return $this->tempUnitData;
     }
@@ -143,8 +144,8 @@ class Helper
      */
     public function validEntryCodeDouble($code, $bid = BID, $cid = null, $eid = null)
     {
-        $DB     = DB::singleton(dsn());
-        $SQL    = SQL::newSelect('entry');
+        $DB = DB::singleton(dsn());
+        $SQL = SQL::newSelect('entry');
         $SQL->addSelect('entry_id');
         $SQL->addWhereOpr('entry_code', $code);
         $SQL->addWhereOpr('entry_id', $eid, '<>');
@@ -204,72 +205,6 @@ class Helper
     }
 
     /**
-     * メディアユニットの情報が欠落していないかバリデート
-     *
-     * @return bool
-     */
-    public function validateMediaUnit()
-    {
-        if (!isset($_POST['type']) || !is_array($_POST['type'])) {
-            return true;
-        }
-        foreach ($_POST['type'] as $i => $type) {
-            $id = $_POST['id'][$i];
-            $type = detectUnitTypeSpecifier($type);
-            if ($type === 'media') {
-                if (!isset($_POST['media_id_' . $id])) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
-     * PING送信
-     *
-     * @param string $endpoint
-     * @param int $eid
-     *
-     * @return void
-     */
-    public function pingTrackback($endpoint, $eid)
-    {
-        $aryEndpoint = preg_split('@\s@', $endpoint, -1, PREG_SPLIT_NO_EMPTY);
-        $title = ACMS_RAM::entryTitle($eid);
-        $excerpt = mb_strimwidth(loadFulltext($eid), 0, 252, '...', 'UTF-8');
-        $url = acmsLink([
-            'bid'   => BID,
-            'cid'   => ACMS_RAM::entryCategory($eid),
-            'eid'   => $eid,
-        ], false);
-        $blog_name = ACMS_RAM::blogName(BID);
-
-        if (empty($aryEndpoint)) {
-            return;
-        }
-
-        foreach ($aryEndpoint as $ep) {
-            try {
-                $req = \Http::init($ep, 'POST');
-                $req->setRequestHeaders([
-                    'Content-Type: application/x-www-form-urlencoded'
-                ]);
-                $req->setPostData([
-                    'title' => $title,
-                    'excerpt' => $excerpt,
-                    'url' => $url,
-                    'blog_name' => $blog_name,
-                ]);
-                $response = $req->send();
-                $response->getResponseBody();
-            } catch (\Exception $e) {
-                AcmsLogger::notice('トラックバックの送信に失敗しました', Common::exceptionArray($e, ['url' => $ep]));
-            }
-        }
-    }
-
-    /**
      * エントリーの削除
      *
      * @param int $eid
@@ -288,11 +223,17 @@ class Helper
         DB::query($sql->get(dsn()), 'exec');
         ACMS_RAM::entry($eid, null);
 
-        //-----------------
-        // タグ・コメント削除
-        foreach (['tag', 'comment'] as $tb) {
-            $sql = SQL::newDelete($tb);
-            $sql->addWhereOpr($tb . '_entry_id', $eid);
+        //-----------
+        // タグ削除
+        $sql = SQL::newDelete('tag');
+        $sql->addWhereOpr('tag_entry_id', $eid);
+        DB::query($sql->get(dsn()), 'exec');
+
+        //-------------
+        // コメント削除
+        if ($changeRevision === false) {
+            $sql = SQL::newDelete('comment');
+            $sql->addWhereOpr('comment_entry_id', $eid);
             DB::query($sql->get(dsn()), 'exec');
         }
 
@@ -406,7 +347,7 @@ class Helper
      * @param int $eid
      * @param int $bid
      *
-     * @return int|false
+     * @return int|null|false カテゴリ-ID
      */
     function changeRevision($rvid, $eid, $bid)
     {
@@ -437,12 +378,13 @@ class Helper
 
         //-------
         // entry
-        $SQL    = SQL::newSelect('entry_rev');
+        $SQL = SQL::newSelect('entry_rev');
         $SQL->addWhereOpr('entry_id', $eid);
         $SQL->addWhereOpr('entry_rev_id', $rvid);
-        $q      = $SQL->get(dsn());
+        $q = $SQL->get(dsn());
 
-        $Entry  = SQL::newInsert('entry');
+        $primaryImageUnitId = null;
+        $Entry = SQL::newInsert('entry');
         if ($row = $DB->query($q, 'row')) {
             $cid = $row['entry_category_id'];
             foreach ($row as $key => $val) {
@@ -457,39 +399,27 @@ class Helper
             }
             $DB->query($Entry->get(dsn()), 'exec');
 
-            $primaryImageId = $row['entry_primary_image'];
+            $primaryImageUnitId = (string)$row['entry_primary_image'];
         }
 
         //------
         // unit
-        $SQL    = SQL::newSelect('column_rev');
-        $SQL->addWhereOpr('column_entry_id', $eid);
-        $SQL->addWhereOpr('column_rev_id', $rvid);
-        $q      = $SQL->get(dsn());
-
-        $Unit   = SQl::newInsert('column');
-        if ($DB->query($q, 'fetch') and ($row = $DB->fetch($q))) {
-            do {
-                foreach ($row as $key => $val) {
-                    if ($key !== 'column_id' && $key !== 'column_rev_id') {
-                        $Unit->addInsert($key, $val);
-                    }
-                }
-                $nextUnitId = $DB->query(SQL::nextval('column_id', dsn()), 'seq');
-                if (!empty($primaryImageId) && $row['column_id'] == $primaryImageId) {
-                    $primaryImageId = $nextUnitId;
-                }
-                $Unit->addInsert('column_id', $nextUnitId);
-                $DB->query($Unit->get(dsn()), 'exec');
-            } while ($row = $DB->fetch($q));
-        }
+        $unitRepository = Application::make('unit-repository');
+        assert($unitRepository instanceof \Acms\Services\Unit\Repository);
+        $collection = $unitRepository->loadUnits($eid, $rvid, null, ['setPrimaryImage' => true]);
+        $newCollection = $collection->clone();
+        $savedCollection = $unitRepository->saveAllUnits($newCollection, $eid, $bid);
 
         //---------------------
         // primaryImageIdを更新
-        $SQL = SQL::newUpdate('entry');
-        $SQL->addUpdate('entry_primary_image', $primaryImageId);
-        $SQL->addWhereOpr('entry_id', $eid);
-        $DB->query($SQL->get(dsn()), 'exec');
+        $primaryImageUnit = $savedCollection->getPrimaryImageUnit();
+        $newPrimaryImageUnitId = $primaryImageUnit !== null ? $primaryImageUnit->getId() : null;
+        if ($newPrimaryImageUnitId !== null) {
+            $primaryImageUpdateSql = SQL::newUpdate('entry');
+            $primaryImageUpdateSql->addUpdate('entry_primary_image', $newPrimaryImageUnitId);
+            $primaryImageUpdateSql->addWhereOpr('entry_id', $eid);
+            $DB->query($primaryImageUpdateSql->get(dsn()), 'exec');
+        }
         ACMS_RAM::entry($eid, null);
 
         //-------
@@ -499,21 +429,21 @@ class Helper
 
         //-------
         // tag
-        $SQL    = SQL::newSelect('tag_rev');
+        $SQL = SQL::newSelect('tag_rev');
         $SQL->addWhereOpr('tag_entry_id', $eid);
         $SQL->addWhereOpr('tag_rev_id', $rvid);
-        $q      = $SQL->get(dsn());
+        $q = $SQL->get(dsn());
+        $statement = $DB->query($q, 'exec');
 
-        $Tag    = SQl::newInsert('tag');
-        if ($DB->query($q, 'fetch') and ($row = $DB->fetch($q))) {
+        $insert = SQL::newBulkInsert('tag');
+        if ($statement && ($row = $DB->next($statement))) {
             do {
-                foreach ($row as $key => $val) {
-                    if ($key !== 'tag_rev_id') {
-                        $Tag->addInsert($key, $val);
-                    }
-                }
-                $DB->query($Tag->get(dsn()), 'exec');
-            } while ($row = $DB->fetch($q));
+                unset($row['tag_rev_id']);
+                $insert->addInsert($row);
+            } while ($row = $DB->next($statement));
+        }
+        if ($insert->hasData()) {
+            $DB->query($insert->get(dsn()), 'exec');
         }
 
         //---------------
@@ -526,32 +456,37 @@ class Helper
         $SQL->addWhereOpr('entry_sub_category_eid', $eid);
         $SQL->addWhereOpr('entry_sub_category_rev_id', $rvid);
         $q = $SQL->get(dsn());
-        $SubCategory = SQl::newInsert('entry_sub_category');
-        if ($DB->query($q, 'fetch') and ($row = $DB->fetch($q))) {
+        $statement = $DB->query($q, 'exec');
+
+        $subCategory = SQL::newBulkInsert('entry_sub_category');
+        if ($statement && ($row = $DB->next($statement))) {
             do {
-                foreach ($row as $key => $val) {
-                    if ($key !== 'entry_sub_category_rev_id') {
-                        $SubCategory->addInsert($key, $val);
-                    }
-                }
-                $DB->query($SubCategory->get(dsn()), 'exec');
-            } while ($row = $DB->fetch($q));
+                unset($row['entry_sub_category_rev_id']);
+                $subCategory->addInsert($row);
+            } while ($row = $DB->next($statement));
+        }
+        if ($subCategory->hasData()) {
+            $DB->query($subCategory->get(dsn()), 'exec');
         }
 
         //---------------
         // related entry
-        $SQL    = SQL::newSelect('relationship_rev');
+        $SQL = SQL::newSelect('relationship_rev');
         $SQL->addWhereOpr('relation_id', $eid);
         $SQL->addWhereOpr('relation_rev_id', $rvid);
-
         $relations = $DB->query($SQL->get(dsn()), 'all');
+
+        $insert = SQL::newBulkInsert('relationship');
         foreach ($relations as $relation) {
-            $SQL    = SQL::newInsert('relationship');
-            $SQL->addInsert('relation_id', $eid);
-            $SQL->addInsert('relation_eid', $relation['relation_eid']);
-            $SQL->addInsert('relation_type', $relation['relation_type']);
-            $SQL->addInsert('relation_order', $relation['relation_order']);
-            $DB->query($SQL->get(dsn()), 'exec');
+            $insert->addInsert([
+                'relation_id' => $eid,
+                'relation_eid' => $relation['relation_eid'],
+                'relation_type' => $relation['relation_type'],
+                'relation_order' => $relation['relation_order'],
+            ]);
+        }
+        if ($insert->hasData()) {
+            $DB->query($insert->get(dsn()), 'exec');
         }
 
         //----------
@@ -588,18 +523,24 @@ class Helper
             $DB->query($SQL->get(dsn()), 'exec');
 
             $cidAry = $this->getSubCategoryFromString($cids, ',');
+
+            $insert = SQL::newBulkInsert($table);
             foreach ($cidAry as $cid) {
                 if ($masterCid == $cid) {
                     continue;
                 }
-                $SQL = SQL::newInsert($table);
-                $SQL->addInsert('entry_sub_category_eid', $eid);
-                $SQL->addInsert('entry_sub_category_id', $cid);
-                $SQL->addInsert('entry_sub_category_blog_id', $bid);
-                if (!empty($rvid)) {
-                    $SQL->addInsert('entry_sub_category_rev_id', $rvid);
+                $data = [
+                    'entry_sub_category_eid' => $eid,
+                    'entry_sub_category_id' => $cid,
+                    'entry_sub_category_blog_id' => $bid,
+                ];
+                if ($rvid) {
+                    $data['entry_sub_category_rev_id'] = $rvid;
                 }
-                $DB->query($SQL->get(dsn()), 'exec');
+                $insert->addInsert($data);
+            }
+            if ($insert->hasData()) {
+                $DB->query($insert->get(dsn()), 'exec');
             }
         } catch (\Exception $e) {
         }
@@ -612,6 +553,7 @@ class Helper
      */
     public function getSubCategoryFromString($string, $delimiter = ',')
     {
+        $delimiter = $delimiter ? $delimiter : ',';
         $cidAry = explode($delimiter, $string);
         $list = [];
         foreach ($cidAry as $item) {
@@ -649,6 +591,7 @@ class Helper
         $DB->query($SQL->get(dsn()), 'exec');
 
         $exists = [];
+        $insert = SQL::newBulkInsert($table);
         foreach ($entryAry as $i => $reid) {
             try {
                 $type = $typeAry[$i] ?? '';
@@ -658,20 +601,22 @@ class Helper
                 if (in_array($reid, $exists[$type], true)) {
                     continue;
                 }
-                $SQL = SQL::newInsert($table);
-                $SQL->addInsert('relation_id', $eid);
-                $SQL->addInsert('relation_eid', $reid);
-                $SQL->addInsert('relation_order', $i);
-                if (!empty($type)) {
-                    $SQL->addInsert('relation_type', $type);
+                $data = [
+                    'relation_id' => $eid,
+                    'relation_eid' => $reid,
+                    'relation_order' => $i,
+                    'relation_type' => $type ? $type : 'default',
+                ];
+                if ($rvid) {
+                    $data['relation_rev_id'] = $rvid;
                 }
-                if (!empty($rvid)) {
-                    $SQL->addInsert('relation_rev_id', $rvid);
-                }
-                $DB->query($SQL->get(dsn()), 'exec');
+                $insert->addInsert($data);
                 $exists[$type][] = $reid;
             } catch (\Exception $e) {
             }
+        }
+        if ($insert->hasData()) {
+            $DB->query($insert->get(dsn()), 'exec');
         }
     }
 
@@ -860,8 +805,8 @@ class Helper
             return false;
         }
 
-        $DB     = DB::singleton(dsn());
-        $SQL    = SQL::newDelete('cache_reserve');
+        $DB = DB::singleton(dsn());
+        $SQL = SQL::newDelete('cache_reserve');
         $SQL->addWhereOpr('cache_reserve_datetime', date('Y-m-d H:i:s', REQUEST_TIME), '<', 'OR');
         $SQL->addWhereOpr('cache_reserve_entry_id', $eid, '=', 'OR');
         $DB->query($SQL->get(dsn()), 'exec');
@@ -966,6 +911,609 @@ class Helper
             return false;
         }
 
+        return true;
+    }
+
+    /**
+     * 現在のログインユーザーがエントリーを削除可能かどうかを判定する
+     *
+     * @param int $entryId
+     * @return bool
+    */
+    public function canDelete(int $entryId): bool
+    {
+        if (Preview::isPreviewMode()) {
+            return false;
+        }
+
+        $blogId = ACMS_RAM::entryBlog($entryId);
+        $categoryId = ACMS_RAM::entryCategory($entryId);
+
+        if (enableApproval($blogId, $categoryId)) {
+            return $this->canDeleteByApproval($blogId, $categoryId, $entryId);
+        }
+
+        if (roleAvailableUser()) {
+            return $this->canDeleteByRole($blogId, $entryId);
+        }
+
+        return $this->canDeleteByDefault($blogId, $entryId);
+    }
+
+
+    /**
+     * 現在のログインユーザーがエントリーを一括削除可能かどうかを判定する
+     *
+     * @param int $blogId
+     * @param int|null $categoryId
+     * @return bool
+    */
+    public function canBulkDelete(int $blogId, ?int $categoryId = null): bool
+    {
+        if (Preview::isPreviewMode()) {
+            return false;
+        }
+
+
+        if (enableApproval($blogId, $categoryId)) {
+            return $this->canDeleteByApproval($blogId, $categoryId);
+        }
+
+        if (roleAvailableUser()) {
+            return $this->canDeleteByRole($blogId);
+        }
+
+        return $this->canDeleteByDefault($blogId);
+    }
+
+    /**
+     * 承認機能有効時にログインユーザーがエントリーを削除できるかどうかを判定する
+     *
+     * @param int $blogId
+     * @param int|null $categoryId
+     * @param int|null $entryId
+     * @return bool
+     */
+    private function canDeleteByApproval(int $blogId, ?int $categoryId = null, ?int $entryId = null): bool
+    {
+        if (!enableApproval($blogId, $categoryId)) {
+            throw new \BadMethodCallException('承認機能が無効です');
+        }
+
+        if (config('approval_contributor_edit_auth') === 'on') {
+            // 投稿者が自身が投稿した記事のみ編集できる設定が有効な場合はロール及び通常の権限に従う
+            if (roleAvailableUser()) {
+                return $this->canDeleteByRole($blogId, $entryId);
+            }
+
+            return $this->canDeleteByDefault($blogId, $entryId);
+        }
+
+
+        if (sessionWithApprovalAdministrator($blogId, $categoryId)) {
+            // 最終承認者またはルートブログの管理者の場合は削除可能
+            return true;
+        }
+
+        if ($entryId !== null && $entryId > 0) {
+            if (ACMS_RAM::entryApproval($entryId) === 'pre_approval') {
+                // エントリーが承認前ステータスのときは、ロール及び通常の権限に従う
+                if (roleAvailableUser()) {
+                    return $this->canDeleteByRole($blogId, $entryId);
+                }
+
+                return $this->canDeleteByDefault($blogId, $entryId);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * ロールが適用されたログインユーザーがエントリーを削除できるかどうかを判定する
+     *
+     * @param int $blogId
+     * @param int|null $entryId
+     * @return bool
+     */
+    private function canDeleteByRole(int $blogId, ?int $entryId = null): bool
+    {
+        if (!roleAvailableUser()) {
+            throw new \BadMethodCallException('ロール機能が適用されているユーザーではありません。');
+        }
+
+        if (roleAuthorization('entry_delete', $blogId, $entryId)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * ログインユーザーがエントリーを削除できるかどうかをエントリー毎に判定する
+     *
+     * @param int $blogId
+     * @param int|null $entryId
+     * @return bool
+     */
+    private function canDeleteByDefault(int $blogId, ?int $entryId = null): bool
+    {
+        if (!Auth::isControlBlog($blogId)) {
+            // ブログに権限がなければ削除不可
+            return false;
+        }
+
+        if (sessionWithCompilation($blogId)) {
+            // 編集者以上の場合は削除可能
+            return true;
+        }
+        if (
+            $entryId !== null && $entryId > 0 &&
+            sessionWithContribution() &&
+            SUID == ACMS_RAM::entryUser($entryId)
+        ) {
+            // 投稿者の場合でも、エントリーの所有ユーザーの場合は削除可能
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * ログインユーザーがゴミ箱から全てのエントリーを削除できるかどうかを判定する
+     * @param int $blogId
+     * @param int|null $categoryId
+     * @return bool
+     */
+    public function canDeleteAllFromTrash(int $blogId, ?int $categoryId = null): bool
+    {
+        if (Preview::isPreviewMode()) {
+            return false;
+        }
+        if (enableApproval($blogId, $categoryId)) {
+            // 承認機能が有効な場合
+            if (sessionWithApprovalAdministrator($blogId, $categoryId)) {
+                // 最終承認者の場合は削除可能
+                return true;
+            }
+
+            return false;
+        }
+        if (roleAvailableUser()) {
+            if (roleAuthorization('admin_etc', $blogId)) {
+                return true;
+            };
+
+            return false;
+        }
+
+        if (sessionWithAdministration($blogId)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 現在のログインユーザーがエントリーをゴミ箱から復元可能かどうかを判定する
+     *
+     * @param int $entryId
+     * @return bool
+    */
+    public function canTrashRestore(int $entryId): bool
+    {
+        if (Preview::isPreviewMode()) {
+            return false;
+        }
+
+        $blogId = ACMS_RAM::entryBlog($entryId);
+        $categoryId = ACMS_RAM::entryCategory($entryId);
+        if (enableApproval($blogId, $categoryId)) {
+            return $this->canTrashRestoreByApproval($blogId, $categoryId, $entryId);
+        }
+
+        if (roleAvailableUser()) {
+            return $this->canTrashRestoreByRole($blogId, $entryId);
+        }
+
+        return $this->canTrashRestoreByDefault($blogId, $entryId);
+    }
+
+    /**
+     * 現在のログインユーザーがエントリーをゴミ箱から一括で復元可能かどうかを判定する
+     *
+     * @param int $blogId
+     * @param int|null $categoryId
+     * @return bool
+    */
+    public function canBulkTrashRestore(int $blogId, ?int $categoryId = null): bool
+    {
+        if (Preview::isPreviewMode()) {
+            return false;
+        }
+        if (enableApproval($blogId, $categoryId)) {
+            return $this->canTrashRestoreByApproval($blogId, $categoryId);
+        }
+
+        if (roleAvailableUser()) {
+            return $this->canTrashRestoreByRole($blogId);
+        }
+
+        return $this->canTrashRestoreByDefault($blogId);
+    }
+
+    /**
+     * 承認機能有効時にログインユーザーがエントリーをゴミ箱から復元可能かどうかを判定する
+     *
+     * @param int $blogId
+     * @param int|null $categoryId
+     * @param int|null $entryId
+     * @return bool
+     */
+    private function canTrashRestoreByApproval(int $blogId, ?int $categoryId = null, ?int $entryId = null): bool
+    {
+        if (!enableApproval($blogId, $categoryId)) {
+            throw new \BadMethodCallException('承認機能が無効です');
+        }
+
+        if (config('approval_contributor_edit_auth') === 'on') {
+            // 投稿者が自身が投稿した記事のみ編集できる設定が有効な場合はロール及び通常の権限に従う
+            if (roleAvailableUser()) {
+                return $this->canTrashRestoreByRole($blogId, $entryId);
+            }
+
+            return $this->canTrashRestoreByDefault($blogId, $entryId);
+        }
+
+
+        if (sessionWithApprovalAdministrator($blogId, $categoryId)) {
+            // 最終承認者またはルートブログの管理者の場合は復元可能
+            return true;
+        }
+
+        if ($entryId !== null && $entryId > 0) {
+            // エントリー個別の場合は、ロール及び通常の権限に従う
+            if (roleAvailableUser()) {
+                return $this->canTrashRestoreByRole($blogId, $entryId);
+            }
+
+            return $this->canTrashRestoreByDefault($blogId, $entryId);
+        }
+
+        return false;
+    }
+
+    /**
+     * ロールが適用されたログインユーザーがエントリーをゴミ箱から復元可能かどうかを判定する
+     *
+     * @param int $blogId
+     * @param int|null $entryId
+     * @return bool
+     */
+    private function canTrashRestoreByRole(int $blogId, ?int $entryId = null): bool
+    {
+        if (!roleAvailableUser()) {
+            throw new \BadMethodCallException('ロール機能が適用されているユーザーではありません。');
+        }
+        if ($this->canDeleteByRole($blogId, $entryId)) {
+            // 削除可能な場合は復元可能
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * ログインユーザーがエントリーをゴミ箱から復元できるかどうかをエントリー毎に判定する
+     *
+     * @param int $blogId
+     * @param int|null $entryId
+     * @return bool
+     */
+    private function canTrashRestoreByDefault(int $blogId, ?int $entryId = null): bool
+    {
+        if ($this->canDeleteByDefault($blogId, $entryId)) {
+            // 削除可能な場合は復元可能
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 現在のログインユーザーがエントリーの表示順を変更可能かどうかを判定する
+     * @param 'entry' | 'category' | 'user' $type
+     * @param int $blogId
+     * @return bool
+     */
+    public function canChangeOrder(string $type, int $blogId): bool
+    {
+        if (Preview::isPreviewMode()) {
+            return false;
+        }
+
+        if ($type === 'user') {
+            return sessionWithContribution($blogId);
+        }
+
+        if (roleAvailableUser()) {
+            return roleAuthorization('entry_edit_all', $blogId);
+        }
+
+        return sessionWithCompilation($blogId);
+    }
+
+    /**
+     * 現在のログインユーザーが自分以外のユーザーで絞り込んだエントリーの表示順を変更可能かどうかを判定する
+     * @param int $blogId
+     * @return bool
+     */
+    public function canChangeOrderByOtherUser(int $blogId): bool
+    {
+        /** @var int|null $sessionUserId */
+        $sessionUserId = SUID;
+        if (is_null($sessionUserId)) {
+            // ログインしていない場合は変更できない
+            return false;
+        }
+        if (Preview::isPreviewMode()) {
+            // プレビューモードは変更できない
+            return false;
+        }
+        if (!$this->canChangeOrder('user', $blogId)) {
+            // そもそもユーザーで絞り込んだ場合の表示順を変更できる権限がない場合は変更できない
+            return false;
+        }
+
+        if (sessionWithCompilation($blogId)) {
+            // 編集者以上の場合は変更できる
+            return true;
+        }
+
+        if (roleAvailableUser()) {
+            if (roleAuthorization('entry_edit_all', $blogId)) {
+                // 全エントリーの編集権限がある場合は変更できる
+                return true;
+            }
+
+            return false;
+        }
+
+        return false;
+    }
+
+    /**
+     * 現在のログインユーザーがエントリーステータス一括で変更可能かどうかを判定する
+     * @param int $blogId
+     * @param int|null $categoryId
+     * @return bool
+     */
+    public function canBulkStatusChange(int $blogId, ?int $categoryId = null): bool
+    {
+        if (Preview::isPreviewMode()) {
+            return false;
+        }
+        if (config('approval_contributor_edit_auth') !== 'on' && enableApproval($blogId, $categoryId)) {
+            return sessionWithApprovalAdministrator($blogId, $categoryId);
+        }
+        if (roleAvailableUser()) {
+            return roleAuthorization('entry_edit', $blogId);
+        }
+        return sessionWithCompilation($blogId);
+    }
+
+    /**
+     * 現在のログインユーザーがエントリーの所有ユーザーを一括で変更可能かどうかを判定する
+     * @param int $blogId
+     * @param int|null $categoryId
+     * @return bool
+     */
+    public function canBulkUserChange(int $blogId, ?int $categoryId = null): bool
+    {
+        if (Preview::isPreviewMode()) {
+            return false;
+        }
+        if (enableApproval($blogId, $categoryId)) {
+            return sessionWithApprovalAdministrator($blogId, $categoryId);
+        }
+        if (roleAvailableUser()) {
+            return roleAuthorization('entry_edit', $blogId);
+        }
+        return sessionWithCompilation($blogId);
+    }
+
+    /**
+     * 現在のログインユーザーがエントリーのカテゴリーを一括で変更可能かどうかを判定する
+     * @param int $blogId
+     * @param int|null $categoryId
+     * @return bool
+     */
+    public function canBulkCategoryChange(int $blogId, ?int $categoryId = null): bool
+    {
+        if (Preview::isPreviewMode()) {
+            return false;
+        }
+        if (enableApproval($blogId, $categoryId)) {
+            return sessionWithApprovalAdministrator($blogId, $categoryId);
+        }
+        if (roleAvailableUser()) {
+            return roleAuthorization('entry_edit', $blogId);
+        }
+        // 投稿者以上の場合は変更可能（投稿者の場合は自分のエントリーのみ変更可能）
+        return sessionWithContribution($blogId);
+    }
+
+    /**
+     * 現在のログインユーザーがエントリーの所属ブログを一括で変更可能かどうかを判定する
+     * @param int $blogId
+     * @return bool
+     */
+    public function canBulkBlogChange(int $blogId): bool
+    {
+        if (Preview::isPreviewMode()) {
+            return false;
+        }
+        if (enableApproval($blogId, null)) {
+            return sessionWithApprovalAdministrator($blogId, null);
+        }
+        if (roleAvailableUser()) {
+            return roleAuthorization('admin_etc', $blogId);
+        }
+        return sessionWithAdministration($blogId);
+    }
+
+    /**
+     * 現在のログインユーザーがエントリーの承認履歴を閲覧可能かどうかを判定する
+     * @param int $entryId
+     * @return bool
+     */
+    public function canViewApprovalHistory(int $entryId): bool
+    {
+        $blogId = ACMS_RAM::entryBlog($entryId);
+        $categoryId = ACMS_RAM::entryCategory($entryId);
+
+        if (!enableApproval($blogId, $categoryId)) {
+            return false;
+        }
+
+        if (!sessionWithApprovalAdministrator($blogId, $categoryId)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 現在のログインユーザーがエントリーの複製が可能かどうかを判定する
+     * @param int $entryId
+     * @return bool
+     */
+    public function canDuplicate(int $entryId): bool
+    {
+        $blogId = ACMS_RAM::entryBlog($entryId);
+        if (roleAvailableUser()) {
+            if (roleAuthorization('entry_edit', $blogId, $entryId)) {
+                return true;
+            }
+            return false;
+        }
+        if (sessionWithCompilation($blogId)) {
+            // 編集者以上の場合は削除可能
+            return true;
+        }
+        if (
+            sessionWithContribution() &&
+            SUID == ACMS_RAM::entryUser($entryId)
+        ) {
+            // 投稿者の場合でも、エントリーの所有ユーザーの場合は削除可能
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 現在のログインユーザーが指定したブログでエントリーの一括複製が可能かどうかを判定する
+     * @param int $blogId
+     * @return bool
+     */
+    public function canBulkDuplicate(int $blogId): bool
+    {
+        if (sessionWithCompilation($blogId)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 現在のログインユーザーが指定したブログでエントリーのエクスポートが可能かどうかを判定する
+     * @param int $blogId
+     * @return bool
+     */
+    public function canExport(int $blogId): bool
+    {
+        if (sessionWithCompilation($blogId)) {
+            return true;
+        }
+        return false;
+    }
+
+    /*
+     * 現在のログインユーザーがエントリーの更新権限を持っているかどうかを判定する
+     *
+     * @param int $eid
+     * @param int $bid
+     * @param int|null $cid
+     * @param int|null $rvid
+     * @return boolean
+     */
+    public function canUpdate(int $eid, int $bid, ?int $cid = null, ?int $rvid = null): bool
+    {
+        if ($eid <= 0) {
+            return false;
+        }
+        if (!$this->canEditView($eid, $bid, $cid)) {
+            return false;
+        }
+        if (enableRevision() && $rvid && $rvid > 1) {
+            if ($this->isNewVersion()) {
+                return true;
+            }
+            $currentEntry = ACMS_RAM::entry($eid);
+            if (intval($currentEntry['entry_current_rev_id']) === $rvid && !sessionWithApprovalAdministrator($bid, $cid)) {
+                return false;
+            }
+            $sql = SQL::newSelect('entry_rev');
+            $sql->addWhereOpr('entry_id', $eid);
+            $sql->addWhereOpr('entry_rev_id', $rvid);
+            $q = $sql->get(dsn());
+            $revision = DB::query($q, 'row');
+            if ($revision) {
+                if (intval($revision['entry_rev_user_id']) !== SUID && !sessionWithApprovalAdministrator($bid, $cid)) { // @phpstan-ignore-line
+                    return false;
+                }
+                if (enableApproval($bid, $cid) && !sessionWithApprovalAdministrator($bid, $cid)) {
+                    if ($revision['entry_rev_status'] === 'approved') {
+                        // 承認済みバージョンなので変更不可
+                        return false;
+                    }
+                    if ($revision['entry_rev_status'] === 'reject') {
+                        // 承認却下バージョンなので変更不可
+                        return false;
+                    }
+                    if ($revision['entry_rev_status'] === 'trash') {
+                        // 削除依頼バージョンなので変更不可
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 現在のログインユーザーがエントリーの編集画面の閲覧権限を持っているかどうかを判定する
+     *
+     * @param int $eid
+     * @param int $bid
+     * @param int|null $cid
+     * @return boolean
+     */
+    public function canEditView(int $eid, int $bid, ?int $cid = null): bool
+    {
+        if ($eid <= 0) {
+            return false;
+        }
+        if (roleAvailableUser()) {
+            if (!roleAuthorization('entry_edit', $bid, $eid)) {
+                return false;
+            }
+        } else {
+            if (!sessionWithCompilation($bid)) {
+                if (!sessionWithContribution($bid)) {
+                    return false;
+                }
+                if (SUID !== ACMS_RAM::entryUser($eid) && (config('approval_contributor_edit_auth') === 'on' || !enableApproval($bid, $cid))) { // @phpstan-ignore-line
+                    return false;
+                }
+            }
+        }
         return true;
     }
 }

@@ -1,33 +1,28 @@
-import styled, { keyframes } from 'styled-components';
+import { forwardRef } from 'react';
 
-const spinnerAnimation = keyframes`
-  0% {
-    opacity: .4;
-    transform: rotate(0deg);
-  }
-  50% {
-    opacity: 1;
-    transform: rotate(180deg);
-  }
-  100% {
-    opacity: .4;
-    transform: rotate(360deg);
-  }
-`;
+interface SpinnerProps {
+  size?: React.CSSProperties['width'];
+  verticalAlign?: React.CSSProperties['verticalAlign'];
+  borderWidth?: React.CSSProperties['borderWidth'];
+  speed?: React.CSSProperties['animationDuration'];
+}
 
-export default styled.div<{ size: number }>`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  z-index: 101;
-  ${(props) => `
-  width: ${props.size || 30}px;
-  height: ${props.size || 30}px;
-  `}
-  margin-top: -15px;
-  margin-left: -15px;
-  border: 8px solid #333;
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: ${spinnerAnimation} 0.5s infinite linear;
-`;
+const Spinner = forwardRef<HTMLDivElement, SpinnerProps>(({ size, verticalAlign, borderWidth, speed }, ref) => (
+  <div
+    className="acms-admin-spinner"
+    style={
+      {
+        '--acms-admin-spinner-size': typeof size === 'number' ? `${size}px` : size,
+        '--acms-admin-spinner-vertical-align': verticalAlign,
+        '--acms-admin-spinner-border-width': borderWidth,
+        '--acms-admin-spinner-animation-speed': speed,
+      } as React.CSSProperties
+    }
+    role="status"
+    ref={ref}
+  />
+));
+
+Spinner.displayName = 'Spinner';
+
+export default Spinner;

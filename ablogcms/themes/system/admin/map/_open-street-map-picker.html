@@ -1,15 +1,58 @@
-<div class="js-geo_form" style="display:none">
+<div class="js-open-street-map-editable">
 	<div class="acms-admin-form-group">
 		<label for="input-text-map-search_text" class="acms-admin-hide-visually"><!--T-->住所で検索する<!--/T--></label>
-		<input type="text" name="" value="" id="input-text-map-search_text" class="js-osm-search" size="40"/>
-		<input type="button" name="" value="<!--T-->検索<!--/T-->" class="js-osm-search-btn acms-admin-btn-admin"/>
+		<input
+      type="text"
+      name=""
+      value=""
+      id="input-text-map-search_text"
+      class="js-osm-search"
+      size="40"
+    />
+		<button
+      type="button"
+      name=""
+      class="js-osm-search-btn acms-admin-btn-admin"
+    >
+      <!--T-->検索<!--/T-->
+    </button>
 	</div>
-	<div class="acms-admin-form-group" style="width: 640px;">
+	<div class="acms-admin-form-group" style="width: 100%;">
 		<div class="js-open-street-map-picker"></div>
 	</div>
-	<label for="input-text-geo_lat"><!--T-->緯度<!--/T--></label> <input type="text" name="geo_lat" value="{geo_lat}" size="9" id="input-text-geo_lat" class="js-osm-lat acms-admin-form-width-mini"/>
-	<label for="input-text-geo_lng"><!--T-->経度<!--/T--></label> <input type="text" name="geo_lng" value="{geo_lng}" size="10" id="input-text-geo_lng" class="js-osm-lng acms-admin-form-width-mini"/>
-	<label for="input-text-geo_zoom"><!--T-->ズーム<!--/T--></label> <input type="text" name="geo_zoom" value="{geo_zoom}" size="10" id="input-text-geo_zoom" class="js-osm-zoom acms-admin-form-width-mini"/>
+	<label for="input-text-geo_lat">
+    <!--T-->緯度<!--/T-->
+  </label>
+  <input
+    type="text"
+    name="geo_lat"
+    value="{geo_lat}"
+    size="9"
+    id="input-text-geo_lat"
+    class="js-osm-lat acms-admin-form-width-mini"
+  />
+	<label for="input-text-geo_lng">
+    <!--T-->経度<!--/T-->
+  </label>
+  <input
+    type="text"
+    name="geo_lng"
+    value="{geo_lng}"
+    size="10"
+    id="input-text-geo_lng"
+    class="js-osm-lng acms-admin-form-width-mini"
+  />
+	<label for="input-text-geo_zoom">
+    <!--T-->ズーム<!--/T-->
+  </label>
+  <input
+    type="text"
+    name="geo_zoom"
+    value="{geo_zoom}"
+    size="10"
+    id="input-text-geo_zoom"
+    class="js-osm-zoom acms-admin-form-width-mini"
+  />
 	<input type="hidden" name="geometry[]" value="geo_lat"/>
 	<input type="hidden" name="geometry[]" value="geo_lng"/>
 	<input type="hidden" name="geometry[]" value="geo_zoom"/>

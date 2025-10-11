@@ -13,7 +13,7 @@ class ACMS_GET_Calendar_Month extends ACMS_GET
         'end'   => 'global',
     ];
 
-    function get()
+    public function get()
     {
         $ym = substr($this->start, 0, 7);
 
@@ -33,7 +33,9 @@ class ACMS_GET_Calendar_Month extends ACMS_GET
         ACMS_Filter::blogTree($SQL, $this->bid, $this->blogAxis());
         ACMS_Filter::blogStatus($SQL);
         $SQL->addLeftJoin('category', 'category_id', 'entry_category_id');
-        ACMS_Filter::categoryTree($SQL, $this->cid, $this->categoryAxis());
+        if ($this->cid) {
+            ACMS_Filter::categoryTree($SQL, $this->cid, $this->categoryAxis());
+        }
         ACMS_Filter::categoryStatus($SQL);
         ACMS_Filter::entrySession($SQL);
         ACMS_Filter::entrySpan($SQL, $ym . '-01 00:00:00', $ym . '-31 23:59:59');
@@ -78,7 +80,7 @@ class ACMS_GET_Calendar_Month extends ACMS_GET
                     'w'     => $curW,
                     'url'   => acmsLink([
                         'bid'   => $this->bid,
-                        'cid'   => $this->cid,
+                        'cid'   => is_int($this->cid) ? $this->cid : null,
                         'date'  => [
                             intval($y), intval($m), intval($day)
                         ],
@@ -115,19 +117,19 @@ class ACMS_GET_Calendar_Month extends ACMS_GET
         $vars   = [
             'monthUrl'  => acmsLink([
                 'bid'   => $this->bid,
-                'cid'   => $this->cid,
+                'cid'   => is_int($this->cid) ? $this->cid : null,
                 'date'  => [$y, $m],
             ]),
             'month' => intval($m),
             'yearUrl'   => acmsLink([
                 'bid'   => $this->bid,
-                'cid'   => $this->cid,
+                'cid'   => is_int($this->cid) ? $this->cid : null,
                 'date'  => $y,
             ]),
             'year'  => $y,
             'prevUrl'   => acmsLink([
                 'bid'   => $this->bid,
-                'cid'   => $this->cid,
+                'cid'   => is_int($this->cid) ? $this->cid : null,
                 'date'  => [
                     date('Y', $prevtime),
                     date('m', $prevtime),
@@ -135,7 +137,7 @@ class ACMS_GET_Calendar_Month extends ACMS_GET
             ]),
             'nextUrl'   => acmsLink([
                 'bid'   => $this->bid,
-                'cid'   => $this->cid,
+                'cid'   => is_int($this->cid) ? $this->cid : null,
                 'date'  => [
                     date('Y', $nexttime),
                     date('m', $nexttime),

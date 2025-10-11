@@ -1,6 +1,6 @@
 <?php
 
-use Acms\Services\Config\Export;
+use Acms\Services\Facades\LocalStorage;
 
 class ACMS_POST_Config_Export extends ACMS_POST
 {
@@ -36,9 +36,9 @@ class ACMS_POST_Config_Export extends ACMS_POST
             $this->export = App::make('config.export');
             $this->export->exportAll(BID);
             $this->yaml = $this->export->getYaml();
-            $this->destPath = ARCHIVES_DIR . 'config.yaml';
+            $this->destPath = CACHE_DIR . 'config.yaml';
 
-            Storage::remove($this->destPath);
+            LocalStorage::remove($this->destPath);
             $this->putYaml();
             $this->download();
 
@@ -47,7 +47,7 @@ class ACMS_POST_Config_Export extends ACMS_POST
             ]);
         } catch (\Exception $e) {
             $this->addError($e->getMessage());
-            Storage::remove($this->destPath);
+            LocalStorage::remove($this->destPath);
 
             AcmsLogger::info('コンフィグのエクスポートに失敗しました', Common::exceptionArray($e));
         }
@@ -62,7 +62,7 @@ class ACMS_POST_Config_Export extends ACMS_POST
      */
     protected function download()
     {
-        if (!Storage::exists($this->destPath)) {
+        if (!LocalStorage::exists($this->destPath)) {
             throw new RuntimeException('Can not read a yaml to a file.');
         }
         $file = 'config' . date('_Ymd_Hi') . '.yaml';
@@ -78,7 +78,7 @@ class ACMS_POST_Config_Export extends ACMS_POST
      */
     protected function putYaml()
     {
-        if (!Storage::put($this->destPath, $this->yaml)) {
+        if (!LocalStorage::put($this->destPath, $this->yaml)) {
             throw new RuntimeException('Can not write a yaml to a file.');
         }
     }

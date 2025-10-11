@@ -6,10 +6,12 @@
 .acms-rich-select,
 .acms-rich-select-menu-portal {
   --acms-rich-select-font-size: #{global.$acms-form-select-font-size}px;
-  --acms-rich-select-height: #{global.$acms-form-height-sp};
+  --acms-rich-select-line-height: #{global.$acms-form-select-line-height};
+  --acms-rich-select-height: #{global.$acms-form-height};
   --acms-rich-select-color: #{global.$acms-color-black};
   --acms-rich-select-disabled-color: #{global.$acms-form-disabled-text-color};
-  --acms-rich-select-bg-color: #{global.$acms-color-gray10};
+  --acms-rich-select-bg-color: #{global.$acms-color-white};
+  --acms-rich-select-hover-bg-color: #{global.$acms-color-gray20};
   --acms-rich-select-disabled-bg-color: #{global.$acms-form-disabled-bg-color};
   --acms-rich-select-open-bg-color: #{global.$acms-color-white};
   --acms-rich-select-border: #{global.$acms-form-border};
@@ -36,9 +38,4 @@
   --acms-rich-select-no-options-color: #666;
   --acms-rich-select-loading-color: #666;
   --acms-rich-select-menu-z-index: #{global.zIndex(rich-select-menu)};
-
-  @media (min-width: global.$breakpoint-md-min) {
-    --acms-rich-select-font-size: #{global.$acms-form-select-font-size-desktop}px;
-    --acms-rich-select-height: #{global.$acms-form-height};
-  }
 }

@@ -1,10 +1,12 @@
 <?php
 
+use Acms\Services\Facades\Database as DB;
+
 class ACMS_GET_Admin_Fix_Replacement_Confirm extends ACMS_GET_Admin_Fix
 {
     private $limit;
 
-    function select_title($word, $includeDescendant = false)
+    public function select_title($word, $includeDescendant = false)
     {
         $DB = DB::singleton(dsn());
 
@@ -34,7 +36,7 @@ class ACMS_GET_Admin_Fix_Replacement_Confirm extends ACMS_GET_Admin_Fix
         return $list;
     }
 
-    function select_text_unit($word, $includeDescendant = false)
+    public function select_text_unit($word, $includeDescendant = false)
     {
         $DB = DB::singleton(dsn());
 
@@ -50,19 +52,56 @@ class ACMS_GET_Admin_Fix_Replacement_Confirm extends ACMS_GET_Admin_Fix
             $SQL->addWhereOpr('column_blog_id', BID);
         }
 
-        $all    = $DB->query($SQL->get(dsn()), 'all');
-        $list   = [];
+        $all = $DB->query($SQL->get(dsn()), 'all');
+        $list = [];
         foreach ($all as $row) {
             $list[] = [
-                'id'    => $row['column_id'],
-                'text'  => $row['column_field_1'],
-                'eid'   => $row['column_entry_id'],
+                'id' => $row['column_id'],
+                'text' => $row['column_field_1'],
+                'eid' => $row['column_entry_id'],
             ];
         }
         return $list;
     }
 
-    function select_customfield($word, $filter, $includeDescendant = false)
+    public function select_custom_unit($word, $filter, $includeDescendant = false)
+    {
+        $DB = DB::singleton(dsn());
+
+        if (empty($word)) {
+            return [];
+        }
+        $SQL = SQL::newSelect('field');
+        $SQL->addSelect('field_key');
+        $SQL->addSelect('field_sort');
+        $SQL->addSelect('field_unit_id');
+        $SQL->addSelect('field_value');
+        $SQL->addWhereOpr('field_unit_id', null, '<>');
+        $SQL->addWhereOpr('field_value', '%' . $word . '%', 'LIKE');
+        if (!empty($filter)) {
+            $SQL->addWhereOpr('field_key', $filter);
+        }
+        if ($includeDescendant) {
+            $SQL->addLeftJoin('blog', 'blog_id', 'field_blog_id');
+            ACMS_Filter::blogTree($SQL, BID, 'descendant-or-self');
+        } else {
+            $SQL->addWhereOpr('field_blog_id', BID);
+        }
+
+        $all = $DB->query($SQL->get(dsn()), 'all');
+        $list = [];
+        foreach ($all as $row) {
+            $list[] = [
+                'id' => $row['field_unit_id'] . ':' . $row['field_sort'] . ':' . $row['field_key'],
+                'text' => $row['field_value'],
+                'eid' => ACMS_RAM::unitEntry($row['field_unit_id']),
+                'key' => $row['field_key'],
+            ];
+        }
+        return $list;
+    }
+
+    public function select_customfield($word, $filter, $includeDescendant = false)
     {
         $DB = DB::singleton(dsn());
 
@@ -90,10 +129,10 @@ class ACMS_GET_Admin_Fix_Replacement_Confirm extends ACMS_GET_Admin_Fix
         $list = [];
         foreach ($all as $row) {
             $list[] = [
-                'id'    => $row['field_eid'] . ':' . $row['field_sort'] . ':' . $row['field_key'],
-                'text'  => $row['field_value'],
-                'eid'   => $row['field_eid'],
-                'key'   => $row['field_key'],
+                'id' => $row['field_eid'] . ':' . $row['field_sort'] . ':' . $row['field_key'],
+                'text' => $row['field_value'],
+                'eid' => $row['field_eid'],
+                'key' => $row['field_key'],
             ];
         }
         return $list;
@@ -130,13 +169,16 @@ class ACMS_GET_Admin_Fix_Replacement_Confirm extends ACMS_GET_Admin_Fix
             case 'unit':
                 $list = $this->select_text_unit($pattern, $includeDescendant);
                 break;
+            case 'custom_unit':
+                $list = $this->select_custom_unit($pattern, $filter, $includeDescendant);
+                $Tpl->add('field_name');
+                break;
             case 'field':
                 $list = $this->select_customfield($pattern, $filter, $includeDescendant);
                 $Tpl->add('field_name');
                 break;
             default:
                 return '';
-                break;
         }
 
         if (empty($list)) {
@@ -146,16 +188,16 @@ class ACMS_GET_Admin_Fix_Replacement_Confirm extends ACMS_GET_Admin_Fix
         }
 
         foreach ($list as $row) {
-            $id     = $row['id'];
-            $eid    = $row['eid'];
-            $hits   = $row['text'];
-            $hits   = preg_replace('/(' . preg_quote($pattern, '/') . ')/iu', '<strong class="highlight1">$1</strong>', $hits);
+            $id = $row['id'];
+            $eid = $row['eid'];
+            $hits = $row['text'];
+            $hits = preg_replace('/(' . preg_quote($pattern, '/') . ')/iu', '<strong class="highlight1">$1</strong>', $hits);
 
             $loop = [
-                'id'    => $id,
-                'text'  => $hits,
-                'url'   => acmsLink([
-                    'eid' => $eid
+                'id' => $id,
+                'text' => $hits,
+                'url' => acmsLink([
+                    'eid' => $eid,
                 ]),
             ];
             if (isset($row['key'])) {

@@ -1,0 +1,16 @@
+@use '../global/variables' as var;
+@use '../global/functions' as fn;
+
+// ------------------------------
+// Backdrop
+// ------------------------------
+
+@mixin backdrop($color: rgba(var.$acms-color-black, 0.5)) {
+  position: fixed;
+  z-index: fn.zIndex(acms-modal);
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden auto;
+  background-color: $color;
+  inset: 0;
+}

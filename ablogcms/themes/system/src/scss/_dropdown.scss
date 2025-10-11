@@ -1,62 +1,5 @@
 @use 'global/common' as global;
-
-/* ------------------------------
- ボタングループ
-------------------------------- */
-.acms-btn-group {
-  position: relative;
-  display: table;
-  padding-left: 0;
-  vertical-align: middle;
-
-  > .js-acms-btn-admin:first-child:not(:last-child, .js-acms-dropdown-toggle) {
-    @include global.round-right(0);
-  }
-
-  > .js-acms-btn-admin:first-child:not(:last-child, .js-acms-dropdown-toggle) {
-    @include global.round-right(0);
-  }
-
-  > .js-acms-btn-admin:first-child:not(:last-child, .js-acms-dropdown-toggle) {
-    @include global.round-right(0);
-  }
-
-  > .js-acms-dropdown-toggle:not(:first-child) {
-    border-left: 0;
-
-    @include global.round-left(0);
-  }
-
-  > .acms-btn {
-    display: table-cell;
-    height: global.$acms-form-height-sp;
-    margin-right: 0;
-    border-radius: 0;
-
-    &:first-child {
-      border-top-left-radius: 3px;
-      border-bottom-left-radius: 3px;
-    }
-
-    &:last-child {
-      margin-right: 0;
-      border-top-right-radius: 3px;
-      border-bottom-right-radius: 3px;
-    }
-  }
-
-  > .acms-btn + .acms-btn {
-    border-left: 0;
-  }
-}
-
-@media screen and (min-width: global.$breakpoint-md-min) {
-  .acms-btn-group {
-    > .acms-btn {
-      height: global.$acms-form-height;
-    }
-  }
-}
+@use 'global/mixins' as mixins;
 
 /* ------------------------------
  ドロップダウンメニュー
@@ -68,76 +11,72 @@
   outline: 0;
 }
 
-.acms-btn-group .js-acms-dropdown-btn {
-  position: absolute;
-  top: 0;
-}
-
-.js-acms-dropdown-toggle .acms-btn-admin:first-child {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-.js-acms-dropdown-toggle .acms-btn-admin:nth-child(2) {
-  margin-left: -1px;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-}
-
-// 開閉メニュー
+// CSS変数
+.acms-dropdown-menu-popover,
 .js-acms-dropdown-menu,
 .acms-dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: global.zIndex(js-acms-drop-down-menu);
-  display: none;
-  min-width: 160px;
-  margin: 2px 0;
-  padding: 5px 0;
-  font-size: 14px;
+  --acms-dropdown-menu-min-width: 200px;
+  --acms-dropdown-menu-item-padding: 4px;
+  --acms-dropdown-menu-list-gap: 4px;
+  --acms-dropdown-menu-padding-x: 8px;
+  --acms-dropdown-menu-padding-y: 12px;
+  --acms-dropdown-menu-box-shadow: #{global.$acms-shadow-elevation-middle};
+}
+
+// ポップオーバー
+.acms-dropdown-menu-popover {
+  @include global.popover(
+    $padding-x: var(--acms-dropdown-menu-padding-x),
+    $padding-y: var(--acms-dropdown-menu-padding-y),
+    $min-width: var(--acms-dropdown-menu-min-width),
+    $box-shadow: var(--acms-dropdown-menu-box-shadow)
+  );
+}
+
+// メニュー
+.js-acms-dropdown-menu:not(.acms-dropdown-menu-popover .js-acms-dropdown-menu),
+.acms-dropdown-menu:not(.acms-dropdown-menu-popover .acms-dropdown-menu) {
+  // ポップオーバーを使用しない場合（組み込みJSでの利用）
+  display: none; // デフォルトでは非表示
+
+  @include global.popover(
+    $padding-x: var(--acms-dropdown-menu-padding-x),
+    $padding-y: var(--acms-dropdown-menu-padding-y),
+    $min-width: var(--acms-dropdown-menu-min-width),
+    $box-shadow: var(--acms-dropdown-menu-box-shadow)
+  );
+}
+
+// Elevation
+.acms-dropdown-menu-popover,
+.js-acms-dropdown-menu:not(.acms-dropdown-menu-popover .js-acms-dropdown-menu),
+.acms-dropdown-menu:not(.acms-dropdown-menu-popover .acms-dropdown-menu) {
+  &[data-elevation='1'] {
+    --acms-dropdown-menu-box-shadow: #{global.$acms-shadow-elevation-low};
+  }
+
+  &[data-elevation='2'] {
+    --acms-dropdown-menu-box-shadow: #{global.$acms-shadow-elevation-middle};
+  }
+
+  &[data-elevation='3'] {
+    --acms-dropdown-menu-box-shadow: #{global.$acms-shadow-elevation-high};
+  }
+}
+
+.js-acms-dropdown-menu,
+.acms-dropdown-menu {
+  line-height: 1.15;
   text-align: left;
   list-style: none;
-  background: global.$acms-color-white;
-  background-clip: padding-box;
-  border: 1px solid rgb(0 0 0 / 15%);
-  border-radius: 3px;
-  box-shadow: 0 6px 12px rgb(0 0 0 / 17.5%);
 
-  // リンク
-  > li > a,
-  > li > button {
-    display: block;
-    box-sizing: border-box;
-    width: 100%;
-    padding: 3px 20px;
-    white-space: nowrap;
-    text-align: left;
-    text-decoration: none;
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    appearance: none;
-  }
+  @include global.font-size(14);
 
-  a:link,
-  a:visited,
-  button {
-    color: global.$acms-color-black;
-  }
-
-  li {
-    position: relative;
-  }
-
-  li:hover {
-    background: global.$acms-color-gray20;
-  }
-
-  > li.acms-divider {
-    height: 1px;
-    margin: 4px 0;
-    background-color: global.$acms-color-gray40;
+  ul:not(.acms-dropdown-menu),
+  ul:not(.js-acms-dropdown-menu) {
+    margin: 0;
+    padding: 0 8px;
+    list-style: none;
   }
 
   // 右基点
@@ -149,7 +88,7 @@
   .acms-nav .acms-dropdown-right & {
     left: 0;
 
-    @media screen and (min-width: global.$breakpoint-md-min) {
+    @include global.media-breakpoint-up(md) {
       left: calc(100% - 5px);
     }
   }
@@ -176,91 +115,198 @@
   }
 }
 
-.acms-navbar-system .js-acms-dropdown-menu {
-  width: 210px;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-
-  > li > a,
-  > li > button {
-    padding: 10px 20px;
-  }
+/**
+ * スクロールコンテナ
+ */
+.acms-dropdown-menu.acms-dropdown-menu-scrollable,
+.acms-dropdown-menu-popover.acms-dropdown-menu-scrollable {
+  max-height: calc(400px - 24px);
+  overflow: scroll;
 }
 
-.acms-navbar-admin-nav-header {
-  display: flex;
-  padding: 10px 15px;
-  background-color: global.$acms-color-gray20;
-  border-bottom: 1px solid global.$acms-color-gray60;
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
-}
+/**
+ * メニュー
+ */
+.js-acms-dropdown-menu,
+.acms-dropdown-menu,
+ul.js-acms-dropdown-menu > li,
+ul.acms-dropdown-menu > li,
+.js-acms-dropdown-menu ul > li, // js-acms-dropdown-menu をulの親要素に付けたとき対応
+.acms-dropdown-menu ul > li, // acms-dropdown-menu をulの親要素に付けたとき対応
+.js-acms-dropdown-menu > [role='group'],
+.acms-dropdown-menu > [role='group'] {
+  $acms-dropdown-menu-icon-size: 16; // 本当はCSS変数で管理したいが、font-size mixin を使うためにはCSS変数を使えない
 
-.acms-navbar-admin-nav-status {
-  flex: 1;
-  padding-left: 10px;
-}
+  > [role='menuitem'],
+  > [role='menuitemcheckbox'],
+  > [role='menuitemradio'],
+  > a,
+  > button {
+    $self: &;
 
-.acms-navbar-admin-nav-username {
-  margin: 0 0 2px;
-  font-weight: bold;
-  font-size: 12px;
-  word-break: break-word;
-}
-
-.acms-navbar-admin-nav-usercode {
-  margin: 0 0 2px;
-  font-size: 10px;
-}
-
-.acms-navbar-admin-nav-dropdown-menu {
-  margin: 0;
-  padding: 0;
-  color: global.$acms-color-black;
-  list-style: none;
-}
-
-.acms-navbar-admin-nav-dropdown-menu li {
-  position: relative;
-
-  * {
-    width: 100%;
-  }
-
-  &:hover {
-    background: global.$acms-color-gray20;
-  }
-
-  &.acms-divider {
-    height: 1px;
-    margin: 4px 0;
-    background-color: global.$acms-color-gray40;
-  }
-
-  a,
-  button {
-    display: inline-block;
+    position: relative;
+    display: flex;
+    gap: 4px;
+    align-items: center;
     box-sizing: border-box;
-    padding: 5px 20px;
-    color: inherit;
-    white-space: nowrap;
-    text-align: left;
-    text-decoration: none;
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    appearance: none;
-  }
-
-  a:link,
-  a:visited {
+    width: 100%;
+    padding: var(--acms-dropdown-menu-item-padding);
     color: global.$acms-color-black;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    transition: background 0.2s;
+    appearance: none;
+
+    &:link:not([aria-disabled='true']),
+    &:visited:not([aria-disabled='true']) {
+      color: global.$acms-color-black;
+    }
+
+    &:hover:not([aria-disabled='true']),
+    &:active:not([aria-disabled='true']),
+    &.acms-dropdown-menu-active:not([aria-disabled='true']) {
+      background: global.$acms-color-gray20;
+      border-radius: 3px;
+    }
+
+    &:focus-visible:not([aria-disabled='true']) {
+      border-radius: 3px;
+      outline: none;
+      box-shadow: global.$acms-btn-focus-box-shadow;
+    }
+
+    &.acms-dropdown-menu-danger:not([aria-disabled='true']) {
+      color: global.$acms-color-caution-text;
+
+      &:active,
+      &:hover {
+        background: global.$acms-color-danger10;
+      }
+
+      .acms-dropdown-menu-item-command {
+        color: global.$acms-color-caution-text;
+      }
+    }
+
+    &[aria-disabled='true'] {
+      color: global.$acms-color-system-gray40;
+      cursor: default;
+      pointer-events: none;
+
+      .acms-dropdown-menu-item-command {
+        color: global.$acms-color-system-gray40;
+      }
+    }
+
+    & ~ [role='menuitem'],
+    & ~ [role='menuitemcheckbox'],
+    & ~ [role='menuitemradio'],
+    & ~ a,
+    & ~ button {
+      margin-top: var(--acms-dropdown-menu-list-gap);
+    }
+
+    [class*='material-symbols'] {
+      @include global.font-size($acms-dropdown-menu-icon-size);
+    }
+
+    &:has(.acms-dropdown-menu-checked, .acms-dropdown-menu-chevron) {
+      padding-right: calc((var(--acms-dropdown-menu-item-padding) * 2) + #{$acms-dropdown-menu-icon-size}px);
+    }
+
+    .acms-dropdown-menu-checked,
+    .acms-dropdown-menu-chevron {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      inset-inline-end: var(--acms-dropdown-menu-item-padding);
+    }
   }
 }
 
-@media screen and (max-width: global.$breakpoint-md-max) {
-  .acms-dropdown-toggle-sp .js-acms-dropdown-menu {
+/**
+ * グループ
+ */
+.js-acms-dropdown-menu > [role='group'] + *:not(.acms-divider),
+.acms-dropdown-menu > [role='group'] + *:not(.acms-divider),
+.js-acms-dropdown-menu > [role='group']:nth-child(n + 2),
+.acms-dropdown-menu > [role='group']:nth-child(n + 2) {
+  margin-top: 24px;
+}
+
+.js-acms-dropdown-menu .acms-divider + [role='group'],
+.acms-dropdown-menu .acms-divider + [role='group'] {
+  margin-top: 0;
+}
+
+.js-acms-dropdown-menu > [role='group'],
+.acms-dropdown-menu > [role='group'] {
+  .acms-dropdown-menu-group-title {
+    display: block;
+    margin-bottom: 4px;
+    padding: 0 4px 8px;
+    color: global.$acms-color-gray70;
+    border-bottom: 0;
+
+    @include global.font-size(12);
+  }
+}
+
+/**
+ * メニューのディバイダー
+ */
+.js-acms-dropdown-menu,
+.acms-dropdown-menu,
+.acms-dropdown-menu-popover {
+  .acms-divider {
+    height: 1px;
+    margin: 12px 0;
+    padding: 0;
+    background-color: global.$acms-color-gray40;
+    border: none;
+  }
+
+  [role='group'] + .acms-divider {
+    margin: 24px 0;
+  }
+}
+
+/**
+ * コマンド
+ */
+.acms-dropdown-menu-item-command {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  color: global.$acms-color-system-gray80;
+  line-height: 1;
+
+  @include global.font-size(12);
+}
+
+.acms-dropdown-menu-item-command kbd {
+  font-family: global.$acms-admin-font-family;
+}
+
+/**
+ * サイズ
+ */
+.acms-dropdown-menu-popover.acms-dropdown-menu-sm,
+.acms-dropdown-menu.acms-dropdown-menu-sm {
+  --acms-dropdown-menu-min-width: 120px;
+}
+
+.acms-dropdown-menu-popover.acms-dropdown-menu-lg,
+.acms-dropdown-menu.acms-dropdown-menu-lg {
+  --acms-dropdown-menu-min-width: 280px;
+}
+
+@include global.media-breakpoint-down(md) {
+  .acms-dropdown-toggle-sp .js-acms-dropdown-menu,
+  .acms-dropdown-toggle-sp .acms-dropdown-menu {
+    // モバイルではポップオーバーを使用しない（メニューバーのブログ選択ドロップダウンで利用）
     position: static !important;
     top: 0;
     left: 0;
@@ -268,17 +314,11 @@
     border-radius: 0;
     box-shadow: none;
 
-    & > li > a,
-    & > li > button {
+    li > *:not(.acms-divider),
+    [role='menuitem'] {
       padding: 10px 20px;
     }
   }
-}
-
-// タイトル
-.acms-dropdown-title {
-  padding: 3px 20px;
-  color: global.$acms-color-gray80;
 }
 
 // 下矢印
@@ -288,7 +328,6 @@
   display: inline-block;
   width: 0;
   height: 0;
-  margin-left: 5px;
   border: 4px solid transparent;
   border-top-color: global.$acms-color-gray80;
 }
@@ -297,11 +336,6 @@
   display: inline-block;
   width: 0;
   height: 0;
-  margin-left: 5px;
   border: 4px solid transparent;
   border-left-color: global.$acms-color-gray80;
-}
-
-.acms-btn-group .acms-arrow-bottom {
-  margin-left: 0;
 }

@@ -48,10 +48,11 @@ class SourceResolver extends Resolver
         $this->destinationDomain = $domain;
         $this->destinationBlogCode = $blog_code;
 
-        $blogPath = ACMS_RAM::blogDomain(BID);
+        $blogPath = ACMS_RAM::blogDomain(BID) ?? '';
         if (DIR_OFFSET) {
             $blogPath .= '/' . DIR_OFFSET;
         }
+        $blogPath = preg_quote($blogPath, '@');
 
         $regex = $this->getRegex();
         $this->offset = 0;
@@ -67,7 +68,7 @@ class SourceResolver extends Resolver
                 }
             }
             $path = trim($match[$mpt][0], '\'"'); // @phpstan-ignore-line
-            $path = preg_replace('@(https?)?://' . $blogPath . '/?@', '/', $path);
+            $path = preg_replace('@(https?)?://' . $blogPath . '(?::\d+)?/?@', '/', $path);
             $this->replacer($path, $html, $match, $mpt); // @phpstan-ignore-line
         }
         $regex = '@<\s*(?:img|input|script|frame|iframe)(?:"[^"]*"|\'[^\']*\'|[^\'">])*data-src\s*=\s*("[^"]+"|\'[^\']+\'|[^\'"\s>]+)(?:"[^"]*"|\'[^\']*\'|[^\'">])*>@';
@@ -75,7 +76,7 @@ class SourceResolver extends Resolver
         while (preg_match($regex, $html, $match, PREG_OFFSET_CAPTURE, $this->offset)) {
             $this->offset = $match[0][1] + strlen($match[0][0]);
             $path = trim($match[1][0], '\'"');
-            $path = preg_replace('@(https?)?://' . $blogPath . '/?@', '/', $path);
+            $path = preg_replace('@(https?)?://' . $blogPath . '(?::\d+)?/?@', '/', $path);
             $this->replacer($path, $html, $match, 1);
         }
         return $html;
@@ -118,6 +119,7 @@ class SourceResolver extends Resolver
      */
     protected function replacer($path, &$html, $match, $mpt)
     {
+        $path = $this->removePortFromUrl($path);
         $path = trim($path);
         $_path = explode('?', $path);
         $_path = $_path[0];

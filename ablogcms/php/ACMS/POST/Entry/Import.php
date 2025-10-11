@@ -1,6 +1,6 @@
 <?php
 
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 
 class ACMS_POST_Entry_Import extends ACMS_POST_Entry
 {
@@ -26,6 +26,7 @@ class ACMS_POST_Entry_Import extends ACMS_POST_Entry
 
             $this->tmpDir = MEDIA_STORAGE_DIR . 'entry_data/';
             $import = App::make('entry.import');
+            assert($import instanceof \Acms\Services\Entry\Import);
             $status = $this->Post->get('entry_status');
             $distPath = sprintf("%03d", BID) . '/import' . date('YmdHis', REQUEST_TIME) . '/';
 
@@ -50,7 +51,7 @@ class ACMS_POST_Entry_Import extends ACMS_POST_Entry
         }
 
         DB::setThrowException(false);
-        Storage::removeDirectory($this->tmpDir);
+        LocalStorage::removeDirectory($this->tmpDir);
 
         return $this->Post;
     }
@@ -84,10 +85,10 @@ class ACMS_POST_Entry_Import extends ACMS_POST_Entry
     {
         $yamlPath = $this->tmpDir . 'acms_entry_data/data.yaml';
         try {
-            return Storage::get($yamlPath, dirname($yamlPath));
+            return LocalStorage::get($yamlPath, dirname($yamlPath));
         } catch (\Exception $e) {
             $yamlPath = $this->tmpDir . 'data.yaml';
-            return Storage::get($yamlPath, dirname($yamlPath));
+            return LocalStorage::get($yamlPath, dirname($yamlPath));
         }
         throw new \RuntimeException('File does not exist.');
     }
@@ -100,8 +101,8 @@ class ACMS_POST_Entry_Import extends ACMS_POST_Entry
      */
     private function decompress($path)
     {
-        Storage::makeDirectory($this->tmpDir);
-        Storage::unzip($path, $this->tmpDir);
+        LocalStorage::makeDirectory($this->tmpDir);
+        LocalStorage::unzip($path, $this->tmpDir);
 
         return true;
     }
@@ -122,17 +123,17 @@ class ACMS_POST_Entry_Import extends ACMS_POST_Entry
         foreach ($list as $from => $to) {
             $exists = false;
             $from2 = $this->tmpDir . 'acms_entry_data/' . $from;
-            if (Storage::exists($from2)) {
+            if (LocalStorage::exists($from2)) {
                 $exists = true;
             } else {
                 $from2 = $this->tmpDir . $from;
-                if (Storage::exists($from2)) {
+                if (LocalStorage::exists($from2)) {
                     $exists = true;
                 }
             }
             if ($exists) {
-                $to = SCRIPT_DIR . $to . $distPath;
-                Storage::copyDirectory($from2, $to);
+                $isPublicStorage = (bool) preg_match('/^(archives|media)/', $from);
+                Common::uploadAssetDirectory($from2, $to . $distPath, $isPublicStorage);
             }
         }
     }

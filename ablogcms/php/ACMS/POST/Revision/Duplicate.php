@@ -62,7 +62,7 @@ class ACMS_POST_Revision_Duplicate extends ACMS_POST_Entry
                     'bid'   => BID,
                     'eid'   => EID,
                     'admin' => 'entry_editor',
-                    'tpl'   => 'ajax/revision-preview.html',
+                    'tpl'   => 'ajax/revision/preview.html',
                     'query' => [
                         'rvid'  => $rvid,
                     ],
@@ -72,7 +72,7 @@ class ACMS_POST_Revision_Duplicate extends ACMS_POST_Entry
                     'bid'   => BID,
                     'eid'   => EID,
                     'admin' => 'entry_editor',
-                    'tpl'   => 'ajax/revision-index-list.html',
+                    'tpl'   => 'ajax/revision/list.html',
                 ]));
             }
         } catch (\Exception $e) {
@@ -123,18 +123,17 @@ class ACMS_POST_Revision_Duplicate extends ACMS_POST_Entry
         $SQL->addWhereOpr('entry_sub_category_rev_id', 1);
         $SQL->addWhereOpr('entry_sub_category_blog_id', BID);
         $q = $SQL->get(dsn());
+        $statement = $DB->query($q, 'exec');
 
-        $SubCategory = SQL::newInsert('entry_sub_category_rev');
-        if ($DB->query($q, 'fetch') and ($row = $DB->fetch($q))) {
+        $subCategory = SQL::newBulkInsert('entry_sub_category_rev');
+        if ($statement && ($row = $DB->next($statement))) {
             do {
-                foreach ($row as $key => $val) {
-                    if ($key !== 'entry_sub_category_rev_id') {
-                        $SubCategory->addInsert($key, $val);
-                    }
-                }
-                $SubCategory->addInsert('entry_sub_category_rev_id', $rvid);
-                $DB->query($SubCategory->get(dsn()), 'exec');
-            } while ($row = $DB->fetch($q));
+                $row['entry_sub_category_rev_id'] = $rvid;
+                $subCategory->addInsert($row);
+            } while ($row = $DB->next($statement));
+        }
+        if ($subCategory->hasData()) {
+            $DB->query($subCategory->get(dsn()), 'exec');
         }
     }
 
@@ -155,45 +154,46 @@ class ACMS_POST_Revision_Duplicate extends ACMS_POST_Entry
 
     protected function tagsDupe($rvid)
     {
-        $DB     = DB::singleton(dsn());
+        $DB = DB::singleton(dsn());
 
-        $SQL    = SQL::newSelect('tag_rev');
+        $SQL = SQL::newSelect('tag_rev');
         $SQL->addWhereOpr('tag_entry_id', EID);
         $SQL->addWhereOpr('tag_rev_id', 1);
         $SQL->addWhereOpr('tag_blog_id', BID);
-        $q      = $SQL->get(dsn());
+        $q = $SQL->get(dsn());
+        $statement = $DB->query($q, 'exec');
 
-        $Tag    = SQL::newInsert('tag_rev');
-        if ($DB->query($q, 'fetch') and ($row = $DB->fetch($q))) {
+        $insert = SQL::newBulkInsert('tag_rev');
+        if ($statement && ($row = $DB->next($statement))) {
             do {
-                foreach ($row as $key => $val) {
-                    if ($key !== 'tag_rev_id') {
-                        $Tag->addInsert($key, $val);
-                    }
-                }
-                $Tag->addInsert('tag_rev_id', $rvid);
-                $DB->query($Tag->get(dsn()), 'exec');
-            } while ($row = $DB->fetch($q));
+                $row['tag_rev_id'] = $rvid;
+                $insert->addInsert($row);
+            } while ($row = $DB->next($statement));
+        }
+        if ($insert->hasData()) {
+            $DB->query($insert->get(dsn()), 'exec');
         }
     }
 
     function relationDupe($rvid)
     {
-        $DB     = DB::singleton(dsn());
-
-        $SQL    = SQL::newSelect('relationship_rev');
+        $SQL = SQL::newSelect('relationship_rev');
         $SQL->addWhereOpr('relation_id', EID);
         $SQL->addWhereOpr('relation_rev_id', 1);
-        $all    = $DB->query($SQL->get(dsn()), 'all');
+        $all = DB::query($SQL->get(dsn()), 'all');
 
+        $sql = SQL::newBulkInsert('relationship_rev');
         foreach ($all as $row) {
-            $SQL = SQL::newInsert('relationship_rev');
-            $SQL->addInsert('relation_id', $row['relation_id']);
-            $SQL->addInsert('relation_rev_id', $rvid);
-            $SQL->addInsert('relation_eid', $row['relation_eid']);
-            $SQL->addInsert('relation_type', $row['relation_type']);
-            $SQL->addInsert('relation_order', $row['relation_order']);
-            $DB->query($SQL->get(dsn()), 'exec');
+            $sql->addInsert([
+                'relation_id' => $row['relation_id'],
+                'relation_rev_id' => $rvid,
+                'relation_eid' => $row['relation_eid'],
+                'relation_type' => $row['relation_type'],
+                'relation_order' => $row['relation_order'],
+            ]);
+        }
+        if ($sql->hasData()) {
+            DB::query($sql->get(dsn()), 'exec');
         }
     }
 }

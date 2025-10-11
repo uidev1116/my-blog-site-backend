@@ -1,91 +1,704 @@
 <section id="utility" class="sectionBox">
 	<h1 class="sectionTitle">ユーティリティ</h1>
-	<h2 class="sectionTitle2">回り込み</h2>
-	<dl class="%{STYLEGUIDE_PAGE}-dl">
-		<dt>右寄せ</dt>
-		<dd>.%{STYLEGUIDE_PAGE}-float-right</dd>
-		<dt>左寄せ</dt>
-		<dd>.%{STYLEGUIDE_PAGE}-float-left</dd>
-		<dt>回り込み解除</dt>
-		<dd>.%{STYLEGUIDE_PAGE}-clear</dd>
-	</dl>
 
-	<h2 class="sectionTitle2">幅と高さ</h2>
-	<dl class="%{STYLEGUIDE_PAGE}-dl">
-		<dt>幅 100%</dt>
-		<dd>.%{STYLEGUIDE_PAGE}-width-max</dd>
-		<dt>高さ 100%</dt>
-		<dd>.%{STYLEGUIDE_PAGE}-height-max</dd>
-		<dt>幅と高さ 100%</dt>
-		<dd>.%{STYLEGUIDE_PAGE}-width-height-max</dd>
-	</dl>
+<h2 class="sectionTitle2">ディスプレイ</h2>
+<p>ディスプレイクラスを使用して、コンポーネントのdisplayプロパティをレスポンシブに切り替えられます。`display`のすべての可能な値のサブセットのみを意図的にサポートします。</p>
 
-	<h2 class="sectionTitle2">幅（スマートフォン用）</h2>
-	<dl class="%{STYLEGUIDE_PAGE}-dl">
-		<dt>幅 100%</dt>
-		<dd>.%{STYLEGUIDE_PAGE}-width-sp</dd>
-		<dt>幅 オート</dt>
-		<dd>.%{STYLEGUIDE_PAGE}-width-auto-sp</dd>
-	</dl>
+<h3 class="sectionTitle3">表記方法</h3>
+<p>クラス名の形式は以下の通りです。</p>
+<ul>
+	<li>`xs`の場合は<code>.%{STYLEGUIDE_PAGE}-d-{value}</code>というクラス名が付けられます。</li>
+	<li>`sm`、`md`、`lg`、`xl`に対して<code>.%{STYLEGUIDE_PAGE}-d-{breakpoint}-{value}</code>があります。</li>
+</ul>
 
-	<h2 class="sectionTitle2">テキスト</h2>
-	<p class="%{STYLEGUIDE_PAGE}-text-left">こちらはテストの本文です。</p>
-	<p class="%{STYLEGUIDE_PAGE}-text-right">こちらはテストの本文です。</p>
-	<p class="%{STYLEGUIDE_PAGE}-text-center">こちらはテストの本文です。</p>
-	<p class="%{STYLEGUIDE_PAGE}-text-nowrap">こちらはテストの本文です。</p>
-<pre class="code HTML">
-&lt;p class="%{STYLEGUIDE_PAGE}-text-left"&gt;こちらはテストの本文です。&lt;/p&gt;
-&lt;p class="%{STYLEGUIDE_PAGE}-text-right"&gt;こちらはテストの本文です。&lt;/p&gt;
-&lt;p class="%{STYLEGUIDE_PAGE}-text-center"&gt;こちらはテストの本文です。&lt;/p&gt;
-&lt;p class="%{STYLEGUIDE_PAGE}-text-nowrap"&gt;こちらはテストの本文です。&lt;/p&gt;
-</pre>
+<p><em>value</em>の種類は以下の通りです。</p>
+<ul>
+	<li><code>none</code></li>
+	<li><code>inline</code></li>
+	<li><code>inline-block</code></li>
+	<li><code>block</code></li>
+	<li><code>grid</code></li>
+	<li><code>inline-grid</code></li>
+	<li><code>table</code></li>
+	<li><code>table-cell</code></li>
+	<li><code>table-row</code></li>
+	<li><code>flex</code></li>
+	<li><code>inline-flex</code></li>
+</ul>
 
-	<p class="%{STYLEGUIDE_PAGE}-text-primary">こちらはテストの本文です。</p>
-	<p class="%{STYLEGUIDE_PAGE}-text-info">こちらはテストの本文です。</p>
-	<p class="%{STYLEGUIDE_PAGE}-text-success">こちらはテストの本文です。</p>
-	<p class="%{STYLEGUIDE_PAGE}-text-warning">こちらはテストの本文です。</p>
-	<p class="%{STYLEGUIDE_PAGE}-text-danger">こちらはテストの本文です。</p>
-<pre class="code HTML">
-&lt;p class="%{STYLEGUIDE_PAGE}-text-primary"&gt;こちらはテストの本文です。&lt;/p&gt;
-&lt;p class="%{STYLEGUIDE_PAGE}-text-info"&gt;こちらはテストの本文です。&lt;/p&gt;
-&lt;p class="%{STYLEGUIDE_PAGE}-text-success"&gt;こちらはテストの本文です。&lt;/p&gt;
-&lt;p class="%{STYLEGUIDE_PAGE}-text-warning"&gt;こちらはテストの本文です。&lt;/p&gt;
-&lt;p class="%{STYLEGUIDE_PAGE}-text-danger"&gt;こちらはテストの本文です。&lt;/p&gt;
-</pre>
+<h3 class="sectionTitle3">例</h3>
 
-
-	<h2 class="sectionTitle2">アイコン用背景</h2>
-	<span class="%{STYLEGUIDE_PAGE}-icon-bg"><i class="%{STYLEGUIDE_PAGE}-icon-config_mail"></i></span>
-	<span class="%{STYLEGUIDE_PAGE}-icon-bg %{STYLEGUIDE_PAGE}-icon-bg-info"><i class="%{STYLEGUIDE_PAGE}-icon-config_mail"></i></span>
-	<span class="%{STYLEGUIDE_PAGE}-icon-bg %{STYLEGUIDE_PAGE}-icon-bg-success"><i class="%{STYLEGUIDE_PAGE}-icon-config_mail"></i></span>
-	<span class="%{STYLEGUIDE_PAGE}-icon-bg %{STYLEGUIDE_PAGE}-icon-bg-warning"><i class="%{STYLEGUIDE_PAGE}-icon-config_mail"></i></span>
-	<span class="%{STYLEGUIDE_PAGE}-icon-bg %{STYLEGUIDE_PAGE}-icon-bg-danger"><i class="%{STYLEGUIDE_PAGE}-icon-config_mail"></i></span>
+<div class="%{STYLEGUIDE_PAGE}-d-inline %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-d-inline</div>
+<div class="%{STYLEGUIDE_PAGE}-d-inline %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">%{STYLEGUIDE_PAGE}-d-inline</div>
 
 <pre class="code HTML">
-&lt;span class="%{STYLEGUIDE_PAGE}-icon-bg"&gt;...&lt;/span&gt;
-&lt;span class="%{STYLEGUIDE_PAGE}-icon-bg %{STYLEGUIDE_PAGE}-icon-bg-info"&gt;...&lt;/span&gt;
-&lt;span class="%{STYLEGUIDE_PAGE}-icon-bg %{STYLEGUIDE_PAGE}-icon-bg-success"&gt;...&lt;/span&gt;
-&lt;span class="%{STYLEGUIDE_PAGE}-icon-bg %{STYLEGUIDE_PAGE}-icon-bg-warning"&gt;...&lt;/span&gt;
-&lt;span class="%{STYLEGUIDE_PAGE}-icon-bg %{STYLEGUIDE_PAGE}-icon-bg-danger"&gt;...&lt;/span&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-inline %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary&quot;&gt;%{STYLEGUIDE_PAGE}-d-inline&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-inline %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info&quot;&gt;%{STYLEGUIDE_PAGE}-d-inline&lt;/div&gt;
 </pre>
 
-	<h2 class="sectionTitle2">角丸</h2>
-	<dl class="%{STYLEGUIDE_PAGE}-dl">
-		<dt>角丸</dt>
-		<dd>.%{STYLEGUIDE_PAGE}-round</dd>
-		<dt>丸</dt>
-		<dd>.%{STYLEGUIDE_PAGE}-circle</dd>
-	</dl>
-	<span class="%{STYLEGUIDE_PAGE}-icon-bg %{STYLEGUIDE_PAGE}-round"><i class="%{STYLEGUIDE_PAGE}-icon-config_mail"></i></span>
-	<span class="%{STYLEGUIDE_PAGE}-icon-bg %{STYLEGUIDE_PAGE}-circle"><i class="%{STYLEGUIDE_PAGE}-icon-config_mail"></i></span>
+<span class="%{STYLEGUIDE_PAGE}-d-block %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-d-block</span>
+<span class="%{STYLEGUIDE_PAGE}-d-block %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">%{STYLEGUIDE_PAGE}-d-block</span>
+
 <pre class="code HTML">
-&lt;span class="%{STYLEGUIDE_PAGE}-icon-bg %{STYLEGUIDE_PAGE}-round"&gt;...&lt;/span&gt;
-&lt;span class="%{STYLEGUIDE_PAGE}-icon-bg %{STYLEGUIDE_PAGE}-circle"&gt;...&lt;/span&gt;
+&lt;span class=&quot;%{STYLEGUIDE_PAGE}-d-block %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary&quot;&gt;%{STYLEGUIDE_PAGE}-d-block&lt;/span&gt;
+&lt;span class=&quot;%{STYLEGUIDE_PAGE}-d-block %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info&quot;&gt;%{STYLEGUIDE_PAGE}-d-block&lt;/span&gt;
 </pre>
 
-<h2 class="sectionTitle2">画像のレスポンシブ対応</h2>
-	<img src="/themes/system/admin/styleguide/images/sampleImage.jpg" alt="" class="%{STYLEGUIDE_PAGE}-img-responsive">
+<h3 class="sectionTitle3">要素の非表示</h3>
+<p>モバイルフレンドリーな開発を迅速に行うには、レスポンシブ表示クラスを使用して、デバイスごとに要素を表示・非表示にします。</p>
+
+<div class="%{STYLEGUIDE_PAGE}-d-lg-none">hide on lg and wider screens</div>
+<div class="%{STYLEGUIDE_PAGE}-d-none %{STYLEGUIDE_PAGE}-d-lg-block">hide on screens smaller than lg</div>
+
 <pre class="code HTML">
-&lt;img src="/themes/system/admin/styleguide/images/sampleImage.jpg" alt="" class="%{STYLEGUIDE_PAGE}-img-responsive"&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-lg-none&quot;&gt;hide on lg and wider screens&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-none %{STYLEGUIDE_PAGE}-d-lg-block&quot;&gt;hide on screens smaller than lg&lt;/div&gt;
 </pre>
+
+<div class="acms-admin-margin-bottom-medium">
+	<table class="%{STYLEGUIDE_PAGE}-table %{STYLEGUIDE_PAGE}-table-bordered">
+		<thead class="%{STYLEGUIDE_PAGE}-table-heading">
+			<tr>
+				<th>Screen size</th>
+				<th>Class</th>
+			</tr>
+		</thead>
+		<tr>
+			<th>全て非表示</th>
+			<td>.%{STYLEGUIDE_PAGE}-d-none</td>
+		</tr>
+		<tr>
+			<th>xsのみ非表示</th>
+			<td>.%{STYLEGUIDE_PAGE}-d-none .%{STYLEGUIDE_PAGE}-d-sm-block</td>
+		</tr>
+		<tr>
+			<th>smのみ非表示</th>
+			<td>.%{STYLEGUIDE_PAGE}-d-sm-none .%{STYLEGUIDE_PAGE}-d-md-block</td>
+		</tr>
+		<tr>
+			<th>mdのみ非表示</th>
+			<td>.%{STYLEGUIDE_PAGE}-d-md-none .%{STYLEGUIDE_PAGE}-d-lg-block</td>
+		</tr>
+		<tr>
+			<th>lgのみ非表示</th>
+			<td>.%{STYLEGUIDE_PAGE}-d-lg-none .%{STYLEGUIDE_PAGE}-d-xl-block</td>
+		</tr>
+		<tr>
+			<th>xlのみ非表示</th>
+			<td>.%{STYLEGUIDE_PAGE}-d-xl-none</td>
+		</tr>
+		<tr>
+			<th>全て表示</th>
+			<td>.%{STYLEGUIDE_PAGE}-d-block</td>
+		</tr>
+		<tr>
+			<th>xsのみ表示</th>
+			<td>.%{STYLEGUIDE_PAGE}-d-block .%{STYLEGUIDE_PAGE}-d-sm-none</td>
+		</tr>
+		<tr>
+			<th>smのみ表示</th>
+			<td>.%{STYLEGUIDE_PAGE}-d-none .%{STYLEGUIDE_PAGE}-d-sm-block .%{STYLEGUIDE_PAGE}-d-md-none</td>
+		</tr>
+		<tr>
+			<th>mdのみ表示</th>
+			<td>.%{STYLEGUIDE_PAGE}-d-none .%{STYLEGUIDE_PAGE}-d-md-block .%{STYLEGUIDE_PAGE}-d-lg-none</td>
+		</tr>
+		<tr>
+			<th>lgのみ表示</th>
+			<td>.%{STYLEGUIDE_PAGE}-d-none .%{STYLEGUIDE_PAGE}-d-lg-block .%{STYLEGUIDE_PAGE}-d-xl-none</td>
+		</tr>
+		<tr>
+			<th>xlのみ表示</th>
+			<td>.%{STYLEGUIDE_PAGE}-d-none .%{STYLEGUIDE_PAGE}-d-xl-block</td>
+		</tr>
+	</table>
+</div>
+
+<h3 class="sectionTitle3">印刷のディスプレイ</h3>
+<p>印刷の場合は、印刷クラスを使って要素の`display`の値を変更します。</p>
+
+<div class="%{STYLEGUIDE_PAGE}-d-print-none">Screen Only (Hide on print only)</div>
+<div class="%{STYLEGUIDE_PAGE}-d-none %{STYLEGUIDE_PAGE}-d-print-block">Print Only (Hide on screen only)</div>
+<div class="%{STYLEGUIDE_PAGE}-d-none %{STYLEGUIDE_PAGE}-d-lg-block %{STYLEGUIDE_PAGE}-d-print-block">Hide up to large on screen, but always show on print</div>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-print-none&quot;&gt;Screen Only (Hide on print only)&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-none %{STYLEGUIDE_PAGE}-d-print-block&quot;&gt;Print Only (Hide on screen only)&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-none %{STYLEGUIDE_PAGE}-d-lg-block %{STYLEGUIDE_PAGE}-d-print-block&quot;&gt;Hide up to large on screen, but always show on print&lt;/div&gt;
+</pre>
+
+<h2 class="sectionTitle2">Flex</h2>
+<p>Flexユーティリティを使用して、flexboxの動作を制御できます。</p>
+
+<h3 class="sectionTitle3">Flex プロパティ</h3>
+
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary %{STYLEGUIDE_PAGE}-mb-2">%{STYLEGUIDE_PAGE}-d-flex</div>
+<div class="%{STYLEGUIDE_PAGE}-d-inline-flex %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-d-inline-flex</div>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary&quot;&gt;%{STYLEGUIDE_PAGE}-d-flex&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-inline-flex %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary&quot;&gt;%{STYLEGUIDE_PAGE}-d-inline-flex&lt;/div&gt;
+</pre>
+
+<h3 class="sectionTitle3">Flex 方向</h3>
+
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-flex-row %{STYLEGUIDE_PAGE}-mb-2">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item 1</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item 2</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item 3</div>
+</div>
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-flex-row-reverse %{STYLEGUIDE_PAGE}-mb-2">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item 1</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item 2</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item 3</div>
+</div>
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-flex-column %{STYLEGUIDE_PAGE}-mb-2">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item 1</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item 2</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item 3</div>
+</div>
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-flex-column-reverse">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item 1</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item 2</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item 3</div>
+</div>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-flex-row&quot;&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-bg-primary&quot;&gt;Flex item 1&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-bg-dark&quot;&gt;Flex item 2&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-bg-primary&quot;&gt;Flex item 3&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-flex-row-reverse&quot;&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-bg-primary&quot;&gt;Flex item 1&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-bg-dark&quot;&gt;Flex item 2&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-bg-primary&quot;&gt;Flex item 3&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-flex-column&quot;&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-bg-primary&quot;&gt;Flex item 1&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-bg-dark&quot;&gt;Flex item 2&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-bg-primary&quot;&gt;Flex item 3&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-flex-column-reverse&quot;&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-bg-primary&quot;&gt;Flex item 1&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-bg-dark&quot;&gt;Flex item 2&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-bg-primary&quot;&gt;Flex item 3&lt;/div&gt;
+&lt;/div&gt;
+</pre>
+
+<h3 class="sectionTitle3">Justify content</h3>
+
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-justify-content-start %{STYLEGUIDE_PAGE}-mb-2">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+</div>
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-justify-content-end %{STYLEGUIDE_PAGE}-mb-2">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+</div>
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-justify-content-center %{STYLEGUIDE_PAGE}-mb-2">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+</div>
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-justify-content-between %{STYLEGUIDE_PAGE}-mb-2">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+</div>
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-justify-content-around %{STYLEGUIDE_PAGE}-mb-2">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+</div>
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-justify-content-evenly">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+</div>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-justify-content-start&quot;&gt;...&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-justify-content-end&quot;&gt;...&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-justify-content-center&quot;&gt;...&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-justify-content-between&quot;&gt;...&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-justify-content-around&quot;&gt;...&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-justify-content-evenly&quot;&gt;...&lt;/div&gt;
+</pre>
+
+<h3 class="sectionTitle3">Align items</h3>
+
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-align-items-start %{STYLEGUIDE_PAGE}-mb-2" style="height: 100px;">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+</div>
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-align-items-end %{STYLEGUIDE_PAGE}-mb-2" style="height: 100px;">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+</div>
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-align-items-center %{STYLEGUIDE_PAGE}-mb-2" style="height: 100px;">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+</div>
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-align-items-baseline %{STYLEGUIDE_PAGE}-mb-2" style="height: 100px;">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+</div>
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-align-items-stretch" style="height: 100px;">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+</div>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-align-items-start&quot;&gt;...&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-align-items-end&quot;&gt;...&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-align-items-center&quot;&gt;...&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-align-items-baseline&quot;&gt;...&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-align-items-stretch&quot;&gt;...&lt;/div&gt;
+</pre>
+
+<h2 class="sectionTitle2">Sizing</h2>
+<p>Sizingユーティリティを使用して、要素の幅や高さを簡単に指定できます。レスポンシブなクラスやviewport単位のクラスも用意されています。</p>
+
+<div class="acms-admin-margin-bottom-medium">
+	<table class="%{STYLEGUIDE_PAGE}-table %{STYLEGUIDE_PAGE}-table-bordered">
+		<thead class="%{STYLEGUIDE_PAGE}-table-heading">
+			<tr>
+				<th>クラス</th>
+				<th>CSSプロパティ</th>
+				<th>値の例</th>
+			</tr>
+		</thead>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-w-25<br>.%{STYLEGUIDE_PAGE}-w-50<br>.%{STYLEGUIDE_PAGE}-w-75<br>.%{STYLEGUIDE_PAGE}-w-100<br>.%{STYLEGUIDE_PAGE}-w-auto</th>
+			<td>width</td>
+			<td>25%, 50%, 75%, 100%, auto</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-mw-100</th>
+			<td>max-width</td>
+			<td>100%</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-vw-100</th>
+			<td>width</td>
+			<td>100vw</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-min-vw-100</th>
+			<td>min-width</td>
+			<td>100vw</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-h-25<br>.%{STYLEGUIDE_PAGE}-h-50<br>.%{STYLEGUIDE_PAGE}-h-75<br>.%{STYLEGUIDE_PAGE}-h-100<br>.%{STYLEGUIDE_PAGE}-h-auto</th>
+			<td>height</td>
+			<td>25%, 50%, 75%, 100%, auto</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-mh-100</th>
+			<td>max-height</td>
+			<td>100%</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-vh-100</th>
+			<td>height</td>
+			<td>100vh</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-min-vh-100</th>
+			<td>min-height</td>
+			<td>100vh</td>
+		</tr>
+	</table>
+</div>
+
+<h3 class="sectionTitle3">例</h3>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-w-25&quot;&gt;%{STYLEGUIDE_PAGE}-w-25&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-w-50&quot;&gt;%{STYLEGUIDE_PAGE}-w-50&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-w-75&quot;&gt;%{STYLEGUIDE_PAGE}-w-75&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-w-100&quot;&gt;%{STYLEGUIDE_PAGE}-w-100&lt;/div&gt;
+</pre>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-h-25 %{STYLEGUIDE_PAGE}-w-100&quot;&gt;%{STYLEGUIDE_PAGE}-h-25&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-h-50 %{STYLEGUIDE_PAGE}-w-100&quot;&gt;%{STYLEGUIDE_PAGE}-h-50&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-h-75 %{STYLEGUIDE_PAGE}-w-100&quot;&gt;%{STYLEGUIDE_PAGE}-h-75&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-h-100 %{STYLEGUIDE_PAGE}-w-100&quot;&gt;%{STYLEGUIDE_PAGE}-h-100&lt;/div&gt;
+</pre>
+
+<h2 class="sectionTitle2">Spacing</h2>
+<p>Spacingユーティリティを使用して、要素のマージンとパディングを制御できます。</p>
+
+<h3 class="sectionTitle3">Margin</h3>
+
+<div class="%{STYLEGUIDE_PAGE}-m-0 %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-m-0</div>
+<div class="%{STYLEGUIDE_PAGE}-m-1 %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-m-1</div>
+<div class="%{STYLEGUIDE_PAGE}-m-2 %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-m-2</div>
+<div class="%{STYLEGUIDE_PAGE}-m-3 %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-m-3</div>
+<div class="%{STYLEGUIDE_PAGE}-m-4 %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-m-4</div>
+<div class="%{STYLEGUIDE_PAGE}-m-5 %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-m-5</div>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-m-0&quot;&gt;%{STYLEGUIDE_PAGE}-m-0&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-m-1&quot;&gt;%{STYLEGUIDE_PAGE}-m-1&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-m-2&quot;&gt;%{STYLEGUIDE_PAGE}-m-2&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-m-3&quot;&gt;%{STYLEGUIDE_PAGE}-m-3&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-m-4&quot;&gt;%{STYLEGUIDE_PAGE}-m-4&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-m-5&quot;&gt;%{STYLEGUIDE_PAGE}-m-5&lt;/div&gt;
+</pre>
+
+<h4 class="sectionTitle4">方向別のMargin</h4>
+<p>特定の方向にのみmarginを適用できます：</p>
+
+<div class="%{STYLEGUIDE_PAGE}-mt-3 %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-mt-3 (margin-top)</div>
+<div class="%{STYLEGUIDE_PAGE}-mb-3 %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-mb-3 (margin-bottom)</div>
+<div class="%{STYLEGUIDE_PAGE}-ms-3 %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-ms-3 (margin-left)</div>
+<div class="%{STYLEGUIDE_PAGE}-me-3 %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-me-3 (margin-right)</div>
+<div class="%{STYLEGUIDE_PAGE}-mx-3 %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-mx-3 (margin-x)</div>
+<div class="%{STYLEGUIDE_PAGE}-my-3 %{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-my-3 (margin-y)</div>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-mt-3&quot;&gt;%{STYLEGUIDE_PAGE}-mt-3 (margin-top)&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-mb-3&quot;&gt;%{STYLEGUIDE_PAGE}-mb-3 (margin-bottom)&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-ms-3&quot;&gt;%{STYLEGUIDE_PAGE}-ms-3 (margin-left)&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-me-3&quot;&gt;%{STYLEGUIDE_PAGE}-me-3 (margin-right)&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-mx-3&quot;&gt;%{STYLEGUIDE_PAGE}-mx-3 (margin-left & margin-right)&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-my-3&quot;&gt;%{STYLEGUIDE_PAGE}-my-3 (margin-top & margin-bottom)&lt;/div&gt;
+</pre>
+
+<div class="acms-admin-margin-bottom-medium">
+	<table class="%{STYLEGUIDE_PAGE}-table %{STYLEGUIDE_PAGE}-table-bordered">
+		<thead class="%{STYLEGUIDE_PAGE}-table-heading">
+			<tr>
+				<th>クラス</th>
+				<th>説明</th>
+			</tr>
+		</thead>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-mt-*</th>
+			<td>margin-top</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-mb-*</th>
+			<td>margin-bottom</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-ms-*</th>
+			<td>margin-left</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-me-*</th>
+			<td>margin-right</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-mx-*</th>
+			<td>margin-x (margin-left & margin-right)</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-my-*</th>
+			<td>margin-y (margin-top & margin-bottom)</td>
+		</tr>
+	</table>
+</div>
+
+<h3 class="sectionTitle3">Padding</h3>
+
+<div class="%{STYLEGUIDE_PAGE}-p-0 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-p-0</div>
+<div class="%{STYLEGUIDE_PAGE}-p-1 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-p-1</div>
+<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-p-2</div>
+<div class="%{STYLEGUIDE_PAGE}-p-3 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-p-3</div>
+<div class="%{STYLEGUIDE_PAGE}-p-4 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-p-4</div>
+<div class="%{STYLEGUIDE_PAGE}-p-5 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-p-5</div>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-0&quot;&gt;%{STYLEGUIDE_PAGE}-p-0&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-1&quot;&gt;%{STYLEGUIDE_PAGE}-p-1&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2&quot;&gt;%{STYLEGUIDE_PAGE}-p-2&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-3&quot;&gt;%{STYLEGUIDE_PAGE}-p-3&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-4&quot;&gt;%{STYLEGUIDE_PAGE}-p-4&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-5&quot;&gt;%{STYLEGUIDE_PAGE}-p-5&lt;/div&gt;
+</pre>
+
+<h4 class="sectionTitle4">方向別のPadding</h4>
+<p>特定の方向にのみpaddingを適用できます：</p>
+
+<div class="%{STYLEGUIDE_PAGE}-pt-3 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-pt-3 (padding-top)</div>
+<div class="%{STYLEGUIDE_PAGE}-pb-3 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-pb-3 (padding-bottom)</div>
+<div class="%{STYLEGUIDE_PAGE}-ps-3 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-ps-3 (padding-left)</div>
+<div class="%{STYLEGUIDE_PAGE}-pe-3 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-pe-3 (padding-right)</div>
+<div class="%{STYLEGUIDE_PAGE}-px-3 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-px-3 (padding-x)</div>
+<div class="%{STYLEGUIDE_PAGE}-py-3 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-py-3 (padding-y)</div>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-pt-3&quot;&gt;%{STYLEGUIDE_PAGE}-pt-3 (padding-top)&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-pb-3&quot;&gt;%{STYLEGUIDE_PAGE}-pb-3 (padding-bottom)&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-ps-3&quot;&gt;%{STYLEGUIDE_PAGE}-ps-3 (padding-left)&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-pe-3&quot;&gt;%{STYLEGUIDE_PAGE}-pe-3 (padding-right)&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-px-3&quot;&gt;%{STYLEGUIDE_PAGE}-px-3 (padding-left & padding-right)&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-py-3&quot;&gt;%{STYLEGUIDE_PAGE}-py-3 (padding-top & padding-bottom)&lt;/div&gt;
+</pre>
+
+<div class="acms-admin-margin-bottom-medium">
+	<table class="%{STYLEGUIDE_PAGE}-table %{STYLEGUIDE_PAGE}-table-bordered">
+		<thead class="%{STYLEGUIDE_PAGE}-table-heading">
+			<tr>
+				<th>クラス</th>
+				<th>説明</th>
+			</tr>
+		</thead>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-pt-*</th>
+			<td>padding-top</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-pb-*</th>
+			<td>padding-bottom</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-ps-*</th>
+			<td>padding-left</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-pe-*</th>
+			<td>padding-right</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-px-*</th>
+			<td>padding-x (padding-left & padding-right)</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-py-*</th>
+			<td>padding-y (padding-top & padding-bottom)</td>
+		</tr>
+	</table>
+</div>
+
+<h3 class="sectionTitle3">Gap</h3>
+<p>Gapユーティリティを使用して、FlexboxやGridレイアウトの要素間の間隔を制御できます。</p>
+
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-gap-1 %{STYLEGUIDE_PAGE}-mb-2">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+</div>
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-gap-2 %{STYLEGUIDE_PAGE}-mb-2">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+</div>
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-gap-3">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+</div>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-gap-1&quot;&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary&quot;&gt;Flex item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info&quot;&gt;Flex item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary&quot;&gt;Flex item&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-gap-2&quot;&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary&quot;&gt;Flex item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info&quot;&gt;Flex item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary&quot;&gt;Flex item&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-gap-3&quot;&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary&quot;&gt;Flex item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info&quot;&gt;Flex item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary&quot;&gt;Flex item&lt;/div&gt;
+&lt;/div&gt;
+</pre>
+
+<h3 class="sectionTitle3">Row Gap & Column Gap</h3>
+<p>行間と列間の間隔を個別に制御できます。</p>
+
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-flex-column %{STYLEGUIDE_PAGE}-row-gap-2 %{STYLEGUIDE_PAGE}-mb-2">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+</div>
+<div class="%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-column-gap-3">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info">Flex item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary">Flex item</div>
+</div>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-flex-column %{STYLEGUIDE_PAGE}-row-gap-2&quot;&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary&quot;&gt;Flex item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info&quot;&gt;Flex item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary&quot;&gt;Flex item&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-d-flex %{STYLEGUIDE_PAGE}-column-gap-3&quot;&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary&quot;&gt;Flex item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-info&quot;&gt;Flex item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 %{STYLEGUIDE_PAGE}-text-primary&quot;&gt;Flex item&lt;/div&gt;
+&lt;/div&gt;
+</pre>
+
+<h2 class="sectionTitle2">Text</h2>
+<p>Textユーティリティを使用して、テキストの配置、色、サイズなどを制御できます。</p>
+
+<h3 class="sectionTitle3">Text alignment</h3>
+
+<p class="%{STYLEGUIDE_PAGE}-text-left">Left aligned text.</p>
+<p class="%{STYLEGUIDE_PAGE}-text-center">Center aligned text.</p>
+<p class="%{STYLEGUIDE_PAGE}-text-right">Right aligned text.</p>
+
+<pre class="code HTML">
+&lt;p class=&quot;%{STYLEGUIDE_PAGE}-text-left&quot;&gt;Left aligned text.&lt;/p&gt;
+&lt;p class=&quot;%{STYLEGUIDE_PAGE}-text-center&quot;&gt;Center aligned text.&lt;/p&gt;
+&lt;p class=&quot;%{STYLEGUIDE_PAGE}-text-right&quot;&gt;Right aligned text.&lt;/p&gt;
+</pre>
+
+<h3 class="sectionTitle3">Vertical alignment</h3>
+
+<span class="%{STYLEGUIDE_PAGE}-align-baseline">baseline</span>
+<span class="%{STYLEGUIDE_PAGE}-align-top">top</span>
+<span class="%{STYLEGUIDE_PAGE}-align-middle">middle</span>
+<span class="%{STYLEGUIDE_PAGE}-align-bottom">bottom</span>
+<span class="%{STYLEGUIDE_PAGE}-align-text-bottom">text-bottom</span>
+<span class="%{STYLEGUIDE_PAGE}-align-text-top">text-top</span>
+
+<pre class="code HTML">
+&lt;span class=&quot;%{STYLEGUIDE_PAGE}-align-baseline&quot;&gt;baseline&lt;/span&gt;
+&lt;span class=&quot;%{STYLEGUIDE_PAGE}-align-top&quot;&gt;top&lt;/span&gt;
+&lt;span class=&quot;%{STYLEGUIDE_PAGE}-align-middle&quot;&gt;middle&lt;/span&gt;
+&lt;span class=&quot;%{STYLEGUIDE_PAGE}-align-bottom&quot;&gt;bottom&lt;/span&gt;
+&lt;span class=&quot;%{STYLEGUIDE_PAGE}-align-text-bottom&quot;&gt;text-bottom&lt;/span&gt;
+&lt;span class=&quot;%{STYLEGUIDE_PAGE}-align-text-top&quot;&gt;text-top&lt;/span&gt;
+</pre>
+
+<h3 class="sectionTitle3">Text colors</h3>
+
+<p class="%{STYLEGUIDE_PAGE}-text-primary">Primary text color.</p>
+<p class="%{STYLEGUIDE_PAGE}-text-info">Info text color.</p>
+<p class="%{STYLEGUIDE_PAGE}-text-success">Success text color.</p>
+<p class="%{STYLEGUIDE_PAGE}-text-warning">Warning text color.</p>
+<p class="%{STYLEGUIDE_PAGE}-text-danger">Danger text color.</p>
+
+<pre class="code HTML">
+&lt;p class=&quot;%{STYLEGUIDE_PAGE}-text-primary&quot;&gt;Primary text color.&lt;/p&gt;
+&lt;p class=&quot;%{STYLEGUIDE_PAGE}-text-info&quot;&gt;Info text color.&lt;/p&gt;
+&lt;p class=&quot;%{STYLEGUIDE_PAGE}-text-success&quot;&gt;Success text color.&lt;/p&gt;
+&lt;p class=&quot;%{STYLEGUIDE_PAGE}-text-warning&quot;&gt;Warning text color.&lt;/p&gt;
+&lt;p class=&quot;%{STYLEGUIDE_PAGE}-text-danger&quot;&gt;Danger text color.&lt;/p&gt;
+</pre>
+
+<h2 class="sectionTitle2">Position</h2>
+<p>Positionユーティリティを使用して、要素の位置を制御できます。</p>
+
+<div class="%{STYLEGUIDE_PAGE}-position-relative %{STYLEGUIDE_PAGE}-p-3 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-position-relative</div>
+<div class="%{STYLEGUIDE_PAGE}-position-absolute %{STYLEGUIDE_PAGE}-p-3 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-position-absolute</div>
+<div class="%{STYLEGUIDE_PAGE}-position-fixed %{STYLEGUIDE_PAGE}-p-3 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-position-fixed</div>
+<div class="%{STYLEGUIDE_PAGE}-position-sticky %{STYLEGUIDE_PAGE}-p-3 %{STYLEGUIDE_PAGE}-text-primary">%{STYLEGUIDE_PAGE}-position-sticky</div>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-position-relative&quot;&gt;%{STYLEGUIDE_PAGE}-position-relative&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-position-absolute&quot;&gt;%{STYLEGUIDE_PAGE}-position-absolute&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-position-fixed&quot;&gt;%{STYLEGUIDE_PAGE}-position-fixed&lt;/div&gt;
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-position-sticky&quot;&gt;%{STYLEGUIDE_PAGE}-position-sticky&lt;/div&gt;
+</pre>
+
+<h2 class="sectionTitle2">Utility API</h2>
+<p>Utility APIは、Sassベースのユーティリティクラスを生成します</p>
+
+<h3 class="sectionTitle3">ユーティリティの定義</h3>
+<p>ユーティリティクラスは、値を変更・拡張できるユーティリティAPIで生成されます。Sassマップに慣れていない場合は、<a href="https://sass-lang.com/documentation/values/maps/" target="_blank">公式ドキュメント</a>を参照してください。</p>
+
+<p>各ユーティリティは以下のオプションを受け入れます：</p>
+
+<div class="acms-admin-margin-bottom-medium">
+	<table class="%{STYLEGUIDE_PAGE}-table %{STYLEGUIDE_PAGE}-table-bordered">
+		<thead class="%{STYLEGUIDE_PAGE}-table-heading">
+			<tr>
+				<th>オプション</th>
+				<th>型</th>
+				<th>デフォルト値</th>
+				<th>説明</th>
+			</tr>
+		</thead>
+		<tr>
+			<th>property</th>
+			<td>Required</td>
+			<td>–</td>
+			<td>CSSプロパティ名（文字列または配列）</td>
+		</tr>
+		<tr>
+			<th>values</th>
+			<td>Required</td>
+			<td>–</td>
+			<td>値のリストまたはマップ</td>
+		</tr>
+		<tr>
+			<th>class</th>
+			<td>Optional</td>
+			<td>null</td>
+			<td>生成されるクラス名のプレフィックス</td>
+		</tr>
+		<tr>
+			<th>responsive</th>
+			<td>Optional</td>
+			<td>false</td>
+			<td>レスポンシブクラスを生成するかどうか</td>
+		</tr>
+		<tr>
+			<th>print</th>
+			<td>Optional</td>
+			<td>false</td>
+			<td>印刷用クラスを生成するかどうか</td>
+		</tr>
+		<tr>
+			<th>css-var</th>
+			<td>Optional</td>
+			<td>false</td>
+			<td>CSS変数を生成するかどうか</td>
+		</tr>
+		<tr>
+			<th>local-vars</th>
+			<td>Optional</td>
+			<td>null</td>
+			<td>ローカルCSS変数のマップ</td>
+		</tr>
+		<tr>
+			<th>state</th>
+			<td>Optional</td>
+			<td>null</td>
+			<td>疑似クラス（hover, focus等）のリスト</td>
+		</tr>
+	</table>
+</div>
+
+<h2 class="sectionTitle2">その他のユーティリティ</h2>
+<p>このドキュメントでは主要なユーティリティのみを紹介しています。すべての利用可能なユーティリティについては、<code>themes/system/src/scss/global/_utilities.scss</code>ファイルを参照してください。</p>
+
+<p>このファイルには以下のようなユーティリティが定義されています：</p>
+<ul>
+	<li>Float utilities</li>
+	<li>Object fit utilities</li>
+	<li>Opacity utilities</li>
+	<li>Overflow utilities</li>
+	<li>Shadow utilities</li>
+	<li>Sizing utilities (width, height, viewport)</li>
+	<li>Font utilities (family, size, weight, style)</li>
+	<li>Line height utilities</li>
+	<li>Text utilities (decoration, transform, white-space)</li>
+	<li>User select utilities</li>
+	<li>Pointer events utilities</li>
+	<li>Visibility utilities</li>
+	<li>Z-index utilities</li>
+</ul>
+
+<p>詳細な使用方法やカスタマイズ方法については、各ユーティリティの定義を確認してください。</p>
+
 </section>

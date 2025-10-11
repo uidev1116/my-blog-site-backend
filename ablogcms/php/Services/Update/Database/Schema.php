@@ -2,7 +2,6 @@
 
 namespace Acms\Services\Update\Database;
 
-use Storage;
 use Config;
 use DB;
 
@@ -215,7 +214,11 @@ class Schema
     {
         $DB = DB::singleton($this->dsn);
         $q = "ALTER TABLE `" . DB_PREFIX . "sequence` CHANGE `sequence_system_version` `sequence_system_version` VARCHAR(32) NOT NULL";
-        $res = $DB->query($q, 'exec');
+        $sql = [
+            'sql' => $q,
+            'params' => [],
+        ];
+        $res = $DB->query($sql, 'exec');
 
         return $res;
     }
@@ -363,8 +366,11 @@ class Schema
 
         foreach ($ary as $key) {
             $DB = DB::singleton($this->dsn);
-            $q = "ALTER TABLE `$table` DROP INDEX `$key`";
-            $DB->query($q, 'exec');
+            $sql = [
+                'sql' => "ALTER TABLE `$table` DROP INDEX `$key`",
+                'params' => []
+            ];
+            $DB->query($sql, 'exec');
         }
     }
 
@@ -382,8 +388,11 @@ class Schema
         $DB = DB::singleton($this->dsn);
         foreach ($res as $index) {
             if (!preg_match('/^PRIMARY\sKEY/', $index)) {
-                $q = "ALTER TABLE `$table` ADD $index";
-                $DB->query($q, 'exec');
+                $sql = [
+                    'sql' => "ALTER TABLE `$table` ADD $index",
+                    'params' => []
+                ];
+                $DB->query($sql, 'exec');
             }
         }
     }

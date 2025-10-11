@@ -28,20 +28,21 @@ class ACMS_POST_Import_MovableType extends ACMS_POST_Import
         $this->validate($path);
 
         $entryBlock = '';
-        $handle = @fopen($path, "r");
-        @rewind($handle);
+        $handle = fopen($path, "r");
+        if ($handle === false) {
+            throw new RuntimeException('ファイルのオープンに失敗しました。');
+        }
+        rewind($handle);
 
-        if ($handle) {
-            while (($buffer = fgets($handle)) !== false) {
-                if (preg_match('@^--------$@m', $buffer)) {
-                    $this->buildEntryBlock($entryBlock);
-                    $entryBlock = '';
-                } else {
-                    $entryBlock .= $buffer;
-                }
+        while (($buffer = fgets($handle)) !== false) {
+            if (preg_match('@^--------$@m', $buffer)) {
+                $this->buildEntryBlock($entryBlock);
+                $entryBlock = '';
+            } else {
+                $entryBlock .= $buffer;
             }
         }
-        @fclose($handle);
+        fclose($handle);
     }
 
     function validate($path)
@@ -66,6 +67,9 @@ class ACMS_POST_Import_MovableType extends ACMS_POST_Import
         $body_regex = '@^[\x0D\x0A|\x0D|\x0A/\n]*(.*?):[\x0D\x0A|\x0D|\x0A/\n]@si';
 
         $content    = preg_split('@^-----$@m', $entryBlock);
+        if ($content === false || count($content) < 2) {
+            throw new RuntimeException('エントリーのフォーマットが不正です。');
+        }
         $meta       = array_splice($content, 0, 1);
         $body       = array_splice($content, 0);
         $entry      = [];

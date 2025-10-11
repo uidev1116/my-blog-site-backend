@@ -1,0 +1,362 @@
+@use '../global/common' as global;
+
+/* ------------------------------
+ ユニット（Ver.3.2~）
+------------------------------- */
+.acms-unit {
+  --acms-unit-editor-unit-gap: 0px;
+}
+
+.acms-unit + .acms-unit {
+  margin-top: var(--acms-unit-editor-unit-gap);
+}
+
+/* UnitContent
+=============================== */
+.acms-unit-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: global.$acms-color-white;
+  border-radius: 6px;
+  box-shadow: global.$acms-shadow-elevation-low;
+}
+
+/* UnitToolbar
+=============================== */
+.acms-unit-toolbar {
+  --acms-unit-toolbar-color: #{global.$acms-color-system-gray80};
+  --acms-unit-toolbar-vr-color: #{global.$acms-color-system-gray40};
+  --acms-unit-toolbar-min-height: 32px;
+}
+
+.acms-unit-toolbar {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--acms-unit-toolbar-min-height);
+  padding: 0 4px;
+  color: var(--acms-unit-toolbar-color);
+  transition: all 0.2s;
+
+  @include global.font-size(12);
+}
+
+.acms-unit-toolbar .material-symbols-outlined {
+  display: block;
+}
+
+.acms-unit-toolbar-vr {
+  display: inline-block;
+  width: 1px;
+  height: 14px;
+  margin: 0 4px;
+  background-color: var(--acms-unit-toolbar-vr-color);
+}
+
+.acms-unit-toolbar-info,
+.acms-unit-toolbar-menus {
+  display: flex;
+  align-items: center;
+
+  > * {
+    display: flex;
+  }
+}
+
+.acms-unit-toolbar-info select {
+  min-width: 140px;
+}
+
+.acms-unit-toolbar-menus {
+  justify-content: flex-end;
+}
+
+.acms-unit-toolbar-meta {
+  display: flex;
+  flex: none;
+  align-items: center;
+  margin: 0;
+  font-weight: bold;
+  white-space: nowrap;
+
+  span + span::before {
+    margin: 0 4px;
+    content: ':';
+  }
+}
+
+.acms-unit-footer {
+  padding: 8px;
+}
+
+/* DraggableClone
+=============================== */
+.acms-unit-draggable-clone {
+  --acms-unit-draggable-clone-bg-color: #{global.$acms-color-system-gray90};
+  --acms-unit-draggable-clone-vr-color: #{global.$acms-color-system-gray40};
+  --acms-unit-draggable-clone-color: #{global.$acms-color-white};
+}
+
+.acms-unit-draggable-clone {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px 0 4px;
+  color: var(--acms-unit-draggable-clone-color);
+  background-color: var(--acms-unit-draggable-clone-bg-color);
+  border-radius: 6px;
+}
+
+.acms-unit-draggable-clone-meta {
+  display: flex;
+  flex: none;
+  align-items: center;
+  margin: 0;
+  font-weight: bold;
+  white-space: nowrap;
+
+  span + span::before {
+    margin: 0 4px;
+    content: ':';
+  }
+}
+
+.acms-unit-draggable-clone-vr {
+  display: inline-block;
+  width: 1px;
+  height: 14px;
+  margin: 0 4px;
+  background-color: var(--acms-unit-draggable-clone-vr-color);
+}
+
+/* UnitMenuButton
+=============================== */
+.acms-unit-toolbar-button {
+  --acms-unit-toolbar-button-font-size: 16px;
+  --acms-unit-toolbar-button-padding-x: 4px;
+  --acms-unit-toolbar-button-padding-y: 4px;
+
+  // カラー設定
+  --acms-unit-toolbar-button-color: inherit;
+  --acms-unit-toolbar-button-hover-color: var(--acms-unit-toolbar-button-color);
+  --acms-unit-toolbar-button-focus-color: var(--acms-unit-toolbar-button-color);
+  --acms-unit-toolbar-button-disabled-color: #{global.$acms-color-system-gray40};
+
+  // 背景色設定
+  --acms-unit-toolbar-button-bg-color: transparent;
+  --acms-unit-toolbar-button-hover-bg-color: #{global.$acms-color-system-gray20};
+  --acms-unit-toolbar-button-focus-bg-color: #{global.$acms-color-white};
+  --acms-unit-toolbar-button-disabled-bg-color: var(--acms-unit-toolbar-button-bg-color);
+
+  // シャドウ
+  --acms-unit-toolbar-button-box-shadow: none;
+  --acms-unit-toolbar-button-hover-box-shadow: var(--acms-unit-toolbar-button-box-shadow);
+  --acms-unit-toolbar-button-focus-box-shadow: #{global.$acms-btn-focus-box-shadow};
+  --acms-unit-toolbar-button-disabled-box-shadow: var(--acms-unit-toolbar-button-box-shadow);
+}
+
+.acms-unit-toolbar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: var(--acms-unit-toolbar-button-padding-y) var(--acms-unit-toolbar-button-padding-x);
+  color: var(--acms-unit-toolbar-button-color);
+  background-color: var(--acms-unit-toolbar-button-bg-color);
+  border: none;
+  border-radius: 3px;
+  box-shadow: var(--acms-unit-toolbar-button-box-shadow);
+  transition: all 0.2s;
+  appearance: none;
+
+  @include global.font-size(var(--acms-unit-toolbar-button-font-size));
+
+  &:focus-visible {
+    --acms-unit-toolbar-button-color: var(--acms-unit-toolbar-button-focus-color);
+    --acms-unit-toolbar-button-bg-color: var(--acms-unit-toolbar-button-focus-bg-color);
+    --acms-unit-toolbar-button-box-shadow: var(--acms-unit-toolbar-button-focus-box-shadow);
+
+    outline: none;
+  }
+
+  &:hover {
+    --acms-unit-toolbar-button-color: var(--acms-unit-toolbar-button-hover-color);
+    --acms-unit-toolbar-button-bg-color: var(--acms-unit-toolbar-button-hover-bg-color);
+    --acms-unit-toolbar-button-box-shadow: var(--acms-unit-toolbar-button-hover-box-shadow);
+  }
+
+  &:disabled {
+    --acms-unit-toolbar-button-color: var(--acms-unit-toolbar-button-disabled-color);
+    --acms-unit-toolbar-button-bg-color: var(--acms-unit-toolbar-button-disabled-bg-color);
+    --acms-unit-toolbar-button-box-shadow: var(--acms-unit-toolbar-button-disabled-box-shadow);
+  }
+}
+
+.acms-unit-toolbar-button.acms-unit-toolbar-button-large {
+  --acms-unit-toolbar-button-font-size: 24px;
+  --acms-unit-toolbar-button-padding-x: 0px;
+  --acms-unit-toolbar-button-padding-y: 0px;
+}
+
+.acms-unit-toolbar-button-group {
+  display: flex;
+  gap: 8px;
+}
+
+/* Status
+=============================== */
+
+.acms-unit-toolbar-status {
+  display: none;
+  margin: 4px auto 4px 20px;
+
+  @include global.media-breakpoint-up(lg) {
+    display: block;
+  }
+}
+
+.acms-unit-toolbar-status-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  align-items: center;
+
+  > * {
+    margin: 0;
+    color: global.$acms-color-system-gray70;
+    font-weight: bold;
+
+    span + span::before {
+      margin: 0 4px;
+      content: ':';
+    }
+  }
+}
+
+/* State
+=============================== */
+
+/* 閉じた状態 */
+.acms-unit:not([data-unit-type='group'])[data-unit-collapsed='true'] .acms-unit-toolbar {
+  background: global.$acms-color-system-gray10;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px 0 rgb(51 51 51 / 20%);
+}
+
+/* 非表示ユニット */
+.acms-unit[data-unit-status='close'] {
+  .acms-unit-content {
+    --acms-block-editor-bg-color: rgba(global.$acms-color-system-gray20, 0.66);
+
+    background: rgba(global.$acms-color-system-gray20, 0.66);
+  }
+
+  /* 非表示かつ閉じた状態 */
+  &[data-unit-collapsed='true'] .acms-unit-toolbar {
+    background: global.$acms-color-system-gray20;
+  }
+}
+
+/* ドラッグ中 */
+.acms-unit-dragging {
+  position: relative;
+  z-index: 1;
+  height: 8px;
+  margin-bottom: -1px;
+  padding: 0;
+  background-color: global.$acms-color-system-gray80;
+  border-color: #2389ff;
+  opacity: 1;
+
+  * {
+    height: 0;
+
+    /* Items are hidden using height and opacity to retain focus */
+    opacity: 0;
+  }
+}
+
+/* UnitAppender
+=============================== */
+.acms-unit-appender {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 36px 0;
+}
+
+/* UnitInserter
+=============================== */
+.acms-unit-inserter {
+  opacity: 0;
+  transition: opacity 0.3s;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:has(:focus) {
+    opacity: 1;
+  }
+}
+
+.acms-unit-inserter.acms-unit-inserter-visible {
+  opacity: 1 !important;
+}
+
+.acms-unit-inserter.acms-unit-inserter-hidden {
+  opacity: 0 !important;
+}
+
+.acms-unit-inserter .acms-unit-inserter-positioner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+}
+
+.acms-unit-inserter .acms-unit-inserter-clicable-area {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 16px;
+}
+
+.acms-unit-inserter .acms-unit-inserter-clicable-area button {
+  @include global.stretch;
+}
+
+/* More
+=============================== */
+.acms-unit-more {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  background: global.$acms-color-system-gray80;
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px 0 rgb(51 51 51 / 20%);
+
+  .acms-unit-more-content {
+    flex: 1 1 auto;
+    color: global.$acms-color-white;
+    font-weight: bold;
+    text-align: center;
+
+    @include global.font-size(14);
+  }
+
+  .acms-unit-toolbar {
+    --acms-unit-toolbar-color: #{global.$acms-color-white};
+    --acms-unit-toolbar-vr-color: #{global.$acms-color-system-gray40};
+  }
+
+  .acms-unit-toolbar-button {
+    --acms-unit-toolbar-button-hover-color: #{global.$acms-color-system-gray80};
+  }
+}

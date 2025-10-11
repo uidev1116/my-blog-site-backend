@@ -1,4 +1,4 @@
-import { Component, ReactNode } from 'react';
+import { Component, ReactNode, useCallback, useRef } from 'react';
 import classNames from 'classnames';
 import readFiles, { type ExtendedFile } from '../../lib/read-files';
 
@@ -13,6 +13,49 @@ interface DropZoneState {
   dragging: number;
   reading: boolean;
 }
+
+interface DropZoneFileSelectorProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  children?: React.ReactNode;
+}
+
+export const DropZoneFileSelector = ({
+  className,
+  children,
+  'aria-label': ariaLabel,
+  ...props
+}: DropZoneFileSelectorProps) => {
+  const inputFileRef = useRef<HTMLInputElement>(null);
+
+  const handleClick = useCallback(() => {
+    inputFileRef.current?.click();
+  }, []);
+
+  return (
+    <>
+      <button
+        type="button"
+        className={classNames('acms-admin-drop-zone-file-selector-btn', className)}
+        aria-label={ariaLabel}
+        onClick={handleClick}
+      >
+        {children || ACMS.i18n('media.upload')}
+      </button>
+      <input ref={inputFileRef} type="file" multiple name="files[]" style={{ display: 'none' }} {...props} />
+    </>
+  );
+};
+
+interface DropZoneTextProps extends React.HTMLAttributes<HTMLParagraphElement> {
+  children?: React.ReactNode;
+}
+
+export const DropZoneText = ({ className, children, ...props }: DropZoneTextProps) => {
+  return (
+    <p className={classNames('acms-admin-drop-zone-text', className)} {...props}>
+      {children}
+    </p>
+  );
+};
 
 export default class DropZone extends Component<DropZoneProp, DropZoneState> {
   constructor(props: DropZoneProp) {
@@ -114,29 +157,20 @@ export default class DropZone extends Component<DropZoneProp, DropZoneState> {
     const { modifier, reading } = this.state;
     return (
       <div
-        className={classNames('acms-admin-media-drop-box-wrap', modifier)}
+        className={classNames('acms-admin-drop-zone', modifier)}
         onDragOver={this.onDragOver.bind(this)}
         onDragEnter={this.onDragEnter.bind(this)}
         onDragLeave={this.onDragLeave.bind(this)}
         onDrop={this.onDrop.bind(this)}
       >
         {children || (
-          <div className={classNames('acms-admin-media', 'acms-admin-media-drop-box', modifier)}>
-            <div className="acms-admin-media-drop-inside">
-              <p className="acms-admin-media-drop-text">{ACMS.i18n('media.add_new_media')}</p>
-              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-              <label className="acms-admin-media-unit-droparea-btn" style={{ cursor: 'pointer' }}>
-                <input
-                  type="file"
-                  multiple
-                  name="files[]"
-                  onChange={this.onChange.bind(this)}
-                  style={{ display: 'none' }}
-                  disabled={reading === true}
-                />
+          <div className={classNames('acms-admin-drop-box', modifier)}>
+            <div className="acms-admin-drop-zone-inside">
+              <DropZoneText>{ACMS.i18n('media.add_new_media')}</DropZoneText>
+              <DropZoneFileSelector onChange={this.onChange.bind(this)} disabled={reading === true}>
                 {ACMS.i18n('media.upload')}
-              </label>
-              <p className="acms-admin-media-drop-text">{ACMS.i18n('media.drop_file')}</p>
+              </DropZoneFileSelector>
+              <DropZoneText>{ACMS.i18n('media.drop_file')}</DropZoneText>
             </div>
           </div>
         )}

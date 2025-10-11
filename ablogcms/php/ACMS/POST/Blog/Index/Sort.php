@@ -5,7 +5,7 @@ class ACMS_POST_Blog_Index_Sort extends ACMS_POST_Blog
     function post()
     {
         if (!sessionWithAdministration()) {
-            die();
+            die403();
         }
 
         $DB = DB::singleton(dsn());
@@ -15,7 +15,7 @@ class ACMS_POST_Blog_Index_Sort extends ACMS_POST_Blog
         $SQL->setOrder('blog_sort', 'DESC');
         $SQL->setLimit(1);
         if (!$max = $DB->query($SQL->get(dsn()), 'one')) {
-            die();
+            die500();
         }
         if ((1 < $max) and !empty($_POST['checks']) and is_array($_POST['checks'])) {
             $aryBid = [];
@@ -43,7 +43,7 @@ class ACMS_POST_Blog_Index_Sort extends ACMS_POST_Blog
                 $SQL->addWhereOpr('blog_sort', $toSort);
                 $SQL->setLimit(1);
                 if (!$row = $DB->query($SQL->get(dsn()), 'row')) {
-                    die('toSort object is not found');
+                    die500('toSort object is not found');
                 }
                 $toLeft     = intval($row['blog_left']);
                 $toRight    = intval($row['blog_right']);
@@ -54,7 +54,7 @@ class ACMS_POST_Blog_Index_Sort extends ACMS_POST_Blog
                 $SQL->addSelect('blog_sort');
                 $SQL->addWhereOpr('blog_id', $bid);
                 if (!$row = $DB->query($SQL->get(dsn()), 'row')) {
-                    die('fromSort object is not found');
+                    die500('fromSort object is not found');
                 }
                 $fromSort   = intval($row['blog_sort']);
                 $fromLeft   = intval($row['blog_left']);

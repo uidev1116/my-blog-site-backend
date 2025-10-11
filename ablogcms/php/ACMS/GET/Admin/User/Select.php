@@ -7,6 +7,9 @@ class ACMS_GET_Admin_User_Select extends ACMS_GET_Admin
     ];
     function get()
     {
+        if (!sessionWithCompilation()) {
+            return '';
+        }
         $Tpl = new Template($this->tpl, new ACMS_Corrector());
         $Tpl->add(null, $this->buildUserSelect(
             $Tpl,

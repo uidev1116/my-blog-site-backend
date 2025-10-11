@@ -42,7 +42,7 @@
 <!-- BEGIN_MODULE Admin_Import_Csv -->
 <!-- BEGIN_IF [{processing}/eq/1]-->
 <h2 class="acms-admin-admin-title2"><!--T-->CSVインポート状況<!--/T--></h2>
-<div id="js-background-csv-import" data-json="csv-import-logger.json">
+<div id="js-background-csv-import" data-type="import_csv">
   <div class="js-progress acms-admin-progress acms-admin-progress-striped acms-admin-active"
        style="display: none;">
     <div class="acms-admin-progress-bar">
@@ -304,6 +304,13 @@
         <td>文字列</td>
         <td>テキストユニットの追加<div>タグセレクト: テキストタグセレクトで設定できるもの [p, h2, h3, ul, markdown, none....]&nbsp;</div><div>[]の中の数値: ユニットの順番を指定</div></td>
         <td>"テストユニット"</td>
+        <td></td>
+      </tr>
+      <tr>
+        <th>unit@block-editor[数値]</th>
+        <td>HTML文字列</td>
+        <td>ブロックエディターユニットの追加<div>[]の中の数値: ユニットの順番を指定</div></td>
+        <td>"&lt;p&gt;ブロックエディターユニット&lt;/p&gt;"</td>
         <td></td>
       </tr>
       <tr>

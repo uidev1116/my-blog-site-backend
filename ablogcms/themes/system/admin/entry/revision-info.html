@@ -5,13 +5,13 @@
 <!-- BEGIN_MODULE Touch_Version -->
 <div class="acms-admin-revison-admin">
   <!-- BEGIN_MODULE Admin_Entry_Revision_Current -->
-	<form action="" method="post">
-		<input type="button" value="<!--T-->バージョン管理<!--/T-->" class="js-get_revisions acms-admin-btn-admin" />
-		<!-- BEGIN_MODULE Touch_NotsessionWithApprovalAdministrator -->
+  <form action="" method="post">
+    <input type="button" value="<!--T-->バージョン管理<!--/T-->" class="js-get_revisions acms-admin-btn-admin" />
+    <!-- BEGIN_MODULE Touch_NotsessionWithApprovalAdministrator -->
     <!-- BEGIN_IF [%{rvid}/eq/1/_or_/%{rvid}/em/] -->
-		<input type="hidden" name="revisionName" value="" />
-		<input type="hidden" name="redirect" value="approval" />
-		<input
+    <input type="hidden" name="revisionName" value="" />
+    <input type="hidden" name="redirect" value="approval" />
+    <input
       type="submit"
       name="ACMS_POST_Revision_Duplicate"
       value="<!--T-->作業領域から承認依頼<!--/T-->"
@@ -27,8 +27,8 @@
     <!-- ELSE_IF [{rev_status}/eq/reject] -->
     <span><!--T-->このバージョンは既に承認却下されているため、新規バージョンとしてのみ保存できます。<!--/T--></span>
     <!-- END_IF -->
-		<!-- END_MODULE Touch_NotsessionWithApprovalAdministrator -->
-	</form>
+    <!-- END_MODULE Touch_NotsessionWithApprovalAdministrator -->
+  </form>
 
   <!-- BEGIN_MODULE Touch_Approval -->
   <!-- BEGIN_IF [{rev_status}/eq/in_review] -->

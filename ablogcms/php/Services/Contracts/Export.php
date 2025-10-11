@@ -61,9 +61,9 @@ class Export
         $db = DB::singleton(dsn());
 
         foreach ($queryList as $table => $q) {
-            $db->query($q, 'fetch', false);
+            $statement = $db->query($q, 'exec', false);
             fwrite($fp, "$table:\n");
-            while ($row = $db->fetch($q)) {
+            while ($row = $db->next($statement)) {
                 $this->fix($row, $table);
                 $record = Yaml::dump(['dummy' => $row], 1);
                 if ($record) {

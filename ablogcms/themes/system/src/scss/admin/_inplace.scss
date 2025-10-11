@@ -1,0 +1,202 @@
+@use '../global/common' as global;
+
+/* ------------------------------
+ ダイレクト編集
+------------------------------- */
+
+/* ダイレクト編集ボックス */
+#js-edit_inplace-box {
+  position: absolute;
+  z-index: global.zIndex(js-edit_inplace-box);
+  width: 100vw;
+  max-width: 800px;
+  padding: 8px;
+  background: global.$acms-color-system-gray10 !important; // .entryFormWrapper と合わせている
+  border-radius: 6px;
+
+  @include global.font-size(12);
+
+  .acms-unit-content {
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+}
+
+/* ホバー時オーバーレイ */
+.js-edit_inplace-hovering {
+  background-color: rgb(163 196 234 / 40%);
+  border: 2px global.$acms-color-black solid;
+  pointer-events: none;
+}
+
+/* ロード中オーバーレイ */
+.js-edit_inplace-loading {
+  background-color: rgb(255 255 255);
+
+  @include global.opacity(0.6);
+}
+
+/* タイトル編集 */
+#js-edit_inplace-title {
+  position: relative;
+  z-index: global.zIndex(js-edit_inplace-title);
+  display: none;
+  width: 640px;
+  height: 60px;
+
+  @include global.font-size(12);
+
+  .inputTitle {
+    width: 98%;
+    margin-bottom: 0.5em;
+    padding: 0.2em 0.3em;
+
+    @include global.font-size(13);
+  }
+
+  p {
+    text-align: right;
+  }
+}
+
+.js-edit_inplace-title_trigger {
+  cursor: pointer;
+}
+
+.js-edit_inplace-title_trigger:hover {
+  background-color: rgb(163 196 234 / 40%) !important;
+}
+
+/* Experiment ダイレクト編集コントローラ */
+#js-edit_inplace-control {
+  font-weight: bold;
+  font-size: 18px !important;
+  text-shadow: 1px 1px 1px global.$acms-color-white;
+
+  .js-edit_inplace-control-label {
+    font-size: 12px;
+  }
+
+  button {
+    @include global.opacity(0.8);
+
+    width: 50px;
+    height: 42px;
+    margin: 0;
+    padding: 0;
+    color: global.$acms-color-white;
+    background-color: global.$acms-color-black-dark;
+    border-color: global.$acms-color-black-dark;
+    cursor: pointer;
+
+    &:hover {
+      @include global.opacity(1);
+    }
+  }
+}
+
+.js-direct-sort-wrap {
+  position: relative;
+}
+
+/* ユニット追加選択肢 */
+#js-edit_inplace-holder {
+  clear: both;
+  width: 100%;
+  margin: 10px 0;
+  background-color: global.$acms-color-gray70;
+}
+
+#js-edit_inplace-units {
+  padding: 8px;
+  font-size: 18px !important;
+  text-align: center;
+
+  button {
+    margin: 3px;
+    padding: 5px;
+    color: global.$acms-color-black;
+    background-color: global.$acms-color-white;
+    border: 1px solid global.$acms-color-black;
+    border-radius: 3px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: global.$acms-color-gray20;
+    }
+
+    &.cansel {
+      color: global.$acms-color-white;
+      background-color: global.$acms-color-gray80;
+
+      &:hover {
+        background-color: global.$acms-color-gray90;
+      }
+    }
+  }
+}
+
+.js-edit_inplace[data-unit-status='close'] {
+  -moz-opacity: 0.5 !important;
+  opacity: 0.5 !important;
+  filter: alpha(opacity=50) !important;
+}
+
+.js-edit_inplace[data-unit-status='close']::before {
+  position: relative;
+  display: block;
+  float: right;
+  width: 50px;
+  margin-bottom: -100px;
+  color: global.$acms-color-white;
+  line-height: 2;
+  text-align: center;
+  background-color: global.$acms-color-black;
+  content: '\975E\8868\793A'; // 変換: 非表示
+}
+
+/* 画面下部コントロール */
+#js-edit_inplace-below_control {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: global.zIndex(js-edit_inplace-below_control);
+  box-sizing: border-box;
+  width: 100%;
+  color: global.$acms-color-danger90;
+  font-weight: bold;
+  text-align: right;
+  background: rgb(250 250 250);
+  background: rgb(250 250 250 / 66%);
+  background-color: global.$acms-color-gray20;
+  border-top: 1px solid global.$acms-color-gray50;
+
+  @include global.font-size(13);
+
+  span {
+    padding: 7px 20px;
+  }
+}
+
+#js-edit_inplace-show_detail,
+#js-edit_inplace-mode_abort {
+  margin: 0;
+  padding: 7px 10px;
+  color: global.$acms-color-white;
+  text-shadow: -1px -1px 0 global.$acms-color-black-dark;
+  background: rgb(0 0 0);
+  background: rgb(0 0 0 / 66%);
+  border: none;
+  border-left: 1px solid global.$acms-color-black;
+  cursor: move;
+
+  @include global.font-size(12);
+
+  &:hover {
+    background-color: rgb(0 0 0 / 50%);
+  }
+
+  &:active {
+    text-shadow: -2px -2px 1px global.$acms-color-black-dark;
+  }
+}

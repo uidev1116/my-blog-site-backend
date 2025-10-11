@@ -1,7 +1,7 @@
 import { CSSProperties, Component } from 'react';
 import MediaInsert from '../media-insert/media-insert';
 import MediaUpdate from '../media-update/media-update';
-import DropZone from '../../../../components/drop-zone/drop-zone';
+import DropZone, { DropZoneFileSelector, DropZoneText } from '../../../../components/drop-zone/drop-zone';
 import { MediaItem, MediaType } from '../../types';
 import type { ExtendedFile } from '../../../../lib/read-files';
 
@@ -184,15 +184,9 @@ export default class MediaDropArea extends Component<MediaDropAreaProps, MediaDr
           <div>
             {!mid && (
               <div className="acms-admin-media-unit-droparea" style={style}>
-                <p className="acms-admin-media-unit-droparea-text">{ACMS.i18n('media.add_new_media')}</p>
-                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                <label className="acms-admin-media-unit-droparea-btn" style={{ cursor: 'pointer' }}>
-                  {ACMS.i18n('media.upload')}
-                  {!isInsertModalOpen && (
-                    <input type="file" onChange={this.uploadFile} style={{ display: 'none' }} multiple />
-                  )}
-                </label>
-                <p className="acms-admin-media-unit-droparea-text">{ACMS.i18n('media.drop_file')}</p>
+                <DropZoneText>{ACMS.i18n('media.add_new_media')}</DropZoneText>
+                <DropZoneFileSelector onChange={this.uploadFile} disabled={isInsertModalOpen} />
+                <DropZoneText>{ACMS.i18n('media.drop_file')}</DropZoneText>
               </div>
             )}
             {mid !== '' && (

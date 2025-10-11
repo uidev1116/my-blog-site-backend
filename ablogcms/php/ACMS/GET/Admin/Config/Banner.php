@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\PublicStorage;
+
 class ACMS_GET_Admin_Config_Banner extends ACMS_GET_Admin
 {
     public function & getConfig($rid, $mid, $setid)
@@ -78,7 +80,7 @@ class ACMS_GET_Admin_Config_Banner extends ACMS_GET_Admin
         foreach ($aryStatus as $i => $status) {
             $id = uniqueString();
             if ($img = $Config->get('banner_img', '', $i)) {
-                $xy = Storage::getImageSize(ARCHIVES_DIR . $img);
+                $xy = PublicStorage::getImageSize(ARCHIVES_DIR . $img);
                 $Tpl->add('banner#img', [
                     'banner#img_id'    => $id,
                     'banner@img_id'   => $id,

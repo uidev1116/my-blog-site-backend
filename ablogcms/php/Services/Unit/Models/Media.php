@@ -2,50 +2,182 @@
 
 namespace Acms\Services\Unit\Models;
 
-use Acms\Services\Unit\Contracts\ExportEntry;
-use Acms\Services\Unit\Contracts\PrimaryImageUnit;
-use Acms\Services\Unit\Contracts\UnitListModule;
 use Acms\Services\Unit\Contracts\Model;
+use Acms\Services\Unit\Contracts\AlignableUnitInterface;
+use Acms\Traits\Unit\AlignableUnitTrait;
+use Acms\Services\Unit\Contracts\ExportEntry;
+use Acms\Services\Unit\Contracts\ImageUnit;
+use Acms\Services\Unit\Contracts\EagerLoadingMedia;
+use Acms\Services\Unit\Contracts\UnitListModule;
 use Acms\Services\Facades\Media as MediaHelper;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Facades\Database;
-use Acms\Traits\Unit\UnitTemplateTrait;
+use Acms\Services\Facades\Common;
+use Acms\Traits\Unit\SizeableUnitTrait;
+use Acms\Services\Unit\Contracts\SizeableUnitInterface;
 use Template;
 use DOMDocument;
 use SQL;
+use Acms\Services\Unit\Contracts\AnkerUnitInterface;
+use Acms\Traits\Unit\AnkerUnitTrait;
+use Acms\Traits\Unit\UnitMultiLangTrait;
 
-class Media extends Model implements PrimaryImageUnit, UnitListModule, ExportEntry
+/**
+ * @extends \Acms\Services\Unit\Contracts\Model<array<string, mixed>>
+ */
+class Media extends Model implements AlignableUnitInterface, ImageUnit, UnitListModule, ExportEntry, EagerLoadingMedia, AnkerUnitInterface, SizeableUnitInterface
 {
-    use UnitTemplateTrait;
+    use AlignableUnitTrait;
+    use SizeableUnitTrait;
+    use AnkerUnitTrait;
+    use UnitMultiLangTrait;
+
+    /**
+     * ユニットの独自データ
+     * @var array<string, mixed>
+     */
+    private $attributes = [];
+
+    /**
+     * メイン画像ユニットかどうか
+     * @var bool
+     */
+    private $isPrimaryImage = false;
+
+    /**
+     * Eager Load されたメディアデータ
+     * @var array<int, array<string, mixed>>
+     */
+    private $eagerLoadedMedia = [];
+
+    /**
+     * @inheritDoc
+     */
+    public function getAttributes()
+    {
+        return [
+            'media_id' => $this->getMediaIds()[0] ?? '',
+            'media_enlarged' => $this->getField4(),
+            'media_size' => $this->getSize(),
+            ...$this->attributes,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setAttributes($attributes): void
+    {
+        $this->attributes = $attributes;
+    }
+
+    /**
+     * メディアIDを取得
+     * @return int[]
+     */
+    public function getMediaIds(): array
+    {
+        return array_map('intval', $this->explodeUnitDataTrait($this->getField1()));
+    }
+
+    /**
+     * 事前読み込みメディアを取得
+     *
+     * @inheritDoc
+     */
+    public function getEagerLoadedMedia(): array
+    {
+        return $this->eagerLoadedMedia;
+    }
+
+    /**
+     * 事前読み込みメディアを設定
+     *
+     * @inheritDoc
+     */
+    public function setEagerLoadedMedia(array $media): void
+    {
+        $this->eagerLoadedMedia = $media;
+    }
 
     /**
      * メイン画像のパスを取得。メディアの場合メディアIDを取得
      *
-     * @return array
+     * @inheritDoc
      */
     public function getPaths(): array
     {
-        return $this->explodeUnitData($this->getField1());
+        /** @var int[] $mediaIds */
+        $mediaIds = array_map('intval', $this->explodeUnitDataTrait($this->getField1()));
+        return array_map(function (int $mediaId) {
+            $media = isset($this->eagerLoadedMedia[$mediaId]) ? $this->eagerLoadedMedia[$mediaId] : null;
+            if (is_null($media)) {
+                return '';
+            }
+            return $media['media_path'];
+        }, $mediaIds);
     }
 
     /**
      * メイン画像のAltを取得
      *
-     * @return array
+     * @inheritDoc
      */
     public function getAlts(): array
     {
-        return $this->explodeUnitData($this->getField3());
+        return $this->explodeUnitDataTrait($this->getField3());
     }
 
     /**
      * メイン画像のキャプションを取得
      *
-     * @return array
+     * @inheritDoc
      */
     public function getCaptions(): array
     {
-        return $this->explodeUnitData($this->getField2());
+        return $this->explodeUnitDataTrait($this->getField2());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isPrimaryImage(): bool
+    {
+        return $this->isPrimaryImage;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setIsPrimaryImage(bool $isPrimaryImage): void
+    {
+        $this->isPrimaryImage = $isPrimaryImage;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function canBePrimaryImage(): bool
+    {
+        $mediaIds = $this->getMediaIds();
+        if (count($mediaIds) === 0) {
+            return false;
+        }
+
+        static $cache = [];
+        $cacheKey = md5(implode(',', $mediaIds));
+        if (isset($cache[$cacheKey])) {
+            return $cache[$cacheKey];
+        }
+        $data = MediaHelper::mediaEagerLoad($mediaIds);
+        $medias = array_values($data);
+
+        // すべてのメディアが画像である必要がある
+        $canBePrimaryImage = !array_find($medias, function ($media) {
+            return !in_array($media['media_type'], ['image'], true);
+        });
+        $cache[$cacheKey] = $canBePrimaryImage;
+        return $canBePrimaryImage;
     }
 
     /**
@@ -65,17 +197,17 @@ class Media extends Model implements PrimaryImageUnit, UnitListModule, ExportEnt
      */
     public function exportMediaIds(): array
     {
-        return array_map('intval', $this->explodeUnitData($this->getField1()));
+        return array_map('intval', $this->explodeUnitDataTrait($this->getField1()));
     }
 
     /**
      * エントリーのエクスポートでエクスポートするモジュールIDを返却
      *
-     * @return int[]
+     * @inheritDoc
      */
-    public function exportModuleIds(): array
+    public function exportModuleId(): ?int
     {
-        return [];
+        return null;
     }
 
     /**
@@ -86,7 +218,7 @@ class Media extends Model implements PrimaryImageUnit, UnitListModule, ExportEnt
      */
     public function renderUnitListModule(Template $tpl): array
     {
-        $data = $this->explodeUnitData($this->getField1());
+        $data = $this->explodeUnitDataTrait($this->getField1());
         $mediaId = $data[0] ?? $data;
         if (empty($mediaId)) {
             return [];
@@ -96,14 +228,15 @@ class Media extends Model implements PrimaryImageUnit, UnitListModule, ExportEnt
         if (isset($eagerLoadedMedia[$mediaId])) {
             $media = $eagerLoadedMedia[$mediaId];
             $mediaType = $media['media_type'];
+            $cacheBusting = MediaHelper::cacheBusting($media['media_update_date']);
             if ($mediaType === 'image') {
-                $vars['normal'] = MediaHelper::urlencode($media['media_path']) . MediaHelper::cacheBusting($media['media_update_date']);
-                $vars['large'] = MediaHelper::urlencode($media['media_original']) . MediaHelper::cacheBusting($media['media_update_date']);
+                $vars['normal'] = Common::resolveUrl($media['media_path'], MEDIA_LIBRARY_DIR) . $cacheBusting;
+                $vars['large'] = Common::resolveUrl($media['media_original'], MEDIA_LIBRARY_DIR) . $cacheBusting;
             } elseif ($mediaType === 'file') {
                 if (empty($media['media_status'])) {
-                    $vars['download'] = '/' . MediaHelper::getFileOldPermalink(MediaHelper::urlencode($media['media_path']), false);
+                    $vars['download'] = MediaHelper::getFileOldPermalink($media['media_path'], false);
                 } else {
-                    $vars['download'] = '/' . MediaHelper::getFilePermalink($media['media_id'], false);
+                    $vars['download'] = MediaHelper::getFilePermalink($media['media_id'], false);
                 }
             }
         }
@@ -113,21 +246,21 @@ class Media extends Model implements PrimaryImageUnit, UnitListModule, ExportEnt
     /**
      * ユニットタイプを取得
      *
-     * @return string
+     * @inheritDoc
      */
-    public function getUnitType(): string
+    public static function getUnitType(): string
     {
         return 'media';
     }
 
     /**
-     * ユニットが画像タイプか取得
+     * ユニットラベルを取得
      *
-     * @return bool
+     * @inheritDoc
      */
-    public function getIsImageUnit(): bool
+    public static function getUnitLabel(): string
     {
-        return true;
+        return gettext('メディア');
     }
 
     /**
@@ -148,23 +281,24 @@ class Media extends Model implements PrimaryImageUnit, UnitListModule, ExportEnt
     }
 
     /**
-     * POSTデータからユニット独自データを抽出
-     *
-     * @param array $post
-     * @param bool $removeOld
-     * @param bool $isDirectEdit
-     * @return void
+     * @inheritDoc
      */
-    public function extract(array $post, bool $removeOld = true, bool $isDirectEdit = false): void
+    public function extract(array $request): void
     {
-        $id = $this->getTempId();
-        $this->setField1($this->implodeUnitData($post["media_id_{$id}"] ?? ''));
-        $this->setField2($this->implodeUnitData($post["media_caption_{$id}"] ?? ''));
-        $this->setField3($this->implodeUnitData($post["media_alt_{$id}"] ?? ''));
-        $this->setField4($this->implodeUnitData($post["media_enlarged_{$id}"] ?? ''));
-        $this->setField5($this->implodeUnitData($post["media_use_icon_{$id}"] ?? ''));
-        $this->setField7($this->implodeUnitData($post["media_link_{$id}"] ?? ''));
-        [$size, $displaySize] = $this->extractUnitSizeTrait($this->implodeUnitData($post["media_size_{$id}"] ?? ''));
+        $id = $this->getId();
+        if (is_null($id)) {
+            throw new \LogicException('Unit ID must be set before calling extract');
+        }
+        if ($_SERVER["REQUEST_METHOD"] !== 'GET' && !isset($request["media_id_{$id}"])) {
+            throw new \InvalidArgumentException("media id is required for unit id {$id}");
+        }
+        $this->setField1($this->implodeUnitDataTrait($request["media_id_{$id}"] ?? ''));
+        $this->setField2($this->implodeUnitDataTrait($request["media_caption_{$id}"] ?? ''));
+        $this->setField3($this->implodeUnitDataTrait($request["media_alt_{$id}"] ?? ''));
+        $this->setField4($this->implodeUnitDataTrait($request["media_enlarged_{$id}"] ?? ''));
+        $this->setField5($this->implodeUnitDataTrait($request["media_use_icon_{$id}"] ?? ''));
+        $this->setField7($this->implodeUnitDataTrait($request["media_link_{$id}"] ?? ''));
+        [$size, $displaySize] = $this->extractUnitSizeTrait($this->implodeUnitDataTrait($request["media_size_{$id}"] ?? ''), $this::getUnitType());
         $this->setSize($size);
         $this->setField6($displaySize);
     }
@@ -176,7 +310,7 @@ class Media extends Model implements PrimaryImageUnit, UnitListModule, ExportEnt
      */
     public function canSave(): bool
     {
-        if (empty($this->getField1())) {
+        if ($this->getField1() === '') {
             return false;
         }
         return true;
@@ -230,33 +364,34 @@ class Media extends Model implements PrimaryImageUnit, UnitListModule, ExportEnt
      */
     public function render(Template $tpl, array $vars, array $rootBlock): void
     {
-        if (empty($this->getField1())) {
+        if ($this->getField1() === '') {
             return;
         }
         $varsRoot = $vars;
-        $midAry = $this->explodeUnitData($this->getField1());
-        $mediaCaptions = $this->explodeUnitData($this->getField2());
-        $mediaAlts = $this->explodeUnitData($this->getField3());
-        $mediaSizes = $this->explodeUnitData($this->getSize());
-        $mediaAlign = $this->getAlign();
-        $mediaAttr = $this->getAttr();
-        $mediaLarges = $this->explodeUnitData($this->getField4());
-        $mediaUseIcons = $this->explodeUnitData($this->getField5());
+        $midAry = $this->explodeUnitDataTrait($this->getField1());
+        $mediaCaptions = $this->explodeUnitDataTrait($this->getField2());
+        $mediaAlts = $this->explodeUnitDataTrait($this->getField3());
+        $mediaSizes = $this->explodeUnitDataTrait($this->getSize());
+        $mediaAlign = $this->getAlign()->value;
+        $mediaLarges = $this->explodeUnitDataTrait($this->getField4());
+        $mediaUseIcons = $this->explodeUnitDataTrait($this->getField5());
         $displaySize = $this->getField6();
-        $mediaLinks = $this->explodeUnitData($this->getField7());
+        $mediaLinks = $this->explodeUnitDataTrait($this->getField7());
         $eagerLoadedMedia = $this->getEagerLoadedMedia();
         $actualType = $this->getType();
 
         foreach ($midAry as $i => $mid) {
-            $fx = empty($i) ? '' : $i + 1;
+            $fx = $i === 0 ? '' : $i + 1;
             $mid = (int) $mid;
-            $vars = [];
+            $vars = [
+                "anker" => $this->getAnker(),
+            ];
 
             if (!isset($eagerLoadedMedia[$mid])) {
                 continue;
             }
             $media = $eagerLoadedMedia[$mid];
-            $path = MediaHelper::urlencode($media['media_path']);
+            $path = $media['media_path'];
             $type = $media['media_type'];
 
             $vars["caption{$fx}"] = ($mediaCaptions[$i] ?? '') ?: $media['media_field_1'];
@@ -267,9 +402,8 @@ class Media extends Model implements PrimaryImageUnit, UnitListModule, ExportEnt
             if (MediaHelper::isImageFile($type) || MediaHelper::isSvgFile($type)) {
                 $vars += $this->renderImage($tpl, $i, $path, $media, $vars, $fx, $rootBlock, $mediaSizes, $mediaLarges, $mediaLinks);
             } elseif (MediaHelper::isFile($type)) {
-                $vars += $this->renderFile($mid, $i, $path, $media, $vars, $fx, $mediaUseIcons);
+                $vars += $this->renderFile($mid, $i, $path, $media, $vars, $fx, $mediaUseIcons, $mediaSizes);
             }
-            $vars['attr'] = $mediaAttr;
             $tpl->add(array_merge([
                 'type' . $fx . '#' . $media['media_type'],
                 "unit#{$actualType}"
@@ -277,7 +411,6 @@ class Media extends Model implements PrimaryImageUnit, UnitListModule, ExportEnt
         }
         $varsRoot = $this->displaySizeStyleTrait($displaySize, $varsRoot);
         $varsRoot['align'] = $mediaAlign;
-        $varsRoot['attr'] = $mediaAttr;
         $tpl->add(array_merge(["unit#{$actualType}"], $rootBlock), $varsRoot);
     }
 
@@ -291,18 +424,14 @@ class Media extends Model implements PrimaryImageUnit, UnitListModule, ExportEnt
      */
     public function renderEdit(Template $tpl, array $vars, array $rootBlock): void
     {
-        $midAry = $this->explodeUnitData($this->getField1());
+        $midAry = $this->explodeUnitDataTrait($this->getField1());
         $vars += ['type' => 'image'];
         $isMediaType = false;
         $eagerLoadedMedia = $this->getEagerLoadedMedia();
 
         foreach ($midAry as $i => $mid) {
             $mid = intval($mid);
-            if (empty($i)) {
-                $fx = '';
-            } else {
-                $fx = $i + 1;
-            }
+            $fx = $i === 0 ? '' : $i + 1;
             if (isset($eagerLoadedMedia[$mid])) {
                 $media = $eagerLoadedMedia[$mid];
             } else {
@@ -349,40 +478,37 @@ class Media extends Model implements PrimaryImageUnit, UnitListModule, ExportEnt
                 "type{$fx}" => $media['media_type'],
                 "name{$fx}" => $media['media_file_name'],
                 "path{$fx}" => $path,
-                "tiny{$fx}" => otherSizeImagePath($path, 'tiny'),
+                "tiny{$fx}" => $path !== '' ? otherSizeImagePath($path, 'tiny') : '',
                 "landscape{$fx}" => $landscape,
                 "media_pdf{$fx}" => 'no',
                 "use_icon{$fx}" => 'false',
             ];
             if (!empty($ext)) {
-                $vars["icon{$fx}"] = pathIcon($ext);
+                $vars["icon{$fx}"] = Common::resolveUrl('/' . DIR_OFFSET . pathIcon($ext));
             }
             if (!empty($media['media_thumbnail'])) {
                 $vars["thumbnail{$fx}"] = MediaHelper::getPdfThumbnail($media['media_thumbnail']);
                 $vars["media_pdf{$fx}"] = 'yes';
-                $this->formatMultiLangUnitData($this->getField5(), $vars, 'use_icon');
+                $this->formatMultiLangUnitDataTrait($this->getField5(), $vars, 'use_icon');
             }
         }
-        $this->formatMultiLangUnitData($this->getField4(), $vars, 'enlarged');
-        $this->formatMultiLangUnitData($this->getField7(), $vars, 'override-link');
-        $this->formatMultiLangUnitData($this->getField2(), $vars, 'override-caption');
-        $this->formatMultiLangUnitData($this->getField3(), $vars, 'override-alt');
+        $this->formatMultiLangUnitDataTrait($this->getField4(), $vars, 'enlarged');
+        $this->formatMultiLangUnitDataTrait($this->getField7(), $vars, 'override-link');
+        $this->formatMultiLangUnitDataTrait($this->getField2(), $vars, 'override-caption');
+        $this->formatMultiLangUnitDataTrait($this->getField3(), $vars, 'override-alt');
 
         // size select
         $size = $this->getSize();
-        $this->renderSizeSelectTrait($this->getUnitType(), $this->getUnitType(), $size, $tpl, $rootBlock);
+        $this->renderSizeSelectTrait($this::getUnitType(), $this::getUnitType(), $size, $tpl, $rootBlock);
 
         // primary image
         if ($isMediaType) {
-            if ($primaryImageUnitId = $this->getPrimaryImageUnitId()) {
-                $unitId = $this->getId();
-                $vars['primaryImageId'] = $this->getTempId();
-                if ($unitId && $primaryImageUnitId === $unitId) {
-                    $vars['primaryImageChecked'] = config('attr_checked');
-                }
+            $vars['primaryImageId'] = $this->getId();
+            if ($this->isPrimaryImage()) {
+                $vars['primaryImageChecked'] = config('attr_checked');
             }
         }
-        $tpl->add(array_merge([$this->getUnitType()], $rootBlock), $vars);
+        $tpl->add(array_merge([$this::getUnitType()], $rootBlock), $vars);
     }
 
     /**
@@ -399,7 +525,7 @@ class Media extends Model implements PrimaryImageUnit, UnitListModule, ExportEnt
             'enlarged' => $this->getField4(),
             'use_icon' => $this->getField5(),
             'display_size' => $this->getField6(),
-            'link' => $this->getField7(),
+            'link' => $this->getField7()
         ];
     }
 
@@ -421,71 +547,18 @@ class Media extends Model implements PrimaryImageUnit, UnitListModule, ExportEnt
     protected function renderImage(Template $tpl, int $index, string $path, array $media, array $vars, string $suffix, array $rootBlock, array $mediaSizes, array $mediaLarges, array $mediaLinks)
     {
         $cacheBustingPath = $path . MediaHelper::cacheBusting($media['media_update_date']);
-        $vars["path{$suffix}"] = MEDIA_LIBRARY_DIR . $cacheBustingPath;
+        $vars["path{$suffix}"] = MEDIA_LIBRARY_DIR . MediaHelper::urlencode($cacheBustingPath);
         $size = $mediaSizes[$index] ?? '';
         $unitLink = $mediaLinks[$index] ?? '';
         $link = $unitLink ? $unitLink : $media['media_field_2'];
         $url = false;
         $eid = $this->getEntryId();
         $type = $media['media_type'];
-        $actualType = $this->getUnitType();
-        $originalX = 0;
-        $originalY = 0;
+        $actualType = $this->getType();
         if (!MediaHelper::isSvgFile($type)) {
             $vars["image_utid{$suffix}"] = $this->getId();
         }
-        if (strpos($media['media_image_size'], 'x') !== false) {
-            list($tempX, $tempY) = explode('x', $media['media_image_size']);
-            $originalX = intval(trim($tempX));
-            $originalY = intval(trim($tempY));
-        }
-        if (strpos($size, 'x') !== false) {
-            list($tempX, $tempY) = explode('x', $size);
-            if (empty($originalX) || empty($originalY) || ($originalX >= $tempX && $originalY >= $tempY)) {
-                $vars["x{$suffix}"] = $tempX;
-                $vars["y{$suffix}"] = $tempY;
-            } else {
-                $vars["x{$suffix}"] = $originalX;
-                $vars["y{$suffix}"] = $originalY;
-            }
-        } elseif ($originalX > 0 && $originalY > 0) {
-            $tempX = $mediaSizes[$index] ?? '';
-            $tempY = intval(intval($tempX) * ($originalY / $originalX));
-            if (!empty($tempX) && !empty($tempY) && $originalX >= $tempX && $originalY >= $tempY) {
-                $vars["x{$suffix}"] = $tempX;
-                $vars["y{$suffix}"] = $tempY;
-            } else {
-                $vars["x{$suffix}"] = $originalX;
-                $vars["y{$suffix}"] = $originalY;
-            }
-        } elseif (MediaHelper::isSvgFile($type)) {
-            $vars["x{$suffix}"] = $mediaSizes[$index] ?? '';
-            $vars["y{$suffix}"] = $vars["x{$suffix}"];
-            $vars["svg_utid{$suffix}"] = $this->getId();
-
-            $doc = new DOMDocument();
-            if ($doc->loadXML(file_get_contents(urldecode(MEDIA_LIBRARY_DIR . $path)))) {
-                $svg = $doc->getElementsByTagName('svg');
-                $item = $svg->item(0);
-                if ($item !== null) {
-                    $svgWidth = intval($item->getAttribute('width'));
-                    $svgHeight = intval($item->getAttribute('height'));
-                    if (empty($svgWidth) || empty($svgHeight)) {
-                        if ($viewBox = $item->getAttribute('viewBox')) {
-                            $viewBox = explode(' ', $viewBox);
-                            $svgWidth = intval($viewBox[2]);
-                            $svgHeight = intval($viewBox[3]);
-                        }
-                    }
-                    if ($svgWidth > 0 && $svgHeight > 0) {
-                        $vars["y{$suffix}"] = intval(intval($vars["x{$suffix}"]) * ($svgHeight / $svgWidth));
-                    }
-                }
-            }
-        } else {
-            $vars["x{$suffix}"] = $mediaSizes[$index] ?? '';
-            $vars["y{$suffix}"] = '';
-        }
+        $vars = $this->resolveImageSize($vars, $suffix, $media['media_image_size'], $size, $type, $path);
         if ($size !== '') {
             // 画像サイズ指定がある場合のみ、画像リサイズ用の変数を出力
             $vars["resizeWidth{$suffix}"] = $vars["x{$suffix}"];
@@ -532,9 +605,10 @@ class Media extends Model implements PrimaryImageUnit, UnitListModule, ExportEnt
      * @param array $vars
      * @param string $suffix
      * @param array $mediaUseIcons
+     * @param array $mediaSizes
      * @return array
      */
-    protected function renderFile(int $mid, int $index, string $path, array $media, array $vars, string $suffix, array $mediaUseIcons): array
+    protected function renderFile(int $mid, int $index, string $path, array $media, array $vars, string $suffix, array $mediaUseIcons, array $mediaSizes): array
     {
         if (empty($media['media_status'])) {
             $url = MediaHelper::getFileOldPermalink($path, false);
@@ -550,16 +624,95 @@ class Media extends Model implements PrimaryImageUnit, UnitListModule, ExportEnt
             "file_utid{$suffix}" => $this->getId(),
         ];
         if (config('file_icon_size') === 'dynamic') {
-            $xy = Storage::getImageSize($icon);
+            $xy = LocalStorage::getImageSize($icon);
             $vars["x{$suffix}"] = $xy[0] ?? 70;
             $vars["y{$suffix}"] = $xy[1] ?? 81;
         }
         if (!empty($media['media_thumbnail'])) {
             $vars["thumbnail{$suffix}"] = $media['media_thumbnail'];
+            $size = $mediaSizes[$index] ?? '';
+            $vars = $this->resolveImageSize($vars, $suffix, $media['media_image_size'], $size, 'file', $media['media_thumbnail']);
             if (isset($mediaUseIcons[$index])) {
                 $vars["use_icon{$suffix}"] = $mediaUseIcons[$index];
             }
         }
+        return $vars;
+    }
+
+    /**
+     * 画像サイズを解決する
+     *
+     * @param array $vars
+     * @param string $suffix
+     * @param string $dbSize
+     * @param string $configSize
+     * @param string $mediaType
+     * @param string $path
+     * @return array
+     */
+    private function resolveImageSize(array $vars, string $suffix, string $dbSize, string $configSize, string $mediaType, string $path): array
+    {
+        $originalX = 0;
+        $originalY = 0;
+        $width = 0;
+        $height = 0;
+
+        if (strpos($dbSize, 'x') !== false) {
+            list($tempX, $tempY) = explode('x', $dbSize);
+            $originalX = intval(trim($tempX));
+            $originalY = intval(trim($tempY));
+        }
+        if (strpos($configSize, 'x') !== false) {
+            list($tempX, $tempY) = explode('x', $configSize);
+            if (empty($originalX) || empty($originalY) || ($originalX >= $tempX && $originalY >= $tempY)) {
+                $width = $tempX;
+                $height = $tempY;
+            } else {
+                $width = $originalX;
+                $height = $originalY;
+            }
+        } elseif ($originalX > 0 && $originalY > 0) {
+            $tempX = $configSize;
+            $tempY = intval(intval($tempX) * ($originalY / $originalX));
+            if (!empty($tempX) && !empty($tempY) && $originalX >= $tempX && $originalY >= $tempY) {
+                $width = $tempX;
+                $height = $tempY;
+            } else {
+                $width = $originalX;
+                $height = $originalY;
+            }
+        } elseif (MediaHelper::isSvgFile($mediaType)) {
+            $width = $configSize;
+            $height = $width;
+            $vars["svg_utid{$suffix}"] = $this->getId();
+
+            $doc = new DOMDocument();
+            if ($doc->loadXML(file_get_contents(urldecode(MEDIA_LIBRARY_DIR . $path)))) {
+                $svg = $doc->getElementsByTagName('svg');
+                $item = $svg->item(0);
+                if ($item !== null) {
+                    $svgWidth = intval($item->getAttribute('width'));
+                    $svgHeight = intval($item->getAttribute('height'));
+                    if (empty($svgWidth) || empty($svgHeight)) {
+                        if ($viewBox = $item->getAttribute('viewBox')) {
+                            $viewBox = explode(' ', $viewBox);
+                            $svgWidth = intval($viewBox[2]);
+                            $svgHeight = intval($viewBox[3]);
+                        }
+                    }
+                    if ($svgWidth > 0 && $svgHeight > 0) {
+                        $height = intval(intval($width) * ($svgHeight / $svgWidth));
+                    }
+                }
+            }
+        } else {
+            $width = $configSize;
+            $height = '';
+        }
+
+        $vars["x{$suffix}"] = $width;
+        $vars["y{$suffix}"] = $height;
+
         return $vars;
     }
 }

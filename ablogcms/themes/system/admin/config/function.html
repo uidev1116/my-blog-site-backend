@@ -9,9 +9,31 @@
 
 <!-- BEGIN_MODULE Admin_Config -->
 <!-- BEGIN_IF [{notice_mess}/nem/] -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->機能設定を保存しました<!--/T--></p><!-- END_IF -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+  >
+    ×
+  </button>
+  <!--T-->機能設定を保存しました<!--/T-->
+</div>
+<!-- END_IF -->
 
-<p class="transaction-notice-{config:validator} acms-admin-alert acms-admin-alert-danger"><!--T-->コンフィグを保存出来ませんでした。<!--/T--></p>
+<!-- BEGIN msg#error -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-danger acms-admin-alert-icon">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+  <!--T-->コンフィグを保存出来ませんでした。<!--/T-->
+</div>
+<!-- END msg#error -->
 
 <form action="" method="post" class="js-adminSave acms-admin-form">
 	<div class="js-acms_fix_marker acms_fix_bg">
@@ -159,8 +181,13 @@
 				<input type="hidden" name="config[]" value="layout_blog_free" />
 			</td>
 		</tr>
-		<tr>
-			<th><!--T-->オンラインアップデート<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->システムの更新でのバージョンチェックでチェックする範囲を指定します。<!--/T-->"></i></th>
+	</table>
+
+  <!-- BEGIN_MODULE Touch_RootBlog -->
+  <h3 class="acms-admin-admin-title2"><!--T-->システム更新<!--/T--></h3>
+	<table class="adminTable acms-admin-table-admin-edit">
+    <tr>
+			<th><!--T-->オンライン更新<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->システムの更新でのバージョンチェックでチェックする範囲を指定します。<!--/T-->"></i></th>
 			<td>
 				<div class="acms-admin-form-radio">
 					<input type="radio" name="system_update_range" value="patch"{system_update_range:checked#patch} id="input-radio-system_update_range_patch" />
@@ -183,7 +210,120 @@
 				<input type="hidden" name="config[]" value="system_update_range" />
 			</td>
 		</tr>
-	</table>
+    <tr>
+      <th><!--T-->自動更新<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->自動更新を利用するかどうか設定します（パッチバージョンの更新のみ）<!--/T-->"></i></th>
+      <td>
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="system_auto_update[]" {system_auto_update:checked#on} id="input-checkbox-system_auto_update-on" value="on" />
+          <label for="input-checkbox-system_auto_update-on">
+            <i class="acms-admin-ico-checkbox"></i><!--T-->自動更新する<!--/T-->（<!--T-->パッチバージョンのみ<!--/T-->）</label>
+        </div>
+        <input type="hidden" name="config[]" value="system_auto_update" />
+      </td>
+    </tr>
+    <tr>
+      <th><!--T-->自動更新する時間帯<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->自動更新を行う時間帯を設定します。開始時間が終了時間より遅い場合、日を跨いで計算します。同一の場合は24時間になり期間制限がなくなります。<!--/T-->"></i></th>
+      <td>
+        <select name="system_auto_update_begin_time">
+          <option value="0"{system_auto_update_begin_time:selected#0}>00:00</option>
+          <option value="1"{system_auto_update_begin_time:selected#1}>01:00</option>
+          <option value="2"{system_auto_update_begin_time:selected#2}>02:00</option>
+          <option value="3"{system_auto_update_begin_time:selected#3}>03:00</option>
+          <option value="4"{system_auto_update_begin_time:selected#4}>04:00</option>
+          <option value="5"{system_auto_update_begin_time:selected#5}>05:00</option>
+          <option value="6"{system_auto_update_begin_time:selected#6}>06:00</option>
+          <option value="7"{system_auto_update_begin_time:selected#7}>07:00</option>
+          <option value="8"{system_auto_update_begin_time:selected#8}>08:00</option>
+          <option value="9"{system_auto_update_begin_time:selected#9}>09:00</option>
+          <option value="10"{system_auto_update_begin_time:selected#10}>10:00</option>
+          <option value="11"{system_auto_update_begin_time:selected#11}>11:00</option>
+          <option value="12"{system_auto_update_begin_time:selected#12}>12:00</option>
+          <option value="13"{system_auto_update_begin_time:selected#13}>13:00</option>
+          <option value="14"{system_auto_update_begin_time:selected#14}>14:00</option>
+          <option value="15"{system_auto_update_begin_time:selected#15}>15:00</option>
+          <option value="16"{system_auto_update_begin_time:selected#16}>16:00</option>
+          <option value="17"{system_auto_update_begin_time:selected#17}>17:00</option>
+          <option value="18"{system_auto_update_begin_time:selected#18}>18:00</option>
+          <option value="19"{system_auto_update_begin_time:selected#19}>19:00</option>
+          <option value="20"{system_auto_update_begin_time:selected#20}>20:00</option>
+          <option value="21"{system_auto_update_begin_time:selected#21}>21:00</option>
+          <option value="22"{system_auto_update_begin_time:selected#22}>22:00</option>
+          <option value="23"{system_auto_update_begin_time:selected#23}>23:00</option>
+        </select>
+        <input type="hidden" name="config[]" value="system_auto_update_begin_time" />
+        〜
+        <select name="system_auto_update_end_time">
+          <option value="0"{system_auto_update_end_time:selected#0}>00:00</option>
+          <option value="1"{system_auto_update_end_time:selected#1}>01:00</option>
+          <option value="2"{system_auto_update_end_time:selected#2}>02:00</option>
+          <option value="3"{system_auto_update_end_time:selected#3}>03:00</option>
+          <option value="4"{system_auto_update_end_time:selected#4}>04:00</option>
+          <option value="5"{system_auto_update_end_time:selected#5}>05:00</option>
+          <option value="6"{system_auto_update_end_time:selected#6}>06:00</option>
+          <option value="7"{system_auto_update_end_time:selected#7}>07:00</option>
+          <option value="8"{system_auto_update_end_time:selected#8}>08:00</option>
+          <option value="9"{system_auto_update_end_time:selected#9}>09:00</option>
+          <option value="10"{system_auto_update_end_time:selected#10}>10:00</option>
+          <option value="11"{system_auto_update_end_time:selected#11}>11:00</option>
+          <option value="12"{system_auto_update_end_time:selected#12}>12:00</option>
+          <option value="13"{system_auto_update_end_time:selected#13}>13:00</option>
+          <option value="14"{system_auto_update_end_time:selected#14}>14:00</option>
+          <option value="15"{system_auto_update_end_time:selected#15}>15:00</option>
+          <option value="16"{system_auto_update_end_time:selected#16}>16:00</option>
+          <option value="17"{system_auto_update_end_time:selected#17}>17:00</option>
+          <option value="18"{system_auto_update_end_time:selected#18}>18:00</option>
+          <option value="19"{system_auto_update_end_time:selected#19}>19:00</option>
+          <option value="20"{system_auto_update_end_time:selected#20}>20:00</option>
+          <option value="21"{system_auto_update_end_time:selected#21}>21:00</option>
+          <option value="22"{system_auto_update_end_time:selected#22}>22:00</option>
+          <option value="23"{system_auto_update_end_time:selected#23}>23:00</option>
+        </select>
+        <input type="hidden" name="config[]" value="system_auto_update_end_time" />
+      </td>
+    </tr>
+    <tr>
+      <th><!--T-->自動更新する曜日<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->自動更新を行う曜日を指定します。<!--/T-->"></i></th>
+      <td>
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="system_auto_update_week[]" {system_auto_update_week:checked#0} id="input-checkbox-system_auto_update_week-0" value="0" />
+          <label for="input-checkbox-system_auto_update_week-0">
+            <i class="acms-admin-ico-checkbox"></i>日</label>
+        </div>
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="system_auto_update_week[]" {system_auto_update_week:checked#1} id="input-checkbox-system_auto_update_week-1" value="1" />
+          <label for="input-checkbox-system_auto_update_week-1">
+            <i class="acms-admin-ico-checkbox"></i>月</label>
+        </div>
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="system_auto_update_week[]" {system_auto_update_week:checked#2} id="input-checkbox-system_auto_update_week-2" value="2" />
+          <label for="input-checkbox-system_auto_update_week-2">
+            <i class="acms-admin-ico-checkbox"></i>火</label>
+        </div>
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="system_auto_update_week[]" {system_auto_update_week:checked#3} id="input-checkbox-system_auto_update_week-3" value="3" />
+          <label for="input-checkbox-system_auto_update_week-3">
+            <i class="acms-admin-ico-checkbox"></i>水</label>
+        </div>
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="system_auto_update_week[]" {system_auto_update_week:checked#4} id="input-checkbox-system_auto_update_week-4" value="4" />
+          <label for="input-checkbox-system_auto_update_week-4">
+            <i class="acms-admin-ico-checkbox"></i>木</label>
+        </div>
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="system_auto_update_week[]" {system_auto_update_week:checked#5} id="input-checkbox-system_auto_update_week-5" value="5" />
+          <label for="input-checkbox-system_auto_update_week-5">
+            <i class="acms-admin-ico-checkbox"></i>金</label>
+        </div>
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="system_auto_update_week[]" {system_auto_update_week:checked#6} id="input-checkbox-system_auto_update_week-6" value="6" />
+          <label for="input-checkbox-system_auto_update_week-6">
+            <i class="acms-admin-ico-checkbox"></i>土</label>
+        </div>
+        <input type="hidden" name="config[]" value="system_auto_update_week" />
+      </td>
+    </tr>
+  </table>
+  <!-- END_MODULE Touch_RootBlog -->
 
   <h3 class="acms-admin-admin-title2"><!--T-->エントリー同時編集ロック<!--/T-->（<!--T-->プロフェッショナル版以上<!--/T-->）</h3>
   <table class="adminTable acms-admin-table-admin-edit">
@@ -234,16 +374,16 @@
 			<th><!--T-->プレビュー時の初期デバイス<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->プレビュー時のデフォルトのデバイスを設定します。チェックすると、直前に利用したデバイスがブラウザに保存されます。<!--/T-->"></i></th>
 			<td>
 				<select name="preview_default_device">
-					<option value=""><!--T-->デバイスを選択<!--/T--></option>
-					<option value="iPhone 6/7/8"{preview_default_device:selected#iPhone 6/7/8}>iPhone 6/7/8</option>
-					<option value="iPhone 6/7/8 Plus"{preview_default_device:selected#iPhone 6/7/8 Plus}>iPhone 6/7/8 Plus</option>
-					<option value="iPhone 5/SE"{preview_default_device:selected#iPhone 5/SE}>iPhone 5/SE</option>
-					<option value="iPhone X"{preview_default_device:selected#iPhone X}>iPhone X</option>
-					<option value="iPad"{preview_default_device:selected#iPad}>iPad</option>
-					<option value="HUAWEI P20 Lite"{preview_default_device:selected#HUAWEI P20 Lite}>HUAWEI P20 Lite</option>
-					<option value="Galaxy S9+ SCV39"{preview_default_device:selected#Galaxy S9+ SCV39}>Galaxy S9+ SCV39</option>
-					<option value="Xperia XZ2"{preview_default_device:selected#Xperia XZ2}>Xperia XZ2</option>
-					<option value="PC"{preview_default_device:selected#PC}>PC</option>
+          <option value=""><!--T-->デバイスを選択<!--/T--></option>
+          <option value="iPhone 16"{preview_default_device:selected#iPhone 16}>iPhone 16</option>
+          <option value="iPhone 16 Pro Max"{preview_default_device:selected#iPhone 16 Pro Max}>iPhone 16 Pro Max</option>
+          <option value="iPhone 13 mini"{preview_default_device:selected#iPhone 13 mini}>iPhone 13 mini</option>
+          <option value="iPhone SE"{preview_default_device:selected#iPhone SE}>iPhone SE</option>
+          <option value="Android FHD+"{preview_default_device:selected#Android FHD+}>Android FHD+</option>
+          <option value="iPad"{preview_default_device:selected#iPad}>iPad</option>
+          <option value="iPad mini"{preview_default_device:selected#iPad mini}>iPad mini</option>
+          <option value="iPad Pro 13"{preview_default_device:selected#iPad Pro 13}>iPad Pro 13</option>
+          <option value="PC"{preview_default_device:selected#PC}>PC</option>
 				</select>
         <div class="acms-admin-form-checkbox">
           <input type="checkbox" name="preview_has_history_device[]" value="on" {preview_has_history_device:checked#on} id="input-checkbox-preview_has_history_device-on" />
@@ -261,16 +401,16 @@
       </th>
 			<td>
 				<select name="approval_preview_default_device">
-					<option value=""><!--T-->デバイスを選択<!--/T--></option>
-					<option value="iPhone 6/7/8"{approval_preview_default_device:selected#iPhone 6/7/8}>iPhone 6/7/8</option>
-					<option value="iPhone 6/7/8 Plus"{approval_preview_default_device:selected#iPhone 6/7/8 Plus}>iPhone 6/7/8 Plus</option>
-					<option value="iPhone 5/SE"{approval_preview_default_device:selected#iPhone 5/SE}>iPhone 5/SE</option>
-					<option value="iPhone X"{approval_preview_default_device:selected#iPhone X}>iPhone X</option>
-					<option value="iPad"{approval_preview_default_device:selected#iPad}>iPad</option>
-					<option value="HUAWEI P20 Lite"{approval_preview_default_device:selected#HUAWEI P20 Lite}>HUAWEI P20 Lite</option>
-					<option value="Galaxy S9+ SCV39"{approval_preview_default_device:selected#Galaxy S9+ SCV39}>Galaxy S9+ SCV39</option>
-					<option value="Xperia XZ2"{approval_preview_default_device:selected#Xperia XZ2}>Xperia XZ2</option>
-					<option value="PC"{approval_preview_default_device:selected#PC}>PC</option>
+          <option value=""><!--T-->デバイスを選択<!--/T--></option>
+          <option value="iPhone 16"{approval_preview_default_device:selected#iPhone 16}>iPhone 16</option>
+          <option value="iPhone 16 Pro Max"{approval_preview_default_device:selected#iPhone 16 Pro Max}>iPhone 16 Pro Max</option>
+          <option value="iPhone 13 mini"{approval_preview_default_device:selected#iPhone 13 mini}>iPhone 13 mini</option>
+          <option value="iPhone SE"{approval_preview_default_device:selected#iPhone SE}>iPhone SE</option>
+          <option value="Android FHD+"{approval_preview_default_device:selected#Android FHD+}>Android FHD+</option>
+          <option value="iPad"{approval_preview_default_device:selected#iPad}>iPad</option>
+          <option value="iPad mini"{approval_preview_default_device:selected#iPad mini}>iPad mini</option>
+          <option value="iPad Pro 13"{approval_preview_default_device:selected#iPad Pro 13}>iPad Pro 13</option>
+          <option value="PC"{approval_preview_default_device:selected#PC}>PC</option>
 				</select>
         <div class="acms-admin-form-checkbox">
           <input
@@ -293,16 +433,16 @@
       </th>
 			<td>
 				<select name="timemachine_preview_default_device">
-					<option value=""><!--T-->デバイスを選択<!--/T--></option>
-					<option value="iPhone 6/7/8"{timemachine_preview_default_device:selected#iPhone 6/7/8}>iPhone 6/7/8</option>
-					<option value="iPhone 6/7/8 Plus"{timemachine_preview_default_device:selected#iPhone 6/7/8 Plus}>iPhone 6/7/8 Plus</option>
-					<option value="iPhone 5/SE"{timemachine_preview_default_device:selected#iPhone 5/SE}>iPhone 5/SE</option>
-					<option value="iPhone X"{timemachine_preview_default_device:selected#iPhone X}>iPhone X</option>
-					<option value="iPad"{timemachine_preview_default_device:selected#iPad}>iPad</option>
-					<option value="HUAWEI P20 Lite"{timemachine_preview_default_device:selected#HUAWEI P20 Lite}>HUAWEI P20 Lite</option>
-					<option value="Galaxy S9+ SCV39"{timemachine_preview_default_device:selected#Galaxy S9+ SCV39}>Galaxy S9+ SCV39</option>
-					<option value="Xperia XZ2"{timemachine_preview_default_device:selected#Xperia XZ2}>Xperia XZ2</option>
-					<option value="PC"{timemachine_preview_default_device:selected#PC}>PC</option>
+          <option value=""><!--T-->デバイスを選択<!--/T--></option>
+          <option value="iPhone 16"{timemachine_preview_default_device:selected#iPhone 16}>iPhone 16</option>
+          <option value="iPhone 16 Pro Max"{timemachine_preview_default_device:selected#iPhone 16 Pro Max}>iPhone 16 Pro Max</option>
+          <option value="iPhone 13 mini"{timemachine_preview_default_device:selected#iPhone 13 mini}>iPhone 13 mini</option>
+          <option value="iPhone SE"{timemachine_preview_default_device:selected#iPhone SE}>iPhone SE</option>
+          <option value="Android FHD+"{timemachine_preview_default_device:selected#Android FHD+}>Android FHD+</option>
+          <option value="iPad"{timemachine_preview_default_device:selected#iPad}>iPad</option>
+          <option value="iPad mini"{timemachine_preview_default_device:selected#iPad mini}>iPad mini</option>
+          <option value="iPad Pro 13"{timemachine_preview_default_device:selected#iPad Pro 13}>iPad Pro 13</option>
+          <option value="PC"{timemachine_preview_default_device:selected#PC}>PC</option>
 				</select>
         <div class="acms-admin-form-checkbox">
           <input type="checkbox" name="timemachine_preview_has_history_device[]" value="on" {timemachine_preview_has_history_device:checked#on} id="input-checkbox-timemachine_preview_has_history_device-on" />

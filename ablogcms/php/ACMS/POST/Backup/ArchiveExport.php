@@ -1,6 +1,6 @@
 <?php
 
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\PrivateStorage;
 
 class ACMS_POST_Backup_ArchiveExport extends ACMS_POST_Backup_Base
 {
@@ -12,6 +12,9 @@ class ACMS_POST_Backup_ArchiveExport extends ACMS_POST_Backup_Base
     public function post()
     {
         try {
+            if (env('STORAGE_DRIVER', 'local') !== 'local') {
+                throw new \RuntimeException(gettext('ストレージ設定がローカルではない（S3など）ため、バックアップできません。'));
+            }
             AcmsLogger::info('アーカイブのエクスポートを実行しました');
 
             $this->authCheck('backup_export');
@@ -19,7 +22,7 @@ class ACMS_POST_Backup_ArchiveExport extends ACMS_POST_Backup_Base
             set_time_limit(0);
             $this->lockFile = CACHE_DIR . 'archives-backup-lock';
 
-            if (Storage::exists($this->lockFile)) {
+            if (PrivateStorage::exists($this->lockFile)) {
                 throw new \RuntimeException(gettext('アーカイブのバックアップを中止しました。すでにバックアップ中の可能性があります。変化がない場合は、cache/archives-backup-lock ファイルを削除してお試しください。'));
             }
             Common::backgroundRedirect(HTTP_REQUEST_URL);
@@ -34,22 +37,22 @@ class ACMS_POST_Backup_ArchiveExport extends ACMS_POST_Backup_Base
 
     protected function run()
     {
-        Storage::put($this->lockFile, 'lock');
+        PrivateStorage::put($this->lockFile, 'lock');
         set_time_limit(0);
         $logger = App::make('archives.logger');
 
         DB::setThrowException(true);
         try {
             $logger->init();
-            Storage::makeDirectory($this->backupArchivesDir);
+            LocalStorage::makeDirectory($this->backupArchivesDir);
             $dest = $this->backupArchivesDir . 'archives' . date('_Ymd_Hi') . '.zip';
 
             $logger->addMessage('archives をバックアップ中...', 5);
-            Storage::compress(ARCHIVES_DIR, $dest, 'archives_tmp/archives');
+            LocalStorage::compress(ARCHIVES_DIR, $dest, 'archives_tmp/archives');
             $logger->addMessage('archives のバックアップ完了', 25);
 
             $logger->addMessage('media をバックアップ中...', 5);
-            Storage::compress(MEDIA_LIBRARY_DIR, $dest, 'archives_tmp/media');
+            LocalStorage::compress(MEDIA_LIBRARY_DIR, $dest, 'archives_tmp/media');
             $logger->addMessage('media のバックアップ完了', 25);
 
             $logger->addMessage('storage をバックアップ中...', 5);
@@ -60,7 +63,7 @@ class ACMS_POST_Backup_ArchiveExport extends ACMS_POST_Backup_Base
                         if (in_array($file, ['backup_archives', 'backup_database' . 'backup_blog'], true)) {
                             continue;
                         }
-                        Storage::compress(
+                        LocalStorage::compress(
                             MEDIA_STORAGE_DIR . $file,
                             $dest,
                             'archives_tmp/storage/' . $file
@@ -79,11 +82,11 @@ class ACMS_POST_Backup_ArchiveExport extends ACMS_POST_Backup_Base
 
                 AcmsLogger::warning('アーカイブのバックアップ中にエラーが発生しました。', Common::exceptionArray($e));
             }
+        } finally {
+            PrivateStorage::remove($this->lockFile);
+            sleep(3);
+            $logger->terminate();
         }
         DB::setThrowException(false);
-
-        Storage::remove($this->lockFile);
-        sleep(3);
-        $logger->terminate();
     }
 }

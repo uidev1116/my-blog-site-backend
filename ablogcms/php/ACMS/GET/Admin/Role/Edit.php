@@ -5,7 +5,7 @@ class ACMS_GET_Admin_Role_Edit extends ACMS_GET_Admin_Edit
     function edit(&$Tpl)
     {
         if (BID !== 1 || !sessionWithEnterpriseAdministration()) {
-            die();
+            die403();
         }
         $Role  =& $this->Post->getChild('role');
         if ($Role->isNull()) {

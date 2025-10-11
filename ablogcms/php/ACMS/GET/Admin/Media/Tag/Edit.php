@@ -10,11 +10,11 @@ class ACMS_GET_Admin_Media_Tag_Edit extends ACMS_GET_Admin_Edit
     {
         if (roleAvailableUser()) {
             if (!roleAuthorization('tag_edit', BID)) {
-                return false;
+                die403();
             }
         } else {
             if (!sessionWithCompilation()) {
-                return false;
+                die403();
             }
         }
         return true;

@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\LocalStorage;
+
 class ACMS_GET_Admin_Import_Csv extends ACMS_GET_Admin
 {
     public function get()
@@ -16,7 +18,7 @@ class ACMS_GET_Admin_Import_Csv extends ACMS_GET_Admin
         /**
          * CSVインポート中チェック
          */
-        if (Storage::exists($logger->getDestinationPath())) {
+        if (LocalStorage::exists($logger->getDestinationPath())) {
             $rootVars['processing'] = 1;
         } else {
             $rootVars['processing'] = 0;

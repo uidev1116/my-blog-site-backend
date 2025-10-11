@@ -7,6 +7,11 @@
   </div>
 </header>
 
+@include("/admin/include/action-result.html", {
+  "successMessage": "<!--T-->カテゴリー一覧を更新しました。<!--/T-->",
+  "errorMessage": "<!--T-->カテゴリー一覧の更新に失敗しました。<!--/T-->"
+})
+
 <!-- BEGIN_MODULE Admin_Category_Index -->
 
 <!-- BEGIN_IF [<!-- BEGIN index#notFound -->1<!-- END index#notFound -->/neq/1/_or_/%{CURRENT_ROOT}/neq//bid/%{BID}/admin/%{ADMIN}] -->
@@ -19,45 +24,44 @@
         <div class="acms-admin-filter-content acms-admin-filter-content-fit">
           <div class="acms-admin-filter-item acms-admin-filter-item-full">
             <label for="filter-keyword" class="acms-admin-filter-item-name"><!--T-->キーワード<!--/T--></label>
-            <div class="acms-admin-filter-item-content">
-              <input type="text" name="keyword" value="%{KEYWORD}" class="acms-admin-form-width-large" id="filter-keyword" placeholder="<!--T-->タイトル・本文・カスタムフィールドから検索（複数指定可）<!--/T-->"/>
-            </div>
+              <input
+                type="text"
+                name="keyword"
+                value="%{KEYWORD}"
+                class="acms-admin-form-width-large"
+                id="filter-keyword"
+                placeholder="<!--T-->タイトル・本文・カスタムフィールドから検索（複数指定可）<!--/T-->"
+              />
           </div>
         </div>
       </div>
 
-      <div id="search-detail">
-        <div class="acms-admin-filter-inner">
-          <div class="acms-admin-filter-group">
-            <p class="acms-admin-filter-label"><!--T-->絞り込み<!--/T--></p>
-            <div class="acms-admin-filter-content">
-              <div class="acms-admin-filter-item">
-                <label for="filter-sort" class="acms-admin-filter-item-name"><!--T-->ソート<!--/T--></label>
-                <select name="order" id="filter-sort" class="js-select2 acms-admin-margin-right-small">
-                  <option value="sort-asc"{order:selected#sort-asc}><!--T-->表示順<!--/T-->（<!--T-->昇順<!--/T-->）</option>
-                  <option value="sort-desc"{order:selected#sort-desc}><!--T-->表示順<!--/T-->（<!--T-->降順<!--/T-->）</option>
-                  <option value="code-asc"{order:selected#code-asc}><!--T-->コードネーム<!--/T-->（<!--T-->昇順<!--/T-->）</option>
-                  <option value="code-desc"{order:selected#code-desc}><!--T-->コードネーム<!--/T-->（<!--T-->降順<!--/T-->）</option>
-                  <!--<option value="amount-asc"{order:selected#amount-asc}>エントリー数（昇順）</option>-->
-                  <!--<option value="amount-desc"{order:selected#amount-desc}>エントリー数（降順）</option>-->
-                  <option value="id-asc"{order:selected#id-asc}>ID（<!--T-->昇順<!--/T-->）</option>
-                  <option value="id-desc"{order:selected#id-desc}>ID（<!--T-->降順<!--/T-->）</option>
-                </select>
-              </div>
-              <div class="acms-admin-filter-item">
-                <label for="filter-limit" class="acms-admin-filter-item-name acms-admin-show-sp"><!--T-->表示数<!--/T--></label>
-                <div class="acms-admin-filter-item-content">
-                  <select name="limit" id="filter-limit" class="js-select2 "><!-- BEGIN limit:loop -->
-                    <option value="{limit}"{selected}>{limit}</option><!-- END limit:loop -->
-                  </select>
-                </div>
-              </div>
-              <div class="acms-admin-filter-item">
-                <input type="submit" name="ACMS_POST_2GET" value="<!--T-->表示<!--/T-->" class="acms-admin-btn acms-admin-btn-info acms-admin-btn-search acms-admin-width-sp" />
-                <input type="hidden" name="pid" value="{pid}" />
-                <input type="hidden" name="admin" value="category_index" />
-              </div>
-            </div>
+      <div class="acms-admin-filter-group">
+        <p class="acms-admin-filter-label"><!--T-->絞り込み<!--/T--></p>
+        <div class="acms-admin-filter-content">
+          <div class="acms-admin-filter-item">
+            <label for="filter-sort" class="acms-admin-filter-item-name"><!--T-->ソート<!--/T--></label>
+            <select name="order" id="filter-sort" class="js-select2 acms-admin-margin-right-small">
+              <option value="sort-asc"{order:selected#sort-asc}><!--T-->表示順<!--/T-->（<!--T-->昇順<!--/T-->）</option>
+              <option value="sort-desc"{order:selected#sort-desc}><!--T-->表示順<!--/T-->（<!--T-->降順<!--/T-->）</option>
+              <option value="code-asc"{order:selected#code-asc}><!--T-->コードネーム<!--/T-->（<!--T-->昇順<!--/T-->）</option>
+              <option value="code-desc"{order:selected#code-desc}><!--T-->コードネーム<!--/T-->（<!--T-->降順<!--/T-->）</option>
+              <!--<option value="amount-asc"{order:selected#amount-asc}>エントリー数（昇順）</option>-->
+              <!--<option value="amount-desc"{order:selected#amount-desc}>エントリー数（降順）</option>-->
+              <option value="id-asc"{order:selected#id-asc}>ID（<!--T-->昇順<!--/T-->）</option>
+              <option value="id-desc"{order:selected#id-desc}>ID（<!--T-->降順<!--/T-->）</option>
+            </select>
+          </div>
+          <div class="acms-admin-filter-item">
+            <label for="filter-limit" class="acms-admin-filter-item-name acms-admin-show-sp"><!--T-->表示数<!--/T--></label>
+              <select name="limit" id="filter-limit" class="js-select2 "><!-- BEGIN limit:loop -->
+                <option value="{limit}"{selected}>{limit}</option><!-- END limit:loop -->
+              </select>
+          </div>
+          <div class="acms-admin-filter-item">
+            <input type="submit" name="ACMS_POST_2GET" value="<!--T-->表示<!--/T-->" class="acms-admin-btn acms-admin-btn-info acms-admin-btn-search acms-admin-width-sp" />
+            <input type="hidden" name="pid" value="{pid}" />
+            <input type="hidden" name="admin" value="category_index" />
           </div>
         </div>
       </div>
@@ -65,9 +69,6 @@
   </form>
 </div><!-- /.acms-filter -->
 <!-- END_IF -->
-
-<!-- BEGIN refresh -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->カテゴリー一覧を更新しました。<!--/T--></p><!-- END refresh -->
 
 <!-- BEGIN_IF [<!-- BEGIN index#notFound -->1<!-- END index#notFound -->/eq/1/_and_/%{CURRENT_ROOT}/neq//bid/%{BID}/admin/%{ADMIN}] -->
 <div class="acms-admin-announce">
@@ -218,7 +219,7 @@
         <tr>
           <th class="item-handle acms-admin-hide-sp acms-admin-table-nowrap"></th>
           <th class="acms-admin-table-center acms-admin-th-checkbox acms-admin-table-nowrap">
-            <div class="acms-admin-form-checkbox acms-admin-margin-none">
+            <div class="acms-admin-form-checkbox acms-admin-m-0">
               <input type="checkbox" id="checkAll" />
               <label for="checkAll"><i class="acms-admin-ico-checkbox"></i><span class="acms-admin-hide-visually">すべてのカテゴリーを選択する</span></label>
             </div>
@@ -239,7 +240,7 @@
         <tr data-sort-level="level-{level}-{pcid}" data-sort-name="sort-{cid}">
           <td class="item-handle acms-admin-td-sort acms-admin-hide-sp" style="cursor: move;"><i class="acms-admin-icon-sort"></i></td>
           <td class="acms-admin-table-center acms-admin-td-checkbox"><!-- BEGIN check -->
-            <div class="acms-admin-form-checkbox acms-admin-margin-none">
+            <div class="acms-admin-form-checkbox acms-admin-m-0">
               <input type="checkbox" name="checks[]" id="check-category{cid}" value="{cid}"{disabled} />
               <label for="check-category{cid}"><i class="acms-admin-ico-checkbox"></i><span class="acms-admin-hide-visually"><!--T-->カテゴリー名{name}を選択する<!--/T--></span></label>
             </div><!-- END check -->
@@ -297,24 +298,8 @@
     </table>
   </div>
 
-  <div class="acms-admin-grid">
-    <div class="acms-admin-col-md-6 acms-admin-col-sm-12">
-      <!-- BEGIN pager:veil -->
-      <div class="acms-admin-pager-container">
-        <ul class="acms-admin-pager"><!-- BEGIN backLink -->
-          <li class="prev"><a href="{url}">&laquo;&nbsp;<!--T-->前へ<!--/T--></a></li><!-- END backLink --><!-- BEGIN page:loop -->
-          <li{pageCurAttr}[raw]><span><!-- BEGIN link#front --><a href="{url}"><!-- END link#front -->{page}<!-- BEGIN link#rear --></a><!-- END link#rear --></span></li><!-- END page:loop --><!-- BEGIN lastPage:veil -->
-          <li class="last"><a href="{lastPageUrl}">...{lastPage}</a></li><!-- END lastPage:veil --><!-- BEGIN forwardLink -->
-          <li class="next"><a href="{url}"><!--T-->次へ<!--/T-->&nbsp;&raquo;</a></li><!-- END forwardLink -->
-        </ul>
-      </div>
-      <!-- END pager:veil -->
-    </div>
-    <div class="acms-admin-col-md-6 acms-admin-col-sm-12">
-      <div class="acms-admin-itemsAmount-container">
-        <p>{itemsFrom}<!--T-->件<!--/T--> - {itemsTo}<!--T-->件<!--/T--> / <!--T-->全<!--/T-->{itemsAmount}<!--T-->件<!--/T--></p>
-      </div>
-    </div>
+  <div class="acms-admin-cssgrid acms-admin-mt-5">
+    @include("/admin/include/pagination.html")
   </div>
 
 </form><!-- END index -->

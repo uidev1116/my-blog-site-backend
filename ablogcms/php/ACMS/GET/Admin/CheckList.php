@@ -1,7 +1,7 @@
 <?php
 
-use Acms\Services\Facades\Storage;
-use Acms\Services\Facades\Image;
+use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Config;
 
 class ACMS_GET_Admin_CheckList extends ACMS_GET
@@ -9,7 +9,7 @@ class ACMS_GET_Admin_CheckList extends ACMS_GET
     public function get()
     {
         if (!sessionWithSubscription()) {
-            return '';
+            die403();
         }
 
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());
@@ -112,6 +112,20 @@ class ACMS_GET_Admin_CheckList extends ACMS_GET
             $Tpl->add('imgLibrary', [
                 'mode'  => 'GD',
             ]);
+        }
+
+        //------------
+        // WebPサポート
+        $imageEngine =  Application::make('image.engine');
+        if ($imageEngine->isWebpSupported()) {
+            $Tpl->add('webpSupport');
+            if (config('convert_2webp') === 'on') {
+                $Tpl->add('webpAutoConvert');
+            } else {
+                $Tpl->add('webpNotAutoConvert');
+            }
+        } else {
+            $Tpl->add('webpNotSupport');
         }
 
         //------------
@@ -239,21 +253,26 @@ class ACMS_GET_Admin_CheckList extends ACMS_GET
         $format = [];
         if (
             0
-            || !Storage::isWritable(THEMES_DIR . 'system/images/system/check.jpeg')
-            || !Storage::isWritable(THEMES_DIR . 'system/images/system/check.png')
-            || !Storage::isWritable(THEMES_DIR . 'system/images/system/check.gif')
+            || !LocalStorage::isWritable(THEMES_DIR . 'system/images/system/check.jpeg')
+            || !LocalStorage::isWritable(THEMES_DIR . 'system/images/system/check.png')
+            || !LocalStorage::isWritable(THEMES_DIR . 'system/images/system/check.gif')
         ) {
             $format[] = 'Permission denied';
             return  $format;
         }
-        if (Image::optimizeTest(THEMES_DIR . 'system/images/system/check.jpeg')) {
+        $optimizer =  Application::make('image.optimizer');
+
+        if ($optimizer->optimizeTest(THEMES_DIR . 'system/images/system/check.jpeg')) {
             $format[] = 'jpeg';
         }
-        if (Image::optimizeTest(THEMES_DIR . 'system/images/system/check.png')) {
+        if ($optimizer->optimizeTest(THEMES_DIR . 'system/images/system/check.png')) {
             $format[] = 'png';
         }
-        if (Image::optimizeTest(THEMES_DIR . 'system/images/system/check.gif')) {
+        if ($optimizer->optimizeTest(THEMES_DIR . 'system/images/system/check.gif')) {
             $format[] = 'gif';
+        }
+        if ($optimizer->optimizeTest(THEMES_DIR . 'system/images/system/check.webp')) {
+            $format[] = 'webp';
         }
         return $format;
     }

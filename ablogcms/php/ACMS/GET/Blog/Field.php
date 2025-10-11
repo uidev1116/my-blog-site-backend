@@ -14,7 +14,6 @@ class ACMS_GET_Blog_Field extends ACMS_GET
         if (!$row = ACMS_RAM::blog($this->bid)) {
             return '';
         }
-
         $status = ACMS_RAM::blogStatus($this->bid);
         if (!sessionWithAdministration() and 'close' === $status) {
             return '';
@@ -22,11 +21,13 @@ class ACMS_GET_Blog_Field extends ACMS_GET
         if (!sessionWithSubscription() and 'secret'  === $status) {
             return '';
         }
-
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());
         $this->buildModuleField($Tpl);
 
-        $Field  = loadBlogField($this->bid);
+        if (!$this->bid) {
+            return '';
+        }
+        $Field = loadBlogField($this->bid);
         foreach ($row as $key => $val) {
             $Field->setField(preg_replace('@^blog_@', '', $key), $val);
         }

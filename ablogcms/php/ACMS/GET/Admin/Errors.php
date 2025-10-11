@@ -4,6 +4,9 @@ class ACMS_GET_Admin_Errors extends ACMS_GET_Admin
 {
     function get()
     {
+        if (!sessionWithContribution()) {
+            return '';
+        }
         $Tpl = new Template($this->tpl, new ACMS_Corrector());
         $session =& Field::singleton('session');
 

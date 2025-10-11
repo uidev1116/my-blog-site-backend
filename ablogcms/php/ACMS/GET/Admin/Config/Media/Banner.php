@@ -138,6 +138,7 @@ class ACMS_GET_Admin_Config_Media_Banner extends ACMS_GET_Admin
         $hide2 = $Config->get('media_banner_hide_attr2');
         $order = $Config->get('media_banner_order');
         $ary_vars['media_banner_limit'] = $Config->get('media_banner_limit');
+        $ary_vars['media_banner_parent_loop_class'] = $Config->get('media_banner_parent_loop_class');
         $ary_vars['media_banner_loop_class'] = $Config->get('media_banner_loop_class');
         $ary_vars['media_banner_label_attr1'] = $Config->get('media_banner_label_attr1');
         $ary_vars['media_banner_label_attr2'] = $Config->get('media_banner_label_attr2');

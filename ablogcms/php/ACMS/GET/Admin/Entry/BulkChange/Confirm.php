@@ -5,7 +5,7 @@ class ACMS_GET_Admin_Entry_BulkChange_Confirm extends ACMS_GET_Admin_Entry_BulkC
     /**
      * @var array
      */
-    protected $eids = [];
+    protected $targetEids = [];
 
     /**
      * @var array
@@ -27,15 +27,15 @@ class ACMS_GET_Admin_Entry_BulkChange_Confirm extends ACMS_GET_Admin_Entry_BulkC
         $tpl = new Template($this->tpl, new ACMS_Corrector());
 
         try {
-            $this->eids = $this->Post->getArray('checks');
+            $this->targetEids = $this->Post->getArray('checks');
             $this->entryActions = $this->Post->getArray('action_entry');
             $this->fieldActions = $this->Post->getArray('action_field');
             array_shift($this->entryActions); // dummyを除去
             array_shift($this->fieldActions); // dummyを除去
 
             $this->validate();
-            $q = $this->buildQuery();
-            $data = $this->buildData($q);
+            $sql = $this->buildQuery();
+            $data = $this->buildData($sql);
             $data = $this->buildChangeField($data);
 
             return $tpl->render($data);
@@ -56,7 +56,7 @@ class ACMS_GET_Admin_Entry_BulkChange_Confirm extends ACMS_GET_Admin_Entry_BulkC
         if (!sessionWithAdministration()) {
             throw new \RuntimeException('Permission denied.');
         }
-        if (empty($this->eids)) {
+        if (empty($this->targetEids)) {
             throw new \RuntimeException('Target empty.');
         }
         if (empty($this->entryActions) && empty($this->fieldActions)) {
@@ -70,9 +70,9 @@ class ACMS_GET_Admin_Entry_BulkChange_Confirm extends ACMS_GET_Admin_Entry_BulkC
     /**
      * Build query
      *
-     * @return string
+     * @return SQL_Select
      */
-    protected function buildQuery()
+    protected function buildQuery(): SQL_Select
     {
         $SQL = SQL::newSelect('entry');
         $SQL->addLeftJoin('blog', 'blog_id', 'entry_blog_id');
@@ -80,24 +80,25 @@ class ACMS_GET_Admin_Entry_BulkChange_Confirm extends ACMS_GET_Admin_Entry_BulkC
         $SQL->addLeftJoin('user', 'user_id', 'entry_user_id');
         $SQL->addWhereIn('entry_id', $this->eids);
 
-        return $SQL->get(dsn());
+        return $SQL;
     }
 
     /**
      * Build data
      *
-     * @param string $q
+     * @param SQL_Select $sql
      * @return array
      */
-    protected function buildData($q)
+    protected function buildData(SQL_Select $sql)
     {
         $data = [];
         $DB = DB::singleton(dsn());
-        $DB->query($q, 'fetch');
+        $query = $sql->get(dsn());
+        $statement = $DB->query($query, 'exec');
 
         $entries = [];
 
-        while ($row = $DB->fetch($q)) {
+        while ($row = $DB->next($statement)) {
             $eid = $row['entry_id'];
             $uid = $row['entry_user_id'];
             $entries[] = [

@@ -1,28 +1,48 @@
 <!-- BEGIN_MODULE Admin_Entry_BulkChange_Form -->
 <header>
-	<div>
-		@include("/admin/topicpath.html")
-	</div>
-	<div>
-		<h1 class="acms-admin-admin-title js-dialog-title"><!--T-->一括変更<!--/T--></h1>
-	</div>
+  <div>
+    @include("/admin/topicpath.html")
+  </div>
+  <div>
+    <h1 class="acms-admin-admin-title js-dialog-title"><!--T-->一括変更<!--/T--></h1>
+  </div>
 </header>
 
 <!-- BEGIN error:targetEmpty -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
-	<span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
-	<!--T-->一括編集をするエントリーを少なくとも１つ選択する必要があります。<!--/T-->
-</p>
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <!--T-->一括編集をするエントリーを少なくとも１つ選択する必要があります。<!--/T-->
+  <button
+    type="button"
+    class="js-acms-alert-close acms-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+</div>
 <!-- END error:targetEmpty -->
 <!-- BEGIN error:operationEmpty -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
-	<span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
-	<!--T-->実行する一括操作を少なくとも１つ選択する必要があります。<!--/T-->
-</p>
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <!--T-->実行する一括操作を少なくとも１つ選択する必要があります。<!--/T-->
+  <button
+    type="button"
+    class="js-acms-alert-close acms-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+</div>
 <!-- END error:operationEmpty -->
 
 <!-- BEGIN step#1 -->
-@include("/admin/entry/bulk-change/step1.html")
+<!-- BEGIN_MODULE Touch_EntryAdminV1 -->
+@include("/admin/entry/bulk-change/step1/v1.html")
+<!-- END_MODULE Touch_EntryAdminV1 -->
+
+<!-- BEGIN_MODULE Touch_EntryAdminV2 -->
+@include("/admin/entry/bulk-change/step1/v2.html")
+<!-- END_MODULE Touch_EntryAdminV2 -->
 <!-- END step#1 -->
 
 <!-- BEGIN step#2 -->

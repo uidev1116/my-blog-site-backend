@@ -825,7 +825,7 @@
             value="{term_start_date}"
             placeholder="1000-01-01"
             size="15"
-            class="js-rule_term_start_date"
+            class="js-rule_term_start_date js-datepicker2"
             id="entryStartDate"
           />
           <a href="#" role="button" class="updateTime" rel="entryStartTime"><!--T-->時刻<!--/T--></a>
@@ -836,6 +836,7 @@
             value="{term_start_time}"
             placeholder="00:00:00"
             size="12"
+            class="js-timepicker"
             id="entryStartTime"
           />
           <input type="hidden" name="rule[]" value="term_start_date" />
@@ -874,4 +875,24 @@
     </table>
   </div>
 </form>
+
+<script>
+  $(function() {
+    //-----------------
+    // ルールの期間設定
+    $('.js-rule_term_type').bind('change', function() {
+        var val = $(this).val();
+        if ( val.length > 0 ) {
+            $(this).siblings('.js-radio_type').val('');
+        }
+        if ( val !== 'fix' ) {
+            $('.js-rule_term_start_date').val('').prop('disabled', true);
+            $('.js-rule_term_end_date').val('').prop('disabled', true);
+        } else {
+            $('.js-rule_term_start_date').prop('disabled', false);
+            $('.js-rule_term_end_date').prop('disabled', false);
+        }
+    }).change();
+  })
+</script>
 <!-- END_MODULE Admin_Rule_Edit -->

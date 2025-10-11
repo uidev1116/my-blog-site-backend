@@ -8,16 +8,6 @@ use Acms\Services\Container;
 class UpdateServiceProvider extends ServiceProvider
 {
     /**
-     * @var string
-     */
-    protected $repositoryCache;
-
-    /**
-     * @var string
-     */
-    protected $repositorySchema;
-
-    /**
      * register service
      *
      * @param \Acms\Services\Container $container
@@ -26,22 +16,17 @@ class UpdateServiceProvider extends ServiceProvider
      */
     public function register(Container $container)
     {
-        $cache = SCRIPT_DIR . 'cache/update.json';
+        $cache = SCRIPT_DIR . CACHE_DIR . 'update.json';
         $schema = LIB_DIR . 'Services/Update/template/schema.json';
-        $this->repositoryCache = $cache;
-        $this->repositorySchema = $schema;
 
-        $container->singleton('update.logger', function () {
-            return new Logger(CACHE_DIR . 'update-process.json');
+        $container->singleton('update.exec.update', \Acms\Services\Update\Operations\Update::class);
+        $container->singleton('update.exec.downgrade', \Acms\Services\Update\Operations\Downgrade::class);
+        $container->singleton('update.lock', function () {
+            return new Lock(SCRIPT_DIR . CACHE_DIR . 'system-update-lock');
         });
+        $container->singleton('update.logger', \Acms\Services\Update\LoggerFactory::class);
         $container->singleton('update.check', function () use ($cache, $schema) {
             return new System\CheckForUpdate(config('system_update_repository'), $cache, $schema);
-        });
-        $container->singleton('update.download', function () use ($container) {
-            return new System\Download($container->make('update.logger'));
-        });
-        $container->singleton('update.place.file', function () use ($container) {
-            return new System\PlaceFile($container->make('update.logger'));
         });
     }
 

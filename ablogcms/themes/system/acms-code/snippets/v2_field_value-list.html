@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V2_Field_ValueList</title>
+    <link rel="stylesheet" href="src/highlight/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="src/snippets.css" />
+    <script src="src/highlight/highlight.min.js"></script>
+    <script src="src/highlight/javascript.min.js"></script>
+    <script src="src/highlight/twig.min.js"></script>
+    <script src="src/snippets.js"></script>
+  </head>
+  <body>
+    <h1>V2_Field_ValueList</h1>
+    <pre class="acms-admin-customfield-maker"><code class="language-twig">
+&#123;% set fieldValueList = module(&#039;V2_Field_ValueList&#039;, null, &#123;bid: null, limit: null, field: null&#125;) %&#125;
+
+&lt;div class=&quot;acms-form acms-margin-bottom-medium&quot;&gt;
+  &#123;&#123; include(&#039;/admin/module/setting.twig&#039;, &#123; moduleInfo: fieldValueList.moduleInfo &#125;) &#125;&#125;
+  &lt;select&gt;
+    &#123;% for item in fieldValueList.items %&#125;
+      &lt;option value=&quot;&#123;&#123; item &#125;&#125;&quot;&gt;&#123;&#123; item &#125;&#125;&lt;/option&gt;
+    &#123;% endfor %&#125;
+  &lt;/select&gt;
+&lt;/div&gt;
+    </code></pre>
+  </body>
+</html>

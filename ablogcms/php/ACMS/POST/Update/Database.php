@@ -1,38 +1,37 @@
 <?php
 
 use Acms\Services\Update\Engine;
+use Acms\Services\Facades\Application;
+use Acms\Services\Facades\Database;
+use Acms\Services\Facades\Logger;
+use Acms\Services\Facades\Common;
 
-class ACMS_POST_Update_Database extends ACMS_POST
+class ACMS_POST_Update_Database extends ACMS_POST_Update_Base
 {
     public function post()
     {
-        if (!sessionWithAdministration()) {
-            die();
+        if (!$this->validatePermissions()) {
+            $this->addError(gettext('権限がありません。'));
+            return $this->Post;
         }
-        if (RBID !== BID) {
-            die();
-        }
-        if (SBID !== BID) {
-            die();
-        }
-
-        $logger = App::make('update.logger');
+        /** @var \Acms\Services\Update\LoggerFactory $loggerFactory */
+        $loggerFactory = Application::make('update.logger');
+        $logger = $loggerFactory->createLogger('web');
 
         $updateService = new Engine($logger);
-        $DB = DB::singleton(dsn());
-        $DB->setThrowException(true);
 
+        Database::setThrowException(true);
         try {
             $updateService->validate(true);
             $updateService->dbUpdate();
 
             $this->addMessage(gettext('データベースのアップデートに成功しました。'));
-            AcmsLogger::info('データベースをアップデートしました');
+            Logger::info('データベースをアップデートしました');
         } catch (\Exception $e) {
             $this->addError($e->getMessage());
-            AcmsLogger::warning('データベースのアップデートに失敗しました。' . $e->getMessage(), Common::exceptionArray($e));
+            Logger::warning('データベースのアップデートに失敗しました。' . $e->getMessage(), Common::exceptionArray($e));
         }
-        $DB->setThrowException(false);
+        Database::setThrowException(false);
 
         return $this->Post;
     }

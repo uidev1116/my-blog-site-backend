@@ -31,6 +31,7 @@ class ACMS_POST_Entry_Open extends ACMS_POST_Entry
             $DB->query($SQL->get(dsn()), 'exec');
 
             ACMS_RAM::entry($entryId, null);
+            ACMS_POST_Cache::clearEntryPageCache($entryId); // このエントリのみ削除
 
             AcmsLogger::info('「' . ACMS_RAM::entryTitle($entryId) . '」エントリーを公開しました');
 

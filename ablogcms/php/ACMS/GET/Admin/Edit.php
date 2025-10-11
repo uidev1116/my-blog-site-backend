@@ -29,7 +29,6 @@ class ACMS_GET_Admin_Edit extends ACMS_GET_Admin
         ) {
             return false;
         }
-
         if (
             1
             && 'top' !== ADMIN
@@ -39,6 +38,19 @@ class ACMS_GET_Admin_Edit extends ACMS_GET_Admin
             && 'entry_index' !== ADMIN
             && 'entry_editor' !== ADMIN
             && !sessionWithCompilation()
+        ) {
+            return false;
+        }
+        if (
+            1
+            && 'top' !== ADMIN
+            && 'user_edit' !== ADMIN
+            && 'user_password' !== ADMIN
+            && 'entry_index' !== ADMIN
+            && 'entry_index' !== ADMIN
+            && 'entry_editor' !== ADMIN
+            && 'schedule_index' !== ADMIN
+            && !sessionWithAdministration()
         ) {
             return false;
         }
@@ -62,7 +74,7 @@ class ACMS_GET_Admin_Edit extends ACMS_GET_Admin
         }
         if (!$this->Post->isValidAll()) {
             $Tpl->add('msg#error');
-        } elseif ($this->Post->isValidAll() && $this->Post->isExists('edit')) {
+        } elseif ($this->Post->isExists('edit')) {
             $edit = $this->Post->get('edit');
             $this->Post->set('notice_mess', 'show');
             $Tpl->add('msg#' . $edit);

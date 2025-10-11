@@ -1,14 +1,15 @@
 import { useCallback, useState } from 'react';
 import ContentLoader from 'react-content-loader';
-import { Tooltip } from 'react-tooltip';
-import nl2br from 'react-nl2br';
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
-import 'highlight.js/styles/atom-one-dark.css';
 import axios from 'axios';
+import { nl2br } from '../../../../utils/react';
 import axiosLib from '../../../../lib/axios';
 import SyntaxHighlight from '../../../../components/syntax-highlight/syntax-highlight';
 import Modal from '../../../../components/modal/modal';
 import { parseQuery } from '../../../../utils';
+import Alert from '../../../../components/alert/alert';
+import { Tooltip } from '../../../../components/tooltip';
+import VStack from '../../../../components/stack/v-stack';
 import useEffectOnce from '../../../../hooks/use-effect-once';
 import useClipboard from '../../../../hooks/use-clipboard';
 
@@ -163,12 +164,11 @@ const AuditLogDetailModal = ({ buttons }: AuditLogDetailModalProps) => {
   }, [copy, logInfo, reset]);
 
   const ModalContent = (
-    <div>
+    <VStack align="stretch" spacing="1rem">
       <div
         style={{
           display: 'flex',
           justifyContent: 'flex-end',
-          marginTop: '15px',
         }}
       >
         <button
@@ -182,11 +182,14 @@ const AuditLogDetailModal = ({ buttons }: AuditLogDetailModalProps) => {
         >
           {ACMS.i18n('logger.modal.clipboardButton')}
         </button>
-        <Tooltip id="log-detail-copied-tooltip" isOpen={copied} />
+        <Tooltip id="log-detail-copied-tooltip" isOpen={copied} openEvents={{ mouseover: false, focus: false }} />
       </div>
-      <div className="acms-admin-log-table" style={{ margin: '15px 0', overflowX: 'scroll' }}>
-        {errorMessage && <p className="acms-admin-alert acms-admin-alert-danger">{errorMessage}</p>}
-
+      {errorMessage && (
+        <div>
+          <Alert type="danger">{errorMessage}</Alert>
+        </div>
+      )}
+      <div className="acms-admin-log-table" style={{ overflowX: 'scroll' }}>
         {!isReady && <TablePlaceholder />}
         {isReady && (
           <table className="acms-admin-table acms-admin-table-striped">
@@ -326,7 +329,7 @@ const AuditLogDetailModal = ({ buttons }: AuditLogDetailModalProps) => {
           </table>
         )}
       </div>
-    </div>
+    </VStack>
   );
 
   return (

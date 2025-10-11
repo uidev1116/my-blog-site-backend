@@ -1,0 +1,78 @@
+// ---------------
+// カラーピッカー
+// ---------------
+
+.acms-block-editor-text-menu-color-picker-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--acms-block-editor-spacing-2);
+}
+
+.acms-block-editor-text-menu-color-picker-input {
+  width: 100%;
+  border-radius: var(--acms-block-editor-border-radius-md);
+
+  .react-colorful__saturation {
+    border-radius: var(--acms-block-editor-border-radius-md) var(--acms-block-editor-border-radius-md) 0 0;
+  }
+
+  .react-colorful__hue {
+    height: 15px;
+    margin-top: 15px;
+    border-radius: 0 0 var(--acms-block-editor-border-radius-md) var(--acms-block-editor-border-radius-md);
+  }
+
+  .react-colorful__saturation-pointer,
+  .react-colorful__hue-pointer {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.acms-block-editor-text-menu-color-picker-text-input {
+  width: 100%;
+  padding: var(--acms-block-editor-spacing-1) var(--acms-block-editor-spacing-2);
+  font-size: 0.875rem;
+  border: 1px solid var(--acms-block-editor-neutral-200);
+  border-radius: var(--acms-block-editor-border-radius-md);
+
+  &:focus {
+    border-color: var(--acms-block-editor-neutral-400);
+    outline: none;
+  }
+}
+
+.acms-block-editor-text-menu-color-picker-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--acms-block-editor-spacing-1);
+}
+
+.acms-block-editor-text-menu-color-picker-palette-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: var(--acms-block-editor-border-radius-sm);
+
+  &:hover,
+  &:active,
+  &.active {
+    background: var(--acms-block-editor-gray-100);
+  }
+}
+
+.acms-block-editor-text-menu-color-picker-palette-bubble {
+  width: 1rem;
+  height: 1rem;
+  background-color: #f1f5f9;
+  border-radius: 0.25rem;
+  outline-offset: 2px;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%);
+
+  &:hover,
+  &:active,
+  &.active {
+    outline: 1px solid currentcolor;
+  }
+}

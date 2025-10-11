@@ -2,11 +2,11 @@
   <div>
     @include("/admin/topicpath.html")
   </div>
-  <div class="acms-admin-grid">
-    <div class="acms-admin-col-9">
+  <div class="acms-admin-cssgrid">
+    <div class="acms-admin-g-col-9">
       <h1 class="acms-admin-admin-title js-dialog-title"><!--T-->メディア タグ管理<!--/T--></h1>
     </div>
-    <div class="acms-admin-col-3">
+    <div class="acms-admin-g-col-3">
       <a href="%{ADMIN_BASE_URL}bid/%{BID}/admin/media_index/" class="acms-admin-btn acms-admin-float-right">
         <i class="acms-admin-icon acms-admin-icon-media"></i>
         <!--T-->メディア一覧へ<!--/T-->
@@ -18,27 +18,81 @@
 <!-- BEGIN_MODULE Admin_Media_Tag_Edit -->
 
 <!-- BEGIN msg#update -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after acms-admin-margin-right-mini">×</button><!--T-->タグを保存しました<!--/T--></p><!-- END msg#update --><!-- BEGIN msg#delete -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger"><span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after acms-admin-margin-right-mini">×</button><!--T-->タグを削除しました<!--/T--></p><!-- END msg#delete --><!-- BEGIN tag:validator#operable -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger"><span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"><button class="js-acms-alert-close acms-admin-alert-icon-after acms-admin-margin-right-mini">×</button><!--T-->この操作は許可されていません。<!--/T--></p><!-- END tag:validator#operable -->
-
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after acms-admin-margin-right-mini"
+    aria-label="<!--T-->アラートを閉じる<!--/T-->"
+  >
+    ×
+  </button>
+  <!--T-->タグを保存しました<!--/T-->
+</div>
+<!-- END msg#update -->
+<!-- BEGIN msg#delete -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after acms-admin-margin-right-mini"
+    aria-label="<!--T-->アラートを閉じる<!--/T-->"
+  >
+    ×
+  </button>
+  <!--T-->タグを削除しました<!--/T-->
+</div>
+<!-- END msg#delete -->
+<!-- BEGIN tag:validator#operable -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after acms-admin-margin-right-mini"
+    aria-label="<!--T-->アラートを閉じる<!--/T-->"
+  >
+    ×
+  </button>
+  <!--T-->この操作は許可されていません。<!--/T-->
+</div>
+<!-- END tag:validator#operable -->
 <form action="" method="post" class="acms-admin-form">
   <div class="js-acms_fix_marker acms_fix_bg">
     <div class="acms-admin-form-group acms_fix_bg_index">
       <a href="%{HTTP_ROOT}bid/%{BID}/admin/media-tag_index/" class="acms-admin-btn-admin"><!--T-->メディア タグ一覧へ<!--/T--></a>
       <!-- BEGIN submit#update -->
-      <input type="submit" name="ACMS_POST_Media_Tag_Update" value="<!--T-->保存<!--/T-->" class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-admin-save js-saving-splash" />
+      <button
+        type="submit"
+        name="ACMS_POST_Media_Tag_Update"
+        class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-admin-save js-saving-splash"
+      >
+        <!--T-->保存<!--/T-->
+      </button>
 
       <!-- BEGIN_MODULE Touch_Role_Available -->
       <!-- BEGIN_MODULE Touch_Role_TagEdit -->
-      <input type="submit" name="ACMS_POST_Media_Tag_Delete" value="<!--T-->削除<!--/T-->" onclick="return confirm('<!--T-->この操作は取り消せません。\nよろしいですか？<!--/T-->');" class="acms-admin-btn-admin acms-admin-btn-admin-danger js-hide-on-modal" />
+      <button
+        type="submit"
+        name="ACMS_POST_Media_Tag_Delete"
+        onclick="return confirm('<!--T-->この操作は取り消せません。\nよろしいですか？<!--/T-->');"
+        class="acms-admin-btn-admin acms-admin-btn-admin-danger js-hide-on-modal"
+      >
+        <!--T-->削除<!--/T-->
+      </button>
       <input type="hidden" name="takeover" value="{takeover}" />
       <!-- END_MODULE Touch_Role_TagEdit -->
       <!-- END_MODULE Touch_Role_Available -->
 
       <!-- BEGIN_MODULE Touch_Role_NotAvailable -->
       <!-- BEGIN_MODULE Touch_SessionWithAdministration -->
-      <input type="submit" name="ACMS_POST_Media_Tag_Delete" value="<!--T-->削除<!--/T-->" onclick="return confirm('<!--T-->この操作は取り消せません。\nよろしいですか？<!--/T-->');" class="acms-admin-btn-admin acms-admin-btn-admin-danger js-hide-on-modal" />
+      <button
+        type="submit"
+        name="ACMS_POST_Media_Tag_Delete"
+        onclick="return confirm('<!--T-->この操作は取り消せません。\nよろしいですか？<!--/T-->');"
+        class="acms-admin-btn-admin acms-admin-btn-admin-danger js-hide-on-modal"
+      >
+        <!--T-->削除<!--/T-->
+      </button>
       <input type="hidden" name="takeover" value="{takeover}" />
       <!-- END_MODULE Touch_SessionWithAdministration -->
       <!-- END_MODULE Touch_Role_NotAvailable -->

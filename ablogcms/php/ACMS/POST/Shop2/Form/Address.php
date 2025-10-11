@@ -1,9 +1,18 @@
 <?php
 
+use Acms\Services\Logger\Deprecated;
+
+/**
+ * @deprecated カート機能は非推奨です。代替として、Shopping Cart 拡張アプリをご利用ください。
+ */
 class ACMS_POST_Shop2_Form_Address extends ACMS_POST_Shop2
 {
     function post()
     {
+        Deprecated::once('Shop2_Form_Address モジュール', [
+            'since' => '3.2.0',
+            'alternative' => ' Shopping Cart 拡張アプリ',
+        ]);
         $this->initVars();
 
         $Order = $this->extract('order');
@@ -88,11 +97,10 @@ class ACMS_POST_Shop2_Form_Address extends ACMS_POST_Shop2
              * セカンダリアドレスの指定があり，かつ登録フラグが立っていればINSERTを発行
              */
             if (
-                1
-                and !$Secondary->isNull()
-                and $Secondary->get('regist') == 'on'
-                and $Order->get('sendto') == 'secondary'
-                and !is_null(SUID)
+                !$Secondary->isNull() && // @phpstan-ignore-line
+                $Secondary->get('regist') === 'on' &&
+                $Order->get('sendto') === 'secondary' &&
+                !is_null(SUID) // @phpstan-ignore-line
             ) {
                 $aid    = $DB->query(SQL::nextval('shop_address_id', dsn()), 'seq');
                 $SQL    = SQL::newInsert('shop_address');
@@ -147,7 +155,7 @@ class ACMS_POST_Shop2_Form_Address extends ACMS_POST_Shop2
             //$SESSION =& Field::singleton('session');
             $SESSION =& $this->openSession();
 
-            if (is_null(SUID)) {
+            if (is_null(SUID)) { // @phpstan-ignore-line
                 $mail = $Primary->get('mail');
                 $Primary->delete('mail');
                 $SESSION->set('mail', $mail);

@@ -11,7 +11,18 @@
 
 <form method="post" action="" class="acms-admin-form">
 	<!-- BEGIN message#success -->
-	<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->画像サイズを修正しました。<!--/T--></p><!-- END message#success -->
+	<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+    <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+    <button
+      type="button"
+      class="js-acms-alert-close acms-admin-alert-icon-after"
+      aria-label="<!--T-->アラートを閉じる<!--/T-->"
+    >
+      ×
+    </button>
+    <!--T-->画像サイズを修正しました。<!--/T-->
+  </div>
+  <!-- END message#success -->
 
 	<div class="js-acms_fix_marker acms_fix_bg">
 		<div class="acms_fix_bg_index">
@@ -79,9 +90,14 @@
 
 				<input type="hidden" name="fix[]" value="fix_image_type" />
 				<input type="hidden" name="fix_image_type:validator#required" />
-				<!-- BEGIN fix_image_type:v#required -->
-				<label class="validator-result-0"><!--T-->ターゲットを選択して下さい<!--/T--></label>
-				<!-- END fix_image_type:v#required -->
+        <div role="alert" aria-live="assertive">
+          <div class="validator-result-{fix_image_type:validator#required}">
+            <p class="error-text">
+              <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+              <!--T-->ターゲットを選択して下さい<!--/T-->
+            </p>
+          </div>
+        </div>
 			</td>
 		</tr>
 		<tr>
@@ -100,10 +116,20 @@
 				<input type="hidden" name="fix_image_size:validator#required" />
 				<input type="hidden" name="fix_image_size:validator#regex" value="^[1-9][\d]+$" />
 
-				<!-- BEGIN fix_image_size:v#required -->
-				<label class="validator-result-0"><!--T-->リサイズするサイズを入力して下さい<!--/T--></label>
-				<!-- END fix_image_size:v#required --><!-- BEGIN fix_image_size:v#regex -->
-				<label class="validator-result-0"><!--T-->数値を入力して下さい<!--/T--></label><!-- END fix_image_size:v#regex -->
+        <div role="alert" aria-live="assertive">
+          <div class="validator-result-{fix_image_size:validator#required}">
+            <p class="error-text">
+              <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+              <!--T-->リサイズするサイズを入力して下さい<!--/T-->
+            </p>
+          </div>
+          <div class="validator-result-{fix_image_size:validator#regex}">
+            <p class="error-text">
+              <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+              <!--T-->数値を入力して下さい<!--/T-->
+            </p>
+          </div>
+        </div>
 			</td>
 		</tr>
 		<tr>

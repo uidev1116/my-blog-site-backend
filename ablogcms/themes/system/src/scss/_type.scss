@@ -7,58 +7,63 @@
 /* ---------------
  見出し
 --------------- */
+// 共通
+.acms-h1,
+.acms-h2,
+.acms-h3,
+.acms-h4,
+.acms-h5,
+.acms-h6,
+.acms-style h1,
+.acms-style h2,
+.acms-style h3,
+.acms-style h4,
+.acms-style h5,
+.acms-style h6 {
+  --acms-heading-line-height: 1.5;
+  --acms-hading-color: #{global.$acms-color-black};
+
+  margin-top: 0;
+  margin-bottom: 0.5em;
+  color: var(--acms-hading-color);
+  font-weight: bold;
+  line-height: var(--acms-heading-line-height);
+}
+
 // h1
 .acms-h1,
 .acms-style h1 {
-  @include global.font-size(30);
+  @include global.font-size(#{global.$acms-h1-font-size});
 }
 
 // h2
 .acms-h2,
 .acms-style h2 {
-  @include global.font-size(24);
+  @include global.font-size(#{global.$acms-h2-font-size});
 }
 
 // h3
 .acms-h3,
 .acms-style h3 {
-  @include global.font-size(18);
+  @include global.font-size(#{global.$acms-h3-font-size});
 }
 
 // h4
 .acms-h4,
 .acms-style h4 {
-  @include global.font-size(16);
+  @include global.font-size(#{global.$acms-h4-font-size});
 }
 
 // h5
 .acms-h5,
 .acms-style h5 {
-  @include global.font-size(14);
+  @include global.font-size(#{global.$acms-h5-font-size});
 }
 
 // h6
 .acms-h6,
 .acms-style h6 {
-  @include global.font-size(12);
-}
-
-.acms-h1,
-.acms-h2,
-.acms-h3,
-.acms-h4,
-.acms-h5,
-.acms-h6 {
-  margin: 0 0 20px;
-}
-
-* + .acms-h1,
-* + .acms-h2,
-* + .acms-h3,
-* + .acms-h4,
-* + .acms-h5,
-* + .acms-h6 {
-  margin-top: 35px;
+  @include global.font-size(#{global.$acms-h6-font-size});
 }
 
 // ---------------
@@ -147,7 +152,7 @@
   border-bottom: solid 1px global.$acms-color-gray60;
 }
 
-@media (min-width: global.$breakpoint-md-min) {
+@include global.media-breakpoint-up(md) {
   .acms-dl-horizontal dt,
   .acms-dl-line dt {
     float: left;

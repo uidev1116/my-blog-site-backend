@@ -1,5 +1,7 @@
 <?php
 
+use Twig\Environment;
+
 class ACMS_GET_Admin_Dashboard_PhpStatus extends ACMS_GET
 {
     public function get()
@@ -17,6 +19,7 @@ class ACMS_GET_Admin_Dashboard_PhpStatus extends ACMS_GET
             'post_max_size',
             'max_file_uploads',
             'safe_mode',
+            'max_input_vars'
         ];
 
         foreach ($directive as $key) {
@@ -30,6 +33,7 @@ class ACMS_GET_Admin_Dashboard_PhpStatus extends ACMS_GET
         $ini['ImageRotate'] = function_exists('imagerotate') ? '使用可' : '不可';
         $ini['php_version'] = PHP_VERSION;
         $ini['mysql_version'] = DB::getVersion();
+        $ini['twig_version'] = Environment::VERSION;
         $ini['php_datetime'] = date('Y-m-d H:i:s');
         $ini['php_gettext'] = (
             function_exists('gettext') &&

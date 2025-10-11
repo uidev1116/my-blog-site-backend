@@ -169,12 +169,6 @@
   }
 }
 
-.ablogcms--column-add-btn .acms-banner-edit-item-handle {
-  top: 3px;
-  left: 5px;
-  margin: 0;
-}
-
 .acms-banner-edit-open-label {
   display: inline-block;
   margin-right: 20px;
@@ -318,40 +312,7 @@
   transition: background-color 0.3s;
 }
 
-.drag-n-drop-hover .acms-banner-edit-droparea {
-  background-color: global.$acms-color-info10;
-}
-
-.acms-banner-edit-droparea-text {
-  color: global.$acms-color-system-gray60;
-  transition: color 0.3s;
-
-  @include global.font-size(12);
-}
-
-.acms-banner-edit-droparea-btn {
-  width: 120px;
-  margin: 10px 0;
-  color: global.$acms-color-black;
-  font-weight: bold;
-  line-height: 30px;
-  text-align: center;
-  background-color: global.$acms-color-gray20;
-  border-radius: 3px;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: global.$acms-color-gray40;
-  }
-}
-
-.drag-n-drop-hover {
-  .acms-banner-edit-droparea-btn {
-    background-color: global.$acms-color-gray40;
-  }
-}
-
-@media screen and (max-width: global.$breakpoint-md-max) {
+@include global.media-breakpoint-down(md) {
   .acms-banner-edit-item-inner {
     display: block;
   }

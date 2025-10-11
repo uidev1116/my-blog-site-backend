@@ -2,14 +2,14 @@
 
 namespace Acms\Services\Update\System;
 
-use Storage;
+use Acms\Services\Facades\LocalStorage;
 
 class ConfigServer
 {
     public function update($path)
     {
         $config = $this->build();
-        Storage::put($path, $config);
+        LocalStorage::put($path, $config);
     }
 
     protected function build()
@@ -128,7 +128,6 @@ class ConfigServer
             'EID_SEGMENT' => 'eid',
             'UTID_SEGMENT' => 'utid',
             'CMID_SEGMENT' => 'cmid',
-            'TBID_SEGMENT' => 'tbid',
             'KEYWORD_SEGMENT' => 'keyword',
             'TAG_SEGMENT' => 'tag',
             'FIELD_SEGMENT' => 'field',
@@ -137,7 +136,6 @@ class ConfigServer
             'TPL_SEGMENT' => 'tpl',
             'PAGE_SEGMENT' => 'page',
             'PROXY_SEGMENT' => 'proxy',
-            'TRACKBACK_SEGMENT' => 'tarckback',
             'SPAN_SEGMENT' => '-',
             'ADMIN_SEGMENT' => 'admin',
             'MEDIA_FILE_SEGMENT' => 'media-download',

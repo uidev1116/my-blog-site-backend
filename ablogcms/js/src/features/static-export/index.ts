@@ -1,3 +1,5 @@
+import axiosLib from '../../lib/axios';
+
 export default function dispatchStaticExport(context: Element | Document = document) {
   const resultTplElement = context.querySelector<HTMLScriptElement>('#js-publish_result_tpl');
   if (resultTplElement === null) {
@@ -20,10 +22,20 @@ export default function dispatchStaticExport(context: Element | Document = docum
   const progressBar = progress?.querySelector<HTMLDListElement>('.acms-admin-progress-bar');
 
   let errorCount = 0;
-  const interval = setInterval(() => {
-    const rand = Math.random().toString(36).slice(-16);
+  const interval = setInterval(async () => {
+    try {
+      const data = new FormData();
+      data.append('ACMS_POST_Logger_ProgressJson', 'exec');
+      data.append('type', 'publish');
+      data.append('bid', ACMS.Config.bid);
+      data.append('formToken', window.csrfToken);
+      const response = await axiosLib.post(ACMS.Config.root, data);
+      const json = response.data;
 
-    $.getJSON(`${ACMS.Config.root}cache/${ACMS.Config.bid}_publish.json?${rand}`, (json) => {
+      if (json.status === 'notfound') {
+        throw new Error('notfound');
+      }
+
       errorCount = 0;
       if (Array.isArray(json.processList) && resultOut !== null) {
         resultOut.innerHTML = resutlTemplate(json);
@@ -31,7 +43,6 @@ export default function dispatchStaticExport(context: Element | Document = docum
       if (Array.isArray(json.errorList) && errorOut !== null) {
         errorOut.innerHTML = errorTemplate(json);
       }
-
       if (Array.isArray(json.removedFiles) && removedFilesOut !== null) {
         removedFilesOut.innerHTML = removedFilesTemplate(json);
       }
@@ -46,10 +57,10 @@ export default function dispatchStaticExport(context: Element | Document = docum
       if (progress !== null) {
         progress.style.display = 'block';
       }
-    }).catch(() => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (e) {
       errorCount++;
-    });
-
+    }
     if (errorCount > 3) {
       clearInterval(interval);
       if (progress !== null) {

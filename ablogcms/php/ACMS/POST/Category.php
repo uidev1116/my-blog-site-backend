@@ -28,7 +28,6 @@ class ACMS_Validator_Category extends ACMS_Validator
             $SQL->setSelect('blog_id');
             $SQL->addWhereOpr('blog_domain', $domain);
             $SQL->addWhereOpr('blog_code', $ccd);
-            $SQL->setSelect(1);
             if ($DB->query($SQL->get(dsn()), 'one')) {
                 return false;
             }
@@ -91,7 +90,6 @@ class ACMS_Validator_Category extends ACMS_Validator
             $SQL->setSelect('blog_id');
             $SQL->addWhereOpr('blog_domain', $domain);
             $SQL->addWhereOpr('blog_code', $val);
-            $SQL->setSelect(1);
             if ($DB->query($SQL->get(dsn()), 'one')) {
                 return false;
             }
@@ -165,7 +163,7 @@ class ACMS_POST_Category extends ACMS_POST
         $SQL->addWhereOpr('category_id', $cid);
         $SQL->addWhereOpr('category_blog_id', BID);
         if (!$row = $DB->query($SQL->get(dsn()), 'row')) {
-            die();
+            die500();
         }
         $fromLeft   = intval($row['category_left']);
         $fromRight  = intval($row['category_right']);
@@ -187,7 +185,7 @@ class ACMS_POST_Category extends ACMS_POST
             $SQL->addWhereOpr('category_id', $toPid);
             $SQL->addWhereOpr('category_blog_id', BID);
             if (!$row = $DB->query($SQL->get(dsn()), 'row')) {
-                die();
+                die500();
             }
             $toLeft     = $row['category_left'];
             $toRight    = $row['category_right'];
@@ -213,7 +211,7 @@ class ACMS_POST_Category extends ACMS_POST
             $SQL->setOrder('category_right', 'DESC');
             $SQL->setLimit(1);
             if (!$row = $DB->query($SQL->get(dsn()), 'row')) {
-                die();
+                die500();
             }
             $toLeft     = intval($row['category_right']);
             $toRight    = $toLeft   + 1;

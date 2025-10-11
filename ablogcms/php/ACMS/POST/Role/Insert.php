@@ -30,11 +30,15 @@ class ACMS_POST_Role_Insert extends ACMS_POST
 
             //-----------
             // blog list
+            $insert = SQL::newBulkInsert('role_blog');
             foreach ($Role->getArray('blog_list') as $bid) {
-                $SQL    = SQL::newInsert('role_blog');
-                $SQL->addInsert('role_id', $rid);
-                $SQL->addInsert('blog_id', $bid);
-                $DB->query($SQL->get(dsn()), 'exec');
+                $insert->addInsert([
+                    'role_id' => $rid,
+                    'blog_id' => $bid,
+                ]);
+            }
+            if ($insert->hasData()) {
+                $DB->query($insert->get(dsn()), 'exec');
             }
 
             $this->Post->set('edit', 'insert');

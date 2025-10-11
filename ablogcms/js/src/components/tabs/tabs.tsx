@@ -1,5 +1,5 @@
 import classnames from 'classnames';
-import { FC, useState, useRef, ReactNode, isValidElement, Children, useCallback, useEffect } from 'react';
+import { FC, useState, useRef, ReactNode, isValidElement, Children, useCallback } from 'react';
 import useUpdateEffect from '../../hooks/use-update-effect';
 
 interface TabsProps {
@@ -10,17 +10,12 @@ interface TabsProps {
 }
 
 interface PanelProps extends React.HTMLAttributes<HTMLDivElement> {
+  id: string;
   label: string;
   children: ReactNode;
 }
-export const TabPanel: FC<PanelProps> = (props: PanelProps) => {
-  const { label, children } = props;
-  return (
-    <>
-      <h4 className="acms-admin-hide-visually">{label}</h4>
-      {children}
-    </>
-  );
+export const TabPanel = ({ children }: PanelProps) => {
+  return children;
 };
 
 export const Tabs: FC<TabsProps> = ({ children, onChange, defaultIndex = 0, index }) => {
@@ -47,7 +42,7 @@ export const Tabs: FC<TabsProps> = ({ children, onChange, defaultIndex = 0, inde
     [children, activeTabIndex]
   );
 
-  useEffect(() => {
+  useUpdateEffect(() => {
     if (tabRefs.current[activeTabIndex]) {
       tabRefs.current[activeTabIndex].focus();
     }
@@ -66,13 +61,14 @@ export const Tabs: FC<TabsProps> = ({ children, onChange, defaultIndex = 0, inde
       {/* eslint-disable-next-line jsx-a11y/interactive-supports-focus */}
       <ul className="acms-admin-tabs-inner" role="tablist" onKeyDown={handleTabListKeyDown}>
         {Children.map(children, (child, index) => {
-          if (isValidElement(child)) {
+          if (isValidElement<PanelProps>(child)) {
             return (
               <li role="presentation" key={child.props.id}>
                 <button
                   ref={(node: HTMLButtonElement) => {
                     tabRefs.current[index] = node;
                   }}
+                  id={`${child.props.id}-tab`}
                   role="tab"
                   aria-controls={child.props.id}
                   aria-selected={index === activeTabIndex}
@@ -97,12 +93,13 @@ export const Tabs: FC<TabsProps> = ({ children, onChange, defaultIndex = 0, inde
           const { label: _, ...rest } = child.props;
           return (
             <div
+              key={child.props.id}
               role="tabpanel"
               aria-hidden={activeTabIndex !== index}
               className="acms-admin-tabs-panel"
               style={{ display: activeTabIndex === index ? 'block' : 'none' }}
-              key={child.props.id}
               tabIndex={0}
+              aria-labelledby={`${child.props.id}-tab`}
               {...rest}
             >
               {child}

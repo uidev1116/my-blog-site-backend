@@ -1,8 +1,11 @@
 <?php
 
 use Acms\Services\Facades\Common;
-use Acms\Services\Facades\Storage;
 use Acms\Services\Facades\Database as DB;
+use Acms\Services\Facades\Entry;
+use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\PrivateStorage;
+use Acms\Services\Facades\PublicStorage;
 use Acms\Services\Facades\Logger as AcmsLogger;
 
 class ACMS_POST_Entry_Index_Export extends ACMS_POST_Entry_Export
@@ -23,7 +26,7 @@ class ACMS_POST_Entry_Index_Export extends ACMS_POST_Entry_Export
     function post()
     {
         $this->Post->reset(true);
-        $this->Post->setMethod('entry', 'operative', sessionWithCompilation());
+        $this->Post->setMethod('entry', 'operative', Entry::canExport(BID));
         $this->Post->setMethod('checks', 'required');
         $this->Post->validate(new ACMS_Validator());
 
@@ -35,11 +38,11 @@ class ACMS_POST_Entry_Index_Export extends ACMS_POST_Entry_Export
             if (empty($this->Post->getArray('checks'))) {
                 $this->addError('エントリーが選択されていません。');
             }
-            return false;
+            return $this->Post;
         }
         if (count($this->Post->getArray('checks')) > 30) {
             $this->addError('一度にエクスポートできるエントリーは30エントリまでです。');
-            return false;
+            return $this->Post;
         }
 
         $this->srcPath = MEDIA_STORAGE_DIR . 'entry_tmp/';
@@ -59,17 +62,20 @@ class ACMS_POST_Entry_Index_Export extends ACMS_POST_Entry_Export
                 $targetEIDs[] = $eid;
             }
 
-            Storage::makeDirectory($this->srcPath);
+            LocalStorage::makeDirectory($this->srcPath);
             $fp = fopen($this->srcPath . 'data.yaml', 'w');
+            if ($fp === false) {
+                throw new \RuntimeException('ファイルのオープンに失敗しました');
+            }
             $fileList = $export->export($fp);
             fclose($fp);
 
-            $this->copyAssets('media', MEDIA_LIBRARY_DIR, $fileList['media']);
-            $this->copyAssets('storage', MEDIA_STORAGE_DIR, $fileList['storage']);
-            $this->copyAssets('archives', ARCHIVES_DIR, $fileList['archives']);
+            $this->copyAssets('media', MEDIA_LIBRARY_DIR, $fileList['media'], true);
+            $this->copyAssets('storage', MEDIA_STORAGE_DIR, $fileList['storage'], false);
+            $this->copyAssets('archives', ARCHIVES_DIR, $fileList['archives'], true);
 
-            Storage::compress($this->srcPath, $this->destPath, 'acms_entry_data');
-            Storage::removeDirectory($this->srcPath);
+            LocalStorage::compress($this->srcPath, $this->destPath, 'acms_entry_data');
+            LocalStorage::removeDirectory($this->srcPath);
 
             AcmsLogger::info('指定されたエントリーのエクスポートをしました', [
                 'targetEIDs' => $targetEIDs,
@@ -78,7 +84,7 @@ class ACMS_POST_Entry_Index_Export extends ACMS_POST_Entry_Export
             $this->download();
         } catch (\Exception $e) {
             $this->Post->set('error', $e->getMessage());
-            Storage::removeDirectory($this->srcPath);
+            LocalStorage::removeDirectory($this->srcPath);
 
             AcmsLogger::warning('指定されたエントリーのエクスポートに失敗しました', Common::exceptionArray($e));
         }
@@ -93,19 +99,36 @@ class ACMS_POST_Entry_Index_Export extends ACMS_POST_Entry_Export
      * @param string $dir
      * @param array $files
      */
-    protected function copyAssets($type, $dir, $files)
+    protected function copyAssets(string $type, string $dir, array $files, bool $isPublic = true)
     {
         $dest = $this->srcPath . $type . '/';
+        $storage = $isPublic ? PublicStorage::getInstance() : PrivateStorage::getInstance();
 
         foreach ($files as $file) {
             $path = $dir . $file;
-            if (!Storage::exists($path)) {
+            if (!$storage->exists($path)) {
                 continue;
             }
             $info = pathinfo($dest . $file);
             $dirname = empty($info['dirname']) ? '' : $info['dirname'] . '/';
-            Storage::makeDirectory($dirname);
-            Storage::copy($path, $dest . $file);
+            LocalStorage::makeDirectory($dirname);
+            if ($isPublic) {
+                if (Common::isLocalPublicStorage()) {
+                    LocalStorage::copy($path, $dest . $file);
+                } else {
+                    if ($content = PublicStorage::get($path)) {
+                        LocalStorage::put($dest . $file, $content);
+                    }
+                }
+            } else {
+                if (Common::isLocalPrivateStorage()) {
+                    LocalStorage::copy($path, $dest . $file);
+                } else {
+                    if ($content = PrivateStorage::get($path)) {
+                        LocalStorage::put($dest . $file, $content);
+                    }
+                }
+            }
         }
     }
 

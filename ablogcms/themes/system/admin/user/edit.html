@@ -110,6 +110,18 @@
 <!-- BEGIN user:validator#limit -->
 <div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
   <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <div>
+    <!--T-->ユーザー作成数の上限に達しているため、現在お使いのライセンスでは以下の操作を行えません。<!--/T-->
+    <ul>
+      <li>
+        <!--T-->新規ユーザーの作成（読者以外）<!--/T-->
+      </li>
+      <li>
+        <!--T-->読者ユーザーの権限昇格<!--/T-->
+      </li>
+    </ul>
+    <!--T-->登録済みのユーザーを削除するか、<a href="https://www.a-blogcms.jp/license/" target="_blank" rel="noopener noreferrer">ユーザー数無制限オプション</a>の新規購入をご検討ください。<!--/T-->
+  </div>
   <button
     type="button"
     class="js-acms-alert-close acms-admin-alert-icon-after"
@@ -117,10 +129,6 @@
   >
     ×
   </button>
-  <!--T-->ユーザー作成数の上限に達しているため、現在お使いのライセンスでは以下の操作を行えません。<!--/T--><br />
-  <!--T-->・新規ユーザーの作成（読者以外）<!--/T--><br />
-  <!--T-->・読者ユーザーの権限昇格<!--/T--><br />
-  <!--T-->登録済みのユーザーを削除するか、<a href="https://www.a-blogcms.jp/license/" target="_blank" rel="noopener noreferrer">ユーザー数無制限オプション</a>の新規購入をご検討ください。<!--/T-->
 </div>
 <!-- END user:validator#limit -->
 
@@ -788,20 +796,28 @@
         <!-- END_IF -->
         <!-- BEGIN_MODULE Touch_GeolocationUserFunction -->
         <tr>
-          <th>位置情報</th>
+          <th >位置情報</th>
           <td>
-            <div class="acms-admin-form-group">
-              <!-- BEGIN_IF [{geo_lat}/nem/_and_/{geo_lng}/nem/] -->
-              <input class="js-geo_input acms-admin-btn" type="button" data-type="delete"/>
-              <!-- ELSE -->
-              <input class="js-geo_input acms-admin-btn" type="button" data-type="add"/>
-              <!-- END_IF -->
+            <div class="acms-admin-vstack acms-admin-align-items-stretch">
+              <div>
+                <!-- BEGIN_IF [{geo_lat}/nem/_and_/{geo_lng}/nem/] -->
+                <button class="js-geo-button acms-admin-btn" type="button" data-type="delete" data-target="#geo-form">
+                  <!--T-->位置情報を削除<!--/T-->
+                </button>
+                <!-- ELSE -->
+                <button class="js-geo-button acms-admin-btn" type="button" data-type="add" data-target="#geo-form">
+                  <!--T-->位置情報を追加<!--/T-->
+                </button>
+                <!-- END_IF -->
+              </div>
+              <div id="geo-form" style="display: none;">
+                <!-- BEGIN_IF [<!-- BEGIN_MODULE Config -->{geolocation_map_type}<!-- END_MODULE Config -->/eq/gmap] -->
+                @include("/admin/map/_google-map-picker.html")
+                <!-- ELSE -->
+                @include("/admin/map/_open-street-map-picker.html")
+                <!-- END_IF -->
+              </div>
             </div>
-            <!-- BEGIN_IF [<!-- BEGIN_MODULE Config -->{geolocation_map_type}<!-- END_MODULE Config -->/eq/gmap] -->
-            @include("/admin/map/_google-map-picker.html")
-            <!-- ELSE -->
-            @include("/admin/map/_open-street-map-picker.html")
-            <!-- END_IF -->
           </td>
         </tr>
         <!-- END_MODULE Touch_GeolocationUserFunction -->

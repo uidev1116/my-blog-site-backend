@@ -1,9 +1,18 @@
 <?php
 
+use Acms\Services\Logger\Deprecated;
+
+/**
+ * @deprecated カート機能は非推奨です。代替として、Shopping Cart 拡張アプリをご利用ください。
+ */
 class ACMS_POST_Shop2_Cart_Add extends ACMS_POST_Shop2
 {
     public function post()
     {
+        Deprecated::once('Shop2_Cart_Add モジュール', [
+            'since' => '3.2.0',
+            'alternative' => ' Shopping Cart 拡張アプリ',
+        ]);
         $this->initVars();
 
         $Cart = $this->extract('cart');
@@ -124,7 +133,7 @@ class ACMS_POST_Shop2_Cart_Add extends ACMS_POST_Shop2
                 }
 
                 // ハッシュを配列キーにあたえる（ユーザー内だから単一時間軸内でユニークであればOK）
-                $TEMP[md5(time())] = $item;
+                $TEMP[md5((string) time())] = $item;
             }
             $this->closeCart($TEMP, $bid);
 

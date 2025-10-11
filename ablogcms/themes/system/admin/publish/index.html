@@ -39,13 +39,6 @@
 <form action="" method="post" class="acms-admin-form">
 
   <div class="js-acms_fix_marker">
-    <!-- BEGIN_MODULE Touch_SessionWithAdministration -->
-    <a href="/bid/%{BID}/admin/shortcut_edit/?admin=publish_index" class="acms-admin-btn acms-admin-float-right">
-      <i class="acms-admin-icon acms-admin-icon-shortcut"></i>
-      <!--T-->ショートカットに追加<!--/T-->
-    </a>
-    <!-- END_MODULE Touch_SessionWithAdministration -->
-
     <!-- BEGIN_MODULE Touch_Role_PublishEdit -->
     <button
       type="submit"
@@ -83,9 +76,9 @@
     <table class="acms-admin-table-admin">
       <thead class="acms-admin-table-heading">
         <tr>
-          <th class="acms-admin-table-left"><!--T-->生成元URI ( スキーム : http:// または acms:// )<!--/T--></th>
+          <th class="acms-admin-table-left"><!--T-->生成元URI ( スキーム : https:// )<!--/T--></th>
           <th class="acms-admin-table-left acms-admin-table-nowrap"><!--T-->生成範囲<!--/T--></th>
-          <th class="acms-admin-table-left"><!--T-->出力先パス ( テーマ・テンプレート )<!--/T--></th>
+          <th class="acms-admin-table-left"><!--T-->出力先パス ( テーマ・テンプレート: html, json, xml, csvのみ )<!--/T--></th>
         </tr>
       </thead>
       <tbody><!-- BEGIN publish:loop -->

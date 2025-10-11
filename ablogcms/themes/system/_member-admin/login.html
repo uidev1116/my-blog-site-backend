@@ -11,41 +11,55 @@
     <div class="acms-admin-login-main-box">
       <h1 class="acms-admin-login-page-title"><span class="acms-admin-label" style="background-color:%{BLOG_THEME_COLOR};">%{BLOG_NAME}</span>&ensp;<span class="acms-admin-label"><!--T-->管理ログイン<!--/T--></span></h1>
       <div class="acms-admin-form">
-        <div class="validator-result-{mail:validator#restriction} acms-admin-alert acms-admin-alert-danger">
+        <!-- BEGIN_IF [{mail:validator#restriction}/eq/0] -->
+        <div role="alert" class="acms-admin-alert acms-admin-alert-danger">
           <!--T-->お使いの端末（ブラウザ）からはログインが禁止されています。<!--/T--><br><!--T-->管理者にお問い合わせ下さい。<!--/T-->
         </div>
-        <div class="validator-result-{pass:validator#auth} acms-admin-alert acms-admin-alert-danger">
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{pass:validator#auth}/eq/0] -->
+        <div role="alert" class="acms-admin-alert acms-admin-alert-danger">
           <!--T-->ユーザーIDまたはパスワードが違います。<!--/T-->
         </div>
-        <div class="validator-result-{mail:validator#notFound} acms-admin-alert acms-admin-alert-danger">
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{mail:validator#notFound}/eq/0] -->
+        <div role="alert" class="acms-admin-alert acms-admin-alert-danger">
           <!--T-->ユーザーが存在しません<!--/T-->
         </div>
-        <div class="validator-result-{mail:validator#send} acms-admin-alert acms-admin-alert-danger">
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{mail:validator#send}/eq/0] -->
+        <div role="alert" class="acms-admin-alert acms-admin-alert-danger">
           <!--T-->認証メールの送信に失敗しました<!--/T-->
         </div>
-        <div class="validator-result-{mail:validator#lock} acms-admin-alert acms-admin-alert-danger">
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{mail:validator#lock}/eq/0] -->
+        <div role="alert" class="acms-admin-alert acms-admin-alert-danger">
           <!--T--><!--$1-->{trialNumber}<!--/$1-->回ログインに失敗したため、アカウントがロックされました。<!--/T-->
           <!--T--><!--$1-->{lockTime}<!--/$1-->分後にもう一度試してください。<!--/T-->
         </div>
-        <div class="validator-result-{mailAuthSignin:validator#enable} acms-admin-alert acms-admin-alert-danger">
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{mailAuthSignin:validator#enable}/eq/0] -->
+        <div role="alert" class="acms-admin-alert acms-admin-alert-danger">
           <!--T-->メール認証によるサインイン機能は無効です<!--/T-->
         </div>
-        <div class="validator-result-{passwordSignin:validator#enable} acms-admin-alert acms-admin-alert-danger">
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{passwordSignin:validator#enable}/eq/0] -->
+        <div role="alert" class="acms-admin-alert acms-admin-alert-danger">
           <!--T-->パスワードによるサインイン機能は無効です<!--/T-->
         </div>
+        <!-- END_IF -->
         @include("/_member-admin/parts/error.html")
         @include("/_member-admin/parts/sns-message.html")
 
         <!-- BEGIN badRequest -->
-        <div class="acms-admin-alert acms-admin-alert-danger"><!--T-->不正なアクセスです。<!--/T--></div>
+        <div role="alert" class="acms-admin-alert acms-admin-alert-danger"><!--T-->不正なアクセスです。<!--/T--></div>
         <!-- END badRequest -->
 
         <!-- BEGIN expired -->
-        <div class="acms-admin-alert acms-admin-alert-danger"><!--T-->有効期限切れのURLです。再度お試しください。<!--/T--></div>
+        <div role="alert" class="acms-admin-alert acms-admin-alert-danger"><!--T-->有効期限切れのURLです。再度お試しください。<!--/T--></div>
         <!-- END expired -->
 
         <!-- BEGIN successSent -->
-        <div class="acms-admin-alert acms-admin-alert-info"><!--T-->ご記入いただいたメールアドレスに管理ログイン用の認証メールをお送りしました<!--/T--></div>
+        <div role="alert" class="acms-admin-alert acms-admin-alert-info"><!--T-->ご記入いただいたメールアドレスに管理ログイン用の認証メールをお送りしました<!--/T--></div>
         <!-- END successSent -->
 
         <label for="input-text-mail" class="acms-admin-login-form-label">
@@ -67,7 +81,7 @@
         <p class="acms-admin-login-action">
           <button type="submit" class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-block acms-admin-btn-large" name="ACMS_POST_Member_Admin_Login"><!--T-->管理ログイン<!--/T--></button>
         </p>
-        <p class="acms-admin-text-right acms-admin-margin-none"><a href="%{BLOG_URL}%{ADMIN_RESET_PASSWORD_SEGMENT}/" class="acms-admin-login-text-link"><!--T-->パスワードをお忘れですか？<!--/T--></a></p>
+        <p class="acms-admin-text-right acms-admin-m-0"><a href="%{BLOG_URL}%{ADMIN_RESET_PASSWORD_SEGMENT}/" class="acms-admin-login-text-link"><!--T-->パスワードをお忘れですか？<!--/T--></a></p>
         <!-- END_IF -->
 
         <!-- BEGIN_IF [{email_auth_login}/eq/on] -->
@@ -81,8 +95,8 @@
     </div>
 
     <div class="acms-admin-login-main-box-bottom">
-      <div class="acms-admin-grid">
-        <p class="acms-admin-col-6 acms-admin-margin-none"><a href="%{BLOG_URL}" class="acms-admin-btn-flat acms-admin-btn-block"><!--T-->サイトに戻る<!--/T--></a></p>
+      <div class="acms-admin-cssgrid">
+        <p class="acms-admin-g-col-6 acms-admin-m-0"><a href="%{BLOG_URL}" class="acms-admin-btn-flat acms-admin-btn-block"><!--T-->サイトに戻る<!--/T--></a></p>
       </div>
     </div>
     <!-- END signin -->
@@ -92,26 +106,33 @@
       <h1 class="acms-admin-login-page-title"><span class="acms-admin-label" style="background-color:%{BLOG_THEME_COLOR};">%{BLOG_NAME}</span>&ensp;<span class="acms-admin-label"><!--T-->管理ログイン<!--/T--></span></h1>
       <div class="acms-admin-form">
         <!-- BEGIN successSent -->
-        <div class="acms-admin-alert acms-admin-alert-info"><!--T-->本人確認のため、確認メールをお送りしました。メールに記載されている確認リンクをクリックするか、下記に確認コードを入力してください。<!--/T--></div>
+        <div role="alert" class="acms-admin-alert acms-admin-alert-info"><!--T-->本人確認のため、確認メールをお送りしました。メールに記載されている確認リンクをクリックするか、下記に確認コードを入力してください。<!--/T--></div>
         <!-- END successSent -->
 
-        <div class="validator-result-{mail:validator#lock} acms-admin-alert acms-admin-alert-danger">
+        <!-- BEGIN_IF [{mail:validator#lock}/eq/0] -->
+        <div role="alert" class="acms-admin-alert acms-admin-alert-danger">
           <!--T--><!--$1-->{trialNumber}<!--/$1-->回ログインに失敗したため、アカウントがロックされました。<!--/T-->
           <!--T--><!--$1-->{lockTime}<!--/$1-->分後にもう一度試してください。<!--/T-->
         </div>
+        <!-- END_IF -->
 
-        <div class="validator-result-{code:validator#auth} acms-admin-alert acms-admin-alert-danger">
+        <!-- BEGIN_IF [{code:validator#auth}/eq/0] -->
+        <div role="alert" class="acms-admin-alert acms-admin-alert-danger">
           <!--T-->確認コードが違います<!--/T-->
         </div>
+        <!-- END_IF -->
 
-        <div class="validator-result-{code:validator#request} acms-admin-alert acms-admin-alert-danger">
+        <!-- BEGIN_IF [{code:validator#request}/eq/0] -->
+        <div role="alert" class="acms-admin-alert acms-admin-alert-danger">
           <!--T-->不正なアクセスです<!--/T-->
         </div>
+        <!-- END_IF -->
 
-        <div class="validator-result-{code:validator#expired} acms-admin-alert acms-admin-alert-danger">
+        <!-- BEGIN_IF [{code:validator#expired}/eq/0] -->
+        <div role="alert" class="acms-admin-alert acms-admin-alert-danger">
           <!--T-->確認コードの有効期限が切れています<!--/T-->
         </div>
-
+        <!-- END_IF -->
         <label for="input-text-code" class="acms-admin-login-form-label"><!--T-->確認コード<!--/T--></label>
         <input type="text" name="code" value="{code}" id="input-text-code" class="acms-admin-form-large acms-admin-form-block acms-admin-form-width-full validator-result-{code:validator#auth}" placeholder="" />
         <input type="hidden" name="login[]" value="code" />
@@ -123,8 +144,8 @@
       </div>
     </div>
     <div class="acms-admin-login-main-box-bottom">
-      <div class="acms-admin-grid">
-        <p class="acms-admin-col-6 acms-admin-margin-none"><a href="%{BLOG_URL}%{LOGIN_SEGMENT}/" class="acms-admin-btn-flat acms-admin-btn-block"><!--T-->管理ログイン画面に戻る<!--/T--></a></p>
+      <div class="acms-admin-cssgrid">
+        <p class="acms-admin-g-col-6 acms-admin-m-0"><a href="%{BLOG_URL}%{LOGIN_SEGMENT}/" class="acms-admin-btn-flat acms-admin-btn-block"><!--T-->管理ログイン画面に戻る<!--/T--></a></p>
       </div>
     </div>
     <!-- END verifyCode -->
@@ -133,8 +154,11 @@
     <div class="acms-admin-login-main-box">
       <h1 class="acms-admin-login-page-title"><span class="acms-admin-label" style="background-color:%{BLOG_THEME_COLOR};">%{BLOG_NAME}</span>&ensp;<span class="acms-admin-label"><!--T-->管理ログイン<!--/T--></span></h1>
       <div class="acms-admin-form">
-
-        <div class="validator-result-{code:validator#auth} acms-admin-alert acms-admin-alert-danger"><!--T-->２段階認証コードが違います。<!--/T--></div>
+        <!-- BEGIN_IF [{code:validator#auth}/eq/0] -->
+        <div role="alert" class="acms-admin-alert acms-admin-alert-danger">
+          <!--T-->２段階認証コードが違います。<!--/T-->
+        </div>
+        <!-- END_IF -->
 
         <p class="acms-admin-login-notice-text"><!--T-->認証用アプリに表示されている、認証コードを入力してください。<!--/T--></p>
 
@@ -146,12 +170,12 @@
         <p class="acms-admin-login-action">
           <button type="submit" class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-block acms-admin-btn-large" name="ACMS_POST_Member_Admin_Tfa_Auth"><!--T-->認証する<!--/T--></button>
         </p>
-        <p class="acms-admin-text-right acms-admin-margin-none"><a href="%{BLOG_URL}%{ADMIN_TFA_RECOVERY_SEGMENT}/" class="acms-admin-login-text-link"><!--T-->リカバリーコードを使って、２段階認証を無効にする<!--/T--></a></p>
+        <p class="acms-admin-text-right acms-admin-m-0"><a href="%{BLOG_URL}%{ADMIN_TFA_RECOVERY_SEGMENT}/" class="acms-admin-login-text-link"><!--T-->リカバリーコードを使って、２段階認証を無効にする<!--/T--></a></p>
       </div>
     </div>
     <div class="acms-admin-login-main-box-bottom">
-      <div class="acms-admin-grid">
-        <p class="acms-admin-col-6 acms-admin-margin-none"><a href="%{BLOG_URL}" class="acms-admin-btn-flat acms-admin-btn-block"><!--T-->サイトに戻る<!--/T--></a></p>
+      <div class="acms-admin-cssgrid">
+        <p class="acms-admin-g-col-6 acms-admin-m-0"><a href="%{BLOG_URL}" class="acms-admin-btn-flat acms-admin-btn-block"><!--T-->サイトに戻る<!--/T--></a></p>
       </div>
     </div>
     <!-- END tfa -->

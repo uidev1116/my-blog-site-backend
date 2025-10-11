@@ -6,6 +6,7 @@
 .acms-tab-text {
   display: block;
   max-width: 300px;
+  margin-top: 4px;
 
   @include global.font-size(12);
 }

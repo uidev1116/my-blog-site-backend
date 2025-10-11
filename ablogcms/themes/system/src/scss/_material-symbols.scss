@@ -1,0 +1,52 @@
+@use 'sass:string';
+@use 'global/common' as global;
+
+// @see https://github.com/twbs/bootstrap/blob/main/scss/_functions.scss
+@function _material-symbols-str-replace($string, $search, $replace: '') {
+  $index: string.index($string, $search);
+
+  @if $index {
+    $replaced: _material-symbols-str-replace(string.slice($string, $index + string.length($search)), $search, $replace);
+
+    @return string.slice($string, 1, $index - 1) + $replace + $replaced;
+  }
+
+  @return $string;
+}
+
+@mixin _material-symbols-font($font-family) {
+  $class-name: string.to-lower-case($font-family);
+  $class-name: _material-symbols-str-replace($class-name, ' ', '-');
+  $font-file: global.$acms-font + $class-name;
+
+  @debug $font-file;
+
+  @font-face {
+    font-weight: 100 700;
+    font-family: $font-family;
+    font-style: normal;
+    src: url('#{$font-file}.woff2') format('woff2');
+    font-display: block;
+  }
+
+  .#{$class-name} {
+    display: inline-block;
+    font-weight: normal;
+    font-size: inherit;
+    font-family: $font-family;
+    font-style: normal;
+    line-height: 1;
+    direction: ltr;
+    letter-spacing: normal;
+    white-space: nowrap;
+    text-transform: none;
+    vertical-align: middle;
+    word-wrap: normal;
+    -webkit-font-smoothing: antialiased; // Support for all WebKit browsers
+    -moz-osx-font-smoothing: grayscale; // Support for Firefox
+    text-rendering: optimizelegibility; // Support for Safari and Chrome
+    font-feature-settings: 'liga'; // Support for IE
+  }
+}
+
+@include _material-symbols-font('Material Symbols Outlined');

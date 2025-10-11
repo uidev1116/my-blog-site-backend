@@ -1,0 +1,27 @@
+<!-- BEGIN_MODULE Admin_ActionResult -->
+<!-- BEGIN_IF [{status}/eq/success/_and_/{{successMessage}}/nem] -->
+<div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  {{ successMessage }}
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+</div>
+<!-- ELSE_IF [{status}/eq/error/_and_/{{errorMessage}}/nem] -->
+<div class="acms-admin-alert acms-admin-alert-danger acms-admin-alert-icon">
+  <span class="acms-admin-alert-icon-before acms-admin-icon-attention"></span>
+  {{ errorMessage }}
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+</div>
+<!-- END_IF -->
+<!-- END_MODULE Admin_ActionResult -->

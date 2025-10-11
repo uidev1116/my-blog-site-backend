@@ -7,31 +7,32 @@
 <!--[if lte IE 9]><script src="/js/html5shiv.min.js"></script><![endif]-->
 </head>
 <body>
-	<h1>Blog_ChildList</h1>
-		<fieldset>
-			<legend>currentBlog<span>現在いるブログ</span>
-				<var class="textLong"><a href="%{ADMIN_BASE_URL}acms-code/vars/field.html" target="_blank">blogField</a><span>ブログのカスタムフィールド</span></var>
-			</legend>
-			<var>url<span>ブログURL</span></var>
-			<var>id<span>ブログID</span></var>
-			<var>code<span>ブログコード</span></var>
-			<var>name<span>ブログの名前</span></var>
-			<var>domain<span>ブログのドメイン</span></var>
-		</fieldset>
-		<fieldset class="loop">
-			<legend class="loop">blog:loop<span>ブログのループ</span>
-				<var class="textLong"><a href="%{ADMIN_BASE_URL}acms-code/vars/field.html" target="_blank">blogField</a><span>ブログのカスタムフィールド</span></var>
-			</legend>
-			<var>name<span>ブログの名前</span></var>
-			<var>url<span>ブログのURL</span></var>
-			<var>id<span>ブログID</span></var>
-			<var>domain<span>ブログのドメイン</span></var>
-			<var>status<span>ブログのステータス</span></var>
-			<var>blog:loop.class (v2.5.1 later)<span>コンフィグで設定したクラス名</span></var>
-			<var>geo_zoom<span>ズームレベル</span></var>
-			<var>geo_lat<span>緯度</span></var>
-			<var>geo_lng<span>経度</span></var>
-			<fieldset><legend>glue (v1.3.0 later)<span>ループの接続ブロック</span></legend></fieldset>
-		</fieldset>
+  <h1>Blog_ChildList</h1>
+    <var>parent.loop.class (v3.2.0 later)<span>ループ親クラス</span></var>
+    <fieldset>
+      <legend>currentBlog<span>現在いるブログ</span>
+        <var class="textLong"><a href="%{ADMIN_BASE_URL}acms-code/vars/field.html" target="_blank">blogField</a><span>ブログのカスタムフィールド</span></var>
+      </legend>
+      <var>url<span>ブログURL</span></var>
+      <var>id<span>ブログID</span></var>
+      <var>code<span>ブログコード</span></var>
+      <var>name<span>ブログの名前</span></var>
+      <var>domain<span>ブログのドメイン</span></var>
+    </fieldset>
+    <fieldset class="loop">
+      <legend class="loop">blog:loop<span>ブログのループ</span>
+        <var class="textLong"><a href="%{ADMIN_BASE_URL}acms-code/vars/field.html" target="_blank">blogField</a><span>ブログのカスタムフィールド</span></var>
+      </legend>
+      <var>name<span>ブログの名前</span></var>
+      <var>url<span>ブログのURL</span></var>
+      <var>id<span>ブログID</span></var>
+      <var>domain<span>ブログのドメイン</span></var>
+      <var>status<span>ブログのステータス</span></var>
+      <var>blog:loop.class (v2.5.1 later)<span>コンフィグで設定したクラス名</span></var>
+      <var>geo_zoom<span>ズームレベル</span></var>
+      <var>geo_lat<span>緯度</span></var>
+      <var>geo_lng<span>経度</span></var>
+      <fieldset><legend>glue (v1.3.0 later)<span>ループの接続ブロック</span></legend></fieldset>
+    </fieldset>
 </body>
 </html>

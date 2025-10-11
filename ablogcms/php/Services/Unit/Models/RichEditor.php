@@ -4,28 +4,58 @@ namespace Acms\Services\Unit\Models;
 
 use Acms\Services\Unit\Contracts\Model;
 use Acms\Services\Facades\RichEditor as RichEditorHelper;
+use Acms\Services\Unit\Contracts\ConfigProcessable;
 use Template;
 
-class RichEditor extends Model
+/**
+ * @phpstan-type RichEditorAttributes array{json: string}
+ * @extends \Acms\Services\Unit\Contracts\Model<RichEditorAttributes>
+ */
+class RichEditor extends Model implements ConfigProcessable
 {
+    /**
+     * ユニットの独自データ
+     * @var RichEditorAttributes
+     */
+    private $attributes = [
+        'json' => '',
+    ];
+
     /**
      * ユニットタイプを取得
      *
-     * @return string
+     * @inheritDoc
      */
-    public function getUnitType(): string
+    public static function getUnitType(): string
     {
         return 'rich-editor';
     }
 
     /**
-     * ユニットが画像タイプか取得
-     *
-     * @return bool
+     * @inheritDoc
      */
-    public function getIsImageUnit(): bool
+    public static function getUnitLabel(): string
     {
-        return false;
+        return gettext('リッチエディター') . gettext('（非推奨）');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAttributes()
+    {
+        return [
+            ...$this->attributes,
+            'json' => $this->getField1(),
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setAttributes($attributes): void
+    {
+        $this->attributes = $attributes;
     }
 
     /**
@@ -41,17 +71,15 @@ class RichEditor extends Model
     }
 
     /**
-     * POSTデータからユニット独自データを抽出
-     *
-     * @param array $post
-     * @param bool $removeOld
-     * @param bool $isDirectEdit
-     * @return void
+     * @inheritDoc
      */
-    public function extract(array $post, bool $removeOld = true, bool $isDirectEdit = false): void
+    public function extract(array $request): void
     {
-        $id = $this->getTempId();
-        $this->setField1($this->implodeUnitData($post["rich-editor_json_{$id}"] ?? ''));
+        $id = $this->getId();
+        if (is_null($id)) {
+            throw new \LogicException('Unit ID must be set before calling extract');
+        }
+        $this->setField1($request["rich-editor_json_{$id}"] ?? '');
     }
 
     /**
@@ -61,7 +89,8 @@ class RichEditor extends Model
      */
     public function canSave(): bool
     {
-        if (empty($this->getField1())) {
+        if (strip_tags($this->getField1()) === '') {
+            // タグを削除した状態で空文字列になった場合は保存できない
             return false;
         }
         return true;
@@ -93,7 +122,7 @@ class RichEditor extends Model
     public function getSearchText(): string
     {
         $json = $this->getField1();
-        if (empty($json)) {
+        if ($json === '') {
             return '';
         }
         return RichEditorHelper::render($json);
@@ -106,14 +135,13 @@ class RichEditor extends Model
      */
     public function getSummaryText(): array
     {
-        $textAry = $this->explodeUnitData($this->getField1());
-        $response = [];
-        foreach ($textAry as $text) {
-            $html = RichEditorHelper::render($text);
-            $text = strip_tags($html);
-            $response[] = $text;
+        $json = $this->getField1();
+        if ($json === '') {
+            return [];
         }
-        return $response;
+        $html = RichEditorHelper::render($json);
+        $text = strip_tags($html);
+        return [$text];
     }
 
     /**
@@ -127,13 +155,12 @@ class RichEditor extends Model
     public function render(Template $tpl, array $vars, array $rootBlock): void
     {
         $json = $this->getField1();
-        if (empty($json)) {
+        if ($json === '') {
             return;
         }
         $vars = [
             'html' => RichEditorHelper::render($json),
         ];
-        $this->formatMultiLangUnitData($vars['html'], $vars, 'html');
 
         $tpl->add(array_merge(['unit#' . $this->getType()], $rootBlock), $vars);
     }
@@ -148,12 +175,19 @@ class RichEditor extends Model
      */
     public function renderEdit(Template $tpl, array $vars, array $rootBlock): void
     {
-        if ($json = $this->getField1()) {
-            $this->formatMultiLangUnitData(RichEditorHelper::render($json), $vars, 'html');
-        } else {
-            $this->formatMultiLangUnitData('', $vars, 'html');
-        }
-        $tpl->add(array_merge([$this->getUnitType()], $rootBlock), $vars);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function processConfig(array $config): array
+    {
+        $json = json_encode([
+            'html' => RichEditorHelper::render($config['field_1']),
+            'title' => RichEditorHelper::renderTitle($config['field_1']),
+        ]);
+        $config['field_1'] = $json ? $json : '{}';
+        return $config;
     }
 
     /**
@@ -164,7 +198,7 @@ class RichEditor extends Model
     protected function getLegacy(): array
     {
         return [
-            'json' => $this->getField1(),
+            'json' => $this->getField1()
         ];
     }
 }

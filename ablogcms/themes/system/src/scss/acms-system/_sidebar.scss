@@ -8,32 +8,12 @@
 #sidebar {
   height: 100%;
   background: global.$base-bg-light-white;
-
-  .ps__rail-y {
-    right: 0;
-    left: auto !important;
-
-    .ps__thumb-y {
-      width: 8px;
-      background: lighten(global.$base-bg-primary, 45%);
-    }
-  }
-
-  &.js-mobile {
-    height: auto;
-  }
 }
 
-@media screen and (min-width: global.$breakpoint-md-min) {
+@include global.media-breakpoint-up(md) {
   #sidebar {
     background: global.$base-bg-light-gray;
   }
-}
-
-.js-nav #acms-admin-main {
-  position: absolute;
-  top: 0;
-  width: 100%;
 }
 
 .acms-icon-admin-blog-children {
@@ -74,7 +54,7 @@
   }
 }
 
-@media screen and (min-width: global.$breakpoint-md-min) {
+@include global.media-breakpoint-up(md) {
   .acms-sidebar {
     position: fixed;
     width: auto;
@@ -153,6 +133,7 @@
 .acms-sidebar-sp-list-text {
   display: block;
   margin-top: 5px;
+  font-weight: bold;
 
   @include global.font-size(11);
 }
@@ -203,7 +184,7 @@
   vertical-align: middle;
 }
 
-@media (min-width: global.$breakpoint-md-min) {
+@include global.media-breakpoint-up(md) {
   .acms-sidebar-link a {
     padding: 10px 15px 10px 40px;
     padding-left: calc(10px + constant(safe-area-inset-left));

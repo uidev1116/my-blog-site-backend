@@ -20,13 +20,13 @@ class ACMS_POST_Log_Form_Download extends ACMS_POST
         }
 
         // ログ取得のクエリ作成
-        $query  = $this->buildQuery($fmid, $eid, $serial, $order);
+        $sql = $this->buildQuery($fmid, $eid, $serial, $order);
 
         // データ修正
-        $data   = $this->fixData($query);
+        $data   = $this->fixData($sql);
 
         // CSVの作成
-        $csv    = $this->buildCSV($query, $data);
+        $csv    = $this->buildCSV($sql, $data);
 
         // ダウンロード
         $this->download($csv);
@@ -84,9 +84,9 @@ class ACMS_POST_Log_Form_Download extends ACMS_POST
      * @param int $eid
      * @param int $serial
      * @param string $order
-     * @return array
+     * @return SQL_Select
      */
-    function buildQuery($fmid, $eid, $serial, $order)
+    function buildQuery($fmid, $eid, $serial, $order): SQL_Select
     {
         $SQL    = SQL::newSelect('log_form');
         $SQL->addLeftJoin('blog', 'blog_id', 'log_form_blog_id');
@@ -103,22 +103,23 @@ class ACMS_POST_Log_Form_Download extends ACMS_POST
         $SQL->addWhereBw('log_form_datetime', START, END);
         $SQL->setOrder('log_form_datetime', ('datetime-asc' == $order) ? 'DESC' : 'ASC');
 
-        return $SQL->get(dsn());
+        return $SQL;
     }
 
     /**
      * データの修正
      *
-     * @param string $query
+     * @param SQL_Select $sql
      * @return array
      */
-    function fixData($query)
+    function fixData(SQL_Select $sql)
     {
         $DB = DB::singleton(dsn());
-        $DB->query($query, 'fetch');
+        $query = $sql->get(dsn());
+        $statement = $DB->query($query, 'exec');
 
         $aryFd    = [];
-        while ($row = $DB->fetch($query)) {
+        while ($row = $DB->next($statement)) {
             if (isset($row['log_form_version']) && intval($row['log_form_version']) === 1) {
                 $Field = acmsDangerUnserialize($row['log_form_data']);
                 if ($Field instanceof Field) {
@@ -149,21 +150,22 @@ class ACMS_POST_Log_Form_Download extends ACMS_POST
     /**
      * CSVの組み立て
      *
-     * @param string $query
+     * @param SQL_Select $sql
      * @param array $data
      * @return string
      */
-    function buildCSV($query, $data)
+    function buildCSV(SQL_Select $sql, $data)
     {
         $DB     = DB::singleton(dsn());
-        $DB->query($query, 'fetch');
+        $query = $sql->get(dsn());
+        $statement = $DB->query($query, 'exec');
 
         $aryFd      = $data['aryFd'];
         $atPathAry  = $data['atPathAry'];
 
         $csv = '"' . implode('","', $aryFd) . '"' . "\x0d\x0a";
 
-        while ($row = $DB->fetch($query)) {
+        while ($row = $DB->next($statement)) {
             $Field = new Field();
             if (isset($row['log_form_version']) && intval($row['log_form_version']) === 1) {
                 $data = acmsDangerUnserialize($row['log_form_data']);
@@ -185,18 +187,20 @@ class ACMS_POST_Log_Form_Download extends ACMS_POST
             }
             $csv    .= '"' . "\x0d\x0a";
         }
-
-        return mb_convert_encoding($csv, $this->Post->get('charset', 'UTF-8'), 'UTF-8');
+        $response = mb_convert_encoding($csv, $this->Post->get('charset', 'UTF-8'), 'UTF-8');
+        if ($response === false) {
+            throw new \RuntimeException('CSVの生成に失敗しました。');
+        }
+        return $response;
     }
 
     /**
      * ダウンロードの実行
      *
-     * @param array $csv
+     * @param string $csv
      */
     function download($csv)
     {
-
         header('Content-Length: ' . strlen($csv));
         if (strpos(UA, 'MSIE')) {
             header('Content-Type: text/download');

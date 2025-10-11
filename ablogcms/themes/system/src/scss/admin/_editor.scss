@@ -73,7 +73,7 @@
   text-align: center;
 }
 
-@media screen and (max-width: global.$breakpoint-sm-max) {
+@include global.media-breakpoint-down(sm) {
   .acms-admin-media-unit-droparea-text {
     display: none;
   }

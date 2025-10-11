@@ -5,7 +5,7 @@ class ACMS_GET_Admin_Webhook_Index extends ACMS_GET_Admin
     public function get()
     {
         if (!sessionWithAdministration()) {
-            return '';
+            die403();
         }
 
         $Tpl = new Template($this->tpl, new ACMS_Corrector());
@@ -25,8 +25,9 @@ class ACMS_GET_Admin_Webhook_Index extends ACMS_GET_Admin
         $sql->addWhere($where);
         $sql->addOrder('webhook_id', 'DESC');
         $q = $sql->get(dsn());
+        $statement = DB::query($q, 'exec');
 
-        if (!DB::query($q, 'fetch') || !($row = DB::fetch($q))) {
+        if (!$statement || !($row = DB::next($statement))) {
             $Tpl->add('notFound');
             return $Tpl->get();
         }
@@ -57,7 +58,7 @@ class ACMS_GET_Admin_Webhook_Index extends ACMS_GET_Admin
                 $Tpl->add('notMine');
             }
             $Tpl->add('webhook:loop', $vars);
-        } while ($row = DB::fetch($q));
+        } while ($row = DB::next($statement));
 
         return $Tpl->get();
     }

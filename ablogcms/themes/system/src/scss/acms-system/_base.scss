@@ -32,36 +32,16 @@ body {
 // ------------------------------
 // リンク
 a {
-  color: #006dec;
+  color: global.$acms-color-link-text;
   text-decoration: none;
 }
 
 // hover
 a:hover {
-  color: #8ebef7;
+  color: global.$acms-color-link-text-hover;
 }
 
 // active
 a:active {
-  color: #8ebef7;
-}
-
-// ------------------------------
-// IE対応
-// ------------------------------
-
-/* IE8以下 */
-.lt-ie9 {
-  #acms-admin-main {
-    padding-left: 170px;
-  }
-
-  #nav {
-    position: fixed;
-    width: 175px;
-  }
-
-  #outer-wrap {
-    overflow: visible;
-  }
+  color: global.$acms-color-link-text-active;
 }

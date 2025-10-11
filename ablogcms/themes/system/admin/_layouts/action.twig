@@ -1,0 +1,167 @@
+<!-- BEGIN_MODULE Touch_NotPreview -->
+<!-- BEGIN_MODULE Admin_ActionMenu -->
+<div id="adminBox" class="clearfix acms-admin-box normalBox">
+{% block contents %}
+  {% block userStatus %}
+	<div id="loginUserStatus">
+		<img src="%{ARCHIVES_DIR}{icon}" width="20" height="20" alt="" class="acms-admin-user acms-admin-margin-right-mini" />{name}
+		<a href="%{BLOG_URL}%{PROFILE_UPDATE_SEGMENT}" class="acms-admin-label"><!--T-->プロフィール<!--/T--></a><!-- BEGIN approval -->
+		<div class="acms-admin-label-approval-group"><a href="{url}"><!--T-->承認通知<!--/T--></a>&nbsp;<span class="acms-admin-badge acms-admin-badge-approval">{badge}</span></div><!-- END approval -->
+    <!-- BEGIN_MODULE Touch_Debug -->
+		&nbsp;<a href="/bid/%{SBID}/admin/checklist/" class="acms-admin-label acms-admin-label-danger"><!--T-->デバッグモード<!--/T--></a><!-- BEGIN_MODULE Touch_Benchmark -->
+    &nbsp;<a href="/bid/%{SBID}/admin/checklist/" class="acms-admin-label acms-admin-label-warning"><!--T-->ベンチマークモード<!--/T--></a><!-- END_MODULE Touch_Benchmark -->
+		&nbsp;<!--T-->テンプレート<!--/T-->：%{ROOT_TPL}
+    <!-- BEGIN_IF [%{CONFIG_SET_NAME}/nem] -->
+    &nbsp;&nbsp;<span class="acms-admin-label"><!--T-->コンフィグセット<!--/T-->：%{CONFIG_SET_NAME}</span>
+    <!-- END_IF -->
+    <!-- BEGIN_IF [%{THEME_SET_NAME}/nem] -->
+    &nbsp;&nbsp;<span class="acms-admin-label"><!--T-->テーマセット<!--/T-->：%{THEME_SET_NAME}</span>
+    <!-- END_IF -->
+    <!-- BEGIN_IF [%{EDITOR_SET_NAME}/nem] -->
+    &nbsp;&nbsp;<span class="acms-admin-label"><!--T-->編集画面セット<!--/T-->：%{EDITOR_SET_NAME}</span>
+    <!-- END_IF -->
+    <!-- BEGIN_IF [%{RID}/nem] -->
+    &nbsp;&nbsp;<!--T-->ルール<!--/T-->：%{RULE_NAME}（RID:%{RID}）
+    <!-- END_IF -->
+		<!-- END_MODULE Touch_Debug -->
+
+    <!-- BEGIN_IF [%{IS_DEVELOPMENT}/eq/on] -->
+		/ <a href="https://mypage.a-blogcms.jp" target="_blank"><strong><!--T-->ライセンス未購入<!--/T--></strong></a>
+    <!-- END_IF -->
+    <!-- BEGIN status#TOO_MANY_USERS -->
+		/ <strong><!--T-->登録されているユーザー数が上限を超えているため、ライセンスが無効になっています。<!--/T--></strong>
+    <!-- END status#TOO_MANY_USERS -->
+    <!-- BEGIN status#MISMATCHED_DOMAIN -->
+		/ <strong><!--T-->ライセンスのドメインと違うため、ライセンスが無効になっています。<!--/T--></strong>
+    <!-- END status#MISMATCHED_DOMAIN -->
+    <!-- BEGIN status#EXPIRED -->
+		/ <strong><!--T-->ライセンスの有効期限切れのため、ライセンスが無効になっています。<!--/T--></strong>
+    <!-- END status#EXPIRED -->
+	</div>
+	{% endblock %}
+
+	{% block actions %}
+    {% block directEdit %}
+			<!-- BEGIN_MODULE Touch_Entry -->
+			<!-- BEGIN_MODULE Touch_SessionWithContribution -->
+
+			{% block enableDirectEdit %}
+			<!-- BEGIN_MODULE Touch_NotEditInplace -->
+			<!-- BEGIN_MODULE Touch_NotApprovalORsessionWithApprovalAdministrator -->
+			<form action="" method="post" id="action-direct-on" class="acms-admin-inline-btn">
+				<input type="submit" name="ACMS_POST_Entry_DirectEdit_Enable" value="<!--T-->ダイレクト編集ONにする<!--/T-->" class="acms-admin-btn" />
+			</form>
+			<!-- END_MODULE Touch_NotApprovalORsessionWithApprovalAdministrator -->
+			<!-- END_MODULE Touch_NotEditInplace -->
+			{% endblock %}
+
+			{% block disableDirectEdit %}
+			<!-- BEGIN_MODULE Touch_EditInplace -->
+			<form action="" method="post" id="action-direct-off" class="acms-admin-inline-btn">
+				<input type="submit" name="ACMS_POST_Entry_DirectEdit_Disable" value="<!--T-->ダイレクト編集OFFにする<!--/T-->" class="acms-admin-btn" />
+			</form>
+			<!-- END_MODULE Touch_EditInplace -->
+			{% endblock %}
+
+			<!-- END_MODULE Touch_SessionWithContribution -->
+			<!-- END_MODULE Touch_Entry -->
+		{% endblock %}
+
+		{% block createEntry %}
+		<!-- BEGIN insert -->
+		<form action="" method="post" id="action-entry-insert" class="acms-admin-inline-btn">
+			<input type="submit" name="ACMS_POST_2GET" value="<!--T-->エントリー作成<!--/T-->"  class="acms-admin-btn acms-admin-btn-success"/>
+			<input type="hidden" name="admin" value="entry-edit" />
+			<input type="hidden" name="bid" value="%{BID}" />
+			<input type="hidden" name="cid" value="%{CID}" />
+		</form>
+		<!-- END insert -->
+		{% endblock %}
+
+		{% block adminPage %}
+    <!-- BEGIN_MODULE Touch_SessionWithContribution -->
+		<!-- BEGIN_MODULE Touch_NotAdmin -->
+		<form action="" method="post" id="action-goto-admin-not-admin" class="acms-admin-inline-btn">
+			<input type="submit" name="ACMS_POST_2GET" value="<!--T-->管理ページ<!--/T-->" class="acms-admin-btn" />
+			<input type="hidden" name="admin" value="top" />
+			<input type="hidden" name="bid" value="%{BID}" />
+		</form>
+		<!-- END_MODULE Touch_NotAdmin -->
+
+		<!-- BEGIN_MODULE Touch_Edit -->
+		<form action="" method="post" id="action-goto-admin-edit" class="acms-admin-inline-btn">
+			<input type="submit" name="ACMS_POST_2GET" value="<!--T-->管理ページ<!--/T-->" class="acms-admin-btn" />
+			<input type="hidden" name="admin" value="top" />
+			<input type="hidden" name="bid" value="%{BID}" />
+		</form>
+    <!-- END_MODULE Touch_Edit -->
+    <!-- END_MODULE Touch_SessionWithContribution -->
+		{% endblock %}
+
+		<!-- BEGIN_MODULE Touch_NotAdmin -->
+    {% block timemachineMode %}
+		<!-- BEGIN_MODULE Touch_HigherLicense -->
+		<!-- BEGIN_MODULE Touch_SessionWithCompilation -->
+		<!-- BEGIN_MODULE Touch_NotTimemachineMode -->
+		<div class="acms-admin-inline-btn" id="action-timemachine-mode">
+			<button
+        class="js-acms-timemachine acms-admin-btn">
+        <!--T-->タイムマシーンモード<!--/T-->
+      </button>
+		</div>
+		<!-- END_MODULE Touch_NotTimemachineMode -->
+		<!-- END_MODULE Touch_SessionWithCompilation -->
+		<!-- END_MODULE Touch_HigherLicense -->
+		{% endblock %}
+
+    {% block previewMode %}
+		<!-- BEGIN_MODULE Touch_SessionWithContribution -->
+		<div class="acms-admin-inline-btn" id="action-preview-mode">
+			<button
+        class="js-acms-preview-button acms-admin-btn"
+        data-url="%{CURRENT_URL}"
+        data-default-device="%{PREVIEW_DEFAULT_DEVICE}"
+        data-has-history-device="%{PREVIEW_HAS_HISTORY_DEVICE}">
+        <!--T-->プレビュー<!--/T-->
+      </button>
+		</div>
+		<!-- END_MODULE Touch_SessionWithContribution -->
+		{% endblock %}
+		<!-- END_MODULE Touch_NotAdmin -->
+
+    {% block logoutBtn %}
+		<form action="" method="post" id="action-logout" class="acms-admin-inline-btn">
+			<input type="submit" name="ACMS_POST_Logout" value="<!--T-->ログアウト<!--/T-->" class="acms-admin-btn" />
+		</form>
+		{% endblock %}
+
+    {% block mailMagazine %}
+		<!-- BEGIN_MODULE Touch_Entry --><!-- BEGIN_MODULE Touch_SessionWithAdministration --><!-- BEGIN_MODULE Touch_MailMagazineEnable -->
+		<hr class="clearHidden" style="margin:0;" />
+		<form action="" method="post" id="action-entry-mail" class="acms-admin-inline-btn acms-admin-form">
+			<input type="hidden" name="bid" value="%{BID}" />
+			<input type="hidden" name="eid" value="%{EID}" />
+			<input type="submit" name="ACMS_POST_Entry_Mail" value="<!--T-->このエントリーをメールで送信<!--/T-->" class="acms-admin-btn" />
+			<!-- BEGIN_MODULE Admin_Blog_SelectGlobal -->
+			<select name="user_blog_id" class="js-select2"><!-- BEGIN loop -->
+				<option value="{value}"{selected}>{indent}[raw]{label}</option><!-- END loop -->
+			</select><!-- END_MODULE Admin_Blog_SelectGlobal -->
+			<div class="acms-admin-form-checkbox">
+				<input type="checkbox" name="issue" value="true" id="entry-mail-broadcast" />
+				<label for="entry-mail-broadcast"><i class="acms-admin-ico-checkbox"></i><!--T-->一斉送信<!--/T--></label>
+			</div>
+		</form><!-- END_MODULE Touch_MailMagazineEnable --><!-- END_MODULE Touch_SessionWithAdministration --><!-- END_MODULE Touch_Entry -->
+		{% endblock %}
+
+	{% endblock %}
+
+	<hr class="clearHidden" style="margin:0;" />
+
+  {% block extra %}
+	{% endblock %}
+
+	<!-- BEGIN_MODULE Admin_InjectTemplate id="admin-action" --><!-- END_MODULE Admin_InjectTemplate -->
+{% endblock %}
+</div>
+<!-- END_MODULE Admin_ActionMenu -->
+<!-- END_MODULE Touch_NotPreview -->

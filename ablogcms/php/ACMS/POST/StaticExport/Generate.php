@@ -35,7 +35,7 @@ class ACMS_POST_StaticExport_Generate extends ACMS_POST
     public function post()
     {
         if (!sessionWithAdministration()) {
-            die();
+            die403();
         }
 
         ignore_user_abort(true);

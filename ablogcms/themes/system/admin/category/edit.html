@@ -10,7 +10,7 @@
 <!-- BEGIN_MODULE Admin_Category_Edit -->
 
 <!-- BEGIN msg#insert -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
   <span
     class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before"
     aria-hidden="true"
@@ -23,10 +23,10 @@
     ×
   </button>
   <!--T-->カテゴリーを作成しました<!--/T-->
-</p>
+</div>
 <!-- END msg#insert -->
 <!-- BEGIN msg#update -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
   <span
     class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before"
     aria-hidden="true"
@@ -39,10 +39,10 @@
     ×
   </button>
   <!--T-->カテゴリーを保存しました<!--/T-->
-</p>
+</div>
 <!-- END msg#update -->
 <!-- BEGIN msg#delete -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
   <span
     class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before"
     aria-hidden="true"
@@ -55,10 +55,10 @@
     ×
   </button>
   <!--T-->カテゴリーを削除しました<!--/T-->
-</p>
+</div>
 <!-- END msg#delete -->
 <!-- BEGIN msg#error -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
   <span
     class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before"
     aria-hidden="true"
@@ -71,10 +71,10 @@
     ×
   </button>
   <!--T-->カテゴリーの保存に失敗しました<!--/T-->
-</p>
+</div>
 <!-- END msg#error -->
 <!-- BEGIN category:validator#operable -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
   <span
     class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before"
     aria-hidden="true"
@@ -87,10 +87,10 @@
     ×
   </button>
   <!--T-->この操作は許可されていません。<!--/T-->
-</p>
+</div>
 <!-- END category:validator#operable -->
 <!-- BEGIN category:validator#entryExists -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
   <span
     class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before"
     aria-hidden="true"
@@ -104,10 +104,10 @@
   </button>
   <!--T-->カテゴリーを削除できませんでした。<!--/T--><br>
   <!--T-->エントリーが登録されているカテゴリーは削除できません。<!--/T--><br>
-</p>
+</div>
 <!-- END category:validator#entryExists -->
 <!-- BEGIN category:validator#subCategoryExists -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
   <span
     class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before"
     aria-hidden="true"
@@ -121,11 +121,8 @@
   </button>
   <!--T-->カテゴリーを削除できませんでした。<!--/T--><br>
   <!--T-->サブカテゴリーがあるカテゴリーは削除できません。<!--/T--><br>
-</p>
+</div>
 <!-- END category:validator#subCategoryExists -->
-
-<!-- BEGIN headline#insert --><!-- END headline#insert -->
-<!-- BEGIN headline#update --><!-- END headline#update -->
 
 <form
   action=""
@@ -182,19 +179,11 @@
       <!-- END_MODULE Touch_Role_NotAvailable -->
 
       <!-- BEGIN_IF [%{edit}/neq/insert] -->
-      <div
-        class="js-fake-form acms-admin-float-right acms-admin-float-none-sp acms-admin-margin-bottom-mini"
-        data-method="post"
-      >
-        <input type="hidden" name="bid" value="%{BID}" />
-        <input type="hidden" name="admin" value="category_edit" />
-        <input type="hidden" name="edit" value="insert" />
-        <input type="hidden" name="pcid" value="%{CID}" />
-        <input type="hidden" name="query[]" value="edit" />
-        <input type="hidden" name="query[]" value="pcid" />
-        <input type="hidden" name="ACMS_POST_2GET" value="Create Category" />
+      <div class="acms-admin-float-right acms-admin-float-none-sp acms-admin-margin-bottom-mini">
         <button
-          class="js-submit acms-admin-btn acms-admin-btn-success js-hide-on-modal"
+          type="submit"
+          form="create-category-form"
+          class="acms-admin-btn acms-admin-btn-success js-hide-on-modal"
         >
           <!--T-->子カテゴリーを作成<!--/T-->
         </button>
@@ -214,33 +203,6 @@
     </div>
   </div>
 
-  <!-- BEGIN category:validator#operable -->
-  <p class="transaction-notice-error acms-admin-alert acms-admin-alert-danger">
-    <!--T-->この操作は許可されていません。<!--/T-->
-  </p>
-  <!-- END category:validator#operable -->
-  <p
-    class="transaction-notice-{insert:validator} acms-admin-alert acms-admin-alert-danger"
-  >
-    <!--T-->カテゴリーを作成できませんでした。<!--/T-->
-  </p>
-  <p
-    class="transaction-notice-{update:validator} acms-admin-alert acms-admin-alert-danger"
-  >
-    <!--T-->カテゴリーを保存できませんでした。<!--/T-->
-  </p>
-  <p
-    class="transaction-notice-{delete:validator#entryExists} acms-admin-alert acms-admin-alert-danger"
-  >
-    <!--T-->カテゴリーを削除できませんでした。<!--/T--><br />
-    <!--T-->エントリーが登録されているカテゴリーは削除できません。<!--/T--><br />
-  </p>
-  <p
-    class="transaction-notice-{delete:validator#subCategoryExists} acms-admin-alert acms-admin-alert-danger"
-  >
-    <!--T-->カテゴリーを削除できませんでした。<!--/T--><br />
-    <!--T-->サブカテゴリーがあるカテゴリーは削除できません。<!--/T--><br />
-  </p>
   <input type="hidden" name="scope" value="local" />
   <input type="hidden" name="category[]" value="scope" />
 
@@ -727,26 +689,36 @@
         <tr>
           <th>位置情報</th>
           <td>
-            <div class="acms-admin-form-group">
-              <!-- BEGIN_IF [{geo_lat}/nem/_and_/{geo_lng}/nem/] -->
-              <input
-                class="js-geo_input acms-admin-btn"
-                type="button"
-                data-type="delete"
-              />
-              <!-- ELSE -->
-              <input
-                class="js-geo_input acms-admin-btn"
-                type="button"
-                data-type="add"
-              />
-              <!-- END_IF -->
+            <div class="acms-admin-vstack acms-admin-align-items-stretch">
+              <div>
+                <!-- BEGIN_IF [{geo_lat}/nem/_and_/{geo_lng}/nem/] -->
+                <button
+                  class="js-geo-button acms-admin-btn"
+                  type="button"
+                  data-type="delete"
+                  data-target="#geo-form"
+                >
+                  <!--T-->位置情報を削除<!--/T-->
+                </button>
+                <!-- ELSE -->
+                <button
+                  class="js-geo-button acms-admin-btn"
+                  type="button"
+                  data-type="add"
+                  data-target="#geo-form"
+                >
+                  <!--T-->位置情報を追加<!--/T-->
+                </button>
+                <!-- END_IF -->
+              </div>
+              <div id="geo-form" style="display: none;">
+                <!-- BEGIN_IF [<!-- BEGIN_MODULE Config -->{geolocation_map_type}<!-- END_MODULE Config -->/eq/gmap] -->
+                @include("/admin/map/_google-map-picker.html")
+                <!-- ELSE -->
+                @include("/admin/map/_open-street-map-picker.html")
+                <!-- END_IF -->
+              </div>
             </div>
-            <!-- BEGIN_IF [<!-- BEGIN_MODULE Config -->{geolocation_map_type}<!-- END_MODULE Config -->/eq/gmap] -->
-            @include("/admin/map/_google-map-picker.html")
-            <!-- ELSE -->
-            @include("/admin/map/_open-street-map-picker.html")
-            <!-- END_IF -->
           </td>
         </tr>
         <!-- END_MODULE Touch_GeolocationCategoryFunction -->
@@ -762,6 +734,16 @@
     </div>
     <!-- END_MODULE Touch_SessionWithEnterpriseAdministration -->
   </div>
+</form>
+
+<form id="create-category-form" action="" method="post">
+  <input type="hidden" name="bid" value="%{BID}" />
+  <input type="hidden" name="admin" value="category_edit" />
+  <input type="hidden" name="edit" value="insert" />
+  <input type="hidden" name="pcid" value="%{CID}" />
+  <input type="hidden" name="query[]" value="edit" />
+  <input type="hidden" name="query[]" value="pcid" />
+  <input type="hidden" name="ACMS_POST_2GET" value="Create Category" />
 </form>
 <!-- END step#reapply -->
 <!-- END_MODULE Admin_Category_Edit -->

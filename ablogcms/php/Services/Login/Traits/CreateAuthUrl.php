@@ -17,10 +17,9 @@ trait CreateAuthUrl
     /**
      * トークンのキーを取得
      *
-     * @param array $data
      * @return string
      */
-    abstract protected function getTokenKey(array $data): string;
+    abstract protected function getTokenKey(): string;
 
     /**
      * トークンのタイプを取得
@@ -90,7 +89,7 @@ trait CreateAuthUrl
             'bid' => BID,
         ];
         $uri = acmsLink(array_merge($baseUrlCoctext, $urlContext), false);
-        $parameters = $this->createAuthQueryParams($token, $data, $lifetime);
+        $parameters = $this->createAuthQueryParams($token, $lifetime);
         $this->saveToken($token, $data, $lifetime);
 
         return "{$uri}?{$parameters}";
@@ -105,16 +104,18 @@ trait CreateAuthUrl
      */
     protected function saveToken(string $token, array $data, int $lifetime): void
     {
-        $key = $this->getTokenKey($data);
+        $key = $this->getTokenKey();
         $type = $this->getTokenType();
 
         if (empty($key) || empty($type)) {
             return;
         }
+        $data = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $sql = SQL::newInsert('token');
         $sql->addInsert('token_key', $key);
         $sql->addInsert('token_type', $type);
-        $sql->addInsert('token_value', $token);
+        $sql->addInsert('token_value', hash('sha256', $token));
+        $sql->addInsert('token_data', $data ? $data : '');
         $sql->addInsert('token_expire', date('Y-m-d H:i:s', REQUEST_TIME + $lifetime));
         DB::query($sql->get(dsn()), 'exec');
     }
@@ -123,17 +124,18 @@ trait CreateAuthUrl
      * 認証パラメータを組み立て
      *
      * @param string $token
-     * @param array $data
      * @param int $lifetime
      * @return string
      */
-    protected function createAuthQueryParams(string $token, array $data, int $lifetime): string
+    protected function createAuthQueryParams(string $token, int $lifetime): string
     {
         $salt = Common::genPass(32); // 事前共有鍵
-        $data['token'] = $token;
-        $data['expire'] = REQUEST_TIME + $lifetime; // 有効期限
+        $data = [
+            'token' => $token,
+            'expire' => REQUEST_TIME + $lifetime, // 有効期限
+        ];
         $context = acmsSerialize($data);
-        $prk = hash_hmac('sha256', PASSWORD_SALT_1, $salt);
+        $prk = hash_hmac('sha256', Common::getCurrentSalt(), $salt);
         $derivedKey = hash_hmac('sha256', $prk, $context);
         $params = http_build_query([
             'key' => $derivedKey,

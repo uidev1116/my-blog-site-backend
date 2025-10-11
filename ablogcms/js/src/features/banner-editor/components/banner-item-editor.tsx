@@ -3,7 +3,7 @@ import { CSS } from '@dnd-kit/utilities';
 import classNames from 'classnames';
 import type { ExtendedFile } from '../../../lib/read-files';
 import { BannerItem, BannerType } from '../types';
-import DropZone from '../../../components/drop-zone/drop-zone';
+import DropZone, { DropZoneFileSelector, DropZoneText } from '../../../components/drop-zone/drop-zone';
 import DraggableButton from '../../../components/draggable-button/draggable-button';
 import { range } from '../../../utils';
 
@@ -90,6 +90,7 @@ const BannerItemEditor = ({
                   {...attributes}
                   {...listeners}
                   className="acms-admin-banner-edit-btn-draggable"
+                  size="small"
                 />
                 <select
                   onChange={(e) => {
@@ -98,7 +99,7 @@ const BannerItemEditor = ({
                   }}
                   value={index}
                 >
-                  {range(1, length).map((i) => (
+                  {range(1, length + 1).map((i) => (
                     <option key={i} value={i}>
                       {i}
                     </option>
@@ -145,25 +146,16 @@ const BannerItemEditor = ({
                         <div>
                           {!item.media_banner_mid && (
                             <div className="acms-admin-banner-edit-droparea">
-                              <p className="acms-admin-banner-edit-droparea-text">{ACMS.i18n('media.add_new_media')}</p>
-                              <label
-                                htmlFor={`input-file-media-banner-${item.id}`}
-                                className="acms-admin-banner-edit-droparea-btn"
-                                style={{ cursor: 'pointer' }}
-                              >
-                                {ACMS.i18n('media.upload')}
-                                <input
-                                  id={`input-file-media-banner-${item.id}`}
-                                  type="file"
-                                  onChange={(e) => {
-                                    const files = Array.from((e.target as HTMLInputElement)?.files as FileList);
-                                    onFileInputChage(files, item);
-                                  }}
-                                  style={{ display: 'none' }}
-                                  multiple
-                                />
-                              </label>
-                              <p className="acms-admin-banner-edit-droparea-text">{ACMS.i18n('media.drop_file')}</p>
+                              <DropZoneText>{ACMS.i18n('media.add_new_media')}</DropZoneText>
+                              <DropZoneFileSelector
+                                id={`input-file-media-banner-${item.id}`}
+                                type="file"
+                                onChange={(e) => {
+                                  const files = Array.from((e.target as HTMLInputElement)?.files as FileList);
+                                  onFileInputChage(files, item);
+                                }}
+                              />
+                              <DropZoneText>{ACMS.i18n('media.drop_file')}</DropZoneText>
                             </div>
                           )}
                           {item.media_banner_mid && (

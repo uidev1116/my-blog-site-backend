@@ -97,9 +97,6 @@ if (!defined('RBID')) {
 if (!defined('SESSION_USE_COOKIE')) {
     define('SESSION_USE_COOKIE', null);
 }
-if (!defined('TBID')) {
-    define('TBID', null);
-}
 if (!defined('CMID')) {
     define('CMID', null);
 }
@@ -174,8 +171,10 @@ function acmsStandAloneRun($exec)
 
         $date = date('Y-m-d H:i:s');
         $stderr = fopen('php://stderr', 'w');
-        fwrite($stderr, "$date [Error] " . $e->getMessage() . "\n");
-        fclose($stderr);
+        if ($stderr) {
+            fwrite($stderr, "$date [Error] " . $e->getMessage() . "\n");
+            fclose($stderr);
+        }
         exit(1);
     }
 }
@@ -184,6 +183,8 @@ function acmsStdMessage($message)
 {
     $date = date('Y-m-d H:i:s');
     $stdout = fopen('php://stdout', 'w');
-    fwrite($stdout, "$date $message\n");
-    fclose($stdout);
+    if ($stdout) {
+        fwrite($stdout, "$date $message\n");
+        fclose($stdout);
+    }
 }

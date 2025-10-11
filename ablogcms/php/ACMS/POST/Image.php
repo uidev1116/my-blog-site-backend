@@ -1,117 +1,156 @@
 <?php
 
+use Acms\Services\Facades\Image;
+use Acms\Services\Facades\Common;
+use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\PublicStorage;
+use Acms\Services\Facades\Logger as AcmsLogger;
+
+/**
+ * 画像アップロードと管理を担当するクラス
+ *
+ * このクラスは以下の機能を提供します：
+ * - 画像のアップロード処理
+ * - 画像のリサイズ（tiny, normal, large, squareサイズ）
+ * - 画像の回転
+ * - 画像の削除
+ * - Base64エンコードされた画像の処理
+ * - WebP形式への変換
+ *
+ * @phpstan-type EditOption array{
+ *  size: int,
+ *  angle?: int,
+ * }
+ *
+ * @phpstan-type EditOptions array{
+ *  tiny?: EditOption,
+ *  square?: EditOption,
+ *  normal?: EditOption,
+ *  large?: EditOption,
+ * }
+ */
 class ACMS_POST_Image extends ACMS_POST
 {
-    /**
-     * @var string
-     */
-    public $id;
+    private const ARCHIVES_TMP_DIR = ARCHIVES_DIR . 'tmp/';
 
     /**
-     * @var string|null
+     * 既存の画像パス
+     * @var string
      */
     public $old;
 
     /**
+     * 保存先のパス
      * @var string
      */
     public $path;
 
     /**
-     * @var string|int
+     * リサイズ後のサイズ
+     * @var int
      */
     public $size;
 
     /**
+     * 選択されたサイズ
      * @var string|int
      */
     public $selectSize;
 
     /**
+     * 既存の画像サイズ
      * @var string|int
      */
     public $oldSize;
 
     /**
+     * 編集モード（'none', 'deleteLarge', 'rotate270', 'rotate90', 'rotate180', 'delete'）
      * @var string
      */
     public $edit;
 
     /**
+     * 削除対象の画像パス
      * @var string|null
      */
     public $delete;
 
     /**
+     * 回転角度
      * @var int|null
      */
     public $angle;
 
     /**
+     * アーカイブディレクトリのパス
      * @var string
      */
     public $ARCHIVES_DIR;
 
     /**
+     * 古い画像を削除するかどうかのフラグ
      * @var bool
      */
     public $olddel;
 
     /**
-     * @var bool
-     */
-    public $directAdd;
-
-    /**
-     * @var string
-     */
-    public $target;
-
-    /**
+     * サムネイルサイズ
      * @var int
      */
     public $tinySize;
 
     /**
+     * 大サイズ
      * @var int
      */
     public $largeSize;
 
     /**
+     * 正方形サイズ
      * @var int
      */
     public $squareSize;
 
     /**
+     * 標準サイズの基準（width/height）
      * @var string|null
      */
     public $stdSide;
 
     /**
+     * サムネイルサイズの基準（width/height）
      * @var string|null
      */
     public $stdSideTiny;
 
     /**
+     * 大サイズの基準（width/height）
      * @var string|null
      */
     public $stdSideLarge;
 
-    /*
-     * Image = new ACMS_POST_Image();
+    /**
+     * コンストラクタ
+     *
+     * @param bool $olddel 古い画像を削除するかどうか
      */
-    public function __construct($olddel = true, $directAdd = false)
+    public function __construct($olddel = true)
     {
         //-------
         // init
-        $this->delete       = null;
-        $this->angle        = null;
+        $this->delete = '';
+        $this->angle = null;
 
-        $this->olddel       = $olddel;
-        $this->directAdd    = $directAdd;
+        $this->olddel = $olddel;
         $this->ARCHIVES_DIR = ARCHIVES_DIR;
     }
 
+    /**
+     * Base64エンコードされた文字列からデータ部分を抽出
+     *
+     * @param string $string Base64エンコードされた文字列
+     * @return string Base64データ部分
+     */
     public static function getBase64Data($string)
     {
         $temp = explode(',', $string);
@@ -123,43 +162,60 @@ class ACMS_POST_Image extends ACMS_POST
         return $data;
     }
 
+    /**
+     * Base64データを画像ファイルに変換
+     *
+     * @param string|array $base64 Base64エンコードされた画像データ
+     * @param string $id ファイルID
+     * @param int|false $index 配列インデックス（複数ファイルの場合）
+     * @return bool 成功した場合はtrue、失敗した場合はfalse
+     */
     public static function base64DataToImage($base64, $id, $index = false)
     {
-        if (empty($base64)) {
+        if (is_string($base64) && $base64 === '') {
             return false;
         }
-        if (!Storage::exists(ARCHIVES_DIR . 'tmp/')) {
-            if (!Storage::makeDirectory(ARCHIVES_DIR . 'tmp/')) {
+        if (is_array($base64) && count($base64) === 0) {
+            return false;
+        }
+
+        // base64データを保存するディレクトリはローカルストレージに保存する
+        // 一時ファイルとして保存するだけなので、外部のストレージには保存しない
+        if (!LocalStorage::exists(self::ARCHIVES_TMP_DIR)) {
+            if (!LocalStorage::makeDirectory(self::ARCHIVES_TMP_DIR)) {
                 return false;
             }
         }
-        $name       = $_FILES[$id]['name'];
-        $type       = $_FILES[$id]['type'];
-        $tmp_name   = $_FILES[$id]['tmp_name'];
-        $error      = $_FILES[$id]['error'];
-        $size       = $_FILES[$id]['size'];
+
+        $name       = $_FILES[$id]['name'] ?? '';
+        $type       = $_FILES[$id]['type'] ?? '';
+        $tmp_name   = $_FILES[$id]['tmp_name'] ?? '';
+        $error      = $_FILES[$id]['error'] ?? 0;
+        $size       = $_FILES[$id]['size'] ?? 0;
 
         //----------------
         // 複数アップロード
         if (is_array($base64)) {
             foreach ($base64 as $i => $row) {
                 $row = self::getBase64Data($row);
-                if (empty($row)) {
+                if ($row === '') {
                     continue;
                 }
                 try {
                     $tmpFile    = uniqueString() . '.jpeg';
-                    $data       = base64_decode($row); // @phpstan-ignore-line
-                    $dest       = ARCHIVES_DIR . 'tmp/' . $tmpFile;
-
-                    Storage::put($dest, $data);
-                    $tmpPath    = realpath($dest);
+                    $data       = base64_decode($row, true);
+                    if ($data === false) {
+                        throw new \RuntimeException('Invalid base64 data');
+                    }
+                    $dest       = self::ARCHIVES_TMP_DIR . $tmpFile;
+                    LocalStorage::put($dest, $data);
+                    $tmpPath = LocalStorage::safeRealpath($dest);
 
                     $name[$i]     = $tmpFile;
                     $type[$i]     = 'image/jpeg';
                     $tmp_name[$i] = $tmpPath;
                     $error[$i]    = '';
-                    $size[$i]     = filesize($dest);
+                    $size[$i]     = LocalStorage::getFileSize($dest);
                 } catch (\Exception $e) {
                     AcmsLogger::notice($e->getMessage(), Common::exceptionArray($e));
                     continue;
@@ -172,11 +228,14 @@ class ACMS_POST_Image extends ACMS_POST
             try {
                 $tmpFile    = uniqueString() . '.jpeg';
                 $base64     = self::getBase64Data($base64);
-                $data       = base64_decode($base64); // @phpstan-ignore-line
-                $dest       = ARCHIVES_DIR . 'tmp/' . $tmpFile;
+                $data       = base64_decode($base64, true);
+                if ($data === false) {
+                    throw new \RuntimeException('Invalid base64 data');
+                }
+                $dest       = self::ARCHIVES_TMP_DIR . $tmpFile;
 
-                Storage::put($dest, $data);
-                $tmpPath    = realpath($dest);
+                LocalStorage::put($dest, $data);
+                $tmpPath = LocalStorage::safeRealpath($dest);
 
                 // 多言語対応
                 if (is_int($index)) {
@@ -184,20 +243,24 @@ class ACMS_POST_Image extends ACMS_POST
                     $type[$index]       = 'image/jpeg';
                     $tmp_name[$index]   = $tmpPath;
                     $error[$index]      = '';
-                    $size[$index]       = filesize($dest);
+                    $size[$index]       = LocalStorage::getFileSize($dest);
                 } else {
                     $name       = $tmpFile;
                     $type       = 'image/jpeg';
                     $tmp_name   = $tmpPath;
                     $error      = '';
-                    $size       = filesize($dest);
+                    $size       = LocalStorage::getFileSize($dest);
                 }
             } catch (\Exception $e) {
                 AcmsLogger::notice($e->getMessage(), Common::exceptionArray($e));
             }
         }
 
-        if (empty($name)) {
+        if (is_array($name) && count($name) === 0) {
+            return false;
+        }
+
+        if (is_string($name) && $name === '') {
             return false;
         }
 
@@ -208,205 +271,175 @@ class ACMS_POST_Image extends ACMS_POST
             'error'     => $error,
             'size'      => $size,
         ];
+
+        return true;
     }
 
     /**
-     * @param string $id
-     * @param string|null $old 保存されている画像パス
-     * @param array|string $FILES
-     * @param string $size ユニットで選択された画像サイズ ex: width820:acms-col-sm-12,
-     * @param 'none' | 'deleteLarge' | 'rotate270' | 'rotate90' | 'rotate180' | 'delete' $edit
+     * 画像の構築と保存を実行
+     *
+     * @param string $old 保存されている画像パス
+     * @param string $filepath アップロードされたファイルパス
+     * @param string $size ユニットで選択された画像サイズ ex: width820:acms-col-sm-12
+     * @param 'none'|'deleteLarge'|'rotate270'|'rotate90'|'rotate180'|'delete' $edit 編集モード
      * @param string $size_old 現在保存されている画像のサイズ ex: with820:acms-col-sm-12, w820
+     * @return array{edit: EditOptions, target: string, file: string, path: string}|null 保存された画像情報
      */
-    public function buildAndSave($id, $old, $FILES, $size, $edit, $size_old = '')
+    public function buildAndSave($old, $filepath, $size, $edit, $size_old = '')
     {
-        $this->id       = $id;
-        $this->old      = $old;
+        $this->old = $old;
         $this->selectSize = $size;
-        $this->oldSize  = $size_old;
-        $this->edit     = $edit;
-        $this->delete   = null;
+        $this->oldSize = $size_old;
+        $this->edit = $edit;
+        $this->delete = null;
 
-        $this->old      = is_string($old) ? ltrim($old, './') : $old;
-        $this->path     = $this->old;
+        $this->old = ltrim($old, './');
+        $this->path = $this->old;
 
-        if ('delete' == $this->edit) {
-            if (!empty($this->old)) {
+        if ($this->edit === 'delete') {
+            if ($this->old !== '') {
                 $this->delete = $this->ARCHIVES_DIR . $this->old;
             }
-            $this->old  = null;
-        } elseif ('deleteLarge' == $this->edit) {
-            if (!empty($this->old)) {
+            $this->old = '';
+        } elseif ($this->edit === 'deleteLarge') {
+            if ($this->old !== '') {
                 $file = $this->ARCHIVES_DIR . $this->old;
-                if (Storage::isFile($file)) {
-                    $name   = Storage::mbBasename($file);
-                    $dir    = substr($file, 0, (strlen($file) - strlen($name)));
-                    Storage::remove($dir . 'large-' . $name);
+                if (PublicStorage::isFile($file)) {
+                    $name = PublicStorage::mbBasename($file);
+                    $dir = substr($file, 0, (strlen($file) - strlen($name)));
+                    PublicStorage::remove($dir . 'large-' . $name);
                     if (HOOK_ENABLE) {
                         $Hook = ACMS_Hook::singleton();
                         $Hook->call('mediaDelete', $dir . 'large-' . $name);
                     }
                 }
             }
-        } elseif ('rotate' == substr($edit, 0, 6)) {
-            $this->angle    = intval(substr($edit, 6));
+        } elseif (substr($edit, 0, 6) === 'rotate') {
+            $this->angle = intval(substr($edit, 6));
         }
 
         //----------------
         // build and save
-        $imageFiles = [];
 
         $this->buildSize($size);
-        foreach ($this->buildInsertData($FILES) as $imageData) {
-            if (empty($imageData)) {
-                continue;
-            }
-            array_push($imageFiles, $imageData);
-        }
-        foreach ($this->buildUpdateData() as $imageData) {
-            if (empty($imageData)) {
-                continue;
-            }
-            array_push($imageFiles, $imageData);
-        }
-        $this->editAndSaveImage($imageFiles);
-        $this->deleteImage();
-        Storage::removeDirectory(ARCHIVES_DIR . 'tmp/');
+        $insertData = $this->buildInsertData($filepath);
+        $updateData = $this->buildUpdateData();
+        $data = $insertData ?? $updateData;
 
-        return $imageFiles;
+        if ($data !== null) {
+            $this->editAndSaveImage($data);
+        }
+        $this->deleteImage();
+        PublicStorage::removeDirectory(self::ARCHIVES_TMP_DIR);
+
+        return $data;
     }
 
-    private function buildInsertData($FILES)
+    /**
+     * 新規アップロード画像のデータを構築
+     *
+     * @param string $filepath アップロードされたファイルパス
+     * @return array{edit: EditOptions, target: string, file: string, path: string}|null 画像データ
+     */
+    private function buildInsertData(string $filepath)
     {
-        $file   = null;
-        $Edit   = [];
+        $result = null;
 
-        $uploadFiles    = [];
-        $imageFiles     = [];
         do {
-            if (!empty($this->delete)) {
+            if ($this->delete !== null && $this->delete !== '') {
+                // 削除対象の画像がある場合は処理を中断
                 break;
             }
-            if (empty($FILES)) {
+
+            if ($filepath === '') {
+                // ファイル名が空の場合は処理を中断
                 break;
             }
 
-            //----------------
-            // 複数アップロード
-            if (is_array($FILES)) {
-                if (!empty($this->old)) {
-                    $uploadFiles  = $FILES;
-                    if (
-                        1
-                        && ($this->directAdd || is_uploaded_file($uploadFiles[0]))
-                        && Storage::getImageSize($uploadFiles[0])
-                    ) {
-                        $this->delete   = $this->ARCHIVES_DIR . $this->old;
-                        $this->old      = null;
-                    } else {
-                        continue;
-                    }
-                } else {
-                    $uploadFiles = $FILES;
-                }
-                //-----------------
-                // 単数アップロード
-            } else {
-                $uploadFiles[] = $FILES;
-
-                if (
-                    0
-                    || !Storage::getImageSize($uploadFiles[0])
-                    || (!is_uploaded_file($uploadFiles[0]) && !$this->directAdd)
-                ) {
-                    break;
-                }
-                if (!empty($this->old)) {
-                    $this->delete = $this->ARCHIVES_DIR . $this->old;
-                    $this->old    = null;
-                }
+            if (!$xy = LocalStorage::getImageSize($filepath)) {
+                // ローカルストレージに存在しない場合は処理を中断
+                break;
             }
 
-            //------------------------
-            // アップロード ファイル情報
-            foreach ($uploadFiles as $j => $upload) {
-                if (!$this->directAdd && !is_uploaded_file($upload)) {
-                    continue;
-                }
-                if (!$xy = Storage::getImageSize($upload)) {
-                    continue;
-                }
+            if (!$this->isUploadedFile($filepath)) {
+                // アップロードされていない場合
+                break;
+            }
 
-                $longSide   = max($xy[0], $xy[1]);
-                $mime       = $xy['mime'];
+            $Edit = [];
 
-                $Edit['tiny']['size']   = $this->tinySize;
+            if ($this->old !== '') {
+                $this->delete = $this->ARCHIVES_DIR . $this->old;
+                $this->old = '';
+            }
+
+            $longSide = max($xy[0], $xy[1]);
+            $mime = $xy['mime'];
+
+            $Edit['tiny']['size'] = $this->tinySize;
+            if ($this->squareSize > 0) {
+                $Edit['square']['size'] = $this->squareSize;
+            }
+            $Edit['normal']['size'] = $this->size;
+
+            if ($this->angle !== null) {
+                $Edit['tiny']['angle'] = $this->angle;
                 if ($this->squareSize > 0) {
-                    $Edit['square']['size'] = $this->squareSize;
+                    $Edit['square']['angle'] = $this->angle;
                 }
-                $Edit['normal']['size'] = $this->size;
-
-                if (!empty($this->angle)) {
-                    $Edit['tiny']['angle']          = $this->angle;
-                    if ($this->squareSize > 0) {
-                        $Edit['square']['angle']    = $this->angle;
-                    }
-                    $Edit['normal']['angle']        = $this->angle;
-                }
-
-                if (!empty($this->size) && $longSide > $this->size && 'deleteLarge' !== $this->edit) {
-                    $Edit['large']['size']  = ($longSide > $this->largeSize) ? $this->largeSize : $longSide;
-                    if (!empty($this->angle)) {
-                        $Edit['large']['angle']     = $this->angle;
-                    }
-                }
-
-                $this->target   = $upload;
-                $dir            = Storage::archivesDir();
-                Storage::makeDirectory($this->ARCHIVES_DIR . $dir);
-                $exts   = [
-                    'image/gif'         => 'gif',
-                    'image/png'         => 'png',
-                    'image/vnd.wap.wbmp' => 'bmp',
-                    'image/xbm'         => 'xbm',
-                    'image/jpeg'        => 'jpg',
-                ];
-                $ext    = isset($exts[$mime]) ? $exts[$mime] : 'jpg';
-                $path   = $dir . uniqueString(8) . '.' . $ext;
-                $file   = $this->ARCHIVES_DIR . $path;
-
-                Entry::addUploadedFiles($path); // 新規バージョンとして作成する時にファイルをCOPYするかの判定に利用
-
-                $imageFiles[] = [
-                    'edit'      => $Edit,
-                    'target'    => $this->target,
-                    'file'      => $file,
-                    'path'      => $path,
-                ];
+                $Edit['normal']['angle'] = $this->angle;
             }
+
+            if ($this->size !== null && $longSide > $this->size && $this->edit !== 'deleteLarge') {
+                $Edit['large']['size'] = ($longSide > $this->largeSize) ? $this->largeSize : $longSide;
+                if ($this->angle !== null) {
+                    $Edit['large']['angle'] = $this->angle;
+                }
+            }
+
+            $target = $filepath;
+            $dir = PublicStorage::archivesDir();
+            PublicStorage::makeDirectory($this->ARCHIVES_DIR . $dir);
+
+            $ext = $mime ? Image::detectImageExtenstion($mime) : 'jpg';
+            $path = $dir . uniqueString(8) . '.' . $ext;
+            $file = $this->ARCHIVES_DIR . $path;
+
+            Entry::addUploadedFiles($path); // 新規バージョンとして作成する時にファイルをCOPYするかの判定に利用
+
+            $result = [
+                'edit' => $Edit,
+                'target' => $target,
+                'file' => $file,
+                'path' => $path,
+            ];
         } while (false);
 
-        return $imageFiles;
+        return $result;
     }
 
+    /**
+     * 既存画像の更新データを構築
+     *
+     * @return array{edit: EditOptions, target: string, file: string, path: string}|null 画像データ
+     */
     private function buildUpdateData()
     {
-        $file       = null;
-        $Edit       = [];
-        $imageFiles = [];
+        $result = null;
 
-        if (!empty($this->old) && ($xy = Storage::getImageSize($this->ARCHIVES_DIR . $this->old))) {
+        if ($this->old !== '' && ($xy = PublicStorage::getImageSize($this->ARCHIVES_DIR . $this->old))) {
+            $Edit = [];
             $longSide   = max($xy[0], $xy[1]);
 
-            if (!empty($this->size)) {
+            if ($this->size !== null) {
                 $Edit['normal']['size'] = $this->size;
-            } elseif (!empty($this->angle)) {
+            } elseif ($this->angle !== null) {
                 $Edit['normal']['size'] = $longSide;
             }
 
             $Edit['tiny']['size'] = $this->tinySize;
 
-            if (!empty($this->angle)) {
+            if ($this->angle !== null) {
                 $Edit['tiny']['angle'] = $this->angle;
 
                 if ($this->squareSize > 0) {
@@ -418,131 +451,147 @@ class ACMS_POST_Image extends ACMS_POST
 
             $path   = $this->old;
             $file   = $this->ARCHIVES_DIR . $this->old;
-            $this->target = $file;
+            $target = $file;
             $large  = preg_replace('@(.*/)([^/]*)$@', '$1large-$2', $this->old);
 
-            if (Storage::getImageSize($this->ARCHIVES_DIR . $large)) {
-                if (!empty($this->angle)) {
+            if (PublicStorage::getImageSize($this->ARCHIVES_DIR . $large)) {
+                if ($this->angle !== null) {
                     $Edit['large']['size']  = $this->largeSize;
                     $Edit['large']['angle'] = $this->angle;
-                    if (empty($this->size)) {
-                        $xy = Storage::getImageSize($file);
+                    if ($this->size === null) {
+                        $xy = PublicStorage::getImageSize($file);
                         $Edit['normal']['size'] = max($xy[0], $xy[1]);
                     }
                 }
-                $this->target = $this->ARCHIVES_DIR . $large;
+                $target = $this->ARCHIVES_DIR . $large;
             }
 
-            if (!empty($this->angle)) {
+            if ($this->angle !== null) {
                 $this->deleteExtensionImage($this->ARCHIVES_DIR . $this->old);
             }
 
-            if (
-                1
-                && $this->edit === 'none'
-                && $this->selectSize === $this->oldSize
-            ) {
-                $file = null;
+            if ($this->edit === 'none' && $this->selectSize === $this->oldSize) {
+                $file = '';
             }
-            $imageFiles[] = [
+            $result = [
                 'edit'      => $Edit,
-                'target'    => $this->target,
+                'target'    => $target,
                 'file'      => $file,
                 'path'      => $path,
             ];
         }
 
-        return $imageFiles;
+        return $result;
     }
 
-    private function editAndSaveImage($imageFiles = [])
+    /**
+     * 画像の編集と保存を実行
+     *
+     * 以下の処理を行います：
+     * - 画像のリサイズ（tiny, normal, large, squareサイズ）
+     * - 画像の回転
+     * - WebP形式への変換
+     *
+     * @param array{edit: EditOptions, target: string, file: string, path: string} $data 編集する画像データ
+     * @return void
+     */
+    private function editAndSaveImage(array $data): void
     {
-        foreach ($imageFiles as $k => $imageEdit) {
-            if (!empty($imageEdit['target']) && !empty($imageEdit['file'])) {
-                foreach (['tiny', 'square', 'normal', 'large'] as $type_) {
-                    if (!isset($imageEdit['edit'][$type_])) {
-                        continue;
-                    }
-                    $label  = $type_;
-                    $to     = $imageEdit['edit'][$type_];
+        if ($data['target'] === '') {
+            return;
+        }
 
-                    $pfx    = ('normal' == $label) ? '' : $label . '-';
-                    $_file  = preg_replace('@(.*/)([^/]*)$@', '$1' . $pfx . '$2', $imageEdit['file']);
-                    if (!preg_match('@\.([^.]+)$@', $_file, $match)) {
-                        continue;
-                    }
-                    $ext    = $match[1];
+        if ($data['file'] === '') {
+            return;
+        }
 
-                    $_size  = !empty($to['size']) ? $to['size'] : null;
-                    $_angle = !empty($to['angle']) ? $to['angle'] : null;
+        foreach (['tiny', 'square', 'normal', 'large'] as $type_) {
+            if (!isset($data['edit'][$type_])) {
+                continue;
+            }
+            $label = $type_;
+            $to = $data['edit'][$type_];
 
-                    ///* [CMS-762] (2).引き継いできたsizeを、指定があれば特定の辺に適用
-                    $_width = null;
-                    $_height = null;
+            $pfx    = ('normal' == $label) ? '' : $label . '-';
+            $_file  = preg_replace('@(.*/)([^/]*)$@', '$1' . $pfx . '$2', $data['file']);
+            if ($_file === null) {
+                continue;
+            }
+            if (!preg_match('@\.([^.]+)$@', $_file, $match)) {
+                continue;
+            }
+            $ext = $match[1];
 
-                    // width
-                    if (
-                        0
-                        || ($label === 'normal' && ($this->stdSide      === 'w' || $this->stdSide      === 'width'))
-                        || ($label === 'tiny'   && ($this->stdSideTiny  === 'w' || $this->stdSideTiny  === 'width'))
-                        || ($label === 'large'  && ($this->stdSideLarge === 'w' || $this->stdSideLarge === 'width'))
-                    ) {
-                        $_width = $_size;
-                        $_size  = null;
-                    }
-                    // height
-                    if (
-                        0
-                        || ($label === 'normal' && ($this->stdSide      === 'h' || $this->stdSide      === 'height'))
-                        || ($label === 'tiny'   && ($this->stdSideTiny  === 'h' || $this->stdSideTiny  === 'height'))
-                        || ($label === 'large'  && ($this->stdSideLarge === 'h' || $this->stdSideLarge === 'height'))
-                    ) {
-                        $_height = $_size;
-                        $_size   = null;
-                    }
-                    // square
-                    if ($label === 'square') {
-                        $_width  = $_size;
-                        $_height = $_size;
-                    }
+            $_size  = $to['size'];
+            $_angle = $to['angle'] ?? null;
 
-                    $editTarget = $imageEdit['target'];
+            ///* [CMS-762] (2).引き継いできたsizeを、指定があれば特定の辺に適用
+            $_width = null;
+            $_height = null;
 
-                    Image::resizeImg($editTarget, $_file, $ext, $_width, $_height, $_size, $_angle);
+            // width
+            if (
+                ($label === 'normal' && ($this->stdSide === 'w' || $this->stdSide === 'width')) ||
+                ($label === 'tiny' && ($this->stdSideTiny === 'w' || $this->stdSideTiny === 'width')) ||
+                ($label === 'large' && ($this->stdSideLarge === 'w' || $this->stdSideLarge === 'width'))
+            ) {
+                $_width = $_size;
+                $_size  = null;
+            }
+            // height
+            if (
+                ($label === 'normal' && ($this->stdSide === 'h' || $this->stdSide === 'height')) ||
+                ($label === 'tiny' && ($this->stdSideTiny === 'h' || $this->stdSideTiny === 'height')) ||
+                ($label === 'large' && ($this->stdSideLarge === 'h' || $this->stdSideLarge === 'height'))
+            ) {
+                $_height = $_size;
+                $_size   = null;
+            }
+            // square
+            if ($label === 'square') {
+                $_width  = $_size;
+                $_height = $_size;
+            }
 
-                    if (HOOK_ENABLE) {
-                        $Hook = ACMS_Hook::singleton();
-                        $Hook->call('mediaCreate', $_file);
-                    }
+            try {
+                Image::resizeImg($data['target'], $_file, $ext, $_width, $_height, $_size, $_angle);
+                if (HOOK_ENABLE) {
+                    $Hook = ACMS_Hook::singleton();
+                    $Hook->call('mediaCreate', $_file);
                 }
+            } catch (\Exception $e) {
+                AcmsLogger::error('GDによる画像の生成に失敗しました', Common::exceptionArray($e, ['path' => $_file]));
             }
         }
     }
 
-    private function deleteImage()
+    /**
+     * 不要になった画像を削除
+     *
+     * 新規バージョン作成時は削除を行わない
+     * @return void
+     */
+    private function deleteImage(): void
     {
         if (Entry::isNewVersion()) {
             return;
         }
-        if (!empty($this->delete)) {
-            if (empty($this->target)) {
-                $path = null;
-            }
-            if (Storage::isFile($this->delete)) {
-                $name   = Storage::mbBasename($this->delete);
+        if ($this->delete !== null && $this->delete !== '') {
+            if (PublicStorage::isFile($this->delete)) {
+                $name   = PublicStorage::mbBasename($this->delete);
                 $dir    = substr($this->delete, 0, (strlen($this->delete) - strlen($name)));
                 if ($this->olddel === true) {
                     $this->deleteExtensionImage($this->delete);
 
-                    Storage::remove($this->delete);
-                    Storage::remove($dir . 'tiny-' . $name);
-                    Storage::remove($dir . 'large-' . $name);
-                    Storage::remove($dir . 'square-' . $name);
+                    PublicStorage::remove($this->delete);
+                    PublicStorage::remove($dir . 'tiny-' . $name);
+                    PublicStorage::remove($dir . 'large-' . $name);
+                    PublicStorage::remove($dir . 'square-' . $name);
 
-                    Storage::remove($this->delete . '.webp');
-                    Storage::remove($dir . 'tiny-' . $name . '.webp');
-                    Storage::remove($dir . 'large-' . $name . '.webp');
-                    Storage::remove($dir . 'square-' . $name . '.webp');
+                    PublicStorage::remove($this->delete . '.webp');
+                    PublicStorage::remove($dir . 'tiny-' . $name . '.webp');
+                    PublicStorage::remove($dir . 'large-' . $name . '.webp');
+                    PublicStorage::remove($dir . 'square-' . $name . '.webp');
 
                     if (HOOK_ENABLE) {
                         $Hook = ACMS_Hook::singleton();
@@ -561,32 +610,50 @@ class ACMS_POST_Image extends ACMS_POST
         }
     }
 
+    /**
+     * 拡張子付きの画像を削除
+     *
+     * @param string $path 削除対象の画像パス
+     * @return bool 成功した場合はtrue、失敗した場合はfalse
+     */
     private function deleteExtensionImage($path)
     {
-        if (!Storage::isFile($path)) {
+        if (!PublicStorage::isFile($path)) {
             return false;
         }
 
-        $name = Storage::mbBasename($path);
+        $name = PublicStorage::mbBasename($path);
         $dir = substr($path, 0, (strlen($path) - strlen($name)));
 
-        $images = glob($dir . '*-' . $name);
-        if (is_array($images)) {
-            foreach ($images as $filename) {
-                if (preg_match('/(tiny|large|square)-(.*)$/', $filename)) {
-                    continue;
-                }
-                Storage::remove($filename);
-                if (HOOK_ENABLE) {
-                    $Hook = ACMS_Hook::singleton();
-                    $Hook->call('mediaDelete', $filename);
-                }
+        $fileList = PublicStorage::getFileList($dir);
+        $pattern = '/^.*-' . preg_quote($name) . '$/';
+
+        foreach ($fileList as $filePath) {
+            if (!preg_match($pattern, $filePath)) {
+                continue;
+            }
+            if (preg_match('/(tiny|large|square)-(.*)$/', $filePath)) {
+                continue;
+            }
+            PublicStorage::remove($filePath);
+
+            if (HOOK_ENABLE) {
+                $Hook = ACMS_Hook::singleton();
+                $Hook->call('mediaDelete', $filePath);
             }
         }
+
+        return true;
     }
 
     /**
-     * 画像サイズの情報を設定する
+     * 画像サイズの情報を設定
+     *
+     * 以下のサイズを設定します：
+     * - 標準サイズ（normal）
+     * - サムネイルサイズ（tiny）
+     * - 大サイズ（large）
+     * - 正方形サイズ（square）
      *
      * @param string $size 画像サイズ ex: width820:acms-col-sm-12
      */
@@ -627,5 +694,27 @@ class ACMS_POST_Image extends ACMS_POST
         if ($this->size !== 0 and $this->size < $this->tinySize) {
             $this->tinySize = $this->size;
         }
+    }
+
+    /**
+     * アップロードされたファイルかどうかを判定
+     *
+     * @param string $path ファイルパス
+     * @return bool
+     */
+    private function isUploadedFile(string $path): bool
+    {
+        if (is_uploaded_file($path)) {
+            return true;
+        }
+        $files = array_map(function ($file) {
+            return LocalStorage::mbBasename($file);
+        }, LocalStorage::getFileList(self::ARCHIVES_TMP_DIR));
+        $filename = LocalStorage::mbBasename($path);
+        if (in_array($filename, $files, true)) {
+            // ARCHIVES_TMP_DIR にあるファイルはアップロードされたファイルとして扱う
+            return true;
+        }
+        return false;
     }
 }

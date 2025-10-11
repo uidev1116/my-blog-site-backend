@@ -2,105 +2,107 @@
 
 namespace Acms\Services\Session;
 
+use SessionHandlerInterface;
 use DB;
 use SQL;
 
-class DatabaseHandler
+class DatabaseHandler implements SessionHandlerInterface
 {
     /**
-     * @var string
+     * @inheritDoc
      */
-    private $savePath;
-
-    /**
-     * @param $savePath
-     * @param $sessionName
-     *
-     * @return bool
-     */
-    function open($savePath, $sessionName)
-    {
-        $this->savePath = $savePath;
-
-        return true;
-    }
-
-    /**
-     * @return bool
-     */
-    function close()
+    public function open($savePath, $sessionName): bool
     {
         return true;
     }
 
     /**
-     * @param $id
-     *
-     * @return mixed
+     * @inheritDoc
      */
-    function read($id)
+    public function close(): bool
     {
-        $SQL = SQL::newSelect('session_php');
-        $SQL->addSelect('session_data');
-        $SQL->addWhereOpr('session_id', $id);
-        $data = DB::query($SQL->get(dsn()), 'one');
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    #[\ReturnTypeWillChange]
+    public function read($id)
+    {
+        if (!$this->isValidSessionId($id)) {
+            return '';
+        }
+        $sql = SQL::newSelect('session_php');
+        $sql->addSelect('session_data');
+        $sql->addWhereOpr('session_id', $id);
+        $data = DB::query($sql->get(dsn()), 'one');
 
         return $data ? $data : '';
     }
 
     /**
-     * @param $id
-     * @param $data
-     *
-     * @return bool
+     * @inheritDoc
      */
-    function write($id, $data)
+    public function write($id, $data): bool
     {
-        $SQL = SQL::newSelect('session_php');
-        $SQL->addSelect('session_id');
-        $SQL->addWhereOpr('session_id', $id);
-
-        if (DB::query($SQL->get(dsn()), 'one')) {
-            $SQL = SQL::newUpdate('session_php');
-            $SQL->addUpdate('session_expire', REQUEST_TIME);
-            $SQL->addUpdate('session_data', $data);
-            $SQL->addWhereOpr('session_id', $id);
-        } else {
-            $SQL = SQL::newInsert('session_php');
-            $SQL->addInsert('session_id', $id);
-            $SQL->addInsert('session_expire', REQUEST_TIME);
-            $SQL->addInsert('session_data', $data);
+        if (!$this->isValidSessionId($id)) {
+            return false;
         }
-        DB::query($SQL->get(dsn()), 'exec');
+        $sql = SQL::newSelect('session_php');
+        $sql->addSelect('session_id');
+        $sql->addWhereOpr('session_id', $id);
+        $expire = REQUEST_TIME + (int)ini_get('session.gc_maxlifetime');
 
-        return (DB::affected_rows() > 0);
+        if (DB::query($sql->get(dsn()), 'one')) {
+            $sql = SQL::newUpdate('session_php');
+            $sql->addUpdate('session_expire', $expire);
+            $sql->addUpdate('session_data', $data);
+            $sql->addWhereOpr('session_id', $id);
+        } else {
+            $sql = SQL::newInsert('session_php');
+            $sql->addInsert('session_id', $id);
+            $sql->addInsert('session_expire', $expire);
+            $sql->addInsert('session_data', $data);
+        }
+        DB::query($sql->get(dsn()), 'exec');
+
+        return true; // 必ず true を返すことでセッション保存を失敗と誤認しない
     }
 
     /**
-     * @param $id
-     *
-     * @return bool
+     * @inheritDoc
      */
-    function destroy($id)
+    public function destroy($id): bool
     {
-        $SQL = SQL::newDelete('session_php');
-        $SQL->addWhereOpr('session_id', $id);
-        DB::query($SQL->get(dsn()), 'exec');
+        if (!$this->isValidSessionId($id)) {
+            return false;
+        }
+        $sql = SQL::newDelete('session_php');
+        $sql->addWhereOpr('session_id', $id);
+        DB::query($sql->get(dsn()), 'exec');
 
         return true;
     }
 
     /**
-     * @param $maxlifetime
-     *
-     * @return bool
+     * @inheritDoc
      */
-    function gc($maxlifetime)
+    #[\ReturnTypeWillChange]
+    public function gc($maxlifetime)
     {
-        $SQL = SQL::newDelete('session_php');
-        $SQL->addWhereOpr('session_expire', REQUEST_TIME - $maxlifetime, '<');
-        DB::query($SQL->get(dsn()), 'exec');
+        $sql = SQL::newDelete('session_php');
+        $sql->addWhereOpr('session_expire', REQUEST_TIME, '<');
+        DB::query($sql->get(dsn()), 'exec');
 
-        return true;
+        return  DB::affected_rows();
+    }
+
+    /**
+     * セッションIDとして安全かどうかを検証する
+     */
+    private function isValidSessionId(string $id): bool
+    {
+        return preg_match('/^[a-zA-Z0-9,-]{16,128}$/', $id) === 1;
     }
 }

@@ -10,10 +10,59 @@
 <!-- BEGIN_MODULE Admin_Alias_Index -->
 
 <!-- BEGIN msg#success -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->エイリアスの一覧を更新しました。<!--/T--></p><!-- END msg#success --><!-- BEGIN msg#error --><!-- BEGIN alias:validator#operable -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger"><span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->この操作は許可されていません。<!--/T--></p><!-- END alias:validator#operable --><!-- BEGIN checks:validator#required -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger"><span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->対象が選択されていません。<!--/T--></p><!-- END checks:validator#required --><!-- BEGIN alias:validator#status -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger"><span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->ステータスが無効のエイリアスはプライマリに設定できません。<!--/T--></p><!-- END alias:validator#status --><!-- END msg#error -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    aria-label="アラートを閉じる"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+  >
+    ×
+  </button>
+    <!--T-->エイリアスの一覧を更新しました。<!--/T-->
+</div>
+<!-- END msg#success -->
+<!-- BEGIN msg#error -->
+<!-- BEGIN alias:validator#operable -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    aria-label="アラートを閉じる"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+  >
+    ×
+  </button>
+  <!--T-->この操作は許可されていません。<!--/T-->
+</div>
+<!-- END alias:validator#operable -->
+<!-- BEGIN checks:validator#required -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    aria-label="アラートを閉じる"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+  >
+    ×
+  </button>
+  <!--T-->対象が選択されていません。<!--/T-->
+</div>
+<!-- END checks:validator#required -->
+<!-- BEGIN alias:validator#status -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    aria-label="アラートを閉じる"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+  >
+    ×
+  </button>
+  <!--T-->ステータスが無効のエイリアスはプライマリに設定できません。<!--/T-->
+</div>
+<!-- END alias:validator#status -->
+<!-- END msg#error -->
 
 <form method="post" action="" id="sortableForm" class="acms-admin-form">
 <!-- BEGIN index:veil -->
@@ -39,14 +88,7 @@
 		</div>
 
 		<!-- BEGIN_MODULE Touch_SessionWithAdministration -->
-		<span class="js-fake-form" data-method="post">
-			<input type="hidden" name="bid" value="%{BID}" />
-			<input type="hidden" name="admin" value="alias_edit" />
-			<input type="hidden" name="edit" value="insert" />
-			<input type="hidden" name="query[]" value="edit" />
-			<input type="hidden" name="ACMS_POST_2GET" value="Create Alias"/>
-			<button class="js-submit acms-admin-btn acms-admin-btn-success acms-admin-float-right"><!--T-->エイリアスの作成<!--/T--></button>
-		</span>
+		<button class="acms-admin-btn acms-admin-btn-success acms-admin-float-right" type="submit" form="create-alias-form"><!--T-->エイリアスの作成<!--/T--></button>
 		<!-- END_MODULE Touch_SessionWithAdministration -->
 	</div>
 
@@ -59,9 +101,9 @@
 				<tr>
 					<th class="item-handle acms-admin-table-nowrap"></th>
 					<th class="acms-admin-table-nowrap acms-admin-th-checkbox">
-						<div class="acms-admin-form-checkbox acms-admin-margin-none">
+						<div class="acms-admin-form-checkbox acms-admin-m-0">
 							<input type="checkbox" id="checkAll">
-							<label for="checkAll"><i class="acms-admin-ico-checkbox acms-admin-margin-none"></i><span class="acms-admin-hide-visually"><!--T-->すべてのエイリアスを選択する<!--/T--></span></label>
+							<label for="checkAll"><i class="acms-admin-ico-checkbox acms-admin-m-0"></i><span class="acms-admin-hide-visually"><!--T-->すべてのエイリアスを選択する<!--/T--></span></label>
 						</div>
 					</th>
 					<th><!--T-->表示順<!--/T--></th>
@@ -76,9 +118,9 @@
 				<tr data-sort-level="parallel" data-sort-name="sort-{aid}">
 					<td class="item-handle acms-admin-table-nowrap" style="cursor: move;"><i class="acms-admin-icon-sort"></i></td>
 					<td class="acms-admin-table-nowrap">
-						<div class="acms-admin-form-checkbox acms-admin-margin-none">
+						<div class="acms-admin-form-checkbox acms-admin-m-0">
 							<input type="checkbox" name="checks[]" value="{aid}"{disabled} id="input-checkbox-alias-{aid}" />
-							<label for="input-checkbox-alias-{aid}"><i class="acms-admin-ico-checkbox acms-admin-margin-none"></i><span class="acms-admin-hide-visually"><!--T-->エイリアス名「{name}」を選択する<!--/T--></span></label>
+							<label for="input-checkbox-alias-{aid}"><i class="acms-admin-ico-checkbox acms-admin-m-0"></i><span class="acms-admin-hide-visually"><!--T-->エイリアス名「{name}」を選択する<!--/T--></span></label>
 						</div>
 					</td>
 					<td>
@@ -120,5 +162,12 @@
 	</div>
 
 	<!-- END index:veil -->
+</form>
+<form id="create-alias-form" action="" method="post">
+  <input type="hidden" name="bid" value="%{BID}" />
+  <input type="hidden" name="admin" value="alias_edit" />
+  <input type="hidden" name="edit" value="insert" />
+  <input type="hidden" name="query[]" value="edit" />
+  <input type="hidden" name="ACMS_POST_2GET" value="Create Alias"/>
 </form>
 <!-- END_MODULE Admin_Alias_Index -->

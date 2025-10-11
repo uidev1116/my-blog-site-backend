@@ -17,93 +17,172 @@
   <!-- BEGIN unitGroup#rear --></div><!-- END unitGroup#rear -->
   <!-- BEGIN unitGroup#front -->
   <div class="{class}"><!-- END unitGroup#front -->
-    <!-- BEGIN clear -->
-    <hr class="clearHidden" style="border: solid 1px #FFF; margin: 0;" />
-    <!-- END clear -->
-
     <!-- BEGIN unit#text -->
     <!-- テキスト -->
     <!-- BEGIN p -->
-    <p{class} style="margin: 0 0 7px 0;">{text}[raw|nl2br]</p><!-- END p -->
+    <p{class} style="margin: 0 0 7px 0;">{text}[raw|nl2br]</p>
+    <!-- END p -->
     <!-- BEGIN h2 -->
-    <h2{class} id="h{utid}" style="margin: 0 0 7px 0; font-size: 24px;">{text}[raw|nl2br]</h2><!-- END h2 -->
+    <h2{class} id="h{utid}" style="margin: 0 0 7px 0; font-size: 24px;">{text}[raw|nl2br]</h2>
+    <!-- END h2 -->
     <!-- BEGIN h3 -->
-    <h3{class} id="h{utid}" style="margin: 0 0 7px 0; font-size: 20px;">{text}[raw|nl2br]</h3><!-- END h3 -->
+    <h3{class} id="h{utid}" style="margin: 0 0 7px 0; font-size: 20px;">{text}[raw|nl2br]</h3>
+    <!-- END h3 -->
     <!-- BEGIN h4 -->
-    <h4{class} id="h{utid}" style="margin: 0 0 7px 0; font-size: 18px;">{text}[raw|nl2br]</h4><!-- END h4 -->
+    <h4{class} id="h{utid}" style="margin: 0 0 7px 0; font-size: 18px;">{text}[raw|nl2br]</h4>
+    <!-- END h4 -->
     <!-- BEGIN h5 -->
-    <h5{class} id="h{utid}" style="margin: 0 0 7px 0; font-size: 16px;">{text}[raw|nl2br]</h5><!-- END h5 -->
+    <h5{class} id="h{utid}" style="margin: 0 0 7px 0; font-size: 16px;">{text}[raw|nl2br]</h5>
+    <!-- END h5 -->
     <!-- BEGIN ul -->
     <ul{class} style="padding: 0; list-style-type: disc; list-style-position: inside; margin: 0 0 15px 10px;">
-      {text}[list]</ul><!-- END ul -->
+      {text}[list]
+    </ul>
+    <!-- END ul -->
     <!-- BEGIN ol -->
-    <ol{class} style="padding: 0; list-style-position: inside; margin: 0 0 15px 10px; padding: 0;">{text}[raw|list]</ol><!-- END ol -->
+    <ol{class} style="padding: 0; list-style-position: inside; margin: 0 0 15px 10px; padding: 0;">{text}[raw|list]</ol>
+    <!-- END ol -->
     <!-- BEGIN blockquote -->
-    <blockquote{class} style="">{text}[raw|nl2br]</blockquote><!-- END blockquote -->
+    <blockquote{class} style="">{text}[raw|nl2br]</blockquote>
+    <!-- END blockquote -->
     <!-- BEGIN table -->
-    <table{class} border="1" cellspacing="0" cellpadding="5" bordercolor="#333333">{text}[raw|table]</table><!-- END table -->
+    <table{class} border="1" cellspacing="0" cellpadding="5" bordercolor="#333333">{text}[raw|table]</table>
+    <!-- END table -->
     <!-- BEGIN pre -->
-    <pre{class}>{text}</pre><!-- END pre -->
+    <pre{class}>{text}</pre>
+    <!-- END pre -->
     <!-- BEGIN none -->
-{text}[raw]<!-- END none -->
+    {text}[raw]
+    <!-- END none -->
     <!-- BEGIN markdown -->
     {text}[raw|markdown]<!-- END markdown -->
     <!-- BEGIN wysiwyg -->
     {text}[raw]<!-- END wysiwyg -->
     <!-- END unit#text -->
 
+    <!-- BEGIN none -->
+    {text}[raw]
+    <!-- END none -->
+
+    <!-- BEGIN markdown -->
+    {text}[raw|markdown]
+    <!-- END markdown -->
+
+    <!-- BEGIN wysiwyg -->
+    {text}[raw]
+    <!-- END wysiwyg -->
+
+    <!-- BEGIN unit#code -->
+    <pre>{value}</pre>
+    <!-- END unit#code -->
+
     <!-- BEGIN unit#rich-editor -->
-    <div>{html}[raw]</div>
+    {html}[raw]
     <!-- END unit#rich-editor -->
+
+    <!-- BEGIN unit#block-editor -->
+    {html}[raw]
+    <!-- END unit#block-editor -->
 
     <!-- BEGIN unit#image -->
     <!-- 画像 -->
-    <div class="column-image-{align}" style="margin-bottom: 20px;"><!-- BEGIN link#front -->
-      <a href="{url}"><!-- END link#front -->
-        <img class="columnImage" src="%{HTTP_ROOT}{path}" alt="{alt}" width="{x}" height="{y}" style="border: none;" /><!-- BEGIN link#rear -->
-      </a><!-- END link#rear --><!-- BEGIN caption:veil -->
-      <p class="caption">{caption}</p><!-- END caption:veil -->
+    <div style="margin-bottom: 20px;">
+      <!-- BEGIN link#front -->
+      <a href="{url}">
+      <!-- END link#front -->
+        <img
+          src="%{HTTP_ROOT}{path}"
+          alt="{alt}"
+          width="{x}"
+          height="{y}"
+          style="border: none;"
+        />
+      <!-- BEGIN link#rear -->
+      </a>
+      <!-- END link#rear -->
+      <!-- BEGIN caption:veil -->
+      <p>{caption}</p>
+      <!-- END caption:veil -->
     </div>
     <!-- END unit#image -->
 
     <!-- BEGIN unit#media -->
     <!-- メディア -->
-    <div class="column-image-{align}" style="margin-bottom: 20px;">
-      <!-- BEGIN type#image --><!-- BEGIN link#front -->
-      <a href="{url}"><!-- END link#front -->
-        <img class="columnImage" src="%{HTTP_ROOT}{path}[resizeImg({x})]" alt="{alt}" width="{x}" height="{y}" style="border: none;" /><!-- BEGIN link#rear -->
-      </a><!-- END link#rear --><!-- BEGIN caption:veil -->
-      <p class="caption">{caption}</p><!-- END caption:veil --><!-- END type#image --><!-- BEGIN type#svg -->
+    <div style="margin-bottom: 20px;">
+      <!-- BEGIN type#image -->
       <!-- BEGIN link#front -->
-      <a href="{url}"><!-- END link#front -->
-        <img class="columnImage" src="%{HTTP_ROOT}themes/system/images/default/mail-svg.png" alt="{alt}" width="{x}" height=""
-          style="border: none; height: auto;" /><!-- BEGIN link#rear -->
-      </a><!-- END link#rear --><!-- BEGIN caption:veil -->
-      <p class="caption">{caption}</p><!-- END caption:veil --><!-- END type#svg --><!-- BEGIN type#file -->
+      <a href="{url}">
+      <!-- END link#front -->
+        <img
+          src="%{HTTP_ROOT}{path}[resizeImg({resizeWidth})]"
+          alt="{alt}"
+          width="{x}"
+          height="{y}"
+          style="border: none;"
+        />
+      <!-- BEGIN link#rear -->
+      </a>
+      <!-- END link#rear -->
+      <!-- BEGIN caption:veil -->
+      <p>{caption}</p>
+      <!-- END caption:veil -->
+      <!-- END type#image -->
+      <!-- BEGIN type#svg -->
+      <!-- BEGIN link#front -->
+      <a href="{url}">
+      <!-- END link#front -->
+        <img
+          src="%{HTTP_ROOT}themes/system/images/default/mail-svg.png"
+          alt="{alt}"
+          width="{x}"
+          height="{y}"
+          style="border: none; height: auto;"
+        />
+      <!-- BEGIN link#rear -->
+      </a>
+      <!-- END link#rear -->
+      <!-- BEGIN caption:veil -->
+      <p>{caption}</p>
+      <!-- END caption:veil -->
+      <!-- END type#svg -->
+      <!-- BEGIN type#file -->
       <a href="%{PROTOCOL}://%{HTTP_HOST}{url}">
       <!-- BEGIN_IF [{thumbnail}/nem/_and_/{use_icon}/neq/yes] -->
-      <img class="column-pdf-image" src="%{PROTOCOL}://%{HTTP_HOST}%{MEDIA_ARCHIVES_DIR}{thumbnail}" alt="{alt}">
+      <img
+        src="%{PROTOCOL}://%{HTTP_HOST}%{MEDIA_ARCHIVES_DIR}{thumbnail}"
+        alt="{alt}"
+      >
       <!-- ELSE -->
-      <img class="columnIcon" src="%{HTTP_ROOT}{icon}" alt="{alt}" width="{x}" height="{y}">
+      <img src="%{HTTP_ROOT}{icon}" alt="{alt}" width="{x}" height="{y}">
       <!-- END_IF -->
-      </a><!-- BEGIN caption:veil -->
-      <p class="caption">{caption}</p><!-- END caption:veil --><!-- END type#file -->
-
+      </a>
+      <!-- BEGIN caption:veil -->
+      <p>{caption}</p>
+      <!-- END caption:veil -->
+      <!-- END type#file -->
     </div>
     <!-- END unit#media -->
 
     <!-- BEGIN unit#file -->
     <!-- ファイル -->
-    <div class="column-file-{align}" style="margin-bottom: 20px;">
-      <a href="%{HTTP_ROOT}{path}"><img class="columnIcon" src="%{HTTP_ROOT}{icon}" alt="ファイルイメージ"
-          width="{x}" height="{y}" /></a><!-- BEGIN caption:veil -->
-      <p class="caption">{caption}</p><!-- END caption:veil -->
+    <div style="margin-bottom: 20px;">
+      <a href="%{HTTP_ROOT}{path}">
+        <img
+          src="%{HTTP_ROOT}{icon}"
+          alt="ファイルイメージ"
+          width="{x}"
+          height="{y}"
+        />
+      </a>
+      <!-- BEGIN caption:veil -->
+      <p>{caption}</p>
+      <!-- END caption:veil -->
     </div>
     <!-- END unit#file -->
 
     <!-- BEGIN unit#table -->
     <!-- テーブル -->
-    <div class="unit-table column-table-{align}" style="margin-bottom: 20px;">
+    <div class="unit-table" style="margin-bottom: 20px;">
       {table}[raw]
     </div>
     <!-- END unit#table -->
@@ -114,7 +193,7 @@
       Googlマップを表示
     </a>
     <!-- BEGIN caption:veil -->
-    <p class="caption">緯度：{lat} / 経度：{lng}</p><!-- END caption:veil -->
+    <p>緯度：{lat} / 経度：{lng}</p><!-- END caption:veil -->
     <!-- END unit#map -->
 
     <!-- BEGIN unit#osmap -->
@@ -123,39 +202,58 @@
       Googlマップを表示
     </a>
     <!-- BEGIN caption:veil -->
-    <p class="caption">緯度：{lat} / 経度：{lng}</p><!-- END caption:veil -->
+    <p>緯度：{lat} / 経度：{lng}</p><!-- END caption:veil -->
     <!-- END unit#osmap -->
 
     <!-- BEGIN unit#youtube -->
     <!-- YouTube -->
-    <div class="column-image-{align}" style="margin-bottom: 20px;">
+    <div style="margin-bottom: 20px;">
       <a href="https://www.youtube.com/watch?v={youtubeId}">
-        <img class="columnImage" src="https://img.youtube.com/vi/{youtubeId}/mqdefault.jpg" alt="{alt}" width="100%"
-          style="border: none;" />
+        <img
+          src="https://img.youtube.com/vi/{youtubeId}/mqdefault.jpg"
+          alt="{alt}"
+          width="100%"
+          height="100%"
+          style="border: none;"
+        />
       </a>
-      <p class="caption">クリックしてYouTubeでご覧ください id:{youtubeId}</p>
+      <p>クリックしてYouTubeでご覧ください id:{youtubeId}</p>
     </div>
     <!-- END unit#youtube -->
 
     <!-- BEGIN unit#video -->
     <!-- YouTube -->
-    <div class="column-image-{align}" style="margin-bottom: 20px;">
+    <div style="margin-bottom: 20px;">
       <a href="https://www.youtube.com/watch?v={youtubeId}">
-        <img class="columnImage" src="https://img.youtube.com/vi/{youtubeId}/mqdefault.jpg" alt="{alt}" width="100%"
-          style="border: none;" />
+        <img
+          src="https://img.youtube.com/vi/{youtubeId}/mqdefault.jpg"
+          alt="{alt}"
+          width="100%"
+          height="100%"
+          style="border: none;"
+        />
       </a>
-      <p class="caption">クリックしてYouTubeでご覧ください id:{youtubeId}</p>
+      <p>クリックしてYouTubeでご覧ください id:{youtubeId}</p>
     </div>
     <!-- END unit#video -->
 
     <!-- BEGIN unit#eximage -->
     <!-- 画像URL -->
-    <div class="column-eximage-{align}"><!-- BEGIN link#front -->
+    <div style="margin-bottom: 20px;">
+      <!-- BEGIN link#front -->
       <a href="{url}"><!-- END link#front -->
-        <img class="columnImage" src="{normal}" alt="{alt}" width="{x}"
-          height="{y}" /><!-- BEGIN link#rear -->
-      </a><!-- END link#rear --><!-- BEGIN caption:veil -->
-      <p class="caption">{caption}</p><!-- END caption:veil -->
+        <img
+          src="{normal}"
+          alt="{alt}"
+          width="{x}"
+          height="{y}"
+        />
+      <!-- BEGIN link#rear -->
+      </a>
+      <!-- END link#rear -->
+      <!-- BEGIN caption:veil -->
+      <p>{caption}</p>
+      <!-- END caption:veil -->
     </div>
     <!-- END unit#eximage -->
 
@@ -168,7 +266,7 @@
 </div><!-- END unitGroup#last -->
 
 <!-- END unit:loop -->
-<hr class="clearHidden" style="border: solid 1px #FFF;" /><!-- END unit:veil -->
+<hr style="border: solid 1px #FFF;" /><!-- END unit:veil -->
 
 <!-- END entry:loop -->
 <!-- END_MODULE Entry_Body -->

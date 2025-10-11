@@ -2,6 +2,7 @@
 
 use Acms\Services\Facades\Logger;
 use Acms\Services\Facades\Common;
+use Acms\Services\Facades\Entry;
 
 class ACMS_POST_Entry_Index_Blog extends ACMS_POST
 {
@@ -15,12 +16,8 @@ class ACMS_POST_Entry_Index_Blog extends ACMS_POST
         $this->Post->setMethod('checks', 'required');
         if (empty($bid)) {
             $this->Post->setMethod('entry', 'operable', false);
-        } elseif (enableApproval($bid, null)) {
-            $this->Post->setMethod('entry', 'operable', sessionWithApprovalAdministrator($bid, null));
-        } elseif (roleAvailableUser()) {
-            $this->Post->setMethod('entry', 'operable', roleAuthorization('admin_etc', $bid));
         } else {
-            $this->Post->setMethod('entry', 'operable', sessionWithAdministration($bid));
+            $this->Post->setMethod('entry', 'operable', Entry::canBulkBlogChange($bid));
         }
 
         $this->Post->validate(new ACMS_Validator());
@@ -62,17 +59,18 @@ class ACMS_POST_Entry_Index_Blog extends ACMS_POST
         $sort = $this->getEntrySort($bid);
         $usort = $this->getEntryUserSort($bid, $suid);
         $cid = ACMS_RAM::entryCategory($eid);
-        $csort = empty($cid) ? 1 : $this->getEntryCategorySort($bid, $cid);
+        $csort = $cid === null ? 1 : $this->getEntryCategorySort($bid, $cid);
+        $isGlobalCategory = $cid === null ? false : $this->isGlobalCategory($bid, $cid);
 
         // 通常エントリーを移動
-        $this->moveEntryBase($eid, $bid, $cid, $sort, $usort, $csort, $suid, $this->isGlobalCategory($bid, $cid), false);
+        $this->moveEntryBase($eid, $bid, $cid, $sort, $usort, $csort, $suid, $isGlobalCategory, false);
         $this->moveEntryField($eid, $bid, false);
         $this->moveEntryUnit($eid, $bid, false);
         $this->moveEntryTag($eid, $bid, false);
         $this->moveEntryFulltext($eid, $bid);
 
         // リビジョンを移動
-        $this->moveEntryBase($eid, $bid, $cid, $sort, $usort, $csort, $suid, $this->isGlobalCategory($bid, $cid), true);
+        $this->moveEntryBase($eid, $bid, $cid, $sort, $usort, $csort, $suid, $isGlobalCategory, true);
         $this->moveEntryField($eid, $bid, true);
         $this->moveEntryUnit($eid, $bid, true);
         $this->moveEntryTag($eid, $bid, true);
@@ -83,7 +81,7 @@ class ACMS_POST_Entry_Index_Blog extends ACMS_POST
      *
      * @param int $eid
      * @param int $bid
-     * @param int $cid
+     * @param int|null $cid
      * @param int $sort
      * @param int $usort
      * @param int $csort
@@ -92,12 +90,21 @@ class ACMS_POST_Entry_Index_Blog extends ACMS_POST
      * @param bool $revision
      * @return void
      */
-    protected function moveEntryBase(int $eid, int $bid, int $cid, int $sort, int $usort, int $csort, int $suid, bool $isGlobalCategory, bool $revision = false): void
-    {
+    protected function moveEntryBase(
+        int $eid,
+        int $bid,
+        int|null $cid,
+        int $sort,
+        int $usort,
+        int $csort,
+        int $suid,
+        bool $isGlobalCategory,
+        bool $revision = false
+    ): void {
         $tableName = $revision ? 'entry_rev' : 'entry';
         $sql = SQL::newUpdate($tableName);
         $sql->addUpdate('entry_blog_id', $bid);
-        if (!$isGlobalCategory || empty($cid)) {
+        if (!$isGlobalCategory || is_null($cid)) {
             $sql->addUpdate('entry_category_id', null);
         } elseif ($revision) {
             $sql->addUpdate('entry_category_id', $cid);

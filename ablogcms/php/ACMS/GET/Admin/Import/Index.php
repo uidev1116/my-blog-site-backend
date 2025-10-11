@@ -8,7 +8,7 @@ class ACMS_GET_Admin_Import_Index extends ACMS_GET_Admin
             return '';
         }
         if (!sessionWithAdministration()) {
-            return '';
+            die403();
         }
 
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());

@@ -6,21 +6,15 @@ class ACMS_GET_Admin_Rule_Index extends ACMS_GET_Admin
     {
         if (roleAvailableUser()) {
             if (!roleAuthorization('rule_edit', BID)) {
-                return '';
+                die403();
             }
         } else {
             if (!sessionWithAdministration()) {
-                return '';
+                die403();
             }
         }
 
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());
-
-        //---------
-        // refresh
-        if (!$this->Post->isNull()) {
-            $Tpl->add('refresh');
-        }
 
         $DB     = DB::singleton(dsn());
         $SQL    = SQL::newSelect('rule');

@@ -16,7 +16,7 @@ class ACMS_POST_Logger_Download extends ACMS_POST_Logger_Info
 
             list($sql, $count) = $repository->getIndexSql($limit, PAGE, $levels, $suid, START, END);
             $q = $sql->get(dsn());
-            DB::query($q, 'fetch');
+            $statement = DB::query($q, 'exec');
 
             $tempFile = 'audit_log_' . date('Y-m-d', REQUEST_TIME) . '.json';
             if (START && strpos(START, '1000-01-01') === false) {
@@ -25,15 +25,22 @@ class ACMS_POST_Logger_Download extends ACMS_POST_Logger_Info
             $path = MEDIA_STORAGE_DIR . $tempFile;
             $first = true;
             $fp = fopen($path, 'w');
+            if ($fp === false) {
+                throw new \RuntimeException('ファイルを開くことができませんでした: ' . $path);
+            }
             fwrite($fp, "[\n");
 
-            while ($log = DB::fetch($q)) {
+            while ($log = DB::next($statement)) {
                 if ($first) {
                     $first = false;
                 } else {
                     fwrite($fp, ",\n");
                 }
-                fwrite($fp, json_encode($this->buildData($log), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                $json = json_encode($this->buildData($log), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+                if ($json === false) {
+                    throw new \RuntimeException('JSONエンコードに失敗しました: ' . json_last_error_msg());
+                }
+                fwrite($fp, $json);
             }
             fwrite($fp, "\n]");
             fclose($fp);

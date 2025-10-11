@@ -6,14 +6,7 @@ class ACMS_POST_Entry_Index_Trash extends ACMS_POST_Trash
     {
         $this->Post->reset(true);
         $this->Post->setMethod('checks', 'required');
-
-        if (config('approval_contributor_edit_auth') !== 'on' && enableApproval(BID, CID)) {
-            $this->Post->setMethod('entry', 'operative', sessionWithApprovalAdministrator(BID, CID));
-        } elseif (roleAvailableUser()) {
-            $this->Post->setMethod('entry', 'operative', roleAuthorization('entry_delete', BID));
-        } else {
-            $this->Post->setMethod('entry', 'operative', sessionWithContribution());
-        }
+        $this->Post->setMethod('entry', 'operative', Entry::canBulkDelete(BID, CID));
         $this->Post->validate(new ACMS_Validator());
 
         if ($this->Post->isValidAll()) {
@@ -25,11 +18,7 @@ class ACMS_POST_Entry_Index_Trash extends ACMS_POST_Trash
                 $bid    = $id[0];
                 $eid    = $id[1];
 
-                if (
-                    0
-                    || !roleAvailableUser()
-                    || ( roleAvailableUser() && roleAuthorization('entry_delete', $bid, $eid) )
-                ) {
+                if (Entry::canDelete($eid)) {
                     if (HOOK_ENABLE && $count === 1) {
                         Webhook::call($bid, 'entry', 'entry:deleted', [$eid, null]);
                     }

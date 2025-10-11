@@ -38,7 +38,10 @@ class Replication
      */
     public function getTableList()
     {
-        $sql = 'SHOW TABLES FROM `' . $this->dbName . '`';
+        $sql = [
+            'sql' => 'SHOW TABLES FROM `' . $this->dbName . '`',
+            'params' => []
+        ];
         $tables = DB::query($sql, 'all');
 
         $list = [];
@@ -62,9 +65,14 @@ class Replication
             array_push($list, '`' . $table . '`');
         }
         $tables_str = implode(', ', $list);
-        $sql = 'DROP TABLE ' . $tables_str;
-        $sql2 = 'DROP TABLE ' . strtoupper($tables_str);
-
+        $sql = [
+            'sql' => 'DROP TABLE ' . $tables_str,
+            'params' => [],
+        ];
+        $sql2 = [
+            'sql' => 'DROP TABLE ' . strtoupper($tables_str),
+            'params' => [],
+        ];
         DB::query($sql, 'exec');
         DB::query($sql2, 'exec');
     }
@@ -84,7 +92,10 @@ class Replication
             }
         }
         $tables_str = implode(', ', $list);
-        $sql = 'RENAME TABLE ' . $tables_str;
+        $sql = [
+            'sql' => 'RENAME TABLE ' . $tables_str,
+            'params' => [],
+        ];
 
         DB::query($sql, 'exec');
     }
@@ -105,15 +116,19 @@ class Replication
         }
         $tables_str = implode(', ', $list);
         if (!empty($tables_str)) {
-            $sql = 'DROP TABLE ' . $tables_str;
-            $sql2 = 'DROP TABLE ' . strtoupper($tables_str);
-
+            $sql = [
+                'sql' => 'DROP TABLE ' . $tables_str,
+                'params' => [],
+            ];
+            $sql2 = [
+                'sql' => 'DROP TABLE ' . strtoupper($tables_str),
+                'params' => [],
+            ];
             try {
                 DB::query($sql, 'exec');
             } catch (\Exception $e) {
                 AcmsLogger::notice($e->getMessage());
             }
-
             try {
                 DB::query($sql2, 'exec');
             } catch (\Exception $e) {
@@ -139,7 +154,10 @@ class Replication
         }
 
         foreach ($list as $key => $row) {
-            $sql = 'SHOW CREATE TABLE ' . $row;
+            $sql = [
+                'sql' => 'SHOW CREATE TABLE ' . $row,
+                'params' => [],
+            ];
             $create = DB::query($sql, 'all');
             foreach ($create as $createRow) {
                 $create_sql = $createRow['Create Table'];
@@ -168,16 +186,22 @@ class Replication
         $columnsList = [];
         $columnsType = [];
 
-        $columns = $db->query('SHOW COLUMNS FROM `' . $table . '`', 'all');
+        $columns = $db->query([
+            'sql' => 'SHOW COLUMNS FROM `' . $table . '`',
+            'params' => []
+        ], 'all');
         foreach ($columns as $row) {
             $name = $row['Field'];
             array_push($columnsList, $name);
             $columnsType[$name] = $row['Type'];
         }
-        $q = "SELECT * FROM $table";
-        $db->query($q, 'fetch', false);
+        $q = [
+            'sql' => "SELECT * FROM $table",
+            'params' => [],
+        ];
+        $all = $db->query($q, 'all', false);
 
-        while ($row = $db->fetch($q)) {
+        foreach ($all as $row) {
             $masterQuery = 'INSERT INTO `' . $table . '` (`' . implode('`, `', $columnsList) . '`) VALUES ';
             $masterQuery .= '(';
             $j = 0;
@@ -201,13 +225,21 @@ class Replication
             }
             $masterQuery .= ');' . PHP_EOL;
             $masterQuery = preg_replace('/' . DB_PREFIX . '/', 'DB_PREFIX_STR_', $masterQuery);
-            if ('UTF-8' <> DB_CHARSET) {
-                $val = @mb_convert_encoding($masterQuery, "UTF-8", DB_CHARSET);
+            if ('UTF-8' !== DB_CHARSET) {
+                if (!is_string($masterQuery)) {
+                    return;
+                }
+                $val = mb_convert_encoding($masterQuery, "UTF-8", DB_CHARSET);
+                if ($val === false) {
+                    throw new \RuntimeException('mb_convert_encoding failed. ' . DB_CHARSET . ' -> UTF-8');
+                }
                 if ($masterQuery === mb_convert_encoding($val, DB_CHARSET, 'UTF-8')) {
                     $masterQuery = $val;
                 }
             }
-            fwrite($handle, $masterQuery);
+            if ($masterQuery) {
+                fwrite($handle, $masterQuery);
+            }
         }
     }
 
@@ -221,7 +253,10 @@ class Replication
      */
     public function rewriteDomain($new_domain, $name)
     {
-        $sql = 'UPDATE ' . $name . ' SET blog_domain=' . DB::quote($new_domain);
+        $sql = [
+            'sql' => 'UPDATE ' . $name . ' SET blog_domain=' . DB::quote($new_domain),
+            'params' => [],
+        ];
         DB::query($sql, 'exec');
     }
 
@@ -233,19 +268,19 @@ class Replication
         $table = 'TEMP_' . date('yMd_His');
         $new_table = 'R_' . $table;
 
-        if (!DB::query('CREATE TABLE `' . $table . '` (test VARCHAR(1))', 'exec')) {
+        if (!DB::query(['sql' => 'CREATE TABLE `' . $table . '` (test VARCHAR(1))', 'params' => []], 'exec')) {
             throw new \RuntimeException('CREATE TABLE権限がありません。 ' . implode(' ', DB::errorInfo()));
         }
 
-        if (!DB::query('RENAME TABLE `' . $table . '` TO `' . $new_table . '`', 'exec')) {
+        if (!DB::query(['sql' => 'RENAME TABLE `' . $table . '` TO `' . $new_table . '`', 'params' => []], 'exec')) {
             throw new \RuntimeException('RENAME TABLEする権限がありません。 ' . implode(' ', DB::errorInfo()));
         }
 
-        if (!DB::query('DROP TABLE `' . $new_table . '`', 'exec')) {
+        if (!DB::query(['sql' => 'DROP TABLE `' . $new_table . '`', 'params' => []], 'exec')) {
             throw new \RuntimeException('DROP TABLEする権限がありません。 ' . implode(' ', DB::errorInfo()));
         }
 
-        if (!DB::query('SHOW TABLES FROM `' . DB_NAME . '`', 'exec')) {
+        if (!DB::query(['sql' => 'SHOW TABLES FROM `' . DB_NAME . '`', 'params' => []], 'exec')) {
             throw new \RuntimeException('SHOW TABLESする権限がありません。 ' . implode(' ', DB::errorInfo()));
         }
     }

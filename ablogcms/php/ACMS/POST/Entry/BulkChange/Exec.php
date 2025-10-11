@@ -16,7 +16,7 @@ class ACMS_POST_Entry_BulkChange_Exec extends ACMS_POST_Entry_BulkChange_Confirm
             $this->bulkChange();
 
             AcmsLogger::info('エントリーの一括変更を行いました', [
-                'eids' => implode(',', $this->eids),
+                'eids' => implode(',', $this->targetEids),
                 'action' => $this->entryActions,
                 'entry' => Common::extract('entry'),
                 'field' => Common::extract('field'),
@@ -25,7 +25,7 @@ class ACMS_POST_Entry_BulkChange_Exec extends ACMS_POST_Entry_BulkChange_Confirm
             $this->Post->set('step', '4');
         } catch (ACMS_POST_Entry_BulkChange_Exceptions_PermissionDenied $e) {
             AcmsLogger::info('権限がないため、エントリーの一括変更に失敗しました');
-            die('Permission denied.');
+            die403('Permission denied.');
         } catch (ACMS_POST_Entry_BulkChange_Exceptions_TargetEmpty $e) {
             AcmsLogger::info('一括変更するエントリーが指定されていないため、処理を終了しました');
             $this->Post->set('step', '1');
@@ -50,7 +50,7 @@ class ACMS_POST_Entry_BulkChange_Exec extends ACMS_POST_Entry_BulkChange_Confirm
         $this->changeEntry();
         $this->changeEntryField();
 
-        foreach ($this->eids as $eid) {
+        foreach ($this->targetEids as $eid) {
             Common::saveFulltext('eid', $eid, Common::loadEntryFulltext($eid));
         }
     }
@@ -62,6 +62,7 @@ class ACMS_POST_Entry_BulkChange_Exec extends ACMS_POST_Entry_BulkChange_Confirm
     {
         $db = DB::singleton(dsn());
         $entry = Common::extract('entry');
+
         $sql = SQL::newUpdate('entry');
         foreach ($this->entryActions as $action) {
             $method = Common::camelize($action);
@@ -71,11 +72,13 @@ class ACMS_POST_Entry_BulkChange_Exec extends ACMS_POST_Entry_BulkChange_Confirm
                 $sql->addUpdate($action, $entry->get($action));
             }
         }
-        $sql->addWhereIn('entry_id', $this->eids);
-        if ($q = $sql->get(dsn())) {
+        if ($sql->_update) {
+            $sql->addWhereIn('entry_id', $this->targetEids);
+            $q = $sql->get(dsn());
             $db->query($q, 'exec');
         }
-        foreach ($this->eids as $eid) {
+
+        foreach ($this->targetEids as $eid) {
             ACMS_RAM::entry($eid, null);
         }
     }
@@ -85,7 +88,7 @@ class ACMS_POST_Entry_BulkChange_Exec extends ACMS_POST_Entry_BulkChange_Confirm
     {
         $field = Common::extract('field');
         $field->addField('updateField', 'on');
-        foreach ($this->eids as $eid) {
+        foreach ($this->targetEids as $eid) {
             Common::saveField('eid', $eid, clone $field);
         }
     }
@@ -93,7 +96,7 @@ class ACMS_POST_Entry_BulkChange_Exec extends ACMS_POST_Entry_BulkChange_Confirm
     protected function entrySubCategoryId($sql, $entry)
     {
         $cid = $entry->get('entry_category_id', null);
-        foreach ($this->eids as $eid) {
+        foreach ($this->targetEids as $eid) {
             Entry::saveSubCategory($eid, $cid, $entry->get('entry_sub_category_id'));
         }
     }
@@ -104,25 +107,27 @@ class ACMS_POST_Entry_BulkChange_Exec extends ACMS_POST_Entry_BulkChange_Confirm
         $db = DB::singleton(dsn());
 
         $sql = SQL::newDelete('tag');
-        $sql->addWhereIn('tag_entry_id', $this->eids);
+        $sql->addWhereIn('tag_entry_id', $this->targetEids);
         $db->query($sql->get(dsn()), 'exec');
 
         if (!empty($tags)) {
             $tags = Common::getTagsFromString($tags);
+            $sql = SQL::newBulkInsert('tag');
             foreach ($tags as $sort => $tag) {
                 if (isReserved($tag)) {
                     continue;
                 }
-                $sql = SQL::newInsert('tag');
-                $sql->addInsert('tag_name', $tag);
-                $sql->addInsert('tag_sort', $sort + 1);
-
-                foreach ($this->eids as $eid) {
-                    $sql2 = clone $sql;
-                    $sql2->addInsert('tag_entry_id', $eid);
-                    $sql2->addInsert('tag_blog_id', ACMS_RAM::entryBlog($eid));
-                    $db->query($sql2->get(dsn()), 'exec');
+                foreach ($this->targetEids as $eid) {
+                    $sql->addInsert([
+                        'tag_name' => $tag,
+                        'tag_sort' => $sort + 1,
+                        'tag_entry_id' => $eid,
+                        'tag_blog_id' => ACMS_RAM::entryBlog($eid),
+                    ]);
                 }
+            }
+            if ($sql->hasData()) {
+                $db->query($sql->get(dsn()), 'exec');
             }
         }
     }

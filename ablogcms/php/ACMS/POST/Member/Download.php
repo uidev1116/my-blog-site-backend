@@ -1,6 +1,6 @@
 <?php
 
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Facades\Common;
 
 class ACMS_POST_Member_Download extends ACMS_POST
@@ -149,7 +149,7 @@ class ACMS_POST_Member_Download extends ACMS_POST
         ignore_user_abort(true);
         set_time_limit(0);
 
-        Storage::makeDirectory($destDir);
+        LocalStorage::makeDirectory($destDir);
         $fp = fopen($destPath, 'w');
 
         if (!$fp) {
@@ -159,8 +159,8 @@ class ACMS_POST_Member_Download extends ACMS_POST
         $this->createCsvHeader($fp, $userColumns, $fieldColumns);
 
         $q = $sql->get(dsn());
-        DB::query($q, 'fetch');
-        while ($user = DB::fetch($q)) {
+        $statement = DB::query($q, 'exec');
+        while ($user = DB::next($statement)) {
             $this->createCsvData($fp, $user, $userColumns, $fieldColumns);
         }
         fclose($fp);

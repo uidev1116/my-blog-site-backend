@@ -1,932 +1,582 @@
 <!-- BEGIN_MODULE Touch_Edit -->
 @include("/admin/entry/style.html")
 <!-- BEGIN_MODULE Admin_Entry_Edit -->
-<!-- BEGIN step#apply -->
-@section("apply")
-<!-- GET_Rendered id="entry_edit_status_display" -->
-<form action="" method="post" enctype="multipart/form-data" id="entryForm"
-  class="js-validator js-admin_unload_alert js-ajax_upload_image js-observeFileSize acms-admin-form acms-admin-form-edit">
-  <div class="entryFormWrapper">
-    <div class="acms-admin-grid">
-      <table class="entryFormTable acms-admin-table-entry acms-admin-table-admin-entry">
-        @section("apply-status")
-        <tr id="entry-status-display">
-          <th id="labelStatus"><label for="entry-status" id="entry-status-label"><!--T-->ステータス<!--/T--></label></th>
-          <td>
-            <select id="entry-status" name="status" class="js-select2">
-              <option value="draft" {status:selected#draft}><!--T-->下書き<!--/T--></option>
-              <option value="open" {status:selected#open}><!--T-->公開<!--/T--></option>
-              <option value="close" {status:selected#close}><!--T-->非公開<!--/T--></option>
-              <option value="trash" {status:selected#trash}><!--T-->ゴミ箱<!--/T--></option>
-            </select>
-            <input type="hidden" name="entry[]" value="status" />
-          </td>
-        </tr>
-        @endsection
-        @section("apply-title")
-        <tr id="entry-title-display">
-          <th id="labelTitle"><label for="entry-title" id="entry-title-label"><!--T-->タイトル<!--/T--></label></th>
-          <td><input type="text" name="title" id="entry-title" size="40" class="entryInputTitle" />
-            <input type="hidden" name="entry[]" value="title" />
-            <input type="hidden" name="title:validator#required" id="validator-title-required" />
-            <div role="alert" aria-live="assertive">
-              <div data-validator-label="validator-title-required" class="validator-result-{title:validator#required}">
-                <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention"
-                    aria-hidden="true"></span><!--T-->タイトルが入力されていません。<!--/T--></p>
-              </div>
-            </div>
-          </td>
-        </tr>
-        @endsection
-        @section("apply-category")
-        <tr id="entry-category-display">
-          <th id="labelCategory"><label for="entry-category" id="entry-category-label"><!--T-->カテゴリー<!--/T--></label>
-          </th>
-          <td>
-            <!-- BEGIN_MODULE Touch_Admin -->
-            <!-- BEGIN_MODULE Config -->
-            <div style="width: min(100%, 250px);">
-              @include("/admin/include/category/select.html", {
-                "target": "#entry-category-value",
-                "defaultValue": "<!-- BEGIN_IF [{entry_edit_category_default}/nem] -->{entry_edit_category_default}<!-- ELSE -->%{CID}<!-- END_IF -->",
-                "narrowDown": "true",
-                "isCreatable": "true",
-                "inputId": "entry-category"
-              })
-            </div>
-            <input
-              id="entry-category-value"
-              type="hidden"
-              name="category_id"
-              value="<!-- BEGIN_IF [{entry_edit_category_default}/nem] -->{entry_edit_category_default}<!-- ELSE -->%{CID}<!-- END_IF -->"
-            >
-            <input type="hidden" name="entry[]" value="category_id">
-            <!-- END_MODULE Config -->
-            <!-- END_MODULE Touch_Admin -->
-          </td>
-        </tr>
-        @endsection
-        @section("apply-sub-category")
-        <!-- BEGIN_MODULE Touch_SubCategoryFunction -->
-        <tr id="entry-subcategory-display">
-          <th id="labelSubCategory">
-            <label
-              for="entry-sub-category"
-              id="entry-sub-category-label"
-            >
-              <!--T-->サブカテゴリー<!--/T-->
-            </label>
-          </th>
-          <td>
-            @include("/admin/include/sub-category/select.html", {
-              "target": "#entry-sub-category-value",
-              "defaultValue": "",
-              "defaultLabel": "",
-              "categoryId": "#entry-category-value",
-              "inputId": "entry-sub-category",
-              "limit": "true"
-            })
-            <input id="entry-sub-category-value" type="hidden" name="sub_category_id" value="">
-            <input type="hidden" name="entry[]" value="sub_category_id">
-            <div role="alert" aria-live="assertive">
-              <div data-validator-label="validator-sub_category_id-max_sub_category_id" class="validator-result-{sub_category_id:validator#max_sub_category_id}">
-                <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention"
-                    aria-hidden="true"></span><!--T-->登録できるサブカテゴリー数を超えています。<!--/T--></p>
-              </div>
-            </div>
-          </td>
-        </tr>
-        <!-- END_MODULE Touch_SubCategoryFunction -->
-        @endsection
-        @section("apply-tag")
-        <tr id="entry-tag-display">
-          <th id="labelTag">
-            <label for="entry-tag" id="entry-tag-label">
-              <!--T-->タグ<!--/T-->
-            </label>
-          </th>
-          <td>
-            @include("/admin/include/tag/select.html", {
-              "target": "#entry-tag-value",
-              "defaultValue": "",
-              "inputId": "entry-tag"
-            })
-            <input id="entry-tag-value" type="hidden" name="tag" value="">
-            <input type="hidden" name="entry[]" value="tag">
-            <div role="alert" aria-live="assertive">
-              <div data-validator-label="validator-tag-reserved" class="validator-result-{tag:validator#reserved}">
-                <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention"
-                    aria-hidden="true"></span><!--T-->システムで予約されているキーワードです。<!--/T--></p>
-              </div>
-              <div data-validator-label="validator-tag-string" class="validator-result-{tag:validator#string}">
-                <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention"
-                    aria-hidden="true"></span><!--T-->不正な文字が含まれています。<!--/T--></p>
-              </div>
-            </div>
-          </td>
-        </tr>
-        @endsection
-        @section("apply-date")
-        <tr id="entry-date-display">
-          <th id="labelDate">
-            <label for="entryDate" id="entry-date-label"><!--T-->日時<!--/T--></label>
-          </th>
-          <td>
-            <div class="entryFormDateBlockWrap">
-              <label
-                for="entryDate"
-                class="entryFormDateLabel acms-admin-margin-right-small"
-              >
-                <!--T-->日付<!--/T-->
-              </label>
-              <div class="entryFormDateBlock">
-                <div class="acms-admin-form-action acms-admin-form-width-full">
-                  <input
-                    type="text"
-                    name="date"
-                    value="%{NOW_DATE}"
-                    size="15"
-                    id="entryDate"
-                    class="acms-admin-form-width-full js-datepicker2"
-                  >
-                  <a
-                    href="#"
-                    id="labelDate"
-                    class="updateDate acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md"
-                    rel="entryDate"
-                    aria-describedby="entry-label-date"
-                  >
-                    <i class="acms-admin-icon-schedule" aria-hidden="true"></i>
-                    <span
-                      role="tooltip"
-                      id="entry-label-date"
-                      class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center"
-                    >
-                      現在の日付に合わせる
-                    </span>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <div class="entryFormDateBlockWrap">
-              <label
-                for="entryTime"
-                class="entryFormTimeLabel acms-admin-margin-right-small"
-              >
-                <!--T-->時刻<!--/T-->
-              </label>
-              <div class="entryFormDateBlock">
-                <div class="acms-admin-form-action acms-admin-form-width-full">
-                  <input
-                    type="text"
-                    name="time"
-                    value="%{NOW_TIME}"
-                    size="12"
-                    id="entryTime"
-                    class="acms-admin-form-width-full js-timepicker"
-                  >
-                  <a
-                    href="#"
-                    id="labelTime"
-                    class="updateTime acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md"
-                    rel="entryTime"
-                    aria-describedby="entry-label-time"
-                  >
-                    <i class="acms-admin-icon-time" aria-hidden="true"></i>
-                    <span
-                      role="tooltip"
-                      id="entry-label-time"
-                      class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center"
-                    >
-                      現在の時刻に合わせる
-                    </span>
-                  </a>
-                </div>
-              </div>
-            </div>
-            <input type="hidden" name="entry[]" value="date" />
-            <input type="hidden" name="entry[]" value="time" />
-          </td>
-        </tr>
-        @endsection
-        @section("apply-members-only")
-        <tr id="entry-members-only-display">
-          <th id="entry-members-only-label"><!--T-->会員限定<!--/T--></th>
-          <td><input type="hidden" name="members_only" value="off" />
-            <div class="acms-admin-form-checkbox">
-              <input type="checkbox" name="members_only" value="on" {members_only:checked#on} class="js-input-members-only" id="input-checkbox-members_only" />
-              <label for="input-checkbox-members_only">
-                <i class="acms-admin-ico-checkbox"></i>
-                <!--T-->会員限定記事にする<!--/T-->
-              </label>
-            </div>
-            <input type="hidden" name="entry[]" value="members_only" />
-          </td>
-        </tr>
-        @endsection
-      </table>
-      @section("apply-geo")
-      @include("/admin/entry/geo.html")
-      @endsection
-
-      @section("apply-related")
-      @include("/admin/entry/related.html")
-      @endsection
-    </div>
-
-    <table class="entryFormTable acms-admin-table-entry" id="js-entry-detail-table">
-      <thead class="detail-fade">
-        <tr class="detail-fade">
-          <td colspan="2"><a href="#" id="dateExpander" class="detail-fade-head"><!--T-->詳細設定<!--/T--><span
-                class="acms-admin-icon-arrow-small-down acms-admin-margin-left-mini"></span></a></td>
-        </tr>
-      </thead>
-      <tbody class="detail-fade-body">
-        @section("apply-file")
-        <tr id="entry-file-name-display">
-          <th><label for="entry-file-name" id="entry-file-name-label"><!--T-->ファイル名<!--/T--></label></th>
-          <td><input type="text" name="code" id="entry-file-name" class="entryFormInputText"
-              placeholder="例）entry-1.html" />
-            <!-- BEGIN next_eid:veil --><!-- &nbsp;(&nbsp;次のeid:{next_eid}&nbsp;)-->
-            <!-- END next_eid:veil -->
-            <input type="hidden" name="entry[]" value="code" />
-          </td>
-        </tr>
-        @endsection
-        @section("apply-open-date")
-        <tr id="entry-start-date-display">
-          <th id="entry-start-date-label"><!--T-->公開日時<!--/T--></th>
-          <td>
-            <div class="entryFormDateBlockWrap acms-admin-margin-right-small">
-              <label for="entryStartDate"
-                class="entryFormDateLabel acms-admin-margin-right-small"><!--T-->日付<!--/T--></label>
-              <div class="entryFormDateBlock">
-                <div class="acms-admin-form-action acms-admin-form-width-full">
-                  <input type="text" name="start_date" value="%{NOW_DATE}" size="15" id="entryStartDate"
-                    class="acms-admin-form-width-full js-datepicker2">
-                  <a href="#" id="labelDate"
-                    class="updateDate acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md"
-                    rel="entryStartDate" aria-describedby="entry-label-date"><i class="acms-admin-icon-schedule"
-                      aria-hidden="true"></i><span role="tooltip" id="entry-label-date"
-                      class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center">現在の日付に合わせる</span></a>
-                </div>
-              </div>
-            </div>
-            <div class="entryFormDateBlockWrap">
-              <label for="entryStartTime" class="entryFormTimeLabel"><!--T-->時刻<!--/T--></label>
-              <div class="entryFormDateBlock">
-                <div class="acms-admin-form-action acms-admin-form-width-full">
-                  <input type="text" name="start_time" value="%{NOW_TIME}" size="12" id="entryStartTime"
-                    class="acms-admin-form-width-full js-timepicker">
-                  <a href="#" id="labelDate"
-                    class="updateTime acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md"
-                    rel="entryStartTime" aria-describedby="entry-label-date"><i class="acms-admin-icon-time"
-                      aria-hidden="true"></i><span role="tooltip" id="entry-label-date"
-                      class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center">現在の時刻に合わせる</span></a>
-                </div>
-              </div>
-            </div>
-            <input type="hidden" name="entry[]" value="start_date" />
-            <input type="hidden" name="entry[]" value="start_time" />
-          </td>
-        </tr>
-        @endsection
-        @section("apply-end-date")
-        <tr id="entry-end-date-display">
-          <th id="entry-end-date-label"><!--T-->掲載期限<!--/T--></th>
-          <td>
-            <div class="entryFormDateBlockWrap acms-admin-margin-right-small">
-              <label for="entryEndDate"
-                class="entryFormDateLabel acms-admin-margin-right-small"><!--T-->日付<!--/T--></label>
-              <div class="entryFormDateBlock">
-                <div class="acms-admin-form-action acms-admin-form-width-full">
-                  <input type="text" name="end_date" value="9999-12-31" size="15" id="entryEndDate"
-                    class="acms-admin-form-width-full js-datepicker2">
-                  <a href="#" id="labelDate"
-                    class="updateDate acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md"
-                    rel="entryEndDate" aria-describedby="entry-label-date"><i class="acms-admin-icon-schedule"
-                      aria-hidden="true"></i><span role="tooltip" id="entry-label-date"
-                      class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center">現在の日付に合わせる</span></a>
-                </div>
-              </div>
-            </div>
-            <div class="entryFormDateBlockWrap">
-              <label for="entryEndTime" class="entryFormTimeLabel"><!--T-->時刻<!--/T--></label>
-              <div class="entryFormDateBlock">
-                <div class="acms-admin-form-action acms-admin-form-width-full">
-                  <input type="text" name="end_time" value="23:59:59" size="12" id="entryEndTime"
-                    class="acms-admin-form-width-full js-timepicker">
-                  <a href="#" id="labelDate"
-                    class="updateTime acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md"
-                    rel="entryEndTime" aria-describedby="entry-label-date"><i class="acms-admin-icon-time"
-                      aria-hidden="true"></i><span role="tooltip" id="entry-label-date"
-                      class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center">現在の時刻に合わせる</span></a>
-                </div>
-              </div>
-            </div>
-            <input type="hidden" name="entry[]" value="end_date" />
-            <input type="hidden" name="entry[]" value="end_time" />
-          </td>
-        </tr>
-        @endsection
-        @section("apply-summary")
-        <tr id="entry-summary-range-display">
-          <th><label for="entry-summary-range" id="entry-summary-range-label"><!--T-->概要<!--/T--></label></th>
-          <td>
-            <div>
-              <!--T-->上から<!--/T-->
-              <select name="summary_range" id="entry-summary-range" class="js-select2">
-                <option value="0" {range:selected#none}><!--T-->なし<!--/T--></option>
-                <!-- BEGIN range:loop -->
-                <option value="{value}" {selected}>{value}</option>
-                <!-- END range:loop -->
-                <option value="" {range:selected#all}><!--T-->全て<!--/T--></option>
-              </select>
-              <!--T-->番目までのカラムを抜粋<!--/T-->
-              <input type="hidden" name="entry[]" value="summary_range" />
-
-            </div>
-          </td>
-        </tr>
-        @endsection
-        @section("apply-indexing")
-        <tr id="entry-indexing-display">
-          <th id="entry-indexing-label"><!--T-->インデキシング<!--/T--></th>
-          <td><input type="hidden" name="indexing" value="off" />
-            <div class="acms-admin-form-checkbox">
-              <input type="checkbox" name="indexing" value="on" {indexing:checked#on} id="input-checkbox-indexing" />
-              <label for="input-checkbox-indexing">
-                <i class="acms-admin-ico-checkbox"></i>
-                <!--T-->一覧に表示する<!--/T-->
-              </label>
-            </div>
-            <input type="hidden" name="entry[]" value="indexing" />
-          </td>
-        </tr>
-        @endsection
-        @section("apply-link-url")
-        <tr id="entry-link-url-display">
-          <th><label for="entry-link-url" id="entry-link-url-label"><!--T-->リンク先URL<!--/T--></label></th>
-          <td><input type="text" name="link" id="entry-link-url" size="30" class="acms-admin-form-width-medium" />
-            <input type="hidden" name="entry[]" value="link" />
-          </td>
-        </tr>
-        @endsection
-      </tbody>
-      <!-- <tr class="detail-fade-body">
-                <th>トラックバック</th>
-                <td><textarea name="trackback_url" cols="30"></textarea>
-                    <input type="hidden" name="entry[]" value="trackback_url" /></td>
-            </tr> -->
-    </table>
-
-    @section("apply-field")
-    @include("/admin/entry/field.html")
-    @endsection
-    <!-- BEGIN_MODULE Admin_InjectTemplate id="admin-entry-field" --><!-- END_MODULE Admin_InjectTemplate -->
-  </div>
-
-  @section("apply-unit")
-  @include("/admin/entry/unit.html")
-  @endsection
-
-  <div class="entryFormWrapper">
-    @include("/admin/entry/field_foot.html")
-    <!-- BEGIN_MODULE Admin_InjectTemplate id="admin-entry-field-foot" --><!-- END_MODULE Admin_InjectTemplate -->
-  </div>
-
-  <input type="hidden" name="entry[]" value="primary_image" />
-  <div class="comPostWrapper">
-    <div class="comPost">
-      <div class="comPostInner">
-        <div class="comPostMain">
-          <input type="submit" name="ACMS_POST_Entry_Insert" value="<!--T-->作成<!--/T-->"
-            class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-admin-save js-saving-splash" />
-        </div>
-        <div class="comPostSide">
-          <input type="submit" name="ACMS_POST_2GET" value="<!--T-->戻る<!--/T-->" class="acms-admin-btn-admin overlook"
-            onclick="return confirm('<!--T-->エントリーの編集をやめます。\n現在の変更内容が破棄されます、よろしいですか？<!--/T-->');" />
-        </div>
-        <input type="hidden" name="bid" value="%{BID}" />
-        <input type="hidden" name="cid" value="%{CID}" />
-        <input type="hidden" name="eid" value="%{EID}" />
-        <input type="hidden" name="arg[]" value="bid" />
-        <input type="hidden" name="arg[]" value="cid" />
-        <input type="hidden" name="arg[]" value="eid" /><!-- BEGIN backend -->
-        <input type="hidden" name="backend" value="backend" /><!-- END backend -->
-      </div>
-    </div>
-  </div>
-</form>
-
-<div class="js-acms-entry-lock"></div>
-@endsection
-<!-- END step#apply -->
-<!-- BEGIN step#reapply -->
-<!-- GET_Rendered id="entry_edit_status_display" -->
-@section("reapply")
+@section("entry-form")
 <!-- BEGIN entry:validator#operable -->
-<p role="alert" class="acms-admin-alert acms-admin-alert-danger">
+<div role="alert" class="acms-admin-alert acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
   <!--T-->この操作は許可されていません。<!--/T-->
-</p>
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+</div>
 <!-- END entry:validator#operable -->
 <!-- BEGIN entry:validator#lock -->
-<p role="alert" class="acms-admin-alert acms-admin-alert-warning">
+<div role="alert" class="acms-admin-alert acms-admin-alert-warning">
+  <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
   <!--T-->エントリーがロックされているため、エントリーを保存できませんでした。<!--/T--><br>
   <!--T-->「新しいバージョン」として保存することで、現在の編集内容を別バージョンとして残しておけます。<!--/T-->
-</p>
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+</div>
 <!-- END entry:validator#lock -->
-
-<p role="alert" class="transaction-notice-{insert:validator}">
-  <!--T-->エントリーの作成ができませんでした。<!--/T-->
-</p>
-<p role="alert" class="transaction-notice-{update:validator}">
-  <!--T-->エントリーの保存ができませんでした。<!--/T-->
-</p>
-
-<form action="" method="post" enctype="multipart/form-data" id="entryForm"
-  class="js-validator js-admin_unload_alert js-ajax_upload_image js-observeFileSize acms-admin-form acms-admin-form-edit">
+<!-- GET_Rendered id="entry_edit_status_display" -->
+<form
+  action=""
+  method="post"
+  enctype="multipart/form-data"
+  id="entryForm"
+  class="js-validator js-admin_unload_alert acms-admin-form acms-admin-form-edit"
+>
   <div class="entryFormWrapper">
-    <div class="acms-admin-grid">
-      <table class="entryFormTable acms-admin-table-entry acms-admin-table-admin-entry">
-        @section("reapply-status")
-        <tr id="entry-status-display">
-          <th id="labelStatus"><label for="entry-status" id="entry-status-label"><!--T-->ステータス<!--/T--></label></th>
-          <td>
-            <select id="entry-status" name="status" class="js-select2">
-              <option value="draft" {status:selected#draft}><!--T-->下書き<!--/T--></option>
-              <option value="open" {status:selected#open}><!--T-->公開<!--/T--></option>
-              <option value="close" {status:selected#close}><!--T-->非公開<!--/T--></option>
-              <option value="trash" {status:selected#trash}><!--T-->ゴミ箱<!--/T--></option>
-
-            </select>
-            <input type="hidden" name="entry[]" value="status" />
-            <input type="hidden" name="status:validator#category" id="validator-status-category" />
-            <div role="alert" aria-live="assertive">
-              <div data-validator-label="validator-status-category"
-                class="validator-result-{status:validator#category}">
-                <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention"
-                    aria-hidden="true"></span><!--T-->カテゴリーが非公開の記事は公開できません。<!--/T--></p>
+    <div>
+      <div class="entryFormHead">
+        <table class="entryFormTable acms-admin-table-entry acms-admin-table-admin-entry">
+          @section("entry-status")
+          <tr id="entry-status-display">
+            <th id="labelStatus">
+              <label for="entry-status" id="entry-status-label">
+                <!--T-->ステータス<!--/T-->
+              </label>
+            </th>
+            <td>
+              <select id="entry-status" name="status" class="js-select2">
+                <option value="draft" {status:selected#draft}><!--T-->下書き<!--/T--></option>
+                <option value="open" {status:selected#open}><!--T-->公開<!--/T--></option>
+                <option value="close" {status:selected#close}><!--T-->非公開<!--/T--></option>
+                <option value="trash" {status:selected#trash}><!--T-->ゴミ箱<!--/T--></option>
+              </select>
+              <input type="hidden" name="entry[]" value="status" />
+              <input type="hidden" name="status:validator#category" id="validator-status-category" />
+              <div role="alert" aria-live="assertive">
+                <div data-validator-label="validator-status-category" class="validator-result-{status:validator#category}">
+                  <p class="error-text">
+                    <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                    <!--T-->カテゴリーが非公開の記事は公開できません。<!--/T-->
+                  </p>
+                </div>
               </div>
-            </div>
-          </td>
-        </tr>
-        @endsection
-        @section("reapply-title")
-        <tr id="entry-title-display">
-          <th id="labelTitle"><label for="entry-title" id="entry-title-label"><!--T-->タイトル<!--/T--></label></th>
-          <td><input type="text" name="title" size="40" value="{title}" id="entry-title" class="entryInputTitle" />
-            <input type="hidden" name="entry[]" value="title" />
-            <input type="hidden" name="title:validator#required" id="validator-title-required" />
-            <div role="alert" aria-live="assertive">
-              <div data-validator-label="validator-title-required" class="validator-result-{title:validator#required}">
-                <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention"
-                    aria-hidden="true"></span><!--T-->タイトルが入力されていません。<!--/T--></p>
+            </td>
+          </tr>
+          @endsection
+          @section("entry-title")
+          <tr id="entry-title-display">
+            <th id="labelTitle">
+              <label for="entry-title" id="entry-title-label">
+                <!--T-->タイトル<!--/T-->
+              </label>
+            </th>
+            <td>
+              <input
+                type="text"
+                name="title"
+                id="entry-title"
+                size="40"
+                value="{title}"
+                class="acms-admin-form-width-full"
+              />
+              <input type="hidden" name="entry[]" value="title" />
+              <input type="hidden" name="title:validator#required" id="validator-title-required" />
+              <div role="alert" aria-live="assertive">
+                <div data-validator-label="validator-title-required" class="validator-result-{title:validator#required}">
+                  <p class="error-text">
+                    <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                    <!--T-->タイトルが入力されていません。<!--/T-->
+                  </p>
+                </div>
               </div>
-            </div>
-          </td>
-        </tr>
-        @endsection
-        @section("reapply-category")
-        <tr id="entry-category-display">
-          <th id="labelCategory">
-            <label for="entry-category" id="entry-category-label"><!--T-->カテゴリー<!--/T--></label>
-          </th>
-          <td>
-            <div style="width: min(100%, 350px);">
-              @include("/admin/include/category/select.html", {
-                "target": "#entry-category-value",
-                "defaultValue": "{category_id}",
-                "narrowDown": "true",
-                "isCreatable": "true",
-                "inputId": "entry-category"
+            </td>
+          </tr>
+          @endsection
+          @section("entry-category")
+          <tr id="entry-category-display">
+            <th id="labelCategory">
+              <label for="entry-category" id="entry-category-label">
+                <!--T-->カテゴリー<!--/T-->
+              </label>
+            </th>
+            <td>
+              <div style="width: min(100%, 350px);">
+                @include("/admin/include/category/select.html", {
+                  "target": "#entry-category-value",
+                  "defaultValue": "{category_id}",
+                  "narrowDown": "true",
+                  "isCreatable": "{category_creatable}",
+                  "inputId": "entry-category"
+                })
+              </div>
+              <input
+                id="entry-category-value"
+                type="hidden"
+                name="category_id"
+                value="{category_id}"
+              >
+              <input type="hidden" name="entry[]" value="category_id">
+            </td>
+          </tr>
+          @endsection
+          @section("entry-sub-category")
+          <!-- BEGIN_MODULE Touch_SubCategoryFunction -->
+          <tr id="entry-subcategory-display">
+            <th id="labelSubCategory">
+              <label
+                for="entry-sub-category"
+                id="entry-sub-category-label"
+              >
+                <!--T-->サブカテゴリー<!--/T-->
+              </label>
+            </th>
+            <td>
+              @include("/admin/include/sub-category/select.html", {
+                "target": "#entry-sub-category-value",
+                "defaultValue": "{sub_category_id}",
+                "defaultLabel": "{sub_category_label}",
+                "categoryId": "#entry-category-value",
+                "inputId": "entry-sub-category",
+                "limit": "true"
               })
-            </div>
-            <input
-              id="entry-category-value"
-              type="hidden"
-              name="category_id"
-              value="{category_id}"
-            >
-            <input type="hidden" name="entry[]" value="category_id">
-          </td>
-        </tr>
-        @endsection
-        @section("reapply-sub-category")
-        <!-- BEGIN_MODULE Touch_SubCategoryFunction -->
-        <tr id="entry-sub-category-display">
-          <th id="labelSubCategory">
-            <label
-              for="entry-sub-category"
-              id="entry-sub-category-label"
-            >
-              <!--T-->サブカテゴリー<!--/T-->
-            </label>
-          </th>
-          <td>
-            @include("/admin/include/sub-category/select.html", {
-              "target": "#entry-sub-category-value",
-              "defaultValue": "{sub_category_id}",
-              "defaultLabel": "{sub_category_label}",
-              "categoryId": "#entry-category-value",
-              "inputId": "entry-sub-category",
-              "limit": "true"
-            })
-            <input id="entry-sub-category-value" type="hidden" name="sub_category_id" value="{sub_category_id}">
-            <input type="hidden" name="entry[]" value="sub_category_id">
-            <div role="alert" aria-live="assertive">
-              <div data-validator-label="validator-sub_category_id-max_sub_category_id" class="validator-result-{sub_category_id:validator#max_sub_category_id}">
-                <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention"
-                    aria-hidden="true"></span><!--T-->登録できるサブカテゴリー数を超えています。<!--/T--></p>
-              </div>
-            </div>
-          </td>
-        </tr>
-        <!-- END_MODULE Touch_SubCategoryFunction -->
-        @endsection
-        @section("reapply-tag")
-        <tr id="entry-tag-display">
-          <th id="labelTag">
-            <label for="entry-tag" id="entry-tag-label">
-              <!--T-->タグ<!--/T-->
-            </label>
-          </th>
-          <td>
-            @include("/admin/include/tag/select.html", {
-              "target": "#entry-tag-value",
-              "defaultValue": "{tag}",
-              "inputId": "entry-tag"
-            })
-            <input id="entry-tag-value" type="hidden" name="tag" value="{tag}">
-            <input type="hidden" name="entry[]" value="tag">
-            <div role="alert" aria-live="assertive">
-              <div data-validator-label="validator-tag-reserved" class="validator-result-{tag:validator#reserved}">
-                <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention"
-                    aria-hidden="true"></span><!--T-->システムで予約されているキーワードです。<!--/T--></p>
-              </div>
-              <div data-validator-label="validator-tag-string" class="validator-result-{tag:validator#string}">
-                <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention"
-                    aria-hidden="true"></span><!--T-->不正な文字が含まれています。<!--/T--></p>
-              </div>
-            </div>
-          </td>
-        </tr>
-        @endsection
-        @section("reapply-date")
-        <tr id="entry-date-display">
-          <th id="labelDate">
-            <label for="entryDate" id="entry-date-label"><!--T-->日時<!--/T--></label>
-          </th>
-          <td>
-            <div class="entryFormDateBlockWrap">
-              <label
-                for="entryDate"
-                class="entryFormDateLabel acms-admin-margin-right-small"
-              >
-                <!--T-->日付<!--/T-->
-              </label>
-              <div class="entryFormDateBlock">
-                <div class="acms-admin-form-action acms-admin-form-width-full">
-                  <input
-                    type="text"
-                    name="date"
-                    value="{date}"
-                    size="15"
-                    id="entryDate"
-                    class="acms-admin-form-width-full js-datepicker2"
-                  >
-                  <a
-                    href="#"
-                    id="labelDate"
-                    class="updateDate acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md"
-                    rel="entryDate"
-                    aria-describedby="entry-label-date"
-                  >
-                    <i class="acms-admin-icon-schedule" aria-hidden="true"></i>
-                    <span
-                      role="tooltip"
-                      id="entry-label-date"
-                      class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center"
-                    >
-                      現在の日付に合わせる
-                    </span>
-                  </a>
+              <input id="entry-sub-category-value" type="hidden" name="sub_category_id" value="{sub_category_id}">
+              <input type="hidden" name="entry[]" value="sub_category_id">
+              <div role="alert" aria-live="assertive">
+                <div data-validator-label="validator-sub_category_id-max_sub_category_id" class="validator-result-{sub_category_id:validator#max_sub_category_id}">
+                  <p class="error-text">
+                    <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                    <!--T-->登録できるサブカテゴリー数を超えています。<!--/T-->
+                  </p>
                 </div>
               </div>
-            </div>
-
-            <div class="entryFormDateBlockWrap">
-              <label
-                for="entryTime"
-                class="entryFormTimeLabel acms-admin-margin-right-small"
-              >
-                <!--T-->時刻<!--/T-->
+            </td>
+          </tr>
+          <!-- END_MODULE Touch_SubCategoryFunction -->
+          @endsection
+          @section("entry-tag")
+          <tr id="entry-tag-display">
+            <th id="labelTag">
+              <label for="entry-tag" id="entry-tag-label">
+                <!--T-->タグ<!--/T-->
               </label>
-              <div class="entryFormDateBlock">
-                <div class="acms-admin-form-action acms-admin-form-width-full">
-                  <input
-                    type="text"
-                    name="time"
-                    value="{time}"
-                    size="12"
-                    id="entryTime"
-                    class="acms-admin-form-width-full js-timepicker"
-                  >
-                  <a
-                    href="#"
-                    id="labelTime"
-                    class="updateTime acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md"
-                    rel="entryTime"
-                    aria-describedby="entry-label-time"
-                  >
-                    <i class="acms-admin-icon-time" aria-hidden="true"></i>
-                    <span
-                      role="tooltip"
-                      id="entry-label-time"
-                      class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center"
-                    >
-                      現在の時刻に合わせる
-                    </span>
-                  </a>
+            </th>
+            <td>
+              @include("/admin/include/tag/select.html", {
+                "target": "#entry-tag-value",
+                "defaultValue": "{tag}",
+                "inputId": "entry-tag"
+              })
+              <input id="entry-tag-value" type="hidden" name="tag" value="{tag}">
+              <input type="hidden" name="entry[]" value="tag">
+              <div role="alert" aria-live="assertive">
+                <div data-validator-label="validator-tag-reserved" class="validator-result-{tag:validator#reserved}">
+                  <p class="error-text">
+                    <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                    <!--T-->システムで予約されているキーワードです。<!--/T-->
+                  </p>
+                </div>
+                <div data-validator-label="validator-tag-string" class="validator-result-{tag:validator#string}">
+                  <p class="error-text">
+                    <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                    <!--T-->不正な文字が含まれています。<!--/T-->
+                  </p>
                 </div>
               </div>
-            </div>
-            <input type="hidden" name="entry[]" value="date" />
-            <input type="hidden" name="entry[]" value="time" />
-          </td>
-        </tr>
+            </td>
+          </tr>
+          @endsection
+          @section("apply-date")
+          <tr id="entry-date-display">
+            <th id="entry-date-label">
+              <!--T-->日時<!--/T-->
+            </th>
+            <td>
+              <div class="entryFormDateBlockWrap">
+                <label
+                  for="entryDate"
+                  class="entryFormDateLabel"
+                >
+                  <!--T-->日付<!--/T-->
+                </label>
+                <div class="entryFormDateBlock">
+                  @include("/admin/include/forms/date-field.html", {
+                    "name": "date",
+                    "id": "entryDate",
+                    "value": "<!-- BEGIN_IF [{date}/em] -->%{NOW_DATE}<!-- ELSE -->{date}<!-- END_IF -->"
+                  })
+                </div>
+              </div>
+              <div class="entryFormDateBlockWrap">
+                <label
+                  for="entryTime"
+                  class="entryFormTimeLabel"
+                >
+                  <!--T-->時刻<!--/T-->
+                </label>
+                <div class="entryFormDateBlock">
+                  @include("/admin/include/forms/time-field.html", {
+                    "name": "time",
+                    "id": "entryTime",
+                    "value": "<!-- BEGIN_IF [{time}/em] -->%{NOW_TIME}<!-- ELSE -->{time}<!-- END_IF -->"
+                  })
+                </div>
+              </div>
+              <input type="hidden" name="entry[]" value="date" />
+              <input type="hidden" name="entry[]" value="time" />
+            </td>
+          </tr>
+          @endsection
+          @section("entry-members-only")
+          <tr id="entry-members-only-display">
+            <th id="entry-members-only-label">
+              <!--T-->会員限定<!--/T-->
+            </th>
+            <td>
+              <input type="hidden" name="members_only" value="off" />
+              <div class="acms-admin-form-checkbox">
+                <input
+                  type="checkbox"
+                  name="members_only"
+                  value="on"
+                  {members_only:checked#on}
+                  id="input-checkbox-members_only"
+                />
+                <label for="input-checkbox-members_only">
+                  <i class="acms-admin-ico-checkbox"></i>
+                  <!--T-->会員限定記事にする<!--/T-->
+                </label>
+              </div>
+              <input type="hidden" name="entry[]" value="members_only" />
+            </td>
+          </tr>
+          @endsection
+        </table>
+        @section("entry-geo")
+        @include("/admin/entry/geo.html")
         @endsection
-        @section("reapply-members-only")
-        <tr id="entry-members-only-display">
-          <th id="entry-members-only-label"><!--T-->会員限定<!--/T--></th>
-          <td><input type="hidden" name="members_only" value="off" />
-            <div class="acms-admin-form-checkbox">
-              <input type="checkbox" name="members_only" value="on" {members_only:checked#on} class="js-input-members-only" id="input-checkbox-members_only" />
-              <label for="input-checkbox-members_only">
-                <i class="acms-admin-ico-checkbox"></i>
-                <!--T-->会員限定記事にする<!--/T-->
-              </label>
-            </div>
-            <input type="hidden" name="entry[]" value="members_only" />
-          </td>
-        </tr>
+        @section("entry-related")
+        @include("/admin/entry/related.html")
         @endsection
-      </table>
-      @section("reapply-geo")
-      @include("/admin/entry/geo.html")
-      @endsection
-
-      @section("reapply-related")
-      @include("/admin/entry/related.html")
-      @endsection
-    </div>
-
-    @section("reapply-alert")
-    <div role="alert" aria-live="assertive">
-      <div data-validator-label="validator-code-reserved" class="validator-result-{code:validator#reserved}">
-        <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention"
-            aria-hidden="true"></span><!--T-->システムで予約されているキーワードです。(詳細設定を開いてファイル名を変更してください)<!--/T--></p>
       </div>
-      <div data-validator-label="validator-code-double" class="validator-result-{code:validator#double}">
-        <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention"
-            aria-hidden="true"></span><!--T-->同ブログ内に同じファイル名が存在します。(詳細設定を開いてファイル名を変更してください)<!--/T--></p>
-      </div>
-      <div data-validator-label="validator-code-string" class="validator-result-{code:validator#string}">
-        <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention"
-            aria-hidden="true"></span><!--T-->不正な文字が含まれています。<!--/T--></p>
-      </div>
-    </div>
-    @endsection
-
-    <table class="entryFormTable acms-admin-table-entry" id="js-entry-detail-table">
-      <thead>
-        <tr class="detail-fade">
-          <td colspan="2"><a href="#" id="dateExpander" class="detail-fade-head"><!--T-->詳細設定<!--/T--><span
-                class="acms-admin-icon-arrow-small-down acms-admin-margin-left-mini"></span></a></td>
-        </tr>
-      </thead>
-      <tbody class="detail-fade-body">
-        @section("reapply-file")
-        <tr id="entry-file-name-display" class="textM">
-          <th><label for="entry-file-name" id="entry-file-name-label"><!--T-->ファイル名<!--/T--></label></th>
-          <td>
-            <input type="text" name="code" value="{code}" id="entry-file-name" class="entryFormInputText"
-              placeholder="例）{code}" />
-            <!-- BEGIN next_eid:veil -->&nbsp;(&nbsp;next_eid:{next_eid}&nbsp;)<!-- END next_eid:veil -->
-            <input type="hidden" name="entry[]" value="code" />
-          </td>
-        </tr>
-        @endsection
-        @section("reapply-open-date")
-        <tr id="entry-start-date-display" class="textM">
-          <th id="entry-start-date-label"><!--T-->公開日時<!--/T--></th>
-          <td>
-            <div class="entryFormDateBlockWrap">
-              <label for="entryStartDate"
-                class="entryFormDateLabel acms-admin-margin-right-small"><!--T-->日付<!--/T--></label>
-              <div class="entryFormDateBlock">
-                <div class="acms-admin-form-action acms-admin-form-width-full">
-                  <input type="text" name="start_date" size="15" value="{start_date}" id="entryStartDate"
-                    class="acms-admin-form-width-full js-datepicker2">
-                  <a href="#"
-                    class="updateDate acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md"
-                    rel="entryStartDate"><i class="acms-admin-icon-schedule" aria-hidden="true"></i><span role="tooltip"
-                      id="entry-label-date"
-                      class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center">現在の日付に合わせる</span></a>
-                </div>
-              </div>
-            </div>
-            <div class="entryFormDateBlockWrap">
-              <label for="entryStartTime" class="entryFormTimeLabel acms-admin-margin-right-small"><!--T-->時刻<!--/T--></label>
-              <div class="entryFormDateBlock">
-                <div class="acms-admin-form-action acms-admin-form-width-full">
-                  <input type="text" name="start_time" value="{start_time}" size="12" id="entryStartTime"
-                    class="acms-admin-form-width-full js-timepicker">
-                  <a href="#"
-                    class="updateTime acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md"
-                    rel="entryStartTime"><i class="acms-admin-icon-time" aria-hidden="true"></i><span role="tooltip"
-                      id="entry-label-date"
-                      class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center">現在の時刻に合わせる</span></a>
-                </div>
-              </div>
-            </div>
-            <input type="hidden" name="entry[]" value="start_date" />
-            <input type="hidden" name="entry[]" value="start_time" />
-          </td>
-        </tr>
-        @endsection
-        @section("reapply-end-date")
-        <tr id="entry-end-date-display" class="textM">
-          <th id="entry-end-date-label"><!--T-->掲載期限<!--/T--></th>
-          <td>
-            <div class="entryFormDateBlockWrap">
-              <label for="entryEndDate"
-                class="entryFormDateLabel acms-admin-margin-right-small"><!--T-->日付<!--/T--></label>
-              <div class="entryFormDateBlock">
-                <div class="acms-admin-form-action acms-admin-form-width-full">
-                  <input type="text" name="end_date" value="{end_date}" size="15" id="entryEndDate"
-                    class="acms-admin-form-width-full js-datepicker2">
-                  <a href="#"
-                    class="updateDate acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md"
-                    rel="entryEndDate"><i class="acms-admin-icon-schedule" aria-hidden="true"></i><span role="tooltip"
-                      id="entry-label-date"
-                      class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center">現在の日付に合わせる</span></a>
-                </div>
-              </div>
-            </div>
-            <div class="entryFormDateBlockWrap">
-              <label for="entryEndTime" class="entryFormTimeLabel acms-admin-margin-right-small"><!--T-->時刻<!--/T--></label>
-              <div class="entryFormDateBlock">
-                <div class="acms-admin-form-action acms-admin-form-width-full">
-                  <input type="text" name="end_time" value="{end_time}" size="12" id="entryEndTime"
-                    class="acms-admin-form-width-full js-timepicker">
-                  <a href="#"
-                    class="updateTime acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md"
-                    rel="entryEndTime"><i class="acms-admin-icon-time" aria-hidden="true"></i><span role="tooltip"
-                      id="entry-label-date"
-                      class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center">現在の時刻に合わせる</span></a>
-                </div>
-              </div>
-            </div>
-            <input type="hidden" name="entry[]" value="end_date" />
-            <input type="hidden" name="entry[]" value="end_time" />
-          </td>
-        </tr>
-        @endsection
-        @section("reapply-summary")
-        <tr id="entry-summary-range-display">
-          <th><label for="entry-summary-range" id="entry-summary-range-label"><!--T-->概要<!--/T--></label></th>
-          <td id="entry-summary-range">
-            <!--T-->上から<!--/T-->
-            <select name="summary_range" class="js-select2">
-              <option value="0" {range:selected#none}><!--T-->なし<!--/T--></option>
-              <!-- BEGIN range:loop -->
-              <option value="{value}" {selected}>{value}</option>
-              <!-- END range:loop -->
-              <option value="" {range:selected#all}><!--T-->全て<!--/T--></option>
-            </select>
-            <!--T-->番目までのカラムを抜粋<!--/T-->
-            <input type="hidden" name="entry[]" value="summary_range" />
-          </td>
-        </tr>
-        @endsection
-        @section("reapply-indexing")
-        <tr id="entry-indexing-display">
-          <th id="entry-indexing-label"><!--T-->インデキシング<!--/T--></th>
-          <td><input type="hidden" name="indexing" value="off" />
-            <div class="acms-admin-form-checkbox">
-              <input type="checkbox" name="indexing" {indexing:checked#on} value="on" id="input-checkbox-indexing" />
-              <label for="input-checkbox-indexing">
-                <i class="acms-admin-ico-checkbox"></i>
-                <!--T-->一覧に表示する<!--/T-->
-              </label>
-            </div>
-            <input type="hidden" name="entry[]" value="indexing" />
-          </td>
-        </tr>
-        @endsection
-        @section("reapply-link-url")
-        <tr id="entry-link-url-display">
-          <th><label for="entry-link-url" id="entry-link-url-label"><!--T-->リンク先URL<!--/T--></label></th>
-          <td>
-            <input type="text" name="link" size="30" value="{link}" id="entry-link-url"
-              class="acms-admin-form-width-medium" />
-            <input type="hidden" name="entry[]" value="link" />
-          </td>
-        </tr>
-        @endsection
-        <!-- <tr class="textM detail-fade-body">
-                <th><label for="entry_trackback">トラックバック</label></th>
-                <td><textarea name="trackback_url" cols="30" id="entry_trackback">{trackback_url}</textarea>
-                    <input type="hidden" name="entry[]" value="trackback_url" /></td>
-            </tr> -->
-      </tbody>
-    </table>
-
-    @section("reapply-field")
-    @include("/admin/entry/field.html")
-    @endsection
-
-    <!-- BEGIN_MODULE Admin_InjectTemplate id="admin-entry-field" --><!-- END_MODULE Admin_InjectTemplate -->
-  </div>
-
-  @section("reapply-unit")
-  @include("/admin/entry/unit.html")
-  @endsection
-
-  <div class="entryFormWrapper">
-    @include("/admin/entry/field_foot.html")
-    <!-- BEGIN_MODULE Admin_InjectTemplate id="admin-entry-field-foot" --><!-- END_MODULE Admin_InjectTemplate -->
-  </div>
-
-  <input type="hidden" name="entry[]" value="primary_image" />
-
-  <div class="comPostWrapper">
-    <div class="comPost">
-      <div class="comPostInner">
-        <!-- BEGIN action#insert -->
-        <div class="comPostMain">
-          <input type="submit" name="ACMS_POST_Entry_Insert" value="<!--T-->作成<!--/T-->"
-            class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-admin-save js-saving-splash" />
+      @section("entry-alert")
+      <div role="alert" aria-live="assertive">
+        <div data-validator-label="validator-code-reserved" class="validator-result-{code:validator#reserved}">
+          <p class="error-text">
+            <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+            <!--T-->システムで予約されているキーワードです。(詳細設定を開いてファイル名を変更してください)<!--/T-->
+          </p>
         </div>
-        <!-- END action#insert -->
+        <div data-validator-label="validator-code-double" class="validator-result-{code:validator#double}">
+          <p class="error-text">
+            <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+            <!--T-->同ブログ内に同じファイル名が存在します。(詳細設定を開いてファイル名を変更してください)<!--/T-->
+          </p>
+        </div>
+        <div data-validator-label="validator-code-string" class="validator-result-{code:validator#string}">
+          <p class="error-text">
+            <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+            <!--T-->不正な文字が含まれています。<!--/T-->
+          </p>
+        </div>
+      </div>
+      @endsection
+      <details id="js-entry-details" data-target="#entry-details-table" class="acms-admin-accordion">
+        <summary class="acms-admin-accordion-button">
+          <!--T-->詳細設定<!--/T-->
+          <span class="acms-admin-icon-arrow-small-down acms-admin-margin-left-mini" aria-hidden="true"></span>
+        </summary>
+        <div class="acms-admin-accordion-panel">
+          <table id="entry-details-table" class="entryFormTable acms-admin-table-entry">
+            <tbody>
+              @section("entry-file")
+              <tr id="entry-file-name-display">
+                <th>
+                  <label for="entry-file-name" id="entry-file-name-label">
+                    <!--T-->ファイル名<!--/T-->
+                  </label>
+                </th>
+                <td>
+                  <input
+                    autocomplete="new-password"
+                    type="text"
+                    name="code"
+                    value="{code}"
+                    id="entry-file-name"
+                    class="acms-admin-form-width-medium"
+                    placeholder="例）entry-<!-- BEGIN_IF [{next_eid}/nem] -->{next_eid}<!-- ELSE -->1<!-- END_IF -->.html"
+                  />
+                  <input type="hidden" name="entry[]" value="code" />
+                </td>
+              </tr>
+              @endsection
+              @section("entry-open-date")
+              <tr id="entry-start-date-display">
+                <th id="entry-start-date-label">
+                  <!--T-->公開日時<!--/T-->
+                </th>
+                <td>
+                  <div class="entryFormDateBlockWrap acms-admin-margin-right-small">
+                    <label
+                      for="entryStartDate"
+                      class="entryFormDateLabel"
+                    >
+                      <!--T-->日付<!--/T-->
+                    </label>
+                    <div class="entryFormDateBlock">
+                      @include("/admin/include/forms/date-field.html", {
+                        "name": "start_date",
+                        "id": "entryStartDate",
+                        "value": "<!-- BEGIN_IF [{start_date}/em] -->%{NOW_DATE}<!-- ELSE -->{start_date}<!-- END_IF -->"
+                      })
+                    </div>
+                  </div>
+                  <div class="entryFormDateBlockWrap">
+                    <label
+                      for="entryStartTime"
+                      class="entryFormTimeLabel"
+                    >
+                      <!--T-->時刻<!--/T-->
+                    </label>
+                    <div class="entryFormDateBlock">
+                      @include("/admin/include/forms/time-field.html", {
+                        "name": "start_time",
+                        "id": "entryStartTime",
+                        "value": "<!-- BEGIN_IF [{start_time}/em] -->%{NOW_TIME}<!-- ELSE -->{start_time}<!-- END_IF -->"
+                      })
+                    </div>
+                  </div>
+                  <input type="hidden" name="entry[]" value="start_date" />
+                  <input type="hidden" name="entry[]" value="start_time" />
+                </td>
+              </tr>
+              @endsection
+              @section("entry-end-date")
+              <tr id="entry-end-date-display">
+                <th id="entry-end-date-label">
+                  <!--T-->掲載期限<!--/T-->
+                </th>
+                <td>
+                  <div class="entryFormDateBlockWrap acms-admin-margin-right-small">
+                    <label
+                      for="entryEndDate"
+                      class="entryFormDateLabel"
+                    >
+                      <!--T-->日付<!--/T-->
+                    </label>
+                    <div class="entryFormDateBlock">
+                      @include("/admin/include/forms/date-field.html", {
+                        "name": "end_date",
+                        "id": "entryEndDate",
+                        "value": "<!-- BEGIN_IF [{end_date}/em] -->9999-12-31<!-- ELSE -->{end_date}<!-- END_IF -->"
+                      })
+                    </div>
+                  </div>
+                  <div class="entryFormDateBlockWrap">
+                    <label
+                      for="entryEndTime"
+                      class="entryFormTimeLabel"
+                    >
+                      <!--T-->時刻<!--/T-->
+                    </label>
+                    <div class="entryFormDateBlock">
+                      @include("/admin/include/forms/time-field.html", {
+                        "name": "end_time",
+                        "id": "entryEndTime",
+                        "value": "<!-- BEGIN_IF [{end_time}/em] -->23:59:59<!-- ELSE -->{end_time}<!-- END_IF -->"
+                      })
+                    </div>
+                  </div>
+                  <input type="hidden" name="entry[]" value="end_date" />
+                  <input type="hidden" name="entry[]" value="end_time" />
+                </td>
+              </tr>
+              @endsection
+              @section("entry-indexing")
+              <tr id="entry-indexing-display">
+                <th id="entry-indexing-label">
+                  <!--T-->インデキシング<!--/T-->
+                </th>
+                <td>
+                  <input type="hidden" name="indexing" value="off" />
+                  <div class="acms-admin-form-checkbox">
+                    <input
+                      type="checkbox"
+                      name="indexing"
+                      value="on"
+                      {indexing:checked#on}
+                      id="input-checkbox-indexing"
+                    />
+                    <label for="input-checkbox-indexing">
+                      <i class="acms-admin-ico-checkbox"></i>
+                      <!--T-->一覧に表示する<!--/T-->
+                    </label>
+                  </div>
+                  <input type="hidden" name="entry[]" value="indexing" />
+                </td>
+              </tr>
+              @endsection
+              @section("entry-link-url")
+              <tr id="entry-link-url-display">
+                <th>
+                  <label for="entry-link-url" id="entry-link-url-label">
+                    <!--T-->リンク先URL<!--/T-->
+                  </label>
+                </th>
+                <td>
+                  <input
+                    id="entry-link-url"
+                    type="text"
+                    name="link"
+                    value="{link}"
+                    class="acms-admin-form-width-medium"
+                    placeholder="例）https://example.com"
+                  />
+                  <input type="hidden" name="entry[]" value="link" />
+                </td>
+              </tr>
+              @endsection
+            </tbody>
+          </table>
+        </div>
+      </details>
+      @section("entry-field")
+      @include("/admin/entry/field.html")
+      @endsection
+      <!-- BEGIN_MODULE Admin_InjectTemplate id="admin-entry-field" --><!-- END_MODULE Admin_InjectTemplate -->
+    </div>
 
-        <!-- BEGIN action#update -->
+    <div class="js-hide-on-modal" id="entry-unit-display">
+      @section("entry-unit")
+      <template id="unit-html-repository">
+        @include("/admin/entry/unit.html")
+      </template>
+      <div
+        id="js-unit-editor"
+        data-default-value="{json}[escvars]"
+        <!-- BEGIN_MODULE Admin_Unit_EditorSettings -->
+        data-settings="{json}[escvars]"
+        <!-- END_MODULE Admin_Unit_EditorSettings -->
+      ></div>
+      @endsection
+    </div>
+
+    <div>
+      @include("/admin/entry/field_foot.html")
+      <!-- BEGIN_MODULE Admin_InjectTemplate id="admin-entry-field-foot" --><!-- END_MODULE Admin_InjectTemplate -->
+    </div>
+  </div>
+  <div class="acms-admin-entry-form-sticky-container">
+    <div class="acms-admin-entry-form-action">
+      <!-- BEGIN_IF [%{EID}/em] -->
+      <!-- 新規作成 -->
+        <div class="acms-admin-entry-form-action-primary">
+          <button
+            type="submit"
+            name="ACMS_POST_Entry_Insert"
+            class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-admin-save js-saving-splash"
+            disabled
+          >
+            <!--T-->作成<!--/T-->
+          </button>
+        </div>
+        <div>
+          <button
+            type="submit"
+            form="<!-- BEGIN_IF [%{ADMIN}/eq/entry-edit] -->back-to-client-form<!-- ELSE -->back-to-index-form<!-- END_IF -->"
+            class="acms-admin-btn-admin"
+            onclick="return confirm('<!--T-->エントリーの編集を中止します。\n現在の変更内容が破棄されますが、よろしいですか？<!--/T-->');"
+          >
+            <!--T-->戻る<!--/T-->
+          </button>
+        </div>
+      <!-- ELSE -->
+      <!-- 更新 -->
         <!-- BEGIN_MODULE Touch_ApprovalEditVersion -->
         @include("/admin/entry/revision.html")
-        <div class="comPostMain">
-          <input type="submit" name="ACMS_POST_Entry_Update" value="<!--T-->保存<!--/T-->"
-            class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-admin-save js-saving-splash" />
+        <div class="acms-admin-entry-form-action-primary">
+          <button
+            type="submit"
+            name="ACMS_POST_Entry_Update"
+            class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-admin-save js-saving-splash"
+            disabled
+          >
+            <!--T-->保存<!--/T-->
+          </button>
         </div>
         <!-- END_MODULE Touch_ApprovalEditVersion -->
-
         <!-- BEGIN_MODULE Touch_NotApprovalEditVersion -->
-        <div class="comPostMain">
-          <input type="submit" name="ACMS_POST_Entry_Update" value="<!--T-->作業領域に保存<!--/T-->"
-            class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-admin-save js-saving-splash" />
+        <div class="acms-admin-entry-form-action-primary">
+          <button
+            type="submit"
+            name="ACMS_POST_Entry_Update"
+            class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-admin-save js-saving-splash"
+            disabled
+          >
+            <!--T-->作業領域に保存<!--/T-->
+          </button>
         </div>
         <!-- END_MODULE Touch_NotApprovalEditVersion -->
-        <!-- END action#update -->
-
-        <!-- BEGIN view#frontend -->
-        <div class="comPostSide">
-          <input type="submit" name="ACMS_POST_2GET" value="<!--T-->戻る<!--/T-->"
-            class="cancelBtn acms-admin-btn-admin overlook"
-            onclick="return confirm('<!--T-->エントリーの編集を中止します。\n現在の変更内容が破棄されますが、よろしいですか？<!--/T-->');" />
+        <!-- BEGIN_IF [%{ADMIN}/eq/entry-edit] -->
+        <div class="js-hide-on-modal">
+          <button
+            type="submit"
+            form="back-to-client-form"
+            class="acms-admin-btn-admin"
+            onclick="return confirm('<!--T-->エントリーの編集を中止します。\n現在の変更内容が破棄されますが、よろしいですか？<!--/T-->');"
+          >
+            <!--T-->戻る<!--/T-->
+          </button>
         </div>
-        <!-- END view#frontend -->
-        <input type="hidden" name="bid" value="%{BID}" />
-        <input type="hidden" name="cid" value="%{CID}" />
-        <input type="hidden" name="eid" value="%{EID}" />
-        <input type="hidden" name="arg[]" value="bid" />
-        <input type="hidden" name="arg[]" value="cid" />
-        <input type="hidden" name="arg[]" value="eid" />
-        <!-- BEGIN backend -->
-        <input type="hidden" name="backend" value="backend" />
-        <!-- END backend -->
-      </div>
+        <!-- END_IF -->
+      <!-- END_IF -->
     </div>
-  </div>
-</form>
-<div class="js-acms-entry-lock"></div>
-@endsection
-<!-- END step#reapply -->
-
-<!-- BEGIN step#result -->
-@section("result")
-<form action="" method="post" id="entryForm">
-  <div id="adminToolBox">
-    <p><!--T-->上記の内容でエントリーを投稿しました。<!--/T--></p>
-    <input type="submit" name="ACMS_POST_2GET" value="<!--T-->戻る<!--/T-->" class="acms-admin-btn-admin" />
     <input type="hidden" name="bid" value="%{BID}" />
     <input type="hidden" name="cid" value="%{CID}" />
     <input type="hidden" name="eid" value="%{EID}" />
+    <input type="hidden" name="arg[]" value="bid" />
+    <input type="hidden" name="arg[]" value="cid" />
+    <input type="hidden" name="arg[]" value="eid" />
+    <!-- メイン画像 -->
+    <input type="hidden" name="entry[]" value="primary_image" />
+    <!-- 続きを読むのユニットの範囲 -->
+    <input type="hidden" name="summary_range" value="{summary_range}" />
+    <input type="hidden" name="entry[]" value="summary_range" />
   </div>
 </form>
+
+<form id="back-to-index-form" action="" method="post">
+  <input type="hidden" name="ACMS_POST_2GET" value="" />
+  <input type="hidden" name="admin" value="entry_index"/>
+  <input type="hidden" name="bid" value="%{BID}"/>
+</form>
+
+<form id="back-to-client-form" action="" method="post">
+  <input type="hidden" name="ACMS_POST_2GET" value="" />
+  <input type="hidden" name="bid" value="%{BID}" />
+  <input type="hidden" name="cid" value="%{CID}" />
+  <input type="hidden" name="eid" value="%{EID}" />
+</form>
+
+<div class="js-acms-entry-lock"></div>
 @endsection
-<!-- END step#result -->
 
 <!-- END_MODULE Admin_Entry_Edit -->
 @include("/admin/entry/js.html")
 <!-- END_MODULE Touch_Edit -->
+
+<script>
+  ACMS.Ready(() => {
+    ACMS.addListener('acmsUnitEditorCreate', (event) => {
+      // 初期状態では保存ボタンが無効化されているので、ユニットエディターの作成が完了したら保存ボタンを有効化する
+      const saveButtons = document.querySelectorAll('[name^="ACMS_POST_Entry"]');
+      saveButtons.forEach((button) => {
+        button.disabled = false;
+      });
+    });
+  });
+</script>

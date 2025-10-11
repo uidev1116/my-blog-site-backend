@@ -1,6 +1,6 @@
 ## CMS
-config.server.php
-license.php
+ablogcms/config.server.php
+ablogcms/license.php
 /ablogcms/.htaccess
 /ablogcms/.htpasswd
 /ablogcms/archives/*

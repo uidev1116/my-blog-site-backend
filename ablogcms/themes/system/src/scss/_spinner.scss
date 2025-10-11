@@ -1,0 +1,36 @@
+@use 'global/common' as global;
+
+/* ------------------------------
+ スピナー
+------------------------------- */
+
+@keyframes spinner-border {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.acms-spinner {
+  --acms-spinner-size: 30px;
+  --acms-spinner-vertical-align: -0.125em;
+  --acms-spinner-border-width: 0.5em;
+  --acms-spinner-animation-speed: 1s;
+  --acms-spinner-animation-name: spinner-border;
+}
+
+.acms-spinner {
+  display: inline-block;
+  width: var(--acms-spinner-size);
+  height: var(--acms-spinner-size);
+  vertical-align: var(--acms-spinner-vertical-align);
+  border: var(--acms-spinner-border-width) solid currentcolor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: var(--acms-spinner-animation-speed) linear infinite var(--acms-spinner-animation-name);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acms-spinner {
+    --acms-spinner-animation-speed: calc(var(--acms-spinner-animation-speed) * 2);
+  }
+}

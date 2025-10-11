@@ -1,0 +1,33 @@
+@use '../global/variables' as var;
+@use '../global/functions' as fn;
+
+/* ------------------------------
+  Popover
+------------------------------- */
+@mixin popover(
+  $padding-x: 12px,
+  $padding-y: 8px,
+  $min-width: 280px,
+  $bg-color: var.$acms-color-white,
+  $box-shadow: var.$acms-shadow-elevation-middle,
+  $border-radius: 6px
+) {
+  position: absolute;
+  z-index: fn.zIndex(acms-popover);
+  box-sizing: border-box;
+  min-width: $min-width;
+  margin: 0;
+  padding: $padding-y $padding-x;
+  list-style: none;
+  background: $bg-color;
+  background-clip: padding-box;
+
+  /**
+  * 強制カラーモード対応: 強制カラーモード時は、box-shadow:none; になるが、transparentに設定した border の色が上書きされるため見えるようになる
+  */
+  border: transparent 1px solid;
+  border-radius: $border-radius;
+  outline: none;
+  box-shadow: $box-shadow;
+  cursor: default;
+}

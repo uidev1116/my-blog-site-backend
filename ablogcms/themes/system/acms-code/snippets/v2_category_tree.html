@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V2_Category_Tree</title>
+    <link rel="stylesheet" href="src/highlight/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="src/snippets.css" />
+    <script src="src/highlight/highlight.min.js"></script>
+    <script src="src/highlight/javascript.min.js"></script>
+    <script src="src/highlight/twig.min.js"></script>
+    <script src="src/snippets.js"></script>
+  </head>
+  <body>
+    <h1>V2_Category_Tree</h1>
+    <pre class="acms-admin-customfield-maker"><code class="language-twig">
+&#123;% set categoryTree = module(&#039;V2_Category_Tree&#039;, null, &#123;
+  bid: null,
+  cid: null,
+  keyword: null,
+  field: null,
+  order: null,
+  start: &#039;1000-01-01 00:00:00&#039;,
+  end: &#039;9999-12-31 23:59:59&#039;
+&#125;) %&#125;
+
+&#123;% if categoryTree.items is not empty %&#125;
+  &#123;% macro renderCategories(categories) %&#125;
+    &lt;ul class=&quot;acms-list-group&quot;&gt;
+      &#123;% for category in categories %&#125;
+        &lt;li class=&quot;acms-list-group-item&quot;&gt;
+          &lt;a href=&quot;&#123;&#123; category.url &#125;&#125;&quot;&gt;
+            &#123;&#123; category.name &#125;&#125;
+            &#123;% if category.amount is not empty %&#125;
+              &lt;span class=&quot;acms-badge acms-float-right&quot;&gt;&#123;&#123; category.amount &#125;&#125;&lt;/span&gt;
+            &#123;% endif %&#125;
+          &lt;/a&gt;
+          &#123;% if category.children is defined %&#125;
+            &#123;&#123; _self.renderCategories(category.children) &#125;&#125;
+          &#123;% endif %&#125;
+        &lt;/li&gt;
+      &#123;% endfor %&#125;
+    &lt;/ul&gt;
+  &#123;% endmacro %&#125;
+
+  &lt;div class=&quot;acms-margin-bottom-medium&quot;&gt;
+    &#123;&#123; include(&#039;/admin/module/setting.twig&#039;, &#123; moduleInfo: categoryTree.moduleInfo &#125;) &#125;&#125;
+    &#123;&#123; _self.renderCategories(categoryTree.items) &#125;&#125;
+  &lt;/div&gt;
+&#123;% endif %&#125;
+    </code></pre>
+  </body>
+</html>

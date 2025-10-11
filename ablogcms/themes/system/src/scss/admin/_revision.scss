@@ -1,0 +1,269 @@
+@use '../global/common' as global;
+
+/* ------------------------------
+ リビジョン
+------------------------------- */
+
+.revison_box .acms-table-responsive {
+  padding: 0;
+}
+
+.acms-table-revison {
+  padding: 0;
+  table-layout: auto;
+  border-collapse: collapse;
+
+  td {
+    padding: 8px 5px !important;
+
+    @include global.font-size(14);
+  }
+
+  .acms-table-revison-title {
+    @include global.font-size(13);
+  }
+
+  .acms-table-current td {
+    background-color: #abd6f9;
+  }
+
+  .th1 {
+    width: 65px;
+  }
+
+  .th2 {
+    width: 140px;
+  }
+
+  .th3 {
+    width: 90px;
+  }
+
+  .th4 {
+    width: 130px;
+  }
+
+  .th5,
+  .th7 {
+    width: 70px;
+    text-align: center;
+  }
+
+  .th6 {
+    width: 110px;
+  }
+
+  @include global.media-breakpoint-down(md) {
+    th,
+    .acms-btn-admin {
+      white-space: nowrap;
+    }
+  }
+}
+
+// スクロール
+.acms-table-revison-scroll {
+  height: 300px;
+  overflow: scroll;
+}
+
+// 管理ボタン
+.acms-revison-admin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 10px;
+  padding: 10px;
+  color: global.$acms-color-black;
+  line-height: 1.5;
+  background-color: global.$edit-entry-bg-color-base;
+  border: solid 1px global.$edit-entry-bg-color-dark;
+
+  @include global.font-size(14);
+}
+
+#admin-main .acms-revison-admin {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 880px;
+  margin-inline: auto;
+
+  &__label {
+    vertical-align: middle;
+  }
+}
+
+// ---------------
+// revision プレビュー
+// ---------------
+// 幅と高さの突抜を防止
+.acms-revision-preview #acms-main {
+  box-sizing: border-box;
+}
+
+.acms-revision-preview {
+  display: grid;
+  /* stylelint-disable scss/operator-no-newline-after */
+  grid-template:
+    'header header' 50px
+    'sidebar main' calc(100vh - 50px) /
+    minmax(250px, 22%) minmax(0, 1fr);
+  /* stylelint-enable scss/operator-no-newline-after */
+  width: 100vw;
+  height: 100vh;
+}
+
+.acms-revision-preview[data-sidebar='false'] {
+  /* stylelint-disable scss/operator-no-newline-after */
+  grid-template:
+    'header' 50px
+    'main' calc(100vh - 50px) /
+    1fr;
+  /* stylelint-enable scss/operator-no-newline-after */
+}
+
+.acms-revision-actions {
+  display: flex;
+  white-space: nowrap;
+
+  > * + * {
+    margin-left: 5px;
+  }
+
+  button {
+    padding: 6px 8px; // レスポンシブによってボタンのサイズが変わるため、固定値で指定
+
+    @include global.font-size(12); // レスポンシブによってフォントサイズが変わるため、固定値で指定
+  }
+}
+
+// サイドバー
+.acms-revision-sidebar {
+  grid-area: sidebar;
+  overflow-y: auto;
+  background: global.$acms-color-gray40;
+
+  .acms-padding-small {
+    border-bottom: solid 1px global.$acms-color-gray60;
+  }
+
+  &__buttons {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: flex-start;
+
+    .-right {
+      margin-left: auto;
+    }
+  }
+}
+
+.acms-revision-main {
+  grid-area: main;
+
+  > * {
+    height: 100%;
+  }
+}
+
+// revisionタイトル
+.acms-revision-header {
+  display: flex;
+  grid-area: header;
+  align-items: center;
+  box-sizing: border-box;
+  height: 50px;
+  padding: 10px;
+  color: global.$acms-color-gray60;
+  background-color: global.$acms-color-gray90;
+
+  .acms-revision-header-title {
+    margin: 0;
+
+    @include global.line-clamp(1);
+    @include global.font-size(18);
+  }
+
+  .acms-revision-header-action-group {
+    margin-left: auto;
+  }
+}
+
+// コメント
+.acms-revision-comment {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    padding: 12px;
+    border-bottom: solid 1px global.$acms-color-gray60;
+  }
+
+  // 日付
+  .acms-revision-comment-date {
+    margin-bottom: 5px;
+
+    @include global.font-size(11);
+  }
+
+  // 写真
+  .acms-revision-comment-photo {
+    margin: 0 0 10px;
+
+    img {
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+  }
+
+  // 担当者と期限
+  .acms-revision-comment-user {
+    margin: 0;
+    padding: 5px;
+    list-style: none;
+    background-color: global.$acms-color-gray50;
+    border: solid 1px global.$acms-color-gray60;
+
+    @include global.font-size(11);
+  }
+
+  ul li {
+    padding: 0;
+    border-bottom: none;
+  }
+}
+
+@include global.media-breakpoint-down(md) {
+  .acms-revision-preview {
+    // メインを非表示
+    #acms-main {
+      display: none;
+    }
+
+    // 固定解除
+    #outer-wrap #nav,
+    #outer-wrap #top {
+      position: static;
+    }
+
+    // 高さをオート
+    .acms-revision-header,
+    #nav:not(:target) {
+      height: auto;
+    }
+  }
+}
+
+/* リビジョンの一覧ボックス */
+#js-revision_index {
+  background-color: global.$acms-color-gray90;
+  border: 3px solid global.$acms-color-gray70;
+
+  @include global.media-breakpoint-up(md) {
+    width: 850px;
+  }
+}

@@ -1,8 +1,81 @@
 {
+  "deprecated": {
+    "message": "{{feature}} is deprecated{{since}}{{version}}{{alternative}}{{link}}{{hint}}",
+    "option": {
+      "since": " since version {{since}}",
+      "will_be_removed": " and will be removed in version {{version}}.",
+      "may_be_removed": " and may be removed in future updates.",
+      "alternative": "Please use {{alternative}} instead.",
+      "link": "See: {{link}}",
+      "hint": "Note: {{hint}}"
+    },
+    "feature": {
+      "incremental_search": {
+        "name": "Built-in JS「incremental search」"
+      },
+      "external_form_submit_button": {
+        "name": "Built-in JS「external form submit button」",
+        "alternative": "HTML form attribute"
+      },
+      "hover": {
+        "name": "Built-in JS「hover」",
+        "alternative": "CSS hover pseudo-class"
+      },
+      "rollover": {
+        "name": "Built-in JS「rollover」",
+        "alternative": "CSS hover pseudo-class and background-image property"
+      },
+      "switch_style": {
+        "name": "Built-in JS「style switch」"
+      },
+      "zebra": {
+        "name": "Built-in JS「zebra」",
+        "alternative": "CSS :nth-child() pseudo-class"
+      },
+      "selection": {
+        "name": "Built-in JS「selection」"
+      },
+      "datepicker": {
+        "name": "Built-in JS「Datepicker」",
+        "alternative": "Flatpicker"
+      },
+      "autoheight_r": {
+        "name": "Built-in JS「autoheightR」",
+        "alternative": "CSS Flexbox or Grid"
+      },
+      "accordion": {
+        "name": "Built-in JS「accordion」",
+        "alternative": "HTML details tag and summary tag"
+      },
+      "toggle": {
+        "name": "Built-in JS「toggle」",
+        "alternative": "HTML details tag and summary tag"
+      },
+      "tabs": {
+        "name": "Built-in JS「tabs」",
+        "alternative": "acms tabs"
+      },
+      "fade": {
+        "name": "Built-in JS「fade」",
+        "alternative": "HTML details tag and summary tag"
+      },
+      "fader": {
+        "name": "Built-in JS「fader」",
+        "alternative": "HTML details tag and summary tag"
+      },
+      "rich-editor": {
+        "name": "Rich Editor",
+        "alternative": "Block Editor"
+      },
+      "postinclude": {
+        "name": "Built-in JS「post include」",
+        "alternative": "htmx"
+      }
+    }
+  },
   "splash": {
     "default": "Loading...",
-    "save": "Saving...",
-    "loading": "loading..."
+    "save": "Saving..."
   },
   "related": {
     "message1": "The same entry already exists."
@@ -21,9 +94,6 @@
     "message8": "Register it after shrinking the file size",
     "message9": "Register them in multiple times",
     "message10": "bytes"
-  },
-  "submitlock": {
-    "message1": "Sending..."
   },
   "direct_edit_sort": {
     "message1": "Updating failed."
@@ -48,6 +118,31 @@
     "message1": "Are you sure you want to delete this unit?",
     "message2": "Hide the contents of this unit",
     "message3": "Show the contents of this unit"
+  },
+  "unit_editor": {
+    "align": {
+      "auto": "Auto",
+      "center": "Center",
+      "left": "Left",
+      "right": "Right",
+      "full": "Full"
+    },
+    "error": {
+      "unit_definition_not_found": "Unit definition not found",
+      "cannot_be_nested": "This unit cannot be added inside other units",
+      "only_one_instance_allowed": "Only one instance of this unit type is allowed",
+      "cannot_be_duplicated": "This unit cannot be duplicated",
+      "contains_non_duplicatable_unit": "Contains a unit that cannot be duplicated",
+      "cannot_move_hierarchy": "This unit cannot be moved to a different hierarchy",
+      "contains_non_movable_unit": "Contains a unit that cannot be moved to a different hierarchy",
+      "cannot_be_wrapped": "This unit cannot be wrapped",
+      "contains_non_wrappable_unit": "Contains a unit that cannot be wrapped",
+      "cannot_be_wrapped_with_unknown_unit": "Contains an invalid unit, so it cannot be wrapped",
+      "cannot_be_wrapped_with_non_consecutive_units": "Contains non-consecutive units, so it cannot be wrapped",
+      "cannot_be_wrapped_with_same_parent": "Contains units with different parents, so it cannot be wrapped",
+      "cannot_be_unwraped_with_unknown_unit": "Contains an invalid unit, so it cannot be unwrapped",
+      "cannot_be_unwraped_with_empty_unit": "Empty units cannot be unwrapped"
+    }
   },
   "geo": {
     "message1": "Remove the location information",
@@ -99,12 +194,6 @@
       "fri": "F.",
       "sat": "S."
     }
-  },
-  "highslide": {
-    "loading_text": "Loading...",
-    "loading_title": "Click to cancel.",
-    "expand_title": "Display as is.",
-    "restore_title": "Click to display image with original size."
   },
   "module_management": {
     "reload_msg": "Are you sure you want to reload the screen?",
@@ -210,6 +299,7 @@
     "copy_message": "Copied to clipboard.",
     "snippets": "Snippets",
     "vars": "Vars",
+    "v2module_vars": "V2 module vars",
     "g_vars": "Global vars",
     "root_tpl": "Current displayed root template."
   },
@@ -232,7 +322,7 @@
     "scope": "Scope",
     "scope_global": "Share with lower blogs",
     "add_title": "Add Category",
-    "add":"Add",
+    "add": "Add",
     "error": {
       "name": {
         "required": "The name is not entered."
@@ -248,6 +338,7 @@
         "shared": "hild blog's entries are registered"
       }
     },
+    "select_label": "Select the category (filter categories by entering keyword)",
     "select_placeholder": "Select the category (filter categories by entering keyword)",
     "select_notfound": "Category not found",
     "select_no_option_label": "No category",
@@ -327,16 +418,17 @@
     "update_date": "Updated date",
     "created_date": "Created date",
     "clear_button_label": "Clear media",
+    "keyword": "Keyword",
     "file_name": "File name",
     "file_size": "File size",
-    "select": "Select",
+    "select": "Bulk Action",
     "remove_media_confirm": "The selected media will be removed. Are you sure you want to continue?",
     "filter_search": "Filter search",
     "year": "year",
     "month": "month",
     "tag": "tag",
     "detailed_condition": "Detailed condition",
-    "search_by_filename": "search by file name",
+    "search_by_keyword": "Search by filename, caption, alternative text, and notes",
     "narrow_down": "Narrow down",
     "number_of_items": "number of items to display",
     "type": "Type",
@@ -344,7 +436,8 @@
     "image": "Image",
     "file": "File",
     "extension": "Extension",
-    "owner": "Show only own media.",
+    "owner": "Show only own media",
+    "blog_axis": "Show media below this blog",
     "search": "Search",
     "detailed_search": "Detailed search",
     "image2": "Image",
@@ -360,16 +453,16 @@
     "tag_select_placeholder": "Select the tag or enter the new tag (filter tags by entering keyword)",
     "tag_search_select_placeholder": "Select the tag (filter tags by entering keyword)",
     "action": "Action",
-    "prev": "Prev",
-    "next": "Next",
-    "add_tags_to_media_confirm": "Add tags to selected media.",
+    "add_tags_to_media_success": "Add tags to selected media.",
+    "add_tags_to_media_error": "Failed to add tags to selected media.",
+    "remove_media_success": "The selected media has been removed.",
+    "remove_media_error": "Failed to remove the selected media.",
     "more_than_20_not_allowed": "You can't upload more than 20 media at once.",
     "sending": "Sending...",
     "no_staged_media": "There are no staged media. You have to upload.",
     "on_banner_remove": "Remove the item. Are you sure you want to continue?",
     "add_tags_to_checked_items": "Add tags to the selected $1 items",
     "checked_items": "Remove the selected $1 items",
-    "items": "items",
     "file_changed": "The file has been changed. it will affect all pages that use this media. Are you sure you want to continue?",
     "img_changed": "The image has been changed. it will affect all pages that use this media. Are you sure you want to continue?",
     "cannnot_change_type": "You can't change the media type",
@@ -397,7 +490,7 @@
     "filename": "File Name",
     "filename_settings": "Rename the file.",
     "alt_settings": "Set the alt text",
-    "title": "Title",
+    "title": "File name",
     "memo": "Memo",
     "memo_settings": "Please use this as a memo for management purposes.",
     "cancel": "Cancel",
@@ -417,9 +510,7 @@
     "size": "Size",
     "updated_date": "Updated date",
     "banner_open_date": "Enter the publication date and time of this banner. To display the banner, even if it is within the date and time range, the publishing setting needs to be checked.",
-    "media_unit_use1": "To use media unit, you have to activate it from Media functionality from",
-    "media_unit_use2": "here",
-    "media_unit_use3": "",
+    "media_unit_use": "To use this feature, please enable media management in Settings > Feature Settings",
     "open_config_menu": "Open the config menu",
     "display_switch_list": "Display in list format",
     "display_switch_grid": "Display in grid format",
@@ -429,6 +520,9 @@
     "remove_file": "Remove the file",
     "error": {
       "unknown": "An unknown error occurred."
+    },
+    "validate_message": {
+      "alt_maxlength": "Please enter within 150 characters."
     }
   },
   "media_banner": {
@@ -505,6 +599,511 @@
     "event_select_no_options_message": "No events available"
   },
   "modal": {
-    "close": "Close the modal"
+    "close": "Close the modal",
+    "reload": "Reload the page?"
+  },
+  "drawer": {
+    "close": "Close the drawer"
+  },
+  "entry_index": {
+    "id": "ID",
+    "edit": "Edit",
+    "sort": "Sort",
+    "title": "Title",
+    "status": "Status",
+    "code": "Code",
+    "datetime": "Date",
+    "posted_datetime": "Posted Date",
+    "updated_datetime": "Updated Date",
+    "start_datetime": "Start Date",
+    "end_datetime": "End Date",
+    "menbers_only": "Members Only",
+    "approval": "Approval Status",
+    "form_status": "Form Status",
+    "primary_image": "Main image",
+    "link": "Linked URL",
+    "indexing": "Indexing",
+    "tag": "Tag",
+    "category": "Category",
+    "user": "User",
+    "last_update_user": "Last updated by",
+    "blog": "Blog",
+    "form": "Form",
+    "members_only_value": {
+      "on": "Enabled",
+      "off": "Disabled"
+    },
+    "indexing_value": {
+      "on": "Enabled",
+      "off": "Disabled"
+    },
+    "action": {
+      "edit": "Edit",
+      "approval-history": "Approval history",
+      "duplicate": "Duplicate",
+      "trash": "Trash",
+      "lock": "{{name}} is currently editing",
+      "unlock": "Unlock editing",
+      "feedback": {
+        "duplicate": {
+          "success": "Successfully duplicated the entry.",
+          "error": "Failed to duplicate the entry.",
+          "pending": "Duplicating…"
+        },
+        "trash": {
+          "success": "Successfully moved the entry to the trash.",
+          "error": "Failed to move the entry to the trash.",
+          "pending": "Moving to trash…"
+        },
+        "unlock": {
+          "success": "Successfully unlocked editing for “{{title}}”.",
+          "error": "Failed to unlock editing for “{{title}}”.",
+          "pending": "Unlocking editing…",
+          "confirm": "Are you sure you want to unlock?"
+        }
+      }
+    },
+    "bulk_action": {
+      "order": "Order",
+      "status": "Status",
+      "user": "User",
+      "category": "Category",
+      "blog": "Blog",
+      "duplicate": "Duplicate",
+      "export": "Export",
+      "trash": "Trash",
+      "feedback": {
+        "order": {
+          "success": "Successfully changed the display order of entries.",
+          "error": "Failed to change the display order of entries.",
+          "pending": "Changing display order…"
+        },
+        "status": {
+          "success": "Successfully changed the status of selected entries.",
+          "error": "Failed to change the status of selected entries.",
+          "pending": "Changing status…"
+        },
+        "user": {
+          "success": "Successfully changed the user of selected entries.",
+          "error": "Failed to change the user of selected entries.",
+          "pending": "Changing user…"
+        },
+        "category": {
+          "success": "Successfully changed the category of selected entries.",
+          "error": "Failed to change the category of selected entries.",
+          "pending": "Changing category…"
+        },
+        "blog": {
+          "success": "Successfully changed the blog of selected entries.",
+          "error": "Failed to change the blog of selected entries.",
+          "pending": "Changing blog…"
+        },
+        "duplicate": {
+          "success": "Successfully duplicated the selected entries.",
+          "error": "Failed to duplicate the selected entries.",
+          "pending": "Duplicating…"
+        },
+        "export": {
+          "success": "Successfully exported the selected entries.",
+          "error": "Failed to export the selected entries.",
+          "pending": "Exporting…"
+        },
+        "trash": {
+          "success": "Successfully moved the selected entries to the trash.",
+          "error": "Failed to move the selected entries to the trash.",
+          "confirm": "Move to trash.\nAre you sure?",
+          "pending": "Moving to trash…"
+        }
+      }
+    },
+    "bulk_change": "Bulk change",
+    "exec": "Exec",
+    "bulk_blog_note": "( *The category setting will be off, with the updated entries will be the belongings of the login user. But if the category is set as global category, the category will be retained )",
+    "bulk_duplicate_note": "* This operation may take several minitues if the number of instances is too large",
+    "bulk_trash_confirm_message": "Move to trash.\nAre you sure you want to continue?",
+    "empty_state_title": "Not found entry.",
+    "empty_state_message": "Please create a new entry.",
+    "filtered_empty_state_title": "No entries found.",
+    "filtered_empty_state_message1": "No entries found.",
+    "filtered_empty_state_message2": "Please try again with different search criteria.",
+    "menu": {
+      "clear_sort_mode": "End sorting",
+      "import": "Import",
+      "bulk_update": "Bulk update",
+      "entry_create": "Create entry",
+      "more": "Other",
+      "admin_menu_title": "Other operations",
+      "sort_menu_title": "Change the order of entries"
+    },
+    "sort_mode": {
+      "entry_sort": "All entries",
+      "category_sort": "Category",
+      "user_sort": "User",
+      "alert": {
+        "entry": "Change the order of entries.",
+        "category": "Change the order of entries filtering by \"{{name}}\".",
+        "user": "Change the order of entries filtering by \"{{name}}\"."
+      },
+      "modal": {
+        "title": "Select the {{object}}",
+        "help_message": "※The search conditions set in the list view are not inherited.",
+        "error_message": "Select the {{object}}.",
+        "apply": "Apply",
+        "cancel": "Cancel",
+        "error": {
+          "id": "Select the {{object}}."
+        }
+      },
+      "object": {
+        "category": "Category",
+        "user": "User"
+      }
+    },
+    "entry_create_form": {
+      "category_select_placeholder": "Select the category",
+      "submit": "Add Entry"
+    },
+    "filter": {
+      "keyword": "Keyword",
+      "status": "Status",
+      "user": "User",
+      "category": "Category",
+      "blog": "Blog",
+      "session": "Session",
+      "category_axis": {
+        "self": "Exclude child categories",
+        "descendant-or-self": "Include child categories"
+      },
+      "blog_axis": {
+        "self": "Exclude child blogs",
+        "descendant-or-self": "Include child blogs"
+      },
+      "keyword_placeholder": "Search entries by title, text, custom field. ( You can search entries by several keywords at once )",
+      "submit": "Search",
+      "clear": "Clear",
+      "advance": {
+        "title": "Advanced Filter",
+        "open": "Open advanced filter",
+        "close": "Close advanced filter"
+      },
+      "tooltip": {
+        "category_axis": "If enabled, all child categories under the selected category will also be included in the search.",
+        "blog_axis": "If enabled, all child blogs under the selected blog will also be included in the search.",
+        "advance": "Advanced Filter"
+      }
+    },
+    "error": {
+      "unknown": {
+        "title": "An unknown error occurred.",
+        "message": "Please try again later."
+      }
+    },
+    "dataview": {
+      "label": "Entry List"
+    }
+  },
+  "entry_bulk_change": {
+    "select": {
+      "label": "Change selected entries"
+    }
+  },
+  "module_index": {
+    "edit": "Edit",
+    "id": "ID",
+    "identifier": "Module ID",
+    "status": "Status",
+    "label": "Name",
+    "name": "Applied Module",
+    "scope": "Global",
+    "custom_field": "Custom Field",
+    "api_use": "API",
+    "layout_use": "Layout/Unit",
+    "cache": "Cache",
+    "created_datetime": "Created Date",
+    "updated_datetime": "Updated Date",
+    "blog": "Blog",
+    "blog_parent": "Belongs to Parent Blog",
+    "empty_state_title": "No matching module IDs found",
+    "empty_state_message": "No module IDs matched your search.\nPlease try searching again or create a new one.",
+    "exec": "Exec",
+    "custom_field_value": {
+      "on": "Enabled",
+      "off": "Disabled"
+    },
+    "layout_use_value": {
+      "on": "Enabled",
+      "off": "Disabled"
+    },
+    "api_use_value": {
+      "on": "Enabled",
+      "off": "Disabled"
+    },
+    "cache_suffix": "minutes",
+    "action": {
+      "edit": "Edit"
+    },
+    "bulk_action": {
+      "status": "Status",
+      "blog": "Blog",
+      "export": "Export",
+      "delete": "Delete",
+      "feedback": {
+        "status": {
+          "success": "Changed the status of selected module IDs.",
+          "error": "Failed to change the status of selected module IDs.",
+          "pending": "Changing status..."
+        },
+        "blog": {
+          "success": "Changed the blog of selected module IDs.",
+          "error": "Failed to change the blog of selected module IDs.",
+          "pending": "Changing blog..."
+        },
+        "export": {
+          "success": "Exported selected module IDs.",
+          "error": "Failed to export selected module IDs.",
+          "pending": "Exporting..."
+        },
+        "delete": {
+          "success": "Deleted selected module IDs.",
+          "error": "Failed to delete selected module IDs.",
+          "confirm": "Delete.\nAre you sure?",
+          "pending": "Deleting..."
+        }
+      }
+    },
+    "bulk_change": "Bulk Change",
+    "module_create_form": {
+      "submit": "Create Module"
+    },
+    "menu": {
+      "create": "Create Module",
+      "import": "Import"
+    },
+    "filter": {
+      "quick_search": "Quick Search",
+      "status": "Status",
+      "scope": "Global",
+      "session": "Publishing Period",
+      "blog_axis": "Blog Search Range",
+      "quick_search_placeholder": "e.g.) banner",
+      "submit": "Search",
+      "clear": "Clear",
+      "tooltip": {
+        "blog_axis": "Select whether to include all child blogs under the current blog in the search target."
+      }
+    },
+    "dataview": {
+      "label": "Module ID List"
+    }
+  },
+  "pagination": {
+    "label": "Pagination",
+    "prev": "Prev",
+    "next": "Next",
+    "items": "items",
+    "all": "All"
+  },
+  "dataview": {
+    "header": {
+      "actions": "Actions"
+    },
+    "select_all_rows": "Select all rows",
+    "deselect_all_rows": "Deselect all rows",
+    "select_rows": "Select rows",
+    "deselect_rows": "Deselect rows",
+    "bulk_actions": "Bulk actions",
+    "empty_state_title": "No data found.",
+    "menu": {
+      "column_visibility": "Display item settings"
+    },
+    "column_visibility": {
+      "title": "Costom Field Settings",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "pending": "Saving column settings...",
+      "failure": "Failed to save column settings"
+    },
+    "custom_column": {
+      "title": "Column Field Settings",
+      "handle": {
+        "label": "Handle"
+      },
+      "label": {
+        "label": "Label",
+        "tooltip": "Set the label of the column to be displayed.",
+        "placeholder": "e.g. Name"
+      },
+      "accessor_key": {
+        "label": "Field name",
+        "tooltip": "Set the field name of the column to be displayed.",
+        "placeholder": "e.g. name"
+      },
+      "sort": {
+        "label": "Enable sort"
+      },
+      "type": {
+        "label": "Type",
+        "tooltip": "Sets the type of custom field to add to the column.",
+        "text": "Text",
+        "textarea": "Text Area",
+        "number": "Number",
+        "select": "Select Box",
+        "checkbox": "Checkbox",
+        "radio": "Radio Button",
+        "datetime": "Date and Time",
+        "image": "Image",
+        "file": "File",
+        "media": "Media",
+        "rich-editor": "Rich Editor",
+        "block-editor": "Block Editor",
+        "group": "Field Group"
+      },
+      "action": "Action",
+      "add": "Add",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel",
+      "success": "Column settings have been saved",
+      "failure": "Failed to save column settings",
+      "pending": "Saving column settings...",
+      "error": {
+        "column_id": {
+          "required": "There are items for which IDs have not been entered. Please contact the system administrator.",
+          "all_unique": "Some items have duplicate IDs. Please contact the system administrator."
+        },
+        "column_accessor_key": {
+          "required": "There are items for which field names have not been entered.",
+          "all_unique": "Some items have duplicate field names."
+        },
+        "column_label": {
+          "required": "There are items for which labels have not been entered."
+        },
+        "column_type": {
+          "required": "There are items for which types have not been entered."
+        }
+      },
+      "filter": {
+        "value_control": {
+          "not_selected": "Not selected"
+        },
+        "operator": {
+          "eq": "Equal",
+          "neq": "Not equal",
+          "gt": "Greater than",
+          "gte": "Greater than or equal",
+          "lt": "Less than",
+          "lte": "Less than or equal",
+          "lk": "Like",
+          "nlk": "Not like"
+        },
+        "delete": "Delete",
+        "add": "Add"
+      }
+    },
+    "actions": {
+      "row_selection": {
+        "info": "Selected {{count}} items",
+        "clear": "Clear selection"
+      },
+      "limit": "Show {{limit}}",
+      "limit_label": "Items per page"
+    },
+    "group_cell_value": "{{length}} field group(s)",
+    "pagination": {
+      "top": {
+        "label": "Pagination (Top)"
+      },
+      "bottom": {
+        "label": "Pagination (Bottom)"
+      }
+    }
+  },
+  "entry": {
+    "status": {
+      "draft": "Draft",
+      "open": "Open",
+      "close": "Close",
+      "trash": "Trash"
+    },
+    "session": {
+      "public": "Within Publication Period",
+      "expiration": "Publication Period Ended",
+      "future": "Before Publication Period"
+    },
+    "approval": {
+      "pre_approval": "Before approval",
+      "none": "Approved"
+    },
+    "form_status": {
+      "open": "Open",
+      "close": "Close"
+    }
+  },
+  "module": {
+    "status": {
+      "open": "Open",
+      "close": "Close"
+    },
+    "scope": {
+      "global": "Global",
+      "local": "Local"
+    },
+    "blog_axis": {
+      "self": "Do not include child blogs",
+      "descendant-or-self": "Include child blogs and below"
+    }
+  },
+  "select": {
+    "not_selected": "Not selected",
+    "on": "Enabled",
+    "off": "Disabled"
+  },
+  "alert": {
+    "close": "Close the alert"
+  },
+  "draggable_button": {
+    "label": "Drag and drop to sort"
+  },
+  "blog": {
+    "select": {
+      "not_selected": "Not selected",
+      "label": "Select a blog (You can filter by keyword)",
+      "placeholder": "Select a blog (Filter by keyword)",
+      "notfound": "No blogs found"
+    }
+  },
+  "user": {
+    "select": {
+      "not_selected": "Not selected",
+      "label": "Select a user (You can filter by keyword)",
+      "placeholder": "Select a user (Filter by keyword)",
+      "notfound": "No users found"
+    }
+  },
+  "table": {
+    "label": {
+      "sort": {
+        "asc": "Ascending",
+        "desc": "Descending",
+        "none": "None"
+      }
+    }
+  },
+  "dropdown_menu": {
+    "trigger_label": "Open the menu",
+    "submenu_trigger_label": "Open the submenu"
+  },
+  "tooltip": {
+    "trigger": {
+      "label": "Show tooltip"
+    }
+  },
+  "dialog": {
+    "cancel": "Cancel",
+    "ok": "OK",
+    "confirm_title": "Are you sure?",
+    "warning_title": "Warning",
+    "prompt_title": "Please enter"
   }
 }

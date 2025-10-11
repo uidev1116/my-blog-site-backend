@@ -1,0 +1,71 @@
+// ---------------
+// メディアブロック
+// ---------------
+.acms-block-editor-wrapper {
+  display: flex;
+
+  &.acms-block-editor-wrapper-left {
+    justify-content: flex-start;
+  }
+
+  &.acms-block-editor-wrapper-center {
+    justify-content: center;
+  }
+
+  &.acms-block-editor-wrapper-right {
+    justify-content: flex-end;
+  }
+}
+
+// ドロップエリア
+// ------------
+.acms-block-editor-image-drop {
+  box-sizing: border-box;
+  padding: 80px 64px;
+  text-align: center;
+  margin-block: 1rem;
+  border: 1px dashed var(--acms-block-editor-gray-400);
+  border-radius: var(--acms-block-editor-border-radius-md);
+
+  @media (hover: hover) {
+    transition: border-color 0.2s ease;
+
+    &:hover {
+      border-color: var(--acms-block-editor-gray-800);
+    }
+  }
+}
+
+.acms-block-editor-image-drop-text {
+  color: var(--acms-block-editor-gray-800);
+  font-weight: bold;
+
+  & > span {
+    display: block;
+  }
+}
+
+.acms-block-editor-image-drop-text-sub {
+  margin-top: 14px;
+  font-size: var(--acms-block-editor-font-size-xs);
+}
+
+.acms-block-editor-button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 40px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+// ファイル
+// ------------
+:where(.acms-block-editor .ProseMirror) {
+  :where(.node-fileBlock) {
+    /* 操作時 */
+    &:hover:not(&.ProseMirror-selectednode) {
+      background-color: var(--acms-block-editor-sellection);
+    }
+  }
+}

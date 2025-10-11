@@ -33,6 +33,14 @@
 .acms-modal {
   --acms-modal-width: 800px;
   --acms-modal-margin: 10px;
+  --acms-modal-content-padding: 5px;
+  --acms-modal-header-padding-x: 10px;
+  --acms-modal-header-padding-y: 5px;
+  --acms-modal-body-padding-x: 10px;
+  --acms-modal-body-padding-y: 10px;
+  --acms-modal-footer-padding-x: 10px;
+  --acms-modal-footer-padding-y: 10px;
+  --acms-modal-border-radius: 6px;
 
   position: fixed;
   z-index: global.zIndex(acms-modal);
@@ -112,7 +120,6 @@
   width: 95%;
   max-width: var(--acms-modal-width);
   margin: var(--acms-modal-margin) auto;
-  box-shadow: 0 5px 15px #000;
 }
 
 .acms-modal-dialog.large {
@@ -127,7 +134,26 @@
   --acms-modal-width: 600px;
 }
 
-@media screen and (min-width: global.$breakpoint-md-min) {
+.acms-modal-dialog.acms-modal-dialog-centered {
+  display: flex;
+  align-items: center;
+  min-height: calc(100% - var(--acms-modal-margin) * 2);
+}
+
+.acms-modal-dialog.acms-modal-dialog-scrollable {
+  height: calc(100% - var(--acms-modal-margin) * 2);
+
+  .acms-modal-content {
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  .acms-modal-body {
+    overflow-y: auto;
+  }
+}
+
+@include global.media-breakpoint-up(md) {
   .acms-modal-dialog {
     --acms-modal-margin: 30px;
 
@@ -140,10 +166,15 @@
 }
 
 .acms-modal-content {
-  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--acms-modal-content-padding);
   overflow: hidden;
   background: global.$acms-color-white;
-  border-radius: 6px;
+  border-radius: var(--acms-modal-border-radius);
+  box-shadow: 0 4px 48px 0 rgb(0 0 0 / 25%);
 }
 
 .acms-modal-header {
@@ -151,8 +182,8 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
-  margin: 0 -5px;
-  padding: 5px 10px;
+  margin: 0 calc(-1 * var(--acms-modal-content-padding));
+  padding: var(--acms-modal-header-padding-y) var(--acms-modal-header-padding-x);
   border-bottom: 1px solid global.$acms-color-gray60;
 }
 
@@ -165,7 +196,7 @@
 
 .acms-modal-body {
   margin: 0 -5px;
-  padding: 0 10px;
+  padding: var(--acms-modal-body-padding-y) var(--acms-modal-body-padding-x);
 
   @include global.font-size(14);
 }
@@ -180,12 +211,7 @@
 }
 
 .acms-modal-backdrop {
-  position: fixed;
-  z-index: global.zIndex(acms-modal);
-  overflow: hidden auto;
-  background-color: rgba(global.$acms-color-black, 0.5);
-  transform: translateZ(0);
-  inset: 0;
+  @include global.backdrop;
 }
 
 .acms-modal-hide {
@@ -206,22 +232,14 @@
 }
 
 .acms-modal-footer {
-  margin: 0 -5px;
-  padding: 15px;
+  margin: 0 calc(-1 * var(--acms-modal-content-padding));
+  padding: var(--acms-modal-body-padding-y) var(--acms-modal-body-padding-x);
   text-align: right;
   border-top: 1px solid global.$acms-color-gray60;
-
-  .acms-btn {
-    margin-left: 5px;
-  }
-
-  .acms-btn:first-child {
-    margin-left: 0;
-  }
 }
 
 .acms-modal .acms-modal-quick-search {
-  max-width: 600px;
+  max-width: 700px;
   height: auto;
 
   .acms-table-hover tr:hover td,
@@ -234,9 +252,10 @@
   }
 }
 
-@media screen and (min-width: global.$breakpoint-md-min) {
+@include global.media-breakpoint-up(md) {
   .acms-modal-header {
-    padding: 15px;
+    --acms-modal-header-padding-x: 15px;
+    --acms-modal-header-padding-y: 15px;
   }
 
   .acms-modal-heading {
@@ -244,7 +263,7 @@
   }
 
   .acms-modal-body {
-    padding: 0 15px;
+    --acms-modal-body-padding-x: 15px;
   }
 }
 

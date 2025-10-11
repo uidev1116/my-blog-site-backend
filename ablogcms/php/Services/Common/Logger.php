@@ -2,7 +2,7 @@
 
 namespace Acms\Services\Common;
 
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 
 class Logger
 {
@@ -44,7 +44,7 @@ class Logger
     public function init()
     {
         if (is_writable($this->destinationPath)) {
-            Storage::remove($this->destinationPath);
+            LocalStorage::remove($this->destinationPath);
         }
         $this->json = new \stdClass();
         $this->json->processing = true;
@@ -54,8 +54,9 @@ class Logger
         $this->json->percentage = 0;
         $this->json->processList = [];
 
-        $json = json_encode($this->json);
-        Storage::put($this->destinationPath, $json);
+        if ($json = json_encode($this->json)) {
+            LocalStorage::put($this->destinationPath, $json);
+        }
     }
 
     /**
@@ -63,8 +64,22 @@ class Logger
      */
     public function load()
     {
-        $json = Storage::get($this->destinationPath);
-        $this->json = json_decode($json);
+        try {
+            $json = LocalStorage::get($this->destinationPath);
+            $this->json = json_decode($json, false);
+        } catch (\Exception $e) {
+        }
+    }
+
+    /**
+     * Get json object
+     *
+     * @return \stdClass
+     */
+    public function getJson()
+    {
+        $this->load();
+        return $this->json;
     }
 
     /**
@@ -80,7 +95,7 @@ class Logger
         }
 
         sleep(3);
-        Storage::remove($this->destinationPath);
+        LocalStorage::remove($this->destinationPath);
     }
 
     /**
@@ -157,6 +172,23 @@ class Logger
     }
 
     /**
+     * 処理中か判定
+     *
+     * @return bool
+     */
+    public function isProcessing(): bool
+    {
+        if (LocalStorage::exists($this->getDestinationPath())) {
+            $lastModified = LocalStorage::lastModified($this->getDestinationPath());
+            if (REQUEST_TIME - $lastModified > (60 * 60 * 12)) {
+                return false; // ファイルが作成されてから12時間以上の場合、処理を終了したとみなす
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * JSON出力
      */
     protected function build()
@@ -164,7 +196,8 @@ class Logger
         if (!is_writable($this->destinationPath)) {
             return;
         }
-        $json = json_encode($this->json);
-        Storage::put($this->destinationPath, $json);
+        if ($json = json_encode($this->json)) {
+            LocalStorage::put($this->destinationPath, $json);
+        }
     }
 }

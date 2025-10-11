@@ -39,7 +39,7 @@ class ACMS_GET_Admin_Entry_Revision_Current extends ACMS_GET_Admin_Entry_Revisio
             'bid' => BID,
             'eid' => EID,
             'cid' => CID,
-            'aid' => $this->Get->get('aid'),
+            'aid' => $this->Get->get('aid') ? (int)$this->Get->get('aid') : null,
             'query' => [
                 'rvid' => RVID,
                 'aid' => $this->Get->get('aid'),

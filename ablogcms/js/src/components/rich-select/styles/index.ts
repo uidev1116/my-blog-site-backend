@@ -18,6 +18,7 @@ export default {
     borderRadius: 'var(--acms-admin-rich-select-border-radius)',
     boxSizing: 'border-box',
     padding: '0 5px',
+    lineHeight: 'var(--acms-admin-rich-select-line-height)',
     boxShadow:
       state.isFocused && !state.menuIsOpen
         ? 'var(--acms-admin-rich-select-focused-box-shadow)'
@@ -39,8 +40,11 @@ export default {
       cursor: 'not-allowed',
     }),
     '&:hover': {
+      backgroundColor: 'var(--acms-admin-rich-select-hover-bg-color)',
       borderColor: 'var(--acms-admin-rich-select-hover-border-color)',
     },
+    borderBottomLeftRadius: undefined,
+    borderBottomRightRadius: undefined,
   }),
   valueContainer: (base) => ({
     ...base,
@@ -104,19 +108,24 @@ export default {
     lineHeight: 1,
     color: 'var(--acms-admin-rich-select-placeholder-color)',
   }),
-  menu: (base) => ({
-    ...base,
-    margin: '-1px 0 0',
-    backgroundColor: 'var(--acms-admin-rich-select-menu-bg-color)',
-    boxShadow: 'none',
-    borderWidth: '1px',
-    borderStyle: 'solid',
-    borderColor: 'var(--acms-admin-rich-select-menu-border-color)',
-    borderRadius: '0 0 4px 4px',
-    overflow: 'hidden',
-    zIndex: 'var(--acms-admin-rich-select-menu-z-index)',
-    lineHeight: 1.2,
-  }),
+  menu: (base, state) => {
+    return {
+      ...base,
+      margin: '4px 0 0',
+      backgroundColor: 'var(--acms-admin-rich-select-menu-bg-color)',
+      boxShadow: 'none',
+      borderWidth: '1px',
+      borderStyle: 'solid',
+      borderColor: 'var(--acms-admin-rich-select-menu-border-color)',
+      borderRadius: '0 0 4px 4px',
+      overflow: 'hidden',
+      zIndex: 'var(--acms-admin-rich-select-menu-z-index)',
+      lineHeight: 1.2,
+      width: 'max-content',
+      minWidth: base.width,
+      maxWidth: `calc(100vw - ${(state.innerRef as React.RefObject<HTMLDivElement>).current?.getBoundingClientRect().left}px)`,
+    };
+  },
   menuList: (base) => ({
     ...base,
     padding: 0,
@@ -150,6 +159,6 @@ export default {
   }),
   menuPortal: (base) => ({
     ...base,
-    zIndex: 'var(--acms-admin-rich-select-menu-portal-z-index)',
+    zIndex: 'var(--acms-admin-rich-select-menu-z-index)',
   }),
 } as StylesConfig;

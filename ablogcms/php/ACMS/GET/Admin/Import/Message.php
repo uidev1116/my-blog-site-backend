@@ -4,6 +4,9 @@ class ACMS_GET_Admin_Import_Message extends ACMS_GET
 {
     function get()
     {
+        if (!sessionWithAdministration()) {
+            die403();
+        }
         $Tpl = new Template($this->tpl, new ACMS_Corrector());
 
         $importMess  = $this->Post->get('importMessage');

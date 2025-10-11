@@ -1,5 +1,6 @@
 <?php
 
+use Acms\Services\Facades\Application;
 use Acms\Services\Common\InjectTemplate;
 
 class ACMS_GET_Admin_InjectTemplate extends ACMS_GET
@@ -11,6 +12,7 @@ class ACMS_GET_Admin_InjectTemplate extends ACMS_GET
             return '';
         }
 
+        $acmsTplEngine = Application::make('template.acms');
         $inject = InjectTemplate::singleton();
         $all = $inject->get($type);
         $template = '';
@@ -18,7 +20,8 @@ class ACMS_GET_Admin_InjectTemplate extends ACMS_GET
         foreach ($all as $item) {
             $template .= "<!--#include file=\"$item\" vars=\"\"-->\n";
         }
-        if (!$txt = spreadTemplate(resolvePath(setGlobalVars($template), config('theme'), '/'))) {
+        $acmsTplEngine->loadFromString($template, '/', config('theme'), BID);
+        if (!$txt = $acmsTplEngine->getTemplate()) {
             return '';
         }
         if (isTemplateCacheEnabled()) {

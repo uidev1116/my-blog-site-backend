@@ -2,22 +2,18 @@
 
 namespace Acms\Services\Update\System;
 
-use HTTP;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Update\Contracts\LoggerInterface;
+use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\Http;
 
 class Download
 {
     /**
-     * @var \Acms\Services\Update\Logger
+     * @var \Acms\Services\Update\Contracts\LoggerInterface
      */
     protected $logger;
 
-    /**
-     * Download constructor.
-     *
-     * @param \Acms\Services\Update\Logger $logger
-     */
-    public function __construct($logger)
+    public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
     }
@@ -28,10 +24,10 @@ class Download
      */
     public function download($dest_path, $url)
     {
-        $this->logger->addMessage(gettext('パッケージをダウンロード中...') . ' (' . $url . ')', 5);
+        $this->logger->message(gettext('パッケージをダウンロード中...') . ' (' . $url . ')', 5);
 
         set_time_limit(0);
-        Storage::makeDirectory($dest_path);
+        LocalStorage::makeDirectory($dest_path);
 
         $filename = basename($url);
         $path = $dest_path . $filename;
@@ -55,12 +51,12 @@ class Download
             throw new \RuntimeException('Failed to download the package. ' . $status . ':' . $error);
         }
 
-        $this->logger->addMessage(gettext('パッケージダウンロード完了'), 15);
-        $this->logger->addMessage(gettext('パッケージを解凍中...'), 0);
+        $this->logger->message(gettext('パッケージダウンロード完了'), 15);
+        $this->logger->message(gettext('パッケージを解凍中...'), 0);
 
-        Storage::unzip($path, $dest_path);
-        Storage::remove($path);
+        LocalStorage::unzip($path, $dest_path);
+        LocalStorage::remove($path);
 
-        $this->logger->addMessage(gettext('パッケージを解凍完了'), 30);
+        $this->logger->message(gettext('パッケージを解凍完了'), 30);
     }
 }

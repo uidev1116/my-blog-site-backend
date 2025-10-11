@@ -1,15 +1,20 @@
 <?php
 
+use Acms\Modules\Get\Helpers\Entry\EntryQueryHelper;
+use Acms\Modules\Get\Helpers\Entry\EntryHelper;
+use Acms\Modules\Get\Helpers\Entry\EntryBodyHelper;
 use Acms\Services\Entry\Exceptions\NotFoundException;
 use Acms\Services\Facades\Template as TplHelper;
+use Acms\Services\Facades\Database;
 use Acms\Services\Facades\Entry;
-use Acms\Services\Facades\Application;
-use Acms\Services\Unit\Contracts\Model;
+use Acms\Services\Facades\Login;
+use Acms\Services\Unit\UnitCollection;
 
 class ACMS_GET_Entry_Body extends ACMS_GET_Entry
 {
+    use \Acms\Traits\Modules\ConfigTrait;
+
     /**
-     * 階層設定
      * @inheritDoc
      */
     public $_axis = [ // phpcs:ignore
@@ -18,7 +23,6 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
     ];
 
     /**
-     * スコープ設定
      * @inheritDoc
      */
     public $_scope = [ // phpcs:ignore
@@ -36,58 +40,36 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
     ];
 
     /**
-     * コンフィグの設定値
+     * EagerLoadedData
      *
      * @var array
      */
-    protected $config = [];
+    protected $eagerLoadedData = [];
 
     /**
-     * フルテキストのEagerLoadingData
-     *
+     * @var \Acms\Modules\Get\Helpers\Entry\EntryQueryHelper
+     */
+    protected $entryQueryHelper;
+
+    /**
+     * @var \Acms\Modules\Get\Helpers\Entry\EntryHelper
+     */
+    protected $entryHelper;
+
+    /**
+     * @var \Acms\Modules\Get\Helpers\Entry\EntryBodyHelper
+     */
+    protected $entryBodyHelper;
+
+    /**
      * @var array
      */
-    protected $summaryFulltextEagerLoadingData = [];
-
-    /**
-     * メインイメージのEagerLoadingData
-     *
-     * @var array
-     */
-    protected $mainImageEagerLoadingData = [];
-
-    /**
-     * 関連エントリーのEagerLoadingData
-     *
-     * @var array
-     */
-    protected $relatedEntryEagerLoadingData = [];
-
-    /**
-     * 会員限定記事
-     *
-     * @var bool
-     */
-    protected $membersOnly = false;
-
-    /**
-     * コンフィグのセット
-     *
-     * @return bool
-     */
-    function setConfig(): bool
-    {
-        $this->config = $this->initConfig();
-        if ($this->config === false) {
-            return false;
-        }
-        return true;
-    }
+    protected $entries = [];
 
     /**
      * コンフィグのロード
      *
-     * @return array
+     * @return array<string, mixed>
      */
     function initConfig(): array
     {
@@ -96,41 +78,58 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
                 $this->order ? $this->order : config('entry_body_order'),
                 config('entry_body_order2'),
             ],
-            'limit' => config('entry_body_limit'),
-            'offset' => config('entry_body_offset'),
+            'categoryOrder' => config('entry_body_category_order'),
+            'limit' => (int) config('entry_body_limit'),
+            'offset' => (int) config('entry_body_offset'),
+            'displayIndexingOnly' => config('entry_body_indexing') === 'on',
+            'displayMembersOnly' => config('entry_summary_members_only') === 'on',
+            'displaySubcategoryEntries' => config('entry_body_sub_category') === 'on',
+            'newItemPeriod' => (int) config('entry_body_newtime'),
+            'includeTags' => config('entry_body_tag_on') === 'on',
+            'fulltextEnabled' => config('entry_body_summary_on') === 'on',
+            'fulltextWidth' => (int) config('entry_body_fulltext_width'),
+            'fulltextMarker' => config('entry_body_fulltext_marker'),
+            'fixedSummaryRange' => (int) config('entry_body_fix_summary_range'),
+            'displayAllUnits' => config('entry_body_show_all_index') === 'on',
+            'geolocationEnabled' => config('entry_body_geolocation_on') === 'on',
+            'includeRelatedEntries' => config('entry_body_related_entry_on') === 'on',
+            'notfoundStatus404' => config('entry_body_notfound_status_404') === 'on',
+            // ページネーション
+            'simplePagerEnabled' => config('entry_body_simple_pager_on') === 'on',
+            'paginationEnabled' => config('entry_body_pager_on') === 'on',
+            'paginationDelta' => (int) config('entry_body_pager_delta', 4),
+            'paginationCurrentAttr' => config('entry_body_pager_cur_attr'),
+            // 前後リンク
+            'serialNaviEnabled' => config('entry_body_serial_navi_on') === 'on',
+            'serialNaviIgnoreCategory' => config('entry_body_serial_navi_ignore_category') === 'on',
+            // マイクロページ
+            'micropagerEnabled' => config('entry_body_micropage') === 'on',
+            'micropagerDelta' => (int) config('entry_body_micropager_delta', 4),
+            'micropagerCurrentAttr' => config('entry_body_micropager_cur_attr'),
+            // 画像系
+            'includeMainImage' => config('entry_body_image_on') === 'on',
+            'mainImageTarget' => config('entry_body_main_image_target', 'unit'),
+            'mainImageFieldName' => config('entry_body_main_image_field_name'),
+            'imageX' => (int) config('entry_body_image_x', 200),
+            'imageY' => (int) config('entry_body_image_y', 200),
+            'imageTrim' => config('entry_body_image_trim') === 'on',
+            'imageZoom' => config('entry_body_image_zoom') === 'on',
+            'imageCenter' => config('entry_body_image_center') === 'on',
+            // フィールド・情報
+            'includeEntryFields' => config('entry_body_entry_field_on') === 'on',
+            'includeCategory' => config('entry_body_category_info_on') === 'on',
+            'includeCategoryFields' => config('entry_body_category_field_on') === 'on',
+            'includeUser' => config('entry_body_user_info_on') === 'on',
+            'includeUserFields' => config('entry_body_user_field_on') === 'on',
+            'includeBlog' => config('entry_body_blog_info_on') === 'on',
+            'includeBlogFields' => config('entry_body_blog_field_on') === 'on',
+            // Entry_Body専用
             'image_viewer' => config('entry_body_image_viewer'),
-            'indexing' => config('entry_body_indexing'),
-            'members_only' => config('entry_summary_members_only'),
-            'sub_category' => config('entry_body_sub_category'),
-            'newtime' => config('entry_body_newtime'),
-            'serial_navi_ignore_category_on' => config('entry_body_serial_navi_ignore_category'),
-            'tag_on' => config('entry_body_tag_on'),
-            'summary_on' => config('entry_body_summary_on'),
-            'related_entry_on' => config('entry_body_related_entry_on', 'off'),
-            'show_all_index' => config('entry_body_show_all_index'),
-            'date_on' => config('entry_body_date_on'),
-            'detail_date_on' => config('entry_body_detail_date_on'),
-            'comment_on' => config('entry_body_comment_on'),
-            'geolocation_on' => config('entry_body_geolocation_on'),
-            'trackback_on' => config('entry_body_trackback_on'),
-            'serial_navi_on' => config('entry_body_serial_navi_on'),
-            'simple_pager_on' => config('entry_body_simple_pager_on'),
-            'category_order' => config('entry_body_category_order'),
-            'notfoundStatus404' => config('entry_body_notfound_status_404'),
-            'micropager_on' => config('entry_body_micropage'),
-            'micropager_delta' => config('entry_body_micropager_delta'),
-            'micropager_cur_attr' => config('entry_body_micropager_cur_attr'),
-            'pager_on' => config('entry_body_pager_on'),
-            'pager_delta' => config('entry_body_pager_delta'),
-            'pager_cur_attr' => config('entry_body_pager_cur_attr'),
-            'entry_field_on' => config('entry_body_entry_field_on'),
-            'user_field_on' => config('entry_body_user_field_on'),
-            'category_field_on' => config('entry_body_category_field_on'),
-            'blog_field_on' => config('entry_body_blog_field_on'),
-            'user_info_on' => config('entry_body_user_info_on'),
-            'category_info_on' => config('entry_body_category_info_on'),
-            'blog_info_on' => config('entry_body_blog_info_on'),
-            'loop_class' => config('entry_body_loop_class'),
+            'includeDatetime' => config('entry_body_date_on') === 'on',
+            'includeDetailDatetime' => config('entry_body_detail_date_on') === 'on',
+            'includeComment' => config('entry_body_comment_on') === 'on',
+            'parentLoopClass' => config('entry_body_parent_loop_class'),
+            'loopClass' => config('entry_body_loop_class'),
         ];
     }
 
@@ -139,68 +138,45 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
      */
     public function get()
     {
-        if (!$this->setConfig()) {
-            return '';
-        }
+        try {
+            if (!$this->setConfigTrait()) {
+                return '';
+            }
+            $tpl = new Template($this->tpl, new ACMS_Corrector());
+            TplHelper::buildModuleField($tpl);
 
-        $tpl = new Template($this->tpl, new ACMS_Corrector());
-        $this->buildModuleField($tpl);
+            // 起動
+            $this->boot();
 
-        if (in_array(ADMIN, ['entry-edit', 'entry_editor'], true)) {
-            // 編集ページ
-            $this->editPage($tpl);
-        } elseif (ADMIN === 'form2-edit') {
-            // 動的フォーム編集ページ
-            $this->formEditPage($tpl);
-        } elseif (intval($this->eid) > 0 && strval($this->eid) === strval(intval($this->eid))) {
-            // エントリー詳細ページ
-            try {
+            if (strval($this->eid) === strval(intval($this->eid)) && ($this->eid ?? 0) > 0) {
+                // エントリー詳細ページ
                 $this->entryPage($tpl);
-            } catch (NotFoundException $e) {
-                return $this->resultsNotFound($tpl);
-            }
-        } else {
-            // エントリー一覧ページ
-            try {
+            } else {
+                // エントリー一覧ページ
                 $this->entryIndex($tpl);
-            } catch (NotFoundException $e) {
-                return $this->resultsNotFound($tpl);
             }
+        } catch (NotFoundException $e) {
+            return $this->resultsNotFound($tpl);
         }
-
         return $tpl->get();
     }
 
     /**
-     * エントリー編集ページ
+     * 起動処理
      *
-     * @param Template $tpl
      * @return void
      */
-    protected function editPage(Template $tpl): void
+    protected function boot(): void
     {
-        $vars = [];
-        if (ADMIN === 'entry_editor' && EID) {
-            $tpl->add(['revision', 'entry:loop']);
-        }
-        $action = !EID ? 'insert' : 'update';
-        $tpl->add(['header#' . $action, 'adminEntryTitle']);
-        $tpl->add(['description#' . $action, 'adminEntryTitle']);
-        $tpl->add(['adminEntryTitle', 'adminEntryEdit', 'entry:loop']);
-        $tpl->add(['adminEntryEdit', 'entry:loop']);
-        $tpl->add('entry:loop', $vars);
-    }
-
-    /**
-     * 動的フォーム編集ページ
-     *
-     * @param Template $tpl
-     * @return void
-     */
-    protected function formEditPage(Template $tpl): void
-    {
-        $tpl->add(['adminFormEdit', 'entry:loop']);
-        $tpl->add('entry:loop');
+        $this->entryQueryHelper = new EntryQueryHelper($this->getBaseParams([
+            'config' => $this->config,
+        ]));
+        $this->entryHelper = new EntryHelper($this->getBaseParams([
+            'config' => $this->config,
+        ]));
+        $this->entryBodyHelper = new EntryBodyHelper($this->getBaseParams([
+            'config' => $this->config,
+        ]));
     }
 
     /**
@@ -212,68 +188,51 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
      */
     protected function entryPage(Template $tpl): void
     {
-        if (RVID) {
-            $sql = SQL::newSelect('entry_rev');
-            $sql->addWhereOpr('entry_rev_id', RVID);
-        } else {
-            $sql = SQL::newSelect('entry');
+        if (!is_int($this->eid)) {
+            throw new NotFoundException();
         }
-        $sql->addWhereOpr('entry_id', $this->eid);
-        /**
-         * @var false|array{
-         *   entry_id: int,
-         *   entry_title: string,
-         *   entry_members_only: string,
-         * } $entry
-         */
-        $entry = DB::query($sql->get(dsn()), 'row');
-
+        $sql = $this->entryQueryHelper->buildEntryQuery($this->eid, RVID);
+        $q = $sql->get(dsn());
+        $entry = Database::query($q, 'row');
         if (empty($entry)) {
             throw new NotFoundException();
         }
-        $entry['entry_title'] = $this->getFixTitle($entry['entry_title']);
-        $eid = intval($entry['entry_id']);
-        $this->membersOnly = $entry['entry_members_only'] === 'on';
+        $this->entries[] = $entry;
+        $eid = (int) $entry['entry_id'];
+        $this->entryBodyHelper->setIsMembersOnlyEntry(($entry['entry_members_only'] ?? 'off') === 'on');
+        $entry['entry_title'] = $this->entryBodyHelper->getFixTitle($entry['entry_title']);
+
         $vars = [];
+        $rvid = RVID;
+        if (!RVID && $entry['entry_approval'] === 'pre_approval') { // @phpstan-ignore-line
+            $rvid = 1;
+        }
+        $allUnitCollection = $this->entryBodyHelper->getAllUnitCollection($eid, $rvid);
 
         // ユニットを組み立て
-        $micropageInfo = $this->buildEntryUnit($tpl, $entry);
-
-        // フルテキストのEagerLoading
-        if ($this->config['summary_on'] === 'on') {
-            $this->summaryFulltextEagerLoadingData = TplHelper::eagerLoadFullText([$eid]);
-        }
-        // メインイメージのEagerLoading
-        if (config('entry_body_image_on') === 'on') {
-            $this->mainImageEagerLoadingData = TplHelper::eagerLoadMainImage([$entry]);
-        }
-        // 関連エントリーのEagerLoading
-        if ($this->config['related_entry_on'] === 'on') {
-            $this->relatedEntryEagerLoadingData = TplHelper::eagerLoadRelatedEntry([$eid]);
-        }
+        $this->buildEntryUnit($tpl, $entry, $allUnitCollection);
+        // 前後リンクを組み立て
+        $this->buildSerialNavi($tpl, $entry);
+        // マイクロページを組み立て
+        $this->buildMicroPage($tpl, $allUnitCollection);
+        // Eager Loading
+        $this->eagerLoadedData = $this->eagerLoadEntryBody([$entry], $rvid);
         // テンプレートを組み立て
         $this->buildBodyField($tpl, $vars, $entry);
-
         // 動的フォームを表示・非表示
         $this->buildFormBody($tpl, $entry);
-
         // エントリー一件を表示
         $tpl->add('entry:loop', $vars);
 
-        // 前後リンクを組み立て
-        $this->buildSerialNavi($tpl, $entry);
-
-        // マイクロページを組み立て
-        $this->buildMicroPage($tpl, $micropageInfo);
-
         $rootVars = [];
-        if ($this->config['serial_navi_on'] === 'on') {
+        if ($this->config['serialNaviEnabled'] ?? false) {
             $rootVars = array_merge($rootVars, [
                 'upperUrl' => acmsLink([
                     'eid' => null,
                 ]),
             ]);
         }
+        $rootVars = array_merge($rootVars, $this->getRootVars());
         $tpl->add(null, $rootVars);
     }
 
@@ -286,245 +245,142 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
      */
     protected function entryIndex(Template $tpl): void
     {
-        $limit = idval($this->config['limit']);
-        $from = ($this->page - 1) * $limit;
-
-        $sql = $this->buildIndexQuery();
-
-        $entryAmountSql = new SQL_Select($sql);
-        $entryAmountSql->setSelect('DISTINCT(entry_id)', 'entry_amount', null, 'COUNT');
-
-        $offset = intval($this->config['offset']);
-        $_limit = $limit + 1;
-        $sortFd = ACMS_Filter::entryOrder($sql, $this->config['order'], $this->uid, $this->cid);
-        $sql->setLimit($_limit, $from + $offset);
-        if (!empty($sortFd)) {
-            $sql->setGroup($sortFd);
-        }
-        $sql->addGroup('entry_id');
-
+        $rootVars = [];
+        // クエリ組み立て
+        $sql = $this->entryQueryHelper->buildEntryIndexQuery();
         $q = $sql->get(dsn());
-        $entries = DB::query($q, 'all');
-
-        $nextPage = false;
-        if (count($entries) > $limit) {
-            array_pop($entries);
-            $nextPage = true;
+        // エントリ取得
+        $this->entries = DB::query($q, 'all');
+        foreach ($this->entries as $entry) {
+            ACMS_RAM::entry($entry['entry_id'], $entry);
         }
-        $this->buildEntryIndex($tpl, $entries, $nextPage, $entryAmountSql);
-    }
-
-    /**
-     * エントリー一覧を組み立て
-     *
-     * @param Template $tpl
-     * @param array $entries
-     * @param bool $nextPage
-     * @param SQL_Select $entryAmountSql
-     * @return void
-     * @throws NotFoundException
-     */
-    protected function buildEntryIndex(Template $tpl, array $entries, bool $nextPage, SQL_Select $entryAmountSql): void
-    {
-        // not Found
-        if (empty($entries)) {
+        if (empty($this->entries)) {
             throw new NotFoundException();
         }
-        // simple pager
-        if ($this->config['simple_pager_on'] === 'on') {
-            // prev page
-            if ($this->page > 1) {
-                $tpl->add('prevPage', [
-                    'url' => acmsLink([
-                        'page' => $this->page - 1,
-                    ], true),
-                ]);
-            } else {
-                $tpl->add('prevPageNotFound');
-            }
-            // next page
-            if ($nextPage) {
-                $tpl->add('nextPage', [
-                    'url' => acmsLink([
-                        'page' => $this->page + 1,
-                    ], true),
-                ]);
-            } else {
-                $tpl->add('nextPageNotFound');
-            }
+        // 次ページが存在するかどうか
+        $nextPage = false;
+        if (count($this->entries) > $this->config['limit']) {
+            array_pop($this->entries);
+            $nextPage = true;
         }
-        $entryIds = [];
-        foreach ($entries as $entry) {
-            $entryIds[] = $entry['entry_id'];
-        }
-
-        // フルテキストのEagerLoading
-        if ($this->config['summary_on'] === 'on') {
-            $this->summaryFulltextEagerLoadingData = Tpl::eagerLoadFullText($entryIds);
-        }
-        // メインイメージのEagerLoading
-        if (config('entry_body_image_on') === 'on') {
-            $this->mainImageEagerLoadingData = Tpl::eagerLoadMainImage($entries);
-        }
-        // 関連エントリーのEagerLoading
-        if ($this->config['related_entry_on'] === 'on') {
-            $this->relatedEntryEagerLoadingData = Tpl::eagerLoadRelatedEntry($entryIds);
-        }
-        // build summary tpl
-        foreach ($entries as $i => $row) {
-            $serial = ++$i;
-            $eid = intval($row['entry_id']);
-            $row['entry_title'] = $this->getFixTitle($row['entry_title']);
-            $continueName = $row['entry_title'];
-            $summaryRange = strval(config('entry_body_fix_summary_range'));
-            if (!strlen($summaryRange)) {
-                $summaryRange = strval($row['entry_summary_range']);
-            }
-            $summaryRange = !!strlen($summaryRange) ? intval($summaryRange) : null;
-            $inheritUrl = acmsLink([
-                'bid' => $row['entry_blog_id'],
-                'eid' => $eid,
-            ]);
-
-            $vars = [];
-            $rvid_ = RVID;
-            if (!RVID && $row['entry_approval'] === 'pre_approval') {
-                $rvid_  = 1;
-            }
-            // column
-            if ($this->config['show_all_index'] === 'on') {
-                $summaryRange = null;
-            }
-
-            /** @var \Acms\Services\Unit\Repository $unitRepository */
-            $unitRepository = Application::make('unit-repository');
-            /** @var \Acms\Services\Unit\Rendering\Front $unitRenderingService */
-            $unitRenderingService = Application::make('unit-rendering-front');
-
-            $amount = $unitRepository->countUnitsTrait($eid);
-
-            if ($units = $unitRepository->loadUnits($eid, $rvid_, $summaryRange)) {
-                $unitRenderingService->render($units, $tpl, $eid);
-                if (!empty($summaryRange)) {
-                    if ($summaryRange < $amount) {
-                        $vars['continueUrl'] = $inheritUrl;
-                        $vars['continueName'] = $continueName;
-                    }
-                }
-            } elseif ($amount > 0) {
-                $vars['continueUrl'] = $inheritUrl;
-                $vars['continueName'] = $continueName;
-            }
-            $this->buildBodyField($tpl, $vars, $row, $serial);
-            $tpl->add('entry:loop', $vars);
-        }
-
-        $rootVars = [];
-        if ('random' <> strtolower($this->config['order'][0]) && ($this->config['pager_on'] === 'on')) {
-            $itemsAmount = intval(DB::query($entryAmountSql->get(dsn()), 'one'));
-
-            $delta = intval($this->config['pager_delta']);
-            $curAttr = $this->config['pager_cur_attr'];
-            if (is_numeric($this->config['offset'])) {
-                $itemsAmount -= $this->config['offset'];
-            }
-            $limit = idval($this->config['limit']);
-            $rootVars += $this->buildPager($this->page, $limit, $itemsAmount, $delta, $curAttr, $tpl);
-        }
+        // シンプルページャーの組み立て
+        $this->buildSimplePager($tpl, $nextPage);
+        // ページネーションの組み立て
+        $rootVars += $this->buildPagination($tpl);
+        // エントリ一覧組み立て
+        $this->buildEntryIndex($tpl);
+        // ルート変数を設定
+        $rootVars = array_merge($rootVars, $this->getRootVars());
         $tpl->add(null, $rootVars);
     }
 
     /**
-     * エントリー一覧のクエリを組み立て
-     *
-     * @return SQL_Select
+     * Eager Loading
+     * @param array $entries
+     * @param ?int $rvid
+     * @return array
      */
-    protected function buildIndexQuery(): SQL_Select
+    protected function eagerLoadEntryBody(array $entries, ?int $rvid = null): array
     {
-        $multiId = false;
-        $blogSub = null;
-        $categorySub = null;
+        return $this->entryHelper->eagerLoad($entries, [
+            'includeMainImage' => $this->config['includeMainImage'] ?? false,
+            'mainImageTarget' => $this->config['mainImageTarget'] ?? 'unit',
+            'mainImageFieldName' => $this->config['mainImageFieldName'] ?? '',
+            'includeFulltext' => $this->config['fulltextEnabled'] ?? false,
+            'includeTags' => $this->config['includeTags'] ?? false,
+            'includeEntryFields' => $this->config['includeEntryFields'] ?? false,
+            'includeUserFields' => $this->config['includeUserFields'] ?? false,
+            'includeBlogFields' => $this->config['includeBlogFields'] ?? false,
+            'includeCategoryFields' => $this->config['includeCategoryFields'] ?? false,
+            'includeSubCategories' => $this->config['includeCategory'] ?? false,
+            'includeRelatedEntries' => $this->config['includeRelatedEntries'] ?? false,
+        ], $rvid);
+    }
 
-        $sql = SQL::newSelect('entry');
-        $sql->addLeftJoin('blog', 'blog_id', 'entry_blog_id');
-        $sql->addLeftJoin('category', 'category_id', 'entry_category_id');
-        if (!empty($this->cid)) {
-            $categorySub = SQL::newSelect('category');
-            $categorySub->setSelect('category_id');
-            if (is_int($this->cid)) {
-                ACMS_Filter::categoryTree($categorySub, $this->cid, $this->categoryAxis());
-            } elseif (strpos($this->cid, ',') !== false) {
-                $categorySub->addWhereIn('category_id', explode(',', $this->cid));
-                $multiId = true;
-            }
-            ACMS_Filter::categoryStatus($categorySub);
+    /**
+     * シンプルページャーの組み立て
+     * @param Template $tpl
+     * @param bool $nextPage
+     * @return void
+     */
+    protected function buildSimplePager(Template $tpl, bool $nextPage): void
+    {
+        if (!($this->config['simplePagerEnabled'] ?? false)) {
+            return;
+        }
+        $data = $this->entryHelper->buildSimplePager($this->page, $nextPage);
+        if ($prevPageLink = ($data['prevPageLink'] ?? false)) {
+            $tpl->add('prevPage', [
+                'url' => $prevPageLink,
+            ]);
         } else {
-            ACMS_Filter::categoryStatus($sql);
+            $tpl->add('prevPageNotFound');
         }
-        ACMS_Filter::entrySpan($sql, $this->start, $this->end);
-        ACMS_Filter::entrySession($sql);
-        if (!empty($this->Field)) {
-            ACMS_Filter::entryField($sql, $this->Field);
-        }
-        if (!empty($this->tags)) {
-            ACMS_Filter::entryTag($sql, $this->tags);
-        }
-        if (!empty($this->keyword)) {
-            ACMS_Filter::entryKeyword($sql, $this->keyword);
-        }
-        if ($this->config['indexing'] === 'on') {
-            $sql->addWhereOpr('entry_indexing', 'on');
-        }
-        if ($this->config['members_only'] === 'on') {
-            $sql->addWhereOpr('entry_members_only', 'on');
-        }
-        if (!empty($this->uid)) {
-            if (is_int($this->uid)) {
-                $sql->addWhereOpr('entry_user_id', $this->uid);
-            } elseif (strpos($this->uid, ',') !== false) {
-                $sql->addWhereIn('entry_user_id', explode(',', $this->uid));
-                $multiId = true;
-            }
-        }
-        if (!empty($this->eid) && !is_int($this->eid)) {
-            $sql->addWhereIn('entry_id', explode(',', $this->eid));
-            $multiId = true;
-        }
-        if (!empty($this->bid)) {
-            $blogSub = SQL::newSelect('blog');
-            $blogSub->setSelect('blog_id');
-            if (is_int($this->bid)) {
-                if ($multiId) {
-                    ACMS_Filter::blogTree($blogSub, $this->bid, 'descendant-or-self');
-                } else {
-                    ACMS_Filter::blogTree($blogSub, $this->bid, $this->blogAxis());
-                }
-            } elseif (strpos($this->bid, ',') !== false) {
-                $blogSub->addWhereIn('blog_id', explode(',', $this->bid));
-            }
-            ACMS_Filter::blogStatus($blogSub);
+        if ($nextPageLink = ($data['nextPageLink'] ?? false)) {
+            $tpl->add('nextPage', [
+                'url' => $nextPageLink,
+            ]);
         } else {
-            ACMS_Filter::blogStatus($sql);
+            $tpl->add('nextPageNotFound');
         }
-        if ($blogSub) {
-            $sql->addWhereIn('entry_blog_id', DB::subQuery($blogSub));
+    }
+
+    /**
+     * ページネーションを組み立て
+     * @param Template $tpl
+     * @return array
+     * @throws Exception
+     */
+    protected function buildPagination(Template $tpl): array
+    {
+        $order = $this->config['order'][0] ?? null;
+        $countQuery = $this->entryQueryHelper->getCountQuery();
+        if (($this->config['paginationEnabled'] ?? false) && $order !== 'random') {
+            $total = (int) DB::query($countQuery->get(dsn()), 'one') - (int) $this->config['offset'];
+            return TplHelper::buildPager(
+                $this->page,
+                (int) $this->config['limit'],
+                $total,
+                $this->config['paginationDelta'] ?? 3,
+                $this->config['paginationCurrentAttr'] ?? '',
+                $tpl
+            );
         }
-        if ($categorySub) {
-            if ($this->config['sub_category'] === 'on') {
-                $sub = SQL::newWhere();
-                $sub->addWhereIn('entry_category_id', DB::subQuery($categorySub), 'OR');
+        return [];
+    }
 
-                $sub2 = SQL::newSelect('entry_sub_category');
-                $sub2->addSelect('entry_sub_category_eid');
-                $sub2->addWhereIn('entry_sub_category_id', DB::subQuery($categorySub));
-                $sub->addWhereIn('entry_id', DB::subQuery($sub2), 'OR');
+    /**
+     * エントリー一覧を組み立て
+     * @param Template $tpl
+     * @return void
+     */
+    protected function buildEntryIndex(Template $tpl): void
+    {
+        $this->eagerLoadedData = $this->eagerLoadEntryBody($this->entries);
 
-                $sql->addWhere($sub);
-            } else {
-                $sql->addWhereIn('entry_category_id', DB::subQuery($categorySub));
+        foreach ($this->entries as $i => $entry) {
+            $vars = [];
+            $serial = ++$i;
+            $eid = (int) $entry['entry_id'];
+            $entry['entry_title'] = $this->entryBodyHelper->getFixTitle($entry['entry_title']);
+
+            // ユニットを組み立て
+            $allUnitCollection = $this->entryBodyHelper->getAllUnitCollection($eid);
+            $displayUnitCollection = $this->entryBodyHelper->getDisplayUnitCollection($entry, $allUnitCollection);
+            if (count($displayUnitCollection) > 0) {
+                $this->entryBodyHelper->buildColumn($displayUnitCollection, $tpl, $eid);
             }
+            if (count($allUnitCollection) > count($displayUnitCollection)) {
+                $vars['continueName'] = $entry['entry_title'];
+                $vars['continueUrl'] = acmsLink([
+                    'bid' => $entry['entry_blog_id'],
+                    'eid' => $eid,
+                ]);
+            }
+            // エントリーを組み立て
+            $this->buildBodyField($tpl, $vars, $entry, $serial);
+            $tpl->add('entry:loop', $vars);
         }
-        return $sql;
     }
 
     /**
@@ -537,29 +393,14 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
     protected function buildFormBody(Template $tpl, array $entry): void
     {
         if (
-            1
-            && isset($entry['entry_form_id'])
-            && !empty($entry['entry_form_id'])
-            && isset($entry['entry_form_status'])
-            && $entry['entry_form_status'] === 'open'
-            && config('form_edit_action_direct') == 'on'
+            isset($entry['entry_form_id']) &&
+            !empty($entry['entry_form_id']) &&
+            isset($entry['entry_form_status']) &&
+            $entry['entry_form_status'] === 'open' &&
+            config('form_edit_action_direct') === 'on'
         ) {
             $tpl->add('formBody');
         }
-    }
-
-    /**
-     * 修正したエントリータイトルを取得
-     *
-     * @param string $title
-     * @return string
-     */
-    protected function getFixTitle(string $title): string
-    {
-        if (!IS_LICENSED) {
-            return '[test]' . $title;
-        }
-        return $title;
     }
 
     /**
@@ -567,174 +408,30 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
      *
      * @param Template $tpl
      * @param array $entry
-     * @return array{
-     *   amount: int,
-     *   unit: \Acms\Services\Unit\Contracts\Model|null,
-     * }
+     * @param \Acms\Services\Unit\UnitCollection $allUnitCollection
+     * @return void
      */
-    protected function buildEntryUnit(Template $tpl, array $entry): array
+    protected function buildEntryUnit(Template $tpl, array $entry, UnitCollection $allUnitCollection): void
     {
-        $micropage = $this->page;
-        $micropageAmount = 0;
-        $breakUnit = null;
-        $eid = intval($entry['entry_id']);
-        $RVID_ = RVID;
-        if (!RVID && $entry['entry_approval'] === 'pre_approval') {
-            $RVID_ = 1;
-        }
+        $eid = (int) $entry['entry_id'];
+        $summaryRange = strlen($entry['entry_summary_range'] ?? '') ? (int) $entry['entry_summary_range'] : null;
+        $publicUnitCollection = $this->entryBodyHelper->getPublicUnitCollection($allUnitCollection, $summaryRange);
+        $isMembersOnlyEntry = $this->entryBodyHelper->getIsMembersOnly();
 
-        /** @var \Acms\Services\Unit\Repository $unitService */
-        $unitService = Application::make('unit-repository');
-        /** @var \Acms\Services\Unit\Rendering\Front $unitRenderingService */
-        $unitRenderingService = Application::make('unit-rendering-front');
-
-        $units = $unitService->loadUnits($eid, $RVID_);
-        $publicUnits = $units;
-
-        $summaryRange = null;
-        if ($this->membersOnly) {
-            // 会員限定記事対応
-            $summaryRange = strval($entry['entry_summary_range']);
-            $summaryRange = !!strlen($summaryRange) ? intval($summaryRange) : null;
+        if ($isMembersOnlyEntry) {
             $tpl->add(['membersOnly', 'entry:loop']);
-
-            if ($summaryRange !== null) {
-                if ($this->containsMembersOnlyUnitOnMicroPage($units, $summaryRange, $micropage)) {
-                    // 会員限定ユニットが表示ページに含まれている場合、continueLinkブロックを追加
-                    $tpl->add(['continueLink', 'entry:loop'], [
-                        'dummy' => 'dummy',
-                    ]);
-                }
-                // 会員限定ユニットを除外
-                $publicUnits = array_slice($units, 0, $summaryRange);
-            }
         }
-        if ($this->config['micropager_on'] === 'on') {
-            // マイクロページャー有効時
-            $micropageAmount = $this->countMicroPageAmount($units);
-            $breakUnit = $this->getBreakUnitOnMicroPage($units, $micropage);
-            $publicUnits = $this->filterUnitsByMicroPage($publicUnits, $micropage);
+        if ($isMembersOnlyEntry && $summaryRange !== null && $this->entryBodyHelper->containsMembersOnlyUnitOnMicroPage($allUnitCollection, $summaryRange, $this->page)) {
+            // 会員限定ユニットが表示ページに含まれている場合、continueLinkブロックを追加
+            $tpl->add(['continueLink', 'entry:loop'], [
+                'dummy' => 'dummy',
+            ]);
         }
-        if (count($publicUnits) > 0) {
-            $unitRenderingService->render($publicUnits, $tpl, $eid);
+        if (count($publicUnitCollection) > 0) {
+            $this->entryBodyHelper->buildColumn($publicUnitCollection, $tpl, $eid);
         } else {
             // ユニットがない場合
             $tpl->add('unit:loop');
-            if (Entry::isDirectEditEnabled()) {
-                $tpl->add('edit_inplace', [
-                    'class' => 'js-edit_inplace'
-                ]);
-            }
-        }
-        return [
-            'amount' => $micropageAmount,
-            'unit' => $breakUnit
-        ];
-    }
-
-    /**
-     * 一個前のリンクを組み立て
-     *
-     * @param Template $tpl
-     * @param string $sortFieldName
-     * @param string $sortOrder
-     * @param SQL_Select $baseSql
-     * @param string $field
-     * @param string $value
-     * @return void
-     */
-    protected function buildPrevLink(Template $tpl, string $sortFieldName, string $sortOrder, SQL_Select $baseSql, string $field, string $value): void
-    {
-        $sql = new SQL_Select($baseSql);
-        $where1 = SQL::newWhere();
-        $where1->addWhereOpr($field, $value, '=');
-        $where1->addWhereOpr('entry_id', $this->eid, '<');
-        $where2 = SQL::newWhere();
-        $where2->addWhere($where1);
-        if ($sortOrder === 'desc') {
-            $where2->addWhereOpr($field, $value, '<', 'OR');
-        } else {
-            $where2->addWhereOpr($field, $value, '>', 'OR');
-        }
-        $sql->addWhere($where2);
-        if ($sortOrder === 'desc') {
-            ACMS_Filter::entryOrder($sql, [$sortFieldName . '-desc', 'id-desc'], $this->uid, $this->cid);
-        } else {
-            ACMS_Filter::entryOrder($sql, [$sortFieldName . '-asc', 'id-asc'], $this->uid, $this->cid);
-        }
-        ACMS_Filter::entrySession($sql);
-        $q = $sql->get(dsn());
-
-        if ($row = DB::query($q, 'row')) {
-            $tpl->add('prevLink', [
-                'name' => addPrefixEntryTitle(
-                    $row['entry_title'],
-                    $row['entry_status'],
-                    $row['entry_start_datetime'],
-                    $row['entry_end_datetime'],
-                    $row['entry_approval']
-                ),
-                'url' => acmsLink([
-                    '_inherit' => true,
-                    'eid' => $row['entry_id'],
-                ]),
-                'eid' => $row['entry_id'],
-            ]);
-        } else {
-            $tpl->add('prevNotFound');
-        }
-    }
-
-    /**
-     * 次のリンクを組み立て
-     *
-     * @param Template $tpl
-     * @param string $sortFieldName
-     * @param string $sortOrder
-     * @param SQL_Select $baseSql
-     * @param string $field
-     * @param string $value
-     * @return void
-     */
-    protected function buildNextLink(Template $tpl, string $sortFieldName, string $sortOrder, SQL_Select $baseSql, string $field, string $value): void
-    {
-        $sql = new SQL_Select($baseSql);
-        $where1 = SQL::newWhere();
-        $where1->addWhereOpr($field, $value, '=');
-        $where1->addWhereOpr('entry_id', $this->eid, '>');
-        $where2 = SQL::newWhere();
-        $where2->addWhere($where1);
-        if ($sortOrder === 'desc') {
-            $where2->addWhereOpr($field, $value, '>', 'OR');
-        } else {
-            $where2->addWhereOpr($field, $value, '<', 'OR');
-        }
-        $sql->addWhere($where2);
-        if ($sortOrder === 'desc') {
-            ACMS_Filter::entryOrder($sql, [$sortFieldName . '-asc', 'id-asc'], $this->uid, $this->cid);
-        } else {
-            ACMS_Filter::entryOrder($sql, [$sortFieldName . '-desc', 'id-desc'], $this->uid, $this->cid);
-        }
-        ACMS_Filter::entrySession($sql);
-        $q = $sql->get(dsn());
-
-        if ($row = DB::query($q, 'row')) {
-            $tpl->add('nextLink', [
-                'name' => addPrefixEntryTitle(
-                    $row['entry_title'],
-                    $row['entry_status'],
-                    $row['entry_start_datetime'],
-                    $row['entry_end_datetime'],
-                    $row['entry_approval']
-                ),
-                'url' => acmsLink([
-                    '_inherit' => true,
-                    'eid' => $row['entry_id'],
-                ]),
-                'eid' => $row['entry_id'],
-            ]);
-        } else {
-            $tpl->add('nextNotFound');
         }
     }
 
@@ -747,86 +444,28 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
      */
     protected function buildSerialNavi(Template $tpl, array $entry): void
     {
-        if ($this->config['serial_navi_on'] !== 'on') {
+        if (!($this->config['serialNaviEnabled'] ?? false)) {
             return;
         }
-        $sql = SQL::newSelect('entry');
-        $sql->addLeftJoin('category', 'category_id', 'entry_category_id');
-        $sql->setLimit(1);
-        $sql->addWhereOpr('entry_link', ''); // リンク先URLが設定されているエントリーはリンクに含まないようにする
-        $sql->addWhereOpr('entry_blog_id', $this->bid);
-        if ($this->config['serial_navi_ignore_category_on'] !== 'on') {
-            ACMS_Filter::categoryTree($sql, $this->cid, $this->categoryAxis());
-        }
-        ACMS_Filter::entrySession($sql);
-        ACMS_Filter::entrySpan($sql, $this->start, $this->end);
-        if (!empty($this->tags)) {
-            ACMS_Filter::entryTag($sql, $this->tags);
-        }
-        if (!empty($this->keyword)) {
-            ACMS_Filter::entryKeyword($sql, $this->keyword);
-        }
-        if (!empty($this->Field)) {
-            ACMS_Filter::entryField($sql, $this->Field);
-        }
-        $sql->addWhereOpr('entry_indexing', 'on');
-        $aryOrder1 = explode('-', $this->config['order'][0]);
-        $sortFieldName = isset($aryOrder1[0]) ? $aryOrder1[0] : null;
-        $sortOrder = isset($aryOrder1[1]) ? $aryOrder1[1] : 'desc';
+        $data = $this->entryHelper->buildSerialNavi((int) $entry['entry_id'], $this->config['order'][0], $this->config['serialNaviIgnoreCategory'] ?? false, $this->Field);
 
-        if ('random' <> $sortFieldName) {
-            switch ($sortFieldName) {
-                case 'datetime':
-                    $field = 'entry_datetime';
-                    $value = ACMS_RAM::entryDatetime($this->eid);
-                    break;
-                case 'updated_datetime':
-                    $field = 'entry_updated_datetime';
-                    $value = ACMS_RAM::entryUpdatedDatetime($this->eid);
-                    break;
-                case 'posted_datetime':
-                    $field = 'entry_posted_datetime';
-                    $value = ACMS_RAM::entryPostedDatetime($this->eid);
-                    break;
-                case 'code':
-                    $field = 'entry_code';
-                    $value = ACMS_RAM::entryCode($this->eid);
-                    break;
-                case 'sort':
-                    if ($this->uid) {
-                        $field = 'entry_user_sort';
-                        $value = ACMS_RAM::entryUserSort($this->eid);
-                    } elseif ($this->cid) {
-                        $field = 'entry_category_sort';
-                        $value = ACMS_RAM::entryCategorySort($this->eid);
-                    } else {
-                        $field = 'entry_sort';
-                        $value = ACMS_RAM::entrySort($this->eid);
-                    }
-                    break;
-                case 'field':
-                case 'intfield':
-                    $entryField = loadEntryField($this->eid);
-                    $entryFieldKey = $this->Field->listFields()[0] ?? null;
-                    if ($entryFieldKey !== null) {
-                        $field = $sortFieldName === 'field' ? 'strfield_sort' : 'intfield_sort';
-                        $value = $entryField->get($entryFieldKey);
-                    } else {
-                        $field = 'entry_id';
-                        $value = $this->eid;
-                    }
-                    break;
-                case 'id':
-                default:
-                    $field = 'entry_id';
-                    $value = $this->eid;
-            }
-
-            // build prevLink
-            $this->buildPrevLink($tpl, $sortFieldName, $sortOrder, $sql, $field, $value);
-
-            // build nextLink
-            $this->buildNextLink($tpl, $sortFieldName, $sortOrder, $sql, $field, $value);
+        if ($prevLink = ($data['prevLink'] ?? false)) {
+            $tpl->add('prevLink', [
+                'name' => $prevLink['name'],
+                'url' => $prevLink['url'],
+                'eid' => $prevLink['eid'],
+            ]);
+        } else {
+            $tpl->add('prevNotFound');
+        }
+        if ($nextLink = ($data['nextLink'] ?? false)) {
+            $tpl->add('nextLink', [
+                'name' => $nextLink['name'],
+                'url' => $nextLink['url'],
+                'eid' => $nextLink['eid'],
+            ]);
+        } else {
+            $tpl->add('nextNotFound');
         }
     }
 
@@ -834,25 +473,26 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
      * マイクロページネーションを組み立て
      *
      * @param Template $tpl
-     * @param array{
-     *   amount: int,
-     *   unit: \Acms\Services\Unit\Contracts\Model|null,
-     * } $info
+     * @param \Acms\Services\Unit\UnitCollection $allUnitCollection
      * @return void
      */
-    protected function buildMicroPage(Template $tpl, array $info): void
+    protected function buildMicroPage(Template $tpl, UnitCollection $allUnitCollection): void
     {
-        if ($this->config['micropager_on'] !== 'on') {
+        if (!is_int($this->eid)) {
             return;
         }
-        if ($info['amount'] < 1) {
+        if (!($this->config['micropagerEnabled'] ?? false)) {
             return;
         }
         $micropage = $this->page;
-        // micropage
-        if (!is_null($info['unit'])) {
+        $micropageAmount = $this->entryBodyHelper->countMicroPageAmount($allUnitCollection);
+        if ($micropageAmount < 1) {
+            return;
+        }
+        $breakUnit = $this->entryBodyHelper->getBreakUnitOnMicroPage($allUnitCollection, $micropage);
+        if ($breakUnit) {
             $linkVars = [];
-            $info['unit']->formatMultiLangUnitData($info['unit']->getField1(), $linkVars, 'label');
+            $breakUnit->formatMultiLangUnitDataTrait($breakUnit->getField1(), $linkVars, 'label');
             $linkVars['url'] = acmsLink([
                 '_inherit' => true,
                 'eid' => $this->eid,
@@ -861,12 +501,26 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
             $tpl->add('micropageLink', $linkVars);
         }
 
-        // micropager
         $vars = [];
-        $delta = $this->config['micropager_delta'];
-        $curAttr = $this->config['micropager_cur_attr'];
-        $vars += $this->buildPager($micropage, 1, $info['amount'], $delta, $curAttr, $tpl, 'micropager');
+        $delta = $this->config['micropagerDelta'] ?? 4;
+        $curAttr = $this->config['micropagerCurrentAttr'] ?? '';
+        $vars += TplHelper::buildPager($micropage, 1, $micropageAmount, $delta, $curAttr, $tpl, 'micropager');
         $tpl->add('micropager', $vars);
+    }
+
+    /**
+     * Not Found
+     *
+     * @param Template $tpl
+     * @return string
+     */
+    protected function resultsNotFound(Template $tpl): string
+    {
+        $tpl->add('notFound');
+        if ($this->config['notfoundStatus404'] === 'on') {
+            httpStatusCode('404 Not Found');
+        }
+        return $tpl->get();
     }
 
     /**
@@ -886,14 +540,14 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
         $sql->addWhereOpr('category_indexing', 'on');
         ACMS_Filter::categoryTree($sql, $cid, 'ancestor-or-self');
         $sql->addOrder('category_left', 'DESC');
-        $q  = $sql->get(dsn());
-        DB::query($q, 'fetch');
+        $q = $sql->get(dsn());
+        $statement = DB::query($q, 'exec');
 
         $_all = [];
-        while ($row = DB::fetch($q)) {
+        while ($row = DB::next($statement)) {
             $_all[] = $row;
         }
-        switch ($this->config['category_order']) {
+        switch ($this->config['categoryOrder'] ?? '') {
             case 'child_order':
                 break;
             case 'parent_order':
@@ -917,7 +571,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
                     'cid' => $_row['category_id'],
                 ]),
             ]);
-            $_all[] = DB::fetch($q);
+            $_all[] = DB::next($statement);
         }
     }
 
@@ -931,7 +585,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
      */
     function buildSubCategory(Template $tpl, int $eid, ?int $rvid): void
     {
-        $subCategories = loadSubCategoriesAll($eid, $rvid);
+        $subCategories = $this->eagerLoadedData['subCategory'][$eid] ?? [];
         foreach ($subCategories as $i => $category) {
             if ($i !== count($subCategories) - 1) {
                 $tpl->add(['glue', 'sub_category:loop']);
@@ -957,11 +611,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
         $sql = SQL::newSelect('comment');
         $sql->addSelect('*', 'comment_amount', null, 'COUNT');
         $sql->addWhereOpr('comment_entry_id', $eid);
-        if (
-            1
-            && !sessionWithCompilation()
-            && SUID !== ACMS_RAM::entryUser($eid)
-        ) {
+        if (!sessionWithCompilation() && SUID !== ACMS_RAM::entryUser($eid)) {
             $sql->addWhereOpr('comment_status', 'close', '<>');
         }
         return [
@@ -981,8 +631,8 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
     protected function buildGeolocation(int $eid): array
     {
         $sql = SQL::newSelect('geo');
-        $sql->addSelect('geo_geometry', 'latitude', null, POINT_Y);
-        $sql->addSelect('geo_geometry', 'longitude', null, POINT_X);
+        $sql->addSelect('geo_geometry', 'latitude', null, 'ST_Y');
+        $sql->addSelect('geo_geometry', 'longitude', null, 'ST_X');
         $sql->addSelect('geo_zoom');
         $sql->addWhereOpr('geo_eid', $eid);
 
@@ -1005,127 +655,128 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
      */
     protected function buildEntryTag(Template $tpl, int $eid): void
     {
-        if (RVID) {
-            $sql = SQL::newSelect('tag_rev');
-        } else {
-            $sql = SQL::newSelect('tag');
+        $tags = $this->eagerLoadedData['tag'][$eid] ?? [];
+        foreach ($tags as $i => $tag) {
+            if ($i === 0) {
+                $tpl->add(['glue', 'tag:loop']);
+            }
+            $tpl->add('tag:loop', [
+                'name' => $tag['tag_name'],
+                'url' => acmsLink([
+                    'bid' => $tag['tag_blog_id'],
+                    'tag' => $tag['tag_name'],
+                ]),
+            ]);
         }
-        $sql->addSelect('tag_name');
-        $sql->addSelect('tag_blog_id');
-        $sql->addWhereOpr('tag_entry_id', $eid);
-        if (RVID) {
-            $sql->addWhereOpr('tag_rev_id', RVID);
-        }
-        $sql->addOrder('tag_sort');
-        $q = $sql->get(dsn());
-
-        do {
-            if (!DB::query($q, 'fetch')) {
-                break;
-            }
-            if (!$row = DB::fetch($q)) {
-                break;
-            }
-            $stack = [];
-            $stack[] = $row;
-            $stack[] = DB::fetch($q);
-            while ($row = array_shift($stack)) {
-                if (!empty($stack[0])) {
-                    $tpl->add(['glue', 'tag:loop']);
-                }
-                $tpl->add('tag:loop', [
-                    'name' => $row['tag_name'],
-                    'url' => acmsLink([
-                        'bid' => $row['tag_blog_id'],
-                        'tag' => $row['tag_name'],
-                    ]),
-                ]);
-                $stack[] = DB::fetch($q);
-            }
-        } while (false);
     }
-
 
     /**
      * 編集画面を組み立て
      *
      * @param int $bid
      * @param int $uid
-     * @param int $cid
+     * @param int|null $cid
      * @param int $eid
      * @param Template $tpl
-     * @param null|string $block
+     * @param string|string[] $block
      * @return void
      */
-    protected function buildAdminEntryEdit(int $bid, int $uid, ?int $cid, int $eid, Template $tpl, ?string $block = null): void
-    {
-        if (!SUID) {
+    protected function buildAdminEntryEdit(
+        int $bid,
+        int $uid,
+        ?int $cid,
+        int $eid,
+        Template $tpl,
+        $block = []
+    ): void {
+        if (!Login::isLoggedIn()) {
+            // ユーザーがログインしていない場合は処理を終了
             return;
         }
         $block = empty($block) ? [] : (is_array($block) ? $block : [$block]);
-        if (ADMIN) {
-            if ('entry-add' === substr(ADMIN, 0, 9)) {
-                $tpl->add(array_merge(['adminEntryEdit'], $block));
-            }
-        } elseif (
-            0
-            || (!roleAvailableUser() && ((config('approval_contributor_edit_auth') !== 'on' && enableApproval()) || sessionWithCompilation() || (sessionWithContribution() && $uid == SUID)))
-            || (roleAvailableUser() && (roleAuthorization('entry_edit_all', BID) || (roleAuthorization('entry_edit', BID) && $uid == SUID)))
-        ) {
-            $entry = ACMS_RAM::entry($eid);
-            $val = [
-                'bid' => $bid,
-                'cid' => $cid,
-                'eid' => $eid,
-                'status.approval' => $entry['entry_approval'],
-                'status.title' => ACMS_RAM::entryTitle($eid),
-                'status.category' => ACMS_RAM::categoryName($cid),
-                'status.url' => acmsLink([
-                    'bid' => $bid,
-                    'cid' => $cid,
-                    'eid' => $eid,
-                ]),
-            ];
 
-            if (!(sessionWithApprovalAdministrator() && $entry['entry_approval'] === 'pre_approval')) {
-                $tpl->add(array_merge(['edit'], $block), $val);
-                $tpl->add(array_merge(['revision'], $block), $val);
-                if (BID === $bid) {
-                    $types = configArray('column_add_type');
-                    if (is_array($types)) {
-                        $cnt = count($types);
-                        $labels = configArray('column_add_type_label');
-                        for ($i = 0; $i < $cnt; $i++) {
-                            if (!$type = $types[$i]) {
-                                continue;
-                            }
-                            if (!$label = $labels[$i]) {
-                                continue;
-                            }
-                            $tpl->add(array_merge(['add:loop'], $block), $val + [
-                                'label' => $label,
-                                'type' => $type,
-                                'className' => config('column_add_type_class', '', $i),
-                                'icon' => config('column_add_type_icon', '', $i)
-                            ]);
-                        }
-                    }
-                    $statusBlock = ('open' === ACMS_RAM::entryStatus($eid)) ? 'close' : 'open';
-                    $tpl->add(array_merge([$statusBlock], $block), $val);
-                }
-                if (!editionWithProfessional() || sessionWithApprovalAdministrator() || $entry['entry_approval'] === 'pre_approval') {
-                    $tpl->add(array_merge(['delete'], $block), $val);
-                }
-                if (Entry::isDirectEditEnabled()) {
-                    // ↓未使用のブロックのため削除要検討
-                    $tpl->add(array_merge(['adminDetailEdit'], $block), $val);
-                }
-            } elseif (sessionWithApprovalAdministrator()) {
-                $tpl->add(array_merge(['delete'], $block), $val);
-            } else {
-                $tpl->add(array_merge(['revision'], $block), $val);
-            }
+        if (!$this->entryBodyHelper->canEditEntry($bid, $uid, $eid)) {
+            // 編集権限がない場合は処理を終了
+            return;
         }
+
+        $entry = $this->createAdminEntry($eid, $bid, $cid);
+
+        if (!sessionWithApprovalAdministrator() || $entry['status.approval'] !== 'pre_approval') {
+            // 最終承認者ではないか、エントリーが承認前でない場合に編集ブロックを追加
+            $this->buildEditBlock($tpl, $block, $entry);
+        }
+
+        if (BID === $bid) {
+            // エントリーのステータスに応じたブロックを追加
+            $this->buildStatusBlock($tpl, $block, $eid, $entry);
+        }
+
+        // 削除オプションの追加
+        if (Entry::canDelete($eid)) {
+            $this->buildDeleteBlock($tpl, $block, $entry);
+        }
+    }
+
+    /**
+     * エントリー編集用の情報を組み立てる
+     *
+     * @param int $eid
+     * @param int $bid
+     * @param int|null $cid
+     * @return array
+     */
+    private function createAdminEntry(int $eid, int $bid, ?int $cid): array
+    {
+        return [
+            'bid' => $bid,
+            'cid' => $cid,
+            'eid' => $eid,
+            'status.approval' => ACMS_RAM::entryApproval($eid),
+            'status.title' => ACMS_RAM::entryTitle($eid),
+            'status.category' => ACMS_RAM::categoryName($cid),
+            'status.url' => acmsLink(['bid' => $bid, 'cid' => $cid, 'eid' => $eid]),
+        ];
+    }
+
+    /**
+     * 編集ブロックの組み立て
+     *
+     * @param Template $tpl
+     * @param array $block
+     * @param array $entry
+     */
+    private function buildEditBlock(Template $tpl, array $block, array $entry): void
+    {
+        $tpl->add(array_merge(['edit'], $block), $entry);
+        $tpl->add(array_merge(['revision'], $block), $entry);
+    }
+
+    /**
+     * ステータスブロックを組み立て
+     *
+     * @param Template $tpl
+     * @param array $block
+     * @param int $eid
+     * @param array $entry
+     */
+    private function buildStatusBlock(Template $tpl, array $block, int $eid, array $entry): void
+    {
+        // エントリーのステータスに応じてブロックを追加
+        $statusBlock = ('open' === ACMS_RAM::entryStatus($eid)) ? 'close' : 'open';
+        $tpl->add(array_merge([$statusBlock], $block), $entry);
+    }
+
+    /**
+     * 削除オプションを追加
+     *
+     * @param Template $tpl
+     * @param array $block
+     * @param array $entry
+     */
+    private function buildDeleteBlock(Template $tpl, array $block, array $entry): void
+    {
+        $tpl->add(array_merge(['delete'], $block), $entry);
     }
 
     /**
@@ -1155,7 +806,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
         ], false);
 
         $RVID_ = RVID;
-        if (!RVID && $row['entry_approval'] === 'pre_approval') {
+        if (!RVID && $row['entry_approval'] === 'pre_approval') { // @phpstan-ignore-line
             $RVID_ = 1;
         }
         if ($serial != 0) {
@@ -1169,64 +820,63 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
             $vars['oddOrEven'] = $oddOrEven;
         }
         // build tag
-        if ($this->config['tag_on'] === 'on') {
+        if ($this->config['includeTags'] ?? false) {
             $this->buildEntryTag($tpl, $eid);
         }
         // build category loop
-        if (!empty($cid) && $this->config['category_info_on'] === 'on') {
+        if (!empty($cid) && $this->config['includeCategory']) {
             $this->buildCategory($tpl, $cid, $bid);
         }
         // build sub category loop
-        if ($this->config['category_info_on'] === 'on') {
+        if ($this->config['includeCategory']) {
             $this->buildSubCategory($tpl, $eid, $RVID_);
         }
         // build comment/trackbak/geolocation
-        if ('on' == config('comment') && $this->config['comment_on'] === 'on') {
+        if ('on' == config('comment') && $this->config['includeComment']) {
             $vars += $this->buildCommentAmount($eid);
         }
-        if ($this->config['geolocation_on'] === 'on') {
+        if ($this->config['geolocationEnabled'] ?? false) {
             $vars += $this->buildGeolocation($eid);
         }
         // build summary
-        if ($this->config['summary_on'] === 'on') {
-            $vars = TplHelper::buildSummaryFulltext($vars, $eid, $this->summaryFulltextEagerLoadingData);
-            if (
-                1
-                && isset($vars['summary'])
-                && intval(config('entry_body_fulltext_width')) > 0
-            ) {
-                $width = intval(config('entry_body_fulltext_width'));
-                $marker = config('entry_body_fulltext_marker');
+        if ($this->config['fulltextEnabled']) {
+            $vars = TplHelper::buildSummaryFulltext($vars, $eid, $this->eagerLoadedData['fullText']);
+            $width = $this->config['fulltextWidth'] ?? 0;
+            if (isset($vars['summary']) && $width > 0) {
+                $marker = $this->config['fulltextMarker'] ?? '';
                 $vars['summary'] = mb_strimwidth($vars['summary'], 0, $width, $marker, 'UTF-8');
             }
         }
         // build primary image
-        $clid = intval($row['entry_primary_image']);
-        if (config('entry_body_image_on') === 'on') {
+        $clid = strval($row['entry_primary_image']);
+        if ($this->config['includeMainImage'] ?? false) {
             $config = [
-                'imageX' => config('entry_body_image_x', 200),
-                'imageY' => config('entry_body_image_y', 200),
-                'imageTrim' => config('entry_body_image_trim', 'off'),
-                'imageCenter' => config('entry_body_image_zoom', 'off'),
-                'imageZoom' => config('entry_body_image_center', 'off'),
+                'imageX' => $this->config['imageX'] ?? 200,
+                'imageY' => $this->config['imageX'] ?? 200,
+                'imageTrim' => $this->config['imageTrim'] ?? false,
+                'imageCenter' => $this->config['imageZoom'] ?? false,
+                'imageZoom' => $this->config['imageCenter'] ?? false,
             ];
-            $tpl->add('mainImage', TplHelper::buildImage($tpl, $clid, $config, $this->mainImageEagerLoadingData));
+            $tpl->add('mainImage', TplHelper::buildImage($tpl, $eid, $clid, $config, $this->eagerLoadedData['mainImage']));
         }
         // build related entry
-        if ($this->config['related_entry_on'] === 'on') {
-            TplHelper::buildRelatedEntriesList($tpl, $eid, $this->relatedEntryEagerLoadingData, ['relatedEntry', 'entry:loop']);
+        if ($this->config['includeRelatedEntries'] ?? false) {
+            TplHelper::buildRelatedEntriesList($tpl, $eid, $this->eagerLoadedData['relatedEntry'], ['relatedEntry', 'entry:loop']);
         } else {
             $tpl->add(['relatedEntry', 'entry:loop']);
         }
         // admin
         $this->buildAdminEntryEdit($bid, $uid, $cid, $eid, $tpl, 'entry:loop');
         // build entry field
-        if ($this->config['entry_field_on'] === 'on') {
-            $vars += $this->buildField(loadEntryField($eid, $RVID_, true), $tpl, 'entry:loop', 'entry');
+        if (($this->config['includeEntryFields'] ?? false) && isset($this->eagerLoadedData['entryField'][$eid])) {
+            $vars += TplHelper::buildField($this->eagerLoadedData['entryField'][$eid], $tpl, 'entry:loop', 'entry');
         }
         // build user field
-        if ($this->config['user_info_on'] === 'on') {
-            $Field = ($this->config['user_field_on'] === 'on') ? loadUserField($uid) : new Field();
+        if ($this->config['includeUser'] ?? false) {
+            $Field = new Field();
+            if (($this->config['includeUserFields'] ?? false) && isset($this->eagerLoadedData['userField'][$uid])) {
+                $Field = $this->eagerLoadedData['userField'][$uid];
+            }
             $Field->setField('fieldUserName', ACMS_RAM::userName($uid));
             $Field->setField('fieldUserCode', ACMS_RAM::userCode($uid));
             $Field->setField('fieldUserStatus', ACMS_RAM::userStatus($uid));
@@ -1240,11 +890,14 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
             if ($orig = loadUserOriginalIcon($uid)) {
                 $Field->setField('fieldUserOrigIcon', $orig);
             }
-            $tpl->add('userField', $this->buildField($Field, $tpl));
+            $tpl->add('userField', TplHelper::buildField($Field, $tpl));
         }
         // build category field
-        if ($this->config['category_info_on'] === 'on') {
-            $Field = ($this->config['category_field_on'] === 'on') ? loadCategoryField($cid) : new Field();
+        if ($cid && $this->config['includeCategory']) {
+            $Field = new Field();
+            if (($this->config['includeCategoryFields'] ?? false) && isset($this->eagerLoadedData['categoryField'][$cid])) {
+                $Field = $this->eagerLoadedData['categoryField'][$cid];
+            }
             $Field->setField('fieldCategoryName', ACMS_RAM::categoryName($cid));
             $Field->setField('fieldCategoryCode', ACMS_RAM::categoryCode($cid));
             $Field->setField('fieldCategoryUrl', acmsLink([
@@ -1252,15 +905,18 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
                 'cid' => $cid,
             ]));
             $Field->setField('fieldCategoryId', $cid);
-            $tpl->add('categoryField', $this->buildField($Field, $tpl));
+            $tpl->add('categoryField', TplHelper::buildField($Field, $tpl));
         }
         // build blog field
-        if ($this->config['blog_info_on'] === 'on') {
-            $Field = ($this->config['blog_field_on'] === 'on') ? loadBlogField($bid) : new Field();
+        if ($this->config['includeBlog'] ?? false) {
+            $Field = new Field();
+            if (($this->config['includeBlogFields'] ?? false) && isset($this->eagerLoadedData['blogField'][$bid])) {
+                $Field = $this->eagerLoadedData['blogField'][$bid];
+            }
             $Field->setField('fieldBlogName', ACMS_RAM::blogName($bid));
             $Field->setField('fieldBlogCode', ACMS_RAM::blogCode($bid));
             $Field->setField('fieldBlogUrl', acmsLink(['bid' => $bid]));
-            $tpl->add('blogField', $this->buildField($Field, $tpl));
+            $tpl->add('blogField', TplHelper::buildField($Field, $tpl));
         }
         $link = (config('entry_body_link_url') === 'on') ? $row['entry_link'] : '';
         $vars += [
@@ -1284,7 +940,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
             'entry:loop.ucd' => ACMS_RAM::userCode($uid),
             'entry:loop.ccd' => ACMS_RAM::categoryCode($cid),
             'entry:loop.ecd' => ACMS_RAM::entryCode($eid),
-            'entry:loop.class' => $this->config['loop_class'],
+            'entry:loop.class' => $this->config['loopClass'] ?? '',
             'sort' => $row['entry_sort'],
             'usort' => $row['entry_user_sort'],
             'csort' => $row['entry_category_sort']
@@ -1295,128 +951,31 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
             ];
         }
         // build date
-        if ($this->config['date_on'] === 'on') {
-            $vars += $this->buildDate($row['entry_datetime'], $tpl, 'entry:loop');
+        if ($this->config['includeDatetime'] ?? false) {
+            $vars += TplHelper::buildDate($row['entry_datetime'], $tpl, 'entry:loop');
         }
-        if ($this->config['detail_date_on'] === 'on') {
-            $vars += $this->buildDate($row['entry_updated_datetime'], $tpl, 'entry:loop', 'udate#');
-            $vars += $this->buildDate($row['entry_posted_datetime'], $tpl, 'entry:loop', 'pdate#');
-            $vars += $this->buildDate($row['entry_start_datetime'], $tpl, 'entry:loop', 'sdate#');
-            $vars += $this->buildDate($row['entry_end_datetime'], $tpl, 'entry:loop', 'edate#');
+        if ($this->config['detail_date_on'] ?? false) {
+            $vars += TplHelper::buildDate($row['entry_updated_datetime'], $tpl, 'entry:loop', 'udate#');
+            $vars += TplHelper::buildDate($row['entry_posted_datetime'], $tpl, 'entry:loop', 'pdate#');
+            $vars += TplHelper::buildDate($row['entry_start_datetime'], $tpl, 'entry:loop', 'sdate#');
+            $vars += TplHelper::buildDate($row['entry_end_datetime'], $tpl, 'entry:loop', 'edate#');
         }
         // build new
-        if (strtotime($row['entry_datetime']) + intval($this->config['newtime']) > requestTime()) {
+        if (strtotime($row['entry_datetime']) + $this->config['newItemPeriod'] > requestTime()) {
             $tpl->add(['new:touch', 'entry:loop']); // 後方互換
             $tpl->add(['new', 'entry:loop']);
         }
     }
 
     /**
-     * Not Found
+     * ルート変数を取得
      *
-     * @param Template $tpl
-     * @return string
+     * @return array
      */
-    protected function resultsNotFound(Template $tpl): string
+    public function getRootVars(): array
     {
-        $tpl->add('notFound');
-        if ($this->config['notfoundStatus404'] === 'on') {
-            httpStatusCode('404 Not Found');
-        }
-        return $tpl->get();
-    }
-
-    /**
-     * 指定したマイクロページで会員限定ユニットが含まれているかどうか
-     * @param \Acms\Services\Unit\Contracts\Model[] $units エントリーが持つ全てのユニットを含む配列
-     * @param int $summaryRange
-     * @param int $micropage
-     * @return bool
-     */
-    protected function containsMembersOnlyUnitOnMicroPage(array $units, int $summaryRange, int $micropage): bool
-    {
-        if ($summaryRange >= count($units)) {
-            // 会員限定記事のバーが最後の場合は、会員限定ユニットは含まれない（ページ内のユニットはすべて公開ユニット）
-            return false;
-        }
-
-        // 公開ユニット内の合計ページ数を取得
-        $publicPageAmount = 1;
-        foreach ($units as $i => $unit) {
-            if ($unit->getUnitType() === 'break' && $i < $summaryRange) {
-                // 会員限定記事のバーより前のユニット（= 公開ユニット）の場合のみカウント
-                $publicPageAmount += 1;
-            }
-        }
-        // 公開ユニット内の合計ページ数が表示ページより大きい場合は、会員限定ユニットは含まれない（ページ内のユニットはすべて公開ユニット）
-        if ($publicPageAmount > $micropage) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * マイクロページの総ページ数をカウント
-     * @param \Acms\Services\Unit\Contracts\Model[] $units
-     * @return int
-     */
-    protected function countMicroPageAmount(array $units): int
-    {
-        $page = 1;
-        foreach ($units as $unit) {
-            if ($unit->getUnitType() === 'break') {
-                $page += 1;
-            }
-        }
-        return $page;
-    }
-
-    /**
-     * 指定したマイクロページに表示するユニットで絞り込んで取得
-     *
-     * @param \Acms\Services\Unit\Contracts\Model[] $units
-     * @param int<1, max> $micropage マイクロページ番号
-     * @return \Acms\Services\Unit\Contracts\Model[]
-     */
-    protected function filterUnitsByMicroPage(array $units, int $micropage): array
-    {
-        $filteredUnits = [];
-        $micropageCount = 1;
-        foreach ($units as $unit) {
-            if ($unit->getUnitType() === 'break') {
-                $micropageCount += 1;
-            }
-            if ($micropageCount === $micropage) {
-                $filteredUnits[] = $unit;
-            }
-            if ($micropageCount > $micropage) {
-                break;
-            }
-        }
-        return $filteredUnits;
-    }
-
-    /**
-     * 指定したマイクロページを分割する改ページユニットを取得
-     *
-     * @param \Acms\Services\Unit\Contracts\Model[] $units
-     * @param int<1, max> $micropage マイクロページ番号
-     * @return Acms\Services\Unit\Contracts\Model|null
-     */
-    protected function getBreakUnitOnMicroPage(array $units, int $micropage): ?Model
-    {
-        $breakUnits = array_filter($units, function ($unit) {
-            return $unit->getUnitType() === 'break';
-        });
-        $micropageCount = 1;
-        foreach ($breakUnits as $breakUnit) {
-            if ($micropageCount === $micropage) {
-                return $breakUnit;
-            }
-            $micropageCount += 1;
-        }
-
-        return null;
+        return [
+            'parent.loop.class' => $this->config['parentLoopClass'] ?? '',
+        ];
     }
 }

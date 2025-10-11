@@ -12,13 +12,10 @@
 
 // コンポーネント
 @use 'acms-system/acms-tab';
-@use 'acms-system/admin-box';
 @use 'acms-system/admin-index';
 @use 'acms-system/background';
 @use 'acms-system/bench-mark-mode';
-@use 'acms-system/color-palette';
 @use 'acms-system/config';
-@use 'acms-system/dropdown';
 @use 'acms-system/fixed-btn';
 @use 'acms-system/header';
 @use 'acms-system/icon';
@@ -26,7 +23,6 @@
 @use 'acms-system/label';
 @use 'acms-system/login';
 @use 'acms-system/main-column';
-@use 'acms-system/module-navigation';
 @use 'acms-system/sidebar';
 @use 'acms-system/sp-nav';
 @use 'acms-system/tab';
@@ -34,6 +30,4 @@
 @use 'acms-system/table';
 @use 'acms-system/topicpath';
 @use 'acms-system/type';
-@use 'acms-system/unit';
 @use 'acms-system/user-group';
-@use 'acms-system/validator';

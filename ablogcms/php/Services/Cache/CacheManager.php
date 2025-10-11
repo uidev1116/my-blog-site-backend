@@ -492,8 +492,6 @@ class CacheManager
      * @param int $port
      * @param string $password
      * @param string $db
-     *
-     * @return \Redis|\RedisArray|\RedisCluster|\Symfony\Component\Cache\Traits\RedisClusterProxy|\Symfony\Component\Cache\Traits\RedisProxy
      */
     protected function createRedisClient($host, $port, $password = '', $db = '')
     {
@@ -506,6 +504,10 @@ class CacheManager
         $connection .= ":$port";
         if (!empty($db)) {
             $connection .= "/$db";
+        }
+        // PHPStan回避のための明示的存在チェック
+        if (!class_exists(\Redis::class) && !class_exists(\RedisCluster::class)) {
+            throw new \RuntimeException('Redis extension is not available');
         }
         return RedisAdapter::createConnection($connection);
     }

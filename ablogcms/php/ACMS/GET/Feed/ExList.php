@@ -57,7 +57,7 @@ class ACMS_GET_Feed_ExList extends ACMS_GET
         $cache = Cache::module();
         $cacheItem = $cache->getItem($id);
         if ($cacheItem && $cacheItem->isHit()) {
-            $feeds = acmsDangerUnserialize($cacheItem->get());
+            $feeds = acmsDangerUnserialize((string) $cacheItem->get());
         }
         if (empty($feeds)) {
             $RSS   = new FeedParser($this->source, $this->kind);

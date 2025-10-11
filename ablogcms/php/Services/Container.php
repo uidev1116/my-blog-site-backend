@@ -15,7 +15,7 @@ class Container implements Contracts\ContainerInterface
     private $aliases;
 
     /**
-     * @var array
+     * @var array<string, array<callable>>
      */
     protected $bootstrap;
 
@@ -31,9 +31,6 @@ class Container implements Contracts\ContainerInterface
     {
         $this->aliases = [];
         $this->bootstrap = [];
-
-        $this->singleton('container', '\Acms\Services\Container');
-        $this->resolvedInstance['container'] = $this;
     }
 
     /**
@@ -77,13 +74,16 @@ class Container implements Contracts\ContainerInterface
         if (!($info->class instanceof \Closure) && !class_exists($info->class)) {
             throw new \RuntimeException("Container missing class '" . $info->class . "'.");
         }
-        if (is_callable([$this, $info->type . 'Make'])) {
-            $instance = call_user_func([$this, $info->type . 'Make'], $alias);
-
+        $method = $info->type . 'Make';
+        if (is_callable([$this, $method])) {
+            /** @var callable $callback */
+            $callback = [$this, $method];
+            $instance = call_user_func($callback, $alias);
             if (isset($this->bootstrap[$alias])) {
-                $this->bootstrap[$alias]($instance);
+                foreach ($this->bootstrap[$alias] as $cb) {
+                    $cb($instance);
+                }
             }
-
             return $this->resolvedInstance[$alias] = $instance;
         }
         throw new \RuntimeException('Failed to make instance');
@@ -140,7 +140,11 @@ class Container implements Contracts\ContainerInterface
             return;
         }
 
-        $this->bootstrap[$alias] = $callback;
+        if (!isset($this->bootstrap[$alias])) {
+            $this->bootstrap[$alias] = [];
+        }
+
+        $this->bootstrap[$alias][] = $callback;
     }
 
     /**
@@ -178,10 +182,7 @@ class Container implements Contracts\ContainerInterface
     /**
      * create instance
      *
-     * @param string | callable $class
-     * @param array $arguments
-     *
-     * @return mixed
+     * @inheritDoc
      */
     public function newInstance($class, array $arguments = [])
     {
@@ -223,6 +224,9 @@ class Container implements Contracts\ContainerInterface
         if (is_object($class)) {
             $class = get_class($class);
         }
+        if (!class_exists($class)) {
+            throw new \InvalidArgumentException("Class {$class} does not exist.");
+        }
         $reflection = new \ReflectionClass($class);
         if ($function = $reflection->getMethod($method)) {
             return $function->getParameters();
@@ -244,6 +248,9 @@ class Container implements Contracts\ContainerInterface
     {
         if (is_object($class)) {
             $class = get_class($class);
+        }
+        if (!class_exists($class)) {
+            throw new \InvalidArgumentException("Class {$class} does not exist.");
         }
         $reflection = new \ReflectionClass($class);
         if ($constructor = $reflection->getConstructor()) {
@@ -271,6 +278,9 @@ class Container implements Contracts\ContainerInterface
                 continue;
             }
             $class = $class->name;
+            if (!class_exists($class)) {
+                continue;
+            }
             $reflection = new \ReflectionClass($class);
             if ($this->exists($class)) {
                 $objects[$name] = $this->make($class);
@@ -294,6 +304,9 @@ class Container implements Contracts\ContainerInterface
      */
     protected function createInstance($class, $arguments = [])
     {
+        if (!class_exists($class)) {
+            throw new \InvalidArgumentException("Class {$class} does not exist.");
+        }
         $reflection = new \ReflectionClass($class);
 
         if (empty($arguments)) {

@@ -1,10 +1,10 @@
 interface ConditionalWrapProps {
   condition: boolean;
-  wrap: (children: JSX.Element) => JSX.Element;
-  children: JSX.Element;
+  wrap: (children: React.ReactNode) => React.ReactNode;
+  children: React.ReactNode;
 }
 
-const ConditionalWrap = ({ condition, wrap, children }: ConditionalWrapProps): JSX.Element =>
+const ConditionalWrap = ({ condition, wrap, children }: ConditionalWrapProps): React.ReactNode =>
   condition ? wrap(children) : children;
 
 export default ConditionalWrap;

@@ -2,9 +2,22 @@
 
 namespace Acms\Services\Update\Database;
 
-use DB;
+use Acms\Services\Facades\Database as DB;
+use Acms\Services\Facades\Common;
+use Acms\Services\Unit\Constants\UnitAlign;
+use Acms\Services\Unit\Constants\UnitStatus;
 use SQL;
+use Field;
 
+/**
+ * このクラスは、バージョンアップ時に「特別な更新処理」を行うためのクラスです。
+ *
+ * 注意点：
+ * - アップデート処理の実行時には、新しいバージョンで追加されたクラスやメソッドは、まだ読み込まれていないため利用できません。
+ * - そのため、このクラスでは 「オンラインアップデート機能」が追加された v2.8.0 から利用できる機能でのみ実装してください。
+ *
+ * 例 DB::next() は利用できません。v3.2.0 で追加されたため。
+ */
 class Rule
 {
     /**
@@ -32,20 +45,29 @@ class Rule
         if (version_compare($this->fromVersion, '1.4.0', '<')) {
             $this->update140();
         }
-
         // v1.4.2以前
         if (version_compare($this->fromVersion, '1.4.2', '<')) {
             $this->update142();
         }
-
         // v1.5.0以前
         if (version_compare($this->fromVersion, '1.5.0', '<')) {
             $this->update150();
         }
-
         // v2.10.0以前
         if (version_compare($this->fromVersion, '2.10.0', '<')) {
             $this->update2100();
+        }
+        // v3.1.50以前
+        if (version_compare($this->fromVersion, '3.1.50', '<')) {
+            $this->update3150();
+        }
+        // v3.2.0以前
+        if (version_compare($this->fromVersion, '3.2.0', '<')) {
+            $this->update320();
+        }
+        // v3.2.1以前
+        if (version_compare($this->fromVersion, '3.2.1', '<')) {
+            $this->update321();
         }
     }
 
@@ -221,9 +243,9 @@ class Rule
         // ユーザーfulltextを生成・追加
         $SQL = SQL::newSelect('user');
         $q = $SQL->get(dsn());
-        $DB->query($q, 'fetch');
+        $all = $DB->query($q, 'all');
 
-        while ($row = $DB->fetch($q)) {
+        foreach ($all as $row) {
             // user
             $user = [
                 $row['user_name'],
@@ -242,11 +264,10 @@ class Rule
             $SQL->addWhereOpr('field_search', 'on');
             $SQL->addWhereOpr('field_uid', $uid);
             $_q = $SQL->get(dsn());
+            $all2 = $DB->query($_q, 'all');
 
-            if ($DB->query($_q, 'fetch') and ($_row = $DB->fetch($_q))) {
-                do {
-                    $meta[] = $_row['field_value'];
-                } while ($_row = $DB->fetch($_q));
+            foreach ($all2 as $_row) {
+                $meta[] = $_row['field_value'];
             }
 
             // merge
@@ -328,8 +349,8 @@ class Rule
         $SQL = SQL::newSelect('config');
         $SQL->addWhereOpr('config_key', 'workflow_start_group');
         $q = $SQL->get(dsn());
-        $DB->query($q, 'fetch');
-        while ($row = $DB->fetch($q)) {
+        $all = $DB->query($q, 'all');
+        foreach ($all as $row) {
             $startList[$row['config_blog_id']][] = $row['config_value'];
         }
 
@@ -337,8 +358,8 @@ class Rule
         $SQL = SQL::newSelect('config');
         $SQL->addWhereOpr('config_key', 'workflow_last_group');
         $q = $SQL->get(dsn());
-        $DB->query($q, 'fetch');
-        while ($row = $DB->fetch($q)) {
+        $all2 = $DB->query($q, 'all');
+        foreach ($all2 as $row) {
             $lastList[$row['config_blog_id']][] = $row['config_value'];
         }
 
@@ -357,5 +378,182 @@ class Rule
             $SQL->addWhereOpr('workflow_category_id', null);
             $DB->query($SQL->get(dsn()), 'exec');
         }
+    }
+
+    /**
+     * v3.1.50以前からのアップデート
+     * フィールドにタイプのカラムを追加
+     * メディアフィールドの検索用インデックスのため
+     *
+     * @return void
+     */
+    private function update3150(): void
+    {
+        $sql = SQL::newUpdate('field');
+        $sql->addUpdate('field_type', 'media');
+        $sql->addWhereOpr('field_key', '%@media', 'LIKE');
+        DB::query($sql->get(dsn()), 'exec');
+
+        $sql = SQL::newUpdate('field');
+        $sql->addUpdate('field_type', 'html');
+        $sql->addWhereOpr('field_key', '%@html', 'LIKE');
+        DB::query($sql->get(dsn()), 'exec');
+
+        $sql = SQL::newUpdate('field');
+        $sql->addUpdate('field_type', 'title');
+        $sql->addWhereOpr('field_key', '%@title', 'LIKE');
+        DB::query($sql->get(dsn()), 'exec');
+    }
+
+    /**
+     * v3.2.0以前からのアップデート
+     * - カスタムユニットのフィールドデータをcolumnテーブルからフィールドテーブルに移動
+     * - column_align カラムに存在する非表示を acms_column, acms_column_rev テーブルの column_status カラムのデータとして扱えるようにアップデート時にデータコンバートを行う
+     *
+     * @return void
+     */
+    private function update320(): void
+    {
+        $this->updateCustomUnitData();
+        $this->updateUnitAlignToStatus();
+    }
+
+    /**
+     * v3.2.0以前からのアップデート
+     * カスタムユニットのフィールドデータをcolumnテーブルからフィールドテーブルに移動
+     *
+     * @return void
+     */
+    private function updateCustomUnitData(): void
+    {
+        // columnテーブルのcustomユニット情報をfieldテーブルに移動
+        $sql = SQL::newSelect('column');
+        $sql->addSelect('column_id');
+        $sql->addSelect('column_field_6');
+        $sql->addSelect('column_blog_id');
+        $sql->addWhereOpr('column_type', 'custom_%', 'LIKE');
+        $q = $sql->get(dsn());
+        $all = DB::query($q, 'all');
+        foreach ($all as $item) {
+            $id = (string) $item['column_id'];
+            $bid = (int) $item['column_blog_id'];
+            $field = acmsDangerUnserialize($item['column_field_6']);
+            if ($id && ($field instanceof Field)) {
+                Common::saveField('unit_id', $id, $field, null, null, $bid);
+            }
+        }
+        // column_revテーブルのcustomユニット情報をfield_revテーブルに移動
+        $sql = SQL::newSelect('column_rev');
+        $sql->addSelect('column_id');
+        $sql->addSelect('column_rev_id');
+        $sql->addSelect('column_field_6');
+        $sql->addSelect('column_blog_id');
+        $sql->addWhereOpr('column_type', 'custom_%', 'LIKE');
+        $q = $sql->get(dsn());
+        $all = DB::query($q, 'all');
+        foreach ($all as $item) {
+            $id = (string) $item['column_id'];
+            $bid = (int) $item['column_blog_id'];
+            $rvid = (int) $item['column_rev_id'];
+            $field = acmsDangerUnserialize($item['column_field_6']);
+            if ($id && ($field instanceof Field)) {
+                Common::saveField('unit_id', $id, $field, null, $rvid, $bid);
+            }
+        }
+    }
+
+    /**
+     * v3.2.0以前からのアップデート
+     * column_align カラムに存在する非表示を acms_column, acms_column_rev テーブルの column_status カラムのデータとして扱えるようにアップデート時にデータコンバートを行う
+     * 配置は center に変更する
+     *
+     * @return void
+     */
+    private function updateUnitAlignToStatus(): void
+    {
+        $sql = SQL::newUpdate('column');
+        $sql->addUpdate('column_status', UnitStatus::CLOSE->value);
+        $sql->addUpdate('column_align', UnitAlign::CENTER->value);
+        $sql->addWhereOpr('column_align', 'hidden');
+        DB::query($sql->get(dsn()), 'exec');
+
+        $sql = SQL::newUpdate('column_rev');
+        $sql->addUpdate('column_status', UnitStatus::CLOSE->value);
+        $sql->addUpdate('column_align', UnitAlign::CENTER->value);
+        $sql->addWhereOpr('column_align', 'hidden');
+        DB::query($sql->get(dsn()), 'exec');
+    }
+
+    /**
+     * v3.1.55以前からのアップデート
+     *
+     * 監査ログの秘匿化項目をマスク化
+     *
+     * @return void
+     */
+    private function update321(): void
+    {
+        $sql = SQL::newSelect('audit_log');
+        $sql->addWhereOpr('audit_log_acms_post', 'Member\_%', 'LIKE');
+        $sql->addWhereOpr('audit_log_req_body', null, '<>');
+        $sql->addWhereOpr('audit_log_req_body', '[]', '<>');
+        $sql->addWhereOpr('audit_log_req_body', '', '<>');
+        $all = DB::query($sql->get(dsn()), 'all');
+        if (!$all) {
+            return;
+        }
+        foreach ($all as $row) {
+            $body = json_decode($row['audit_log_req_body'], true);
+            if (!$body || !is_array($body)) {
+                continue;
+            }
+            $data = $this->filterArray($body);
+            $data = json_encode($data);
+
+            $update = SQL::newUpdate('audit_log');
+            $update->addUpdate('audit_log_req_body', $data ? $data : null);
+            $update->addWhereOpr('audit_log_id', $row['audit_log_id']);
+            DB::query($update->get(dsn()), 'exec');
+        }
+    }
+
+    /**
+     * 配列を再帰的にフィルタリング
+     *
+     * @param array $data
+     * @return array
+     */
+    private function filterArray(array $data): array
+    {
+        $filtered = [];
+
+        // 機密フィールドのリスト（部分一致用）
+        $sensitiveFields = [
+            'password',
+            'passwd',
+            'pwd',
+            'pass',
+            'retype_pass',
+            'code',
+            'recovery',
+            'takeover',
+            'token',
+            'api_key',
+            'secret',
+            'formUniqueToken',
+            'formToken',
+        ];
+
+        foreach ($data as $key => $value) {
+            $filtered[$key] = match (true) {
+                is_array($value) => $this->filterArray($value),
+                is_string($key) && array_any(
+                    $sensitiveFields,
+                    fn(string $sensitiveField): bool => str_contains(strtolower($key), strtolower($sensitiveField))
+                ) => '***MASKED***',
+                default => $value
+            };
+        }
+        return $filtered;
     }
 }

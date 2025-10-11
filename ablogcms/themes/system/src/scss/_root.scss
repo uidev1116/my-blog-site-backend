@@ -1,0 +1,13 @@
+@use 'global/common' as global;
+
+/* ------------------------------
+ ルート
+------------------------------- */
+:root {
+  // Note: Custom variable values only support SassScript inside `#{}`.
+
+  // entry style default variables
+  --unit-gap-x: #{global.$grid-space};
+  --unit-margin-top: 1rem;
+  --unit-margin-bottom: 0;
+}

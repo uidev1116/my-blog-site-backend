@@ -6,10 +6,6 @@
 .acms-summary {
   display: table;
   width: 100%;
-
-  & + .acms-summary {
-    margin-top: 10px;
-  }
 }
 
 .acms-summary-image {

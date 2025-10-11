@@ -8,7 +8,7 @@ type ReturnValue = {
   html: string;
 };
 
-interface EditorProps {
+export interface EditorProps {
   html: string;
   title: string;
   useTitle: boolean;
@@ -35,6 +35,10 @@ const RichEditor = ({
   adds,
   titlePlaceholder,
 }: EditorProps) => {
+  ACMS.Library.deprecated(ACMS.i18n('deprecated.feature.rich-editor.name'), {
+    since: '3.2.0',
+    alternative: ACMS.i18n('deprecated.feature.rich-editor.alternative'),
+  });
   const valueRef = useRef({
     html: '',
     title: '',
@@ -58,7 +62,10 @@ const RichEditor = ({
   }, [maxHeight, minHeight]);
 
   useEffect(() => {
-    setEditorHeight();
+    const timeout = setTimeout(() => {
+      setEditorHeight();
+    }, 0);
+    return () => clearTimeout(timeout);
   }, [setEditorHeight]);
 
   const handleChange = useCallback(

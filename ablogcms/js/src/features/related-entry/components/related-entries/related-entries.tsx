@@ -17,6 +17,7 @@ interface RelatedEntriesProps {
   entries: RelatedEntryType[];
   moduleId: string;
   ctx: string;
+  thumbnail?: string;
   maxItem: number;
   type: string;
   title: string;
@@ -30,6 +31,7 @@ const RelatedEntries = ({
   entries: entriesProp = [],
   moduleId,
   ctx,
+  thumbnail,
   maxItem,
   type,
   title,
@@ -112,6 +114,7 @@ const RelatedEntries = ({
                   value={toOptions(entries)}
                   moduleId={moduleId}
                   ctx={ctx}
+                  thumbnail={thumbnail}
                   onChange={handleChange}
                 />
               </div>

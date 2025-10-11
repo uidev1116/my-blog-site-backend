@@ -75,16 +75,39 @@
   <h3 class="acms-admin-admin-title2 "><!--T-->設定<!--/T--></h3>
   <table class="adminTable acms-admin-table-admin-edit">
     <tr>
-      <th><!--T-->API有効化<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover"
-                                    data-acms-tooltip="<!--T-->APIを有効化するかどうかを設定します。<!--/T-->"></i></th>
+      <th>
+        <!--T-->API（v1）有効化<!--/T-->
+        <i
+          class="acms-admin-icon-tooltip js-acms-tooltip-hover"
+          data-acms-tooltip="<!--T-->APIを有効化するかどうかを設定します。V2モジュールには対応していません。<!--/T-->"
+        ></i>
+      </th>
       <td>
         <input type="hidden" name="api_enable" value="off"/>
         <div class="acms-admin-form-checkbox">
           <input type="checkbox" name="api_enable" value="on" {api_enable:checked#on} id="input-checkbox-api_enable"/>
-          <label for="input-checkbox-api_enable"><i class="acms-admin-ico-checkbox"></i><!--T-->APIを利用する<!--/T-->
+          <label for="input-checkbox-api_enable"><i class="acms-admin-ico-checkbox"></i><!--T-->API（v1）を利用する（V2モジュールは非対応）<!--/T-->
           </label>
         </div>
         <input type="hidden" name="config[]" value="api_enable"/>
+      </td>
+    </tr>
+    <tr>
+      <th>
+        <!--T-->API（v2）有効化<!--/T-->
+        <i
+          class="acms-admin-icon-tooltip js-acms-tooltip-hover"
+          data-acms-tooltip="<!--T-->API（V2）を有効化するかどうかを設定します。V2モジュールのみ有効です。<!--/T-->"
+        ></i>
+      </th>
+      <td>
+        <input type="hidden" name="api_v2_enable" value="off"/>
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="api_v2_enable" value="on" {api_v2_enable:checked#on} id="input-checkbox-api_v2_enable"/>
+          <label for="input-checkbox-api_v2_enable"><i class="acms-admin-ico-checkbox"></i><!--T-->API（v2）を利用する（V2モジュールのみ対応）<!--/T-->
+          </label>
+        </div>
+        <input type="hidden" name="config[]" value="api_v2_enable"/>
       </td>
     </tr>
     <tr>

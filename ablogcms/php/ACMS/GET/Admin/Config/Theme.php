@@ -47,8 +47,10 @@ class ACMS_GET_Admin_Config_Theme extends ACMS_GET
         }
 
         $themesDirList = [];
-        while ($theme = readdir($themesDir)) {
-            $themesDirList[] = $theme;
+        if ($themesDir !== false) {
+            while ($theme = readdir($themesDir)) {
+                $themesDirList[] = $theme;
+            }
         }
 
         @sort($themesDirList);
@@ -56,7 +58,7 @@ class ACMS_GET_Admin_Config_Theme extends ACMS_GET
         foreach ($themesDirList as $theme) {
             if (
                 1
-                and Storage::isDirectory(SCRIPT_DIR . THEMES_DIR . $theme)
+                and LocalStorage::isDirectory(SCRIPT_DIR . THEMES_DIR . $theme)
                 and $theme !== 'system'
                 and $theme !== '.'
                 and $theme !== '..'
@@ -68,7 +70,7 @@ class ACMS_GET_Admin_Config_Theme extends ACMS_GET
                     'key'       => $index,
                 ]);
 
-                $selected = $config_theme === $theme ? '' : 'js-load_hide_box';
+                $display = $config_theme === $theme ? 'block' : 'none';
                 $TplSetting = [];
                 while (!empty($theme)) {
                     if ($_TplSetting = Config::yamlLoad(SCRIPT_DIR . THEMES_DIR . $theme . '/template.yaml')) {
@@ -82,21 +84,23 @@ class ACMS_GET_Admin_Config_Theme extends ACMS_GET
                 }
 
                 if (!empty($TplSetting)) {
-                    $TplSetting['js-load_hide_box'] = $selected;
+                    $TplSetting['display'] = $display;
                     $TplSetting['theme'] = $theme;
                     $TplSetting['key'] = $index;
                     $Tpl->add('template:loop', $TplSetting);
                 } else {
                     $Tpl->add('template:loop', [
-                        'not_found'         => $theme,
-                        'js-load_hide_box'  => $selected,
-                        'key'               => $index,
+                        'not_found' => $theme,
+                        'display'  => $display,
+                        'key' => $index,
                     ]);
                 }
                 $index++;
             }
         }
-        closedir($themesDir);
+        if ($themesDir !== false) {
+            closedir($themesDir);
+        }
 
         $Tpl->add(null, [
             'theme' => $config_theme,

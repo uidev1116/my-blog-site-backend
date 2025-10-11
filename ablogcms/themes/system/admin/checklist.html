@@ -19,8 +19,8 @@
 <!-- END_MODULE Admin_Messages -->
 
 <!-- BEGIN_MODULE Admin_CheckList -->
-<div class="acms-admin-grid-r">
-  <div class="acms-admin-col-md-6">
+<div class="acms-admin-cssgrid acms-admin-g-cols-1 acms-admin-g-cols-md-2">
+  <div>
     <!-- BEGIN_MODULE Admin_Dashboard_LicenseStatus -->
     <h2 class="acms-admin-admin-title2"><!--T-->システム・ライセンス情報<!--/T--></h2>
     <table class="acms-admin-admin-mini-table">
@@ -90,7 +90,7 @@
         <!-- BEGIN_IF [%{SUBSCRIPTION_PAYMENT}/eq/active] -->
         <td><!--T-->有効<!--/T--></td>
         <!-- ELSE_IF [%{SUBSCRIPTION_PAYMENT}/eq/unpaid] -->
-        <td class="caution"><!--T-->支払い待ち<!--/--></td>
+        <td class="caution"><!--T-->支払い待ち<!--/T--></td>
         <!-- END_IF -->
       </tr>
       <!-- END_IF -->
@@ -119,7 +119,16 @@
         <tr>
           <td><!--T-->画像エンジン<!--/T--></td>
           <td>{mode}</td>
-        </tr><!-- END imgLibrary --><!-- BEGIN imgOptimizer -->
+        </tr><!-- END imgLibrary -->
+        <tr>
+          <td><!--T-->WebPサポート<!--/T--></td>
+          <td>
+            <!-- BEGIN webpSupport --><!--T-->有効<!--/T--><!-- END webpSupport -->
+            <!-- BEGIN webpNotSupport --><!--T-->無効<!--/T--><!-- END webpNotSupport -->
+            <!-- BEING webpAutoConvert -->（<!--T-->PNG/JPEGの自動変換が有効<!--/T-->）<!-- END webpAutoConvert -->
+            <!-- BEING webpNotAutoConvert -->（<!--T-->PNG/JPEGの自動変換は無効<!--/T-->）<!-- END webpNotAutoConvert -->
+          </td>
+        </tr><!-- BEGIN imgOptimizer -->
         <tr>
           <td>
             <!--T-->ロスレス圧縮対応フォーマット<!--/T-->
@@ -133,7 +142,7 @@
     </table>
     <!-- END systemMode -->
   </div>
-  <div class="acms-admin-col-md-6">
+  <div>
     <!-- BEGIN_MODULE Admin_Dashboard_PhpStatus -->
     <h2 class="acms-admin-admin-title2"><!--T-->サーバー環境情報<!--/T--></h2>
     <table class="acms-admin-admin-mini-table">
@@ -159,7 +168,12 @@
         <tr>
           <td><!--T-->同時アップロード上限ファイル数<!--/T--></td>
           <td>{max_file_uploads}</td>
-        </tr><!-- END max_file_uploads:veil --><!-- BEGIN safe_mode:veil -->
+        </tr><!-- END max_file_uploads:veil --><!-- BEGIN max_input_vars:veil -->
+        <tr>
+          <td><!--T-->入力変数の最大数<!--/T--></td>
+          <td>{max_input_vars}</td>
+        </tr><!-- END max_input_vars:veil -->
+        <!-- BEGIN safe_mode:veil -->
         <tr>
           <td><!--T-->セーフモード<!--/T--></td>
           <td>{safe_mode}</td>
@@ -178,6 +192,11 @@
           <td><!--T-->MySQLのバージョン<!--/T--></td>
           <td>{mysql_version}</td>
         </tr><!-- END mysql_version:veil -->
+        <!-- BEGIN twig_version:veil -->
+        <tr>
+          <td><!--T-->Twigのバージョン<!--/T--></td>
+          <td>{twig_version}</td>
+        </tr><!-- END twig_version:veil -->
         <tr>
           <td><!--T-->サーバー内時間<!--/T--></td>
           <td>{php_datetime}</td>
@@ -387,4 +406,3 @@
   </table>
 </div><!-- END_IF --><!-- END config -->
 <!-- END_MODULE Admin_CheckList -->
-@include("/admin/tooltip/config/general.html")

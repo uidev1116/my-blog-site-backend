@@ -16,14 +16,11 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
 
         $insertedResponse = $this->insert();
         $redirect = $this->Post->get('redirect');
-        $backend = $this->Post->get('backend');
-        $ajax = $this->Post->get('ajaxUploadImageAccess') === 'true';
 
         setCookieDelFlag();
-        $this->clearCache(BID, EID);
 
-        if (is_array($insertedResponse) && !empty($redirect) && Common::isSafeUrl($redirect)) {
-            $this->responseRedirect($redirect, $ajax);
+        if (is_array($insertedResponse) && $redirect !== '' && Common::isSafeUrl($redirect)) {
+            $this->responseRedirect($redirect);
         }
 
         if (is_array($insertedResponse)) {
@@ -38,14 +35,14 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
             if ($insertedResponse['trash'] == 'trash') {
                 $info['query'] = ['trash' => 'show'];
             }
-            if (!empty($backend)) {
+            if (ADMIN === 'entry_editor') {
                 $info['admin'] = 'entry_editor';
                 $info['query'] += ['success' => $insertedResponse['success']];
             }
-            $this->responseRedirect(acmsLink($info), $ajax);
+            $this->responseRedirect(acmsLink($info));
         }
 
-        return $this->responseGet($ajax);
+        return $this->responseGet();
     }
 
     /**
@@ -75,7 +72,7 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
 
         if (!$this->Post->isValidAll()) {
             // バリデーション失敗
-            $this->validateFailed($field, $range, 'insert');
+            $this->validateFailed($field, $range, $postEntry);
 
             AcmsLogger::info('エントリーの作成に失敗しました', [
                 'Entry' => $postEntry,
@@ -84,8 +81,10 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
         }
 
         // ユニットを事前処理
-        /** @var \Acms\Services\Unit\Contracts\Model[] $units */
-        $units = $this->unitRepository->extractUnits($range, true, false);
+        $primaryImageUnitId = $postEntry->get('primary_image') !== '' ? $postEntry->get('primary_image') : null;
+        ['collection' => $collection, 'range' => $range] = $this->unitRepository->extractUnits($range, $primaryImageUnitId);
+        $this->unitRepository->saveAssets($collection);
+        Entry::setSummaryRange($range);
 
         // エントリーの事前処理
         $entryData = $this->getInsertEntryData($postEntry);
@@ -100,7 +99,9 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
         /**
          * エントリーの保存
          */
-        $primaryImageId = $this->saveUnit($units, $eid, $postEntry->get('primary_image'));
+        $collection = $this->saveUnit($collection, $eid);
+        $primaryImageUnit = $collection->getPrimaryImageUnitOrFallback();
+        $primaryImageId = $primaryImageUnit !== null ? $primaryImageUnit->getId() : null;
         $entryData['entry_primary_image'] = $primaryImageId;
         $this->insertEntry($eid, $entryData);
         $this->saveTag($eid, $postEntry->get('tag'));
@@ -119,7 +120,7 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
         if (enableRevision()) {
             $rvid = 1;
             Entry::saveEntryRevision($eid, $rvid, $entryData, null, $postEntry->get('revision_memo'));
-            $this->saveRevisionUnit($units, $postEntry, $eid, $rvid);
+            $this->saveRevisionUnit($collection, $eid, $rvid);
             Entry::saveFieldRevision($eid, $field, $rvid);
             $this->saveRevisionTag($postEntry->get('tag'), $eid, $rvid);
             Entry::saveRelatedEntries($eid, $postEntry->getArray('related'), $rvid, $postEntry->getArray('related_type'), $postEntry->getArray('loaded_realted_entries'));
@@ -287,7 +288,7 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
         $postEntry->setMethod('status', 'category', true);
         $postEntry->setMethod('title', 'required');
         $code = strval($postEntry->get('code'));
-        if (empty($code)) {
+        if ($code === '') {
             $code = $this->getEntryNewCode($postEntry, $eid);
         }
         if (!config('entry_code_extension')) {
@@ -336,7 +337,7 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
     {
         $title = $postEntry->get('title');
         $code = trim(strval($postEntry->get('code')), '/');
-        if (empty($code)) {
+        if ($code === '') {
             $code = ('on' == config('entry_code_title')) ? stripWhitespace($title) : config('entry_code_prefix') . $eid;
         }
         if (!!config('entry_code_extension') && !strpos($code, '.')) {

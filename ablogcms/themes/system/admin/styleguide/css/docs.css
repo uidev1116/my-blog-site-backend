@@ -53,7 +53,8 @@
 
 
 #grid .panel,
-#a-grid .panel{
+#a-grid .panel,
+#stack .panel{
 	min-height: 50px;
 	margin: 0 0 20px 0;
 	padding: 5px 15px;
@@ -118,13 +119,6 @@
 pre {
     white-space: pre-wrap;
     font-size: 14px;
-}
-pre .linenums {
-	margin: 0;
-	padding-left: 30px;
-}
-pre .linenums li {
-	line-height: 1.5;
 }
 
 /* webフォント */
@@ -199,4 +193,3 @@ pre .linenums li {
 		flex: 0 1 100%;
 	}
 }
-

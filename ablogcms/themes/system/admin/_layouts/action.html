@@ -1,13 +1,6 @@
 <!-- BEGIN_MODULE Touch_NotPreview -->
 <!-- BEGIN_MODULE Admin_ActionMenu -->
-@section("drag-handle")
-<div id="adminMinBox" class="clearfix js-dragAdminBox_disable minBox">
-	<span class="dragBoxHandle"><i class="acms-admin-icon-sort"></i></span>
-	<span class="dragBoxToggle"><i class="acms-admin-icon-arrow-down"></i></span>
-</div>
-@endsection
-
-<div id="adminBox" class="clearfix js-dragAdminBox_disable acms-admin-box normalBox">
+<div id="adminBox" class="clearfix acms-admin-box normalBox">
 @section("contents")
 	@section("user-status")
 	<div id="loginUserStatus">
@@ -36,7 +29,7 @@
 		/ <a href="https://mypage.a-blogcms.jp" target="_blank"><strong><!--T-->ライセンス未購入<!--/T--></strong></a>
     <!-- END_IF -->
     <!-- BEGIN status#TOO_MANY_USERS -->
-		/ <strong><!--T-->登録されているユーザー数が上限を超えているため、ラインセンスが無効になっています。<!--/T--></strong>
+		/ <strong><!--T-->登録されているユーザー数が上限を超えているため、ライセンスが無効になっています。<!--/T--></strong>
     <!-- END status#TOO_MANY_USERS -->
     <!-- BEGIN status#MISMATCHED_DOMAIN -->
 		/ <strong><!--T-->ライセンスのドメインと違うため、ライセンスが無効になっています。<!--/T--></strong>
@@ -44,9 +37,6 @@
     <!-- BEGIN status#EXPIRED -->
 		/ <strong><!--T-->ライセンスの有効期限切れのため、ライセンスが無効になっています。<!--/T--></strong>
     <!-- END status#EXPIRED -->
-
-		<span class="dragBoxHandle" style="display:none;"><i class="acms-admin-icon-sort"></i></span>
-		<span class="dragBoxToggle" style="display:none;"><i class="acms-admin-icon-arrow-up"></i></span>
 	</div>
 	@endsection
 
@@ -151,7 +141,7 @@
 		@section("entry-mail")
 		<!-- BEGIN_MODULE Touch_Entry --><!-- BEGIN_MODULE Touch_SessionWithAdministration --><!-- BEGIN_MODULE Touch_MailMagazineEnable -->
 		<hr class="clearHidden" style="margin:0;" />
-		<form action="" method="post" id="action-entry-mail" class="acms-admin-inline-btn selectLink acms-admin-form">
+		<form action="" method="post" id="action-entry-mail" class="acms-admin-inline-btn acms-admin-form">
 			<input type="hidden" name="bid" value="%{BID}" />
 			<input type="hidden" name="eid" value="%{EID}" />
 			<input type="submit" name="ACMS_POST_Entry_Mail" value="<!--T-->このエントリーをメールで送信<!--/T-->" class="acms-admin-btn" />

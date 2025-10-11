@@ -205,7 +205,7 @@ class General implements Contracts\Guard
      * @param int $bid
      * @return bool
      */
-    protected function isControlBlog($bid)
+    public function isControlBlog($bid)
     {
         if (
             1

@@ -1,11 +1,15 @@
 <?php
 
-class ACMS_GET_Admin_Schedule_View extends ACMS_GET_Plugin_Schedule
+class ACMS_GET_Admin_Schedule_View extends ACMS_GET_Schedule
 {
     protected $plan;
 
     public function get()
     {
+        $scid = (int) $this->Get->get('scid', 0);
+        if (!sessionWithScheduleAdministration(BID, $scid)) {
+            die403();
+        }
         $config = Config::loadDefaultField();
         $config->overload(Config::loadBlogConfig(BID));
         $this->unit = config('schedule_unit');

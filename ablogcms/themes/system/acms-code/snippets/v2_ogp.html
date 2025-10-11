@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V2_Ogp</title>
+    <link rel="stylesheet" href="src/highlight/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="src/snippets.css" />
+    <script src="src/highlight/highlight.min.js"></script>
+    <script src="src/highlight/javascript.min.js"></script>
+    <script src="src/highlight/twig.min.js"></script>
+    <script src="src/snippets.js"></script>
+  </head>
+  <body>
+    <h1>V2_Ogp</h1>
+    <pre class="acms-admin-customfield-maker"><code class="language-twig">
+&#123;% set ogp = module(&#039;V2_Ogp&#039;, null) %&#125;
+
+&lt;meta charset=&quot;UTF-8&quot; /&gt;
+&#123;% if touch(&#039;Touch_Entry&#039;) %&#125;
+  &lt;link rel=&quot;canonical&quot; href=&quot;&#123;&#123; PERMALINK &#125;&#125;&quot; /&gt;
+&#123;% endif %&#125;
+&lt;title&gt;&#123;&#123; ogp.title &#125;&#125;&lt;/title&gt;
+&lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;IE=edge&quot; /&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, viewport-fit=cover&quot; /&gt;
+&lt;meta property=&quot;og:url&quot; content=&quot;&#123;&#123; PERMALINK &#125;&#125;&quot; /&gt;
+&lt;meta property=&quot;og:site_name&quot; content=&quot;&#123;&#123; ROOT_BLOG_NAME &#125;&#125;&quot; /&gt;
+&lt;meta property=&quot;og:title&quot; content=&quot;&#123;&#123; ogp.title &#125;&#125;&quot; /&gt;
+&lt;meta property=&quot;og:type&quot; content=&quot;&#123;&#123; ogp.type &#125;&#125;&quot; /&gt;
+&#123;% if ogp.description %&#125;
+  &lt;meta property=&quot;og:description&quot; content=&quot;&#123;&#123; ogp.description|mb_trim(350, &#039;...&#039;)|delnl &#125;&#125;&quot; /&gt;
+&#123;% endif %&#125;
+&#123;% if ogp.image %&#125;
+  &lt;meta property=&quot;og:image&quot; content=&quot;&#123;&#123; ogp.image &#125;&#125;&quot; /&gt;
+  &lt;meta property=&quot;og:image:secure_url&quot; content=&quot;&#123;&#123; ogp.image &#125;&#125;&quot; /&gt;
+  &lt;meta property=&quot;og:image:width&quot; content=&quot;&#123;&#123; ogp[&#039;image@x&#039;] &#125;&#125;&quot; /&gt;
+  &lt;meta property=&quot;og:image:height&quot; content=&quot;&#123;&#123; ogp[&#039;image@y&#039;] &#125;&#125;&quot; /&gt;
+&#123;% endif %&#125;
+&#123;% if ogp.description %&#125;
+  &lt;meta name=&quot;description&quot; content=&quot;&#123;&#123; ogp.description|mb_trim(350, &#039;...&#039;)|delnl &#125;&#125;&quot; /&gt;
+&#123;% endif %&#125;
+&#123;% if ogp.keywords %&#125;
+  &lt;meta name=&quot;keywords&quot; content=&quot;&#123;&#123; ogp.keywords &#125;&#125;&quot; /&gt;
+&#123;% endif %&#125;
+&lt;meta name=&quot;twitter:title&quot; content=&quot;&#123;&#123; ogp.title &#125;&#125;&quot; /&gt;
+&lt;meta name=&quot;twitter:card&quot; content=&quot;summary_large_image&quot; /&gt;
+&lt;meta name=&quot;twitter:domain&quot; content=&quot;&#123;&#123; DOMAIN &#125;&#125;&quot; /&gt;
+&#123;% if ogp.image %&#125;
+  &lt;meta name=&quot;twitter:image&quot; content=&quot;&#123;&#123; HTTP_MEDIA_ARCHIVES_DIR &#125;&#125;&#123;&#123; ogp.image &#125;&#125;&quot; /&gt;
+&#123;% endif %&#125;
+    </code></pre>
+  </body>
+</html>

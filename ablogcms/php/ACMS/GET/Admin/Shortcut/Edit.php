@@ -29,7 +29,9 @@ class ACMS_GET_Admin_Shortcut_Edit extends ACMS_GET_Admin_Edit
         if (empty($this->Get->get('admin'))) {
             return false;
         }
-
+        if (!sessionWithAdministration()) {
+            return false;
+        }
         return true;
     }
 
@@ -39,9 +41,8 @@ class ACMS_GET_Admin_Shortcut_Edit extends ACMS_GET_Admin_Edit
         $this->ShortcutService = Application::make('shortcut.helper');
 
         if (!$this->validate()) {
-            return false;
+            die403();
         }
-
         $admin  = $this->Get->get('admin');
 
         $ids = $this->ShortcutService->createIdsFromGetParameter($this->Get);

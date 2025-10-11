@@ -5,19 +5,19 @@
 <html class="is-admin-page no-js lt-ie9" lang="ja"> <![endif]--><!--[if gt IE 8]><!-->
 <html class="is-admin-page no-js" lang="ja"><!--<![endif]-->
 <head>
-	@include("/include/head/admin-meta.html")
-	<meta name="viewport" content="width=device-width,  user-scalable=no, initial-scale=1.0, viewport-fit=cover">
-	<meta name=”robots” content=”noindex”>
-	<meta name=”robots” content=”noarchive”>
-	<title>プレビュー | %{BLOG_NAME}</title>
+  @include("/include/head/admin-meta.html")
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name=”robots” content=”noindex”>
+  <meta name=”robots” content=”noarchive”>
+  <title>プレビュー | %{BLOG_NAME}</title>
 
-	@include("/include/head/admin-css.html")
-	@include("/include/head/admin-js.html")
-	<script>
-		ACMS.addListener("acmsDispatch", function() {
-			ACMS.Dispatch.Preview();
-		});
-	</script>
+  @include("/include/head/admin-css.html")
+  @include("/include/head/admin-js.html")
+  <script>
+    ACMS.addListener("acmsDispatch", function() {
+      ACMS.Dispatch.Preview();
+    });
+  </script>
 </head>
 <body>
 <!-- BEGIN_MODULE Admin_Preview_Share -->
@@ -32,12 +32,12 @@
 ></div>
 <!-- ELSE -->
 <div class="acms-admin-container">
-	<div class="acms-admin-grid">
-		<div class="acms-admin-col-12 acms-admin-text-center">
-			<h1>共有コンテンツが見つかりませんでした</h1>
-			<p>共有コンテンツが見つかりませんでした。共有URLが間違っているか有効期限が切れている可能性があります。</p>
-		</div>
-	</div>
+  <div class="acms-admin-cssgrid" style="--acms-admin-columns: 1;">
+    <div class="acms-admin-text-center">
+      <h1>共有コンテンツが見つかりませんでした</h1>
+      <p>共有コンテンツが見つかりませんでした。共有URLが間違っているか有効期限が切れている可能性があります。</p>
+    </div>
+  </div>
 </div>
 <!-- END_IF -->
 <!-- END_MODULE Admin_Preview_Share -->

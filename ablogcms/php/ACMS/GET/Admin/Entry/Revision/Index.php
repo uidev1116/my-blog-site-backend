@@ -55,7 +55,7 @@ class ACMS_GET_Admin_Entry_Revision_Index extends ACMS_GET_Admin_Entry_Revision
                     'bid' => BID,
                     'eid' => EID,
                     'cid' => CID,
-                    'aid' => $this->Get->get('aid'),
+                    'aid' => $this->Get->get('aid') ? (int)$this->Get->get('aid') : null,
                     'query' => [
                         'rvid' => $rev['entry_rev_id'],
                         'aid' => $this->Get->get('aid'),

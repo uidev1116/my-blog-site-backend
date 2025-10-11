@@ -12,8 +12,6 @@ namespace Acms\Services\Facades;
  * @method static bool validEntryCodeDouble(string $code, int $bid, ?int $cid = null, ?int $eid = null) エントリーコードの重複をチェック
  * @method static \Field_Validation validTag(\Field_Validation $Entry) タグの重複をチェック
  * @method static \Field_Validation validSubCategory(\Field_Validation $Entry) サブカテゴリーの重複をチェック
- * @method static bool validateMediaUnit() メディアユニットの重複をチェック
- * @method static void pingTrackback(string $endpoint, int $eid) トラックバックを送信
  * @method static void entryDelete(int $eid, bool $changeRevision = false) エントリーを削除
  * @method static void revisionDelete(int $eid) リビジョンを削除
  * @method static int|false changeRevision(int $rvid, int $eid, int $bid) リビジョンを変更
@@ -27,8 +25,25 @@ namespace Acms\Services\Facades;
  * @method static array getRevision(int $eid, int $rvid) リビジョンを取得
  * @method static bool canUseDirectEdit() 現在のログインユーザーがダイレクト編集を利用可能かどうかを判定する
  * @method static bool isDirectEditEnabled() 現在のログインユーザーのダイレクト編集機能が有効な状態かどうかを判定する
- * @method static bool setTempUnitData(array $data) 一時的にユニットデータを変数に保存
- * @method static array|null getTempUnitData() 一時的に保存したユニットデータを取得
+ * @method static bool canDelete(int $entryId) 現在のログインユーザーがエントリーを削除可能かどうかを判定する
+ * @method static bool canBulkDelete(int $blogId, ?int $categoryId = null) 現在のログインユーザーがエントリーを一括削除可能かどうかを判定する
+ * @method static bool canDeleteAllFromTrash(int $blogId, ?int $categoryId = null) 現在のログインユーザーがゴミ箱からエントリーを削除可能かどうかを判定する
+ * @method static bool canTrashRestore(int $entryId) 現在のログインユーザーがゴミ箱からエントリーを復元可能かどうかを判定する
+ * @method static bool canBulkTrashRestore(int $blogId, ?int $categoryId = null) 現在のログインユーザーがゴミ箱からエントリーを一括復元可能かどうかを判定する
+ * @method static bool canChangeOrder(string $type, int $blogId) 現在のログインユーザーがエントリーの表示順を変更可能かどうかを判定する
+ * @method static bool canChangeOrderByOtherUser(int $blogId) 現在のログインユーザーが自分以外のユーザーで絞り込んだエントリーの表示順を変更可能かどうかを判定する
+ * @method static bool canBulkStatusChange(int $blogId, ?int $categoryId = null) 現在のログインユーザーがエントリーのステータスを一括変更可能かどうかを判定する
+ * @method static bool canBulkUserChange(int $blogId, ?int $categoryId = null) 現在のログインユーザーがエントリーのユーザーを一括変更可能かどうかを判定する
+ * @method static bool canBulkCategoryChange(int $blogId, ?int $categoryId = null) 現在のログインユーザーがエントリーのカテゴリーを一括変更可能かどうかを判定する
+ * @method static bool canBulkBlogChange(int $blogId) 現在のログインユーザーがエントリーのブログを一括変更可能かどうかを判定する
+ * @method static bool canViewApprovalHistory(int $entryId) 現在のログインユーザーがエントリーの承認履歴を閲覧可能かどうかを判定する
+ * @method static bool canDuplicate(int $entryId) 現在のログインユーザーがエントリーを複製可能かどうかを判定する
+ * @method static bool canBulkDuplicate(int $blogId) 現在のログインユーザーがエントリーを一括複製可能かどうかを判定する
+ * @method static bool canExport(int $blogId) 現在のログインユーザーがエントリーをエクスポート可能かどうかを判定する
+ * @method static bool setTempUnitData(\Acms\Services\Unit\UnitCollection|array $data) 一時的にユニットデータを変数に保存
+ * @method static \Acms\Services\Unit\UnitCollection|array|null getTempUnitData() 一時的に保存したユニットデータを取得
+ * @method static bool canUpdate(int $eid, int $bid, ?int $cid = null, ?int $rvid = null) 現在のログインユーザーがエントリーの更新権限を持っているかどうかを判定する
+ * @method static bool canEditView(int $eid, int $bid, ?int $cid = null) 現在のログインユーザーがエントリーの編集画面の閲覧権限を持っているかどうかを判定する
  */
 class Entry extends Facade
 {

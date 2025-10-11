@@ -5,7 +5,7 @@ class ACMS_GET_Admin_User_Edit extends ACMS_GET_Admin_Edit
     function edit(&$Tpl)
     {
         if (UID <> SUID and !sessionWithAdministration()) {
-            return true;
+            die403();
         }
 
         $User = loadUser(UID);

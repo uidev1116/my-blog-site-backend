@@ -12,7 +12,7 @@ namespace Acms\Services\Facades;
  * @method static void startPreviewMode(string $fakeUserAgent, string $token) プレビューモードを開始
  * @method static void endPreviewMode() プレビューモードを終了
  * @method static bool isPreviewShareAdmin(string $admin) プレビュー共有URLの管理者か判定
- * @method static string getPreviewShareTpl() プレビュー共有URLのテンプレートを取得
+ * @method static string getPreviewShareTpl() プレビュー共有URLのテンプレートを取得 *
  */
 class Preview extends Facade
 {

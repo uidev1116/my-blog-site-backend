@@ -9,6 +9,7 @@ class ACMS_POST_Preview_Mode extends ACMS_POST
 
         Preview::startPreviewMode($fakeUa, $token);
 
+        Common::setSafeHeadersWithoutCache(200, 'text/plain');
         die('OK');
     }
 }

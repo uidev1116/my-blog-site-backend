@@ -22,10 +22,28 @@
       <input type="hidden" name="module[]" value="status">
     </td>
   </tr>
+  <!-- BEGIN created_datetime:veil -->
+  <tr>
+    <th class="acms-admin-table-nowrap"><!--T-->作成日時<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->モジュールIDの作成日時です。<!--/T-->"></i>
+    </th>
+    <td>
+      {created_datetime}
+    </td>
+  </tr>
+  <!-- END created_datetime:veil -->
+  <!-- BEGIN updated_datetime:veil -->
+  <tr>
+    <th class="acms-admin-table-nowrap"><!--T-->更新日時<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->モジュールIDの更新日時です。<!--/T-->"></i>
+    </th>
+    <td>
+      {updated_datetime}
+    </td>
+  </tr>
+  <!-- END updated_datetime:veil -->
   <tr>
     <th class="acms-admin-table-nowrap"><!--T-->モジュール<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->IDを付与する対象のモジュールです。テンプレート側では、ここで指定したモジュールの記述にIDを付与します。<!--/T-->"></i></th>
     <td>
-      <select name="name" id="js-arg_guidance_name" class="js-select2">
+      <select name="name" id="js-arg_guidance_name" class="js-select2" data-width="100%">
       @include("/admin/module/select.html")
       </select>
       <input type="hidden" name="module[]" value="name">
@@ -33,6 +51,9 @@
       <div role="alert" aria-live="assertive">
         <div data-validator-label="name-validator-required" class="validator-result-{name:validator#required}">
           <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->モジュールを選択してください。<!--/T--></p>
+        </div>
+        <div data-validator-label="name-validator-safeName" class="validator-result-{name:validator#safeName}">
+          <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->不正なモジュール名です。<!--/T--></p>
         </div>
       </div>
     </td>
@@ -174,7 +195,7 @@
       <input type="hidden" name="uid_scope" value="local">
     <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->このモジュールIDの表示内容を、ユーザーの管理ID（番号）で指定します。<!--/T-->"></i></th>
     <td class="acms-admin-table-nowrap">
-      <div class="acms-admin-form-checkbox acms-admin-margin-none">
+      <div class="acms-admin-form-checkbox acms-admin-m-0">
         <input type="checkbox" name="uid_scope" value="global"{uid_scope:checked#global} id="input-checkbox-uid_scope">
         <label for="input-checkbox-uid_scope">
           <i class="acms-admin-ico-checkbox"></i><span class="acms-admin-hide-visually"><!--T-->UIDのURLコンテキストを優先する<!--/T--></span>
@@ -212,7 +233,7 @@
       <input type="hidden" name="cid_scope" value="local">
     <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->このモジュールIDの表示内容を、カテゴリーの管理ID（番号）で指定します。<!--T-->"></i></th>
     <td class="acms-admin-table-nowrap">
-      <div class="acms-admin-form-checkbox acms-admin-margin-none">
+      <div class="acms-admin-form-checkbox acms-admin-m-0">
         <input type="checkbox" name="cid_scope" value="global"{cid_scope:checked#global} id="input-checkbox-cid_scope">
         <label for="input-checkbox-cid_scope">
           <i class="acms-admin-ico-checkbox"></i><span class="acms-admin-hide-visually"><!--T-->CIDのURLコンテキストを優先する<!--/T--></span>
@@ -250,7 +271,7 @@
       <input type="hidden" name="eid_scope" value="local">
       <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->このモジュールIDの表示内容を、エントリーの管理ID（番号）で指定します。<!--/T-->"></i></th>
     <td class="acms-admin-table-nowrap">
-      <div class="acms-admin-form-checkbox acms-admin-margin-none">
+      <div class="acms-admin-form-checkbox acms-admin-m-0">
         <input type="checkbox" name="eid_scope" value="global"{eid_scope:checked#global} id="input-checkbox-eid_scope">
         <label for="input-checkbox-eid_scope">
           <i class="acms-admin-ico-checkbox"></i><span class="acms-admin-hide-visually"><!--T-->EIDのURLコンテキストを優先する<!--/T--></span>
@@ -295,7 +316,7 @@
       <input type="hidden" name="keyword_scope" value="local">
     <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->このモジュールIDの表示内容を、エントリーについてキーワードで指定します。<!--/T-->"></i></th>
     <td class="acms-admin-table-nowrap">
-      <div class="acms-admin-form-checkbox acms-admin-margin-none">
+      <div class="acms-admin-form-checkbox acms-admin-m-0">
         <input type="checkbox" name="keyword_scope" value="global"{keyword_scope:checked#global} id="input-checkbox-keyword_scope">
         <label for="input-checkbox-keyword_scope">
           <i class="acms-admin-ico-checkbox"></i><span class="acms-admin-hide-visually"><!--T-->キーワードのURLコンテキストを優先する<!--/T--></span>
@@ -314,7 +335,7 @@
       <input type="hidden" name="tag_scope" value="local">
       <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->このモジュールIDの表示内容を、エントリーについてタグで指定します。<!--/T-->"></i></th>
     <td class="acms-admin-table-nowrap">
-      <div class="acms-admin-form-checkbox acms-admin-margin-none">
+      <div class="acms-admin-form-checkbox acms-admin-m-0">
         <input type="checkbox" name="tag_scope" value="global"{tag_scope:checked#global} id="input-checkbox-tag_scope">
         <label for="input-checkbox-tag_scope">
           <i class="acms-admin-ico-checkbox"></i><span class="acms-admin-hide-visually"><!--T-->タグのURLコンテキストを優先する<!--/T--></span>
@@ -333,7 +354,7 @@
       <input type="hidden" name="field_scope" value="local">
     <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->このモジュールIDの表示内容を、カスタムフィールドで指定します。<!--/T-->"></i></th>
     <td class="acms-admin-table-nowrap">
-      <div class="acms-admin-form-checkbox acms-admin-margin-none">
+      <div class="acms-admin-form-checkbox acms-admin-m-0">
         <input type="checkbox" name="field_scope" value="global"{field_scope:checked#global} id="input-checkbox-field_scope">
         <label for="input-checkbox-field_scope">
           <i class="acms-admin-ico-checkbox"></i><span class="acms-admin-hide-visually"><!--T-->フィールドのURLコンテキストを優先する<!--/T--></span>
@@ -352,7 +373,7 @@
       <input type="hidden" name="start_scope" value="local">
     <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->エントリーの日時に対して表示期間を指定します。ここで指定した日時以降のエントリーが表示されます。<!--/T-->"></i></th>
     <td class="acms-admin-table-nowrap">
-      <div class="acms-admin-form-checkbox acms-admin-margin-none">
+      <div class="acms-admin-form-checkbox acms-admin-m-0">
         <input type="checkbox" name="start_scope" value="global"{start_scope:checked#global} id="input-checkbox-start_scope">
         <label for="input-checkbox-start_scope">
           <i class="acms-admin-ico-checkbox"></i><span class="acms-admin-hide-visually"><!--T-->開始日時のURLコンテキストを優先する<!--/T--></span>
@@ -371,7 +392,7 @@
       <input type="hidden" name="end_scope" value="local">
     <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->エントリーの日時に対して表示期間を指定します。ここで指定した日時以前のエントリーが表示されます。<!--T-->"></i></th>
     <td class="acms-admin-table-nowrap">
-      <div class="acms-admin-form-checkbox acms-admin-margin-none">
+      <div class="acms-admin-form-checkbox acms-admin-m-0">
         <input type="checkbox" name="end_scope" value="global"{end_scope:checked#global} id="input-checkbox-end_scope">
         <label for="input-checkbox-end_scope">
           <i class="acms-admin-ico-checkbox"></i><span class="acms-admin-hide-visually"><!--T-->終了日時のURLコンテキストを優先する<!--/T--></span>
@@ -390,7 +411,7 @@
       <input type="hidden" name="page_scope" value="local">
     <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->このモジュールIDの表示内容を、ページ番号で指定します。ページャー（ページ送り）を使用する場合は、チェックをしてください。<!--/T-->"></i></th>
     <td class="acms-admin-table-nowrap">
-      <div class="acms-admin-form-checkbox acms-admin-margin-none">
+      <div class="acms-admin-form-checkbox acms-admin-m-0">
         <input type="checkbox" name="page_scope" value="global"{page_scope:checked#global} id="input-checkbox-page_scope">
         <label for="input-checkbox-page_scope">
           <i class="acms-admin-ico-checkbox"></i><span class="acms-admin-hide-visually"><!--T-->ページャーのURLコンテキストを優先する<!--/T--></span>
@@ -418,7 +439,7 @@
     </th>
     <td class="acms-admin-table-nowrap">
       <input type="hidden" name="order_scope" value="local">
-      <div class="acms-admin-form-checkbox acms-admin-margin-none">
+      <div class="acms-admin-form-checkbox acms-admin-m-0">
         <input type="checkbox" name="order_scope" value="global"{order_scope:checked#global} id="input-checkbox-order_scope">
         <label for="input-checkbox-order_scope">
           <i class="acms-admin-ico-checkbox"></i><span class="acms-admin-hide-visually"><!--T-->表示順のURLコンテキストを優先する<!--/T--></span>

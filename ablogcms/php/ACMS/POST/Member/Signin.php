@@ -177,9 +177,16 @@ class ACMS_POST_Member_Signin extends ACMS_POST_Member
             $this->Get->delete('subscribe');
         }
 
+        // 機能無効
+        if (!Login::canMemberSignin()) {
+            $loginField->setMethod('pass', 'auth', false);
+            httpStatusCode('403 Forbidden');
+        }
+
         // access restricted
         if (SUID || !$this->accessRestricted()) {
             $loginField->setMethod('pass', 'auth', false);
+            httpStatusCode('403 Forbidden');
         }
 
         // CSRF

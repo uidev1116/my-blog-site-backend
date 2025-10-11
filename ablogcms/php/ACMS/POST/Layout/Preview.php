@@ -4,6 +4,9 @@ class ACMS_POST_Layout_Preview extends ACMS_POST_Layout
 {
     function post()
     {
+        if (!sessionWithAdministration()) {
+            die403();
+        }
         $DB = DB::singleton(dsn());
 
         $identifier = $this->Post->get('id');

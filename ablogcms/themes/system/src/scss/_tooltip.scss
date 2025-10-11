@@ -3,25 +3,35 @@
 /* ------------------------------
  ツールチップ
 ------------------------------- */
-.acms-tooltip-wrap {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: global.zIndex(acms-tooltip);
-  width: 100%;
-}
+// react-tooltipのCSSを上書きするため、[class]を付与している
+.acms-tooltip[class] {
+  --acms-tooltip-bg-color: #{global.$acms-color-black};
+  --acms-tooltip-color: #{global.$acms-color-white};
+  --acms-tooltip-line-height: 1.5;
+  --acms-tooltip-padding-x: 10px;
+  --acms-tooltip-padding-y: 6px;
+  --acms-tooltip-border-radius: 4px;
+  --acms-tooltip-opacity: 0.9;
+  --acms-tooltip-max-width: 300px;
+  --acms-tooltip-text-align: left;
+  --rt-color-dark: var(--acms-tooltip-bg-color);
+  --rt-color-white: var(--acms-tooltip-color);
 
-.acms-tooltip {
   position: absolute;
   z-index: global.zIndex(acms-tooltip);
   display: inline-block;
-  max-width: 300px;
-  padding: 6px 10px;
-  color: global.$acms-color-white;
+  max-width: var(--acms-tooltip-max-width);
+  padding: var(--acms-tooltip-padding-y) var(--acms-tooltip-padding-x);
+  color: var(--acms-tooltip-color);
+  font-weight: normal;
+  line-height: var(--acms-tooltip-line-height);
+  white-space: normal;
+  text-align: var(--acms-tooltip-text-align);
   word-break: break-all;
-  background: global.$acms-color-black;
-  border-radius: 4px;
-  opacity: 0.9;
+  overflow-wrap: anywhere;
+  background: var(--acms-tooltip-bg-color);
+  border-radius: var(--acms-tooltip-border-radius);
+  opacity: var(--acms-tooltip-opacity);
 
   @include global.font-size(11);
 
@@ -33,77 +43,10 @@
       text-decoration: none;
     }
   }
-}
 
-// 上にポップアップ
-.acms-tooltip::after {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  margin-left: -6px;
-  border: 6px solid transparent;
-  border-top-color: global.$acms-color-black;
-  content: ' ';
-}
-
-.acms-tooltip.top-left::after {
-  right: 10px;
-  left: auto;
-}
-
-.acms-tooltip.top-right::after {
-  right: auto;
-  left: 15px;
-}
-
-// 下にポップアップ
-.acms-tooltip.bottom::after {
-  top: 0;
-  margin-top: -10px;
-  border-top-color: transparent;
-  border-bottom-color: global.$acms-color-black;
-}
-
-.acms-tooltip.bottom-left::after {
-  top: 0;
-  right: 10px;
-  left: auto;
-  margin-top: -10px;
-  border-top-color: transparent;
-  border-bottom-color: global.$acms-color-black;
-}
-
-.acms-tooltip.bottom-right::after {
-  top: 0;
-  right: auto;
-  left: 15px;
-  margin-top: -10px;
-  border-top-color: transparent;
-  border-bottom-color: global.$acms-color-black;
-}
-
-// 右にポップアップ
-.acms-tooltip.right::after {
-  top: 50%;
-  right: 100%;
-  left: auto;
-  margin-top: -6px;
-  margin-left: 0;
-  border-top-color: transparent;
-  border-right-color: global.$acms-color-black;
-}
-
-// 左にポップアップ
-.acms-tooltip.left::after {
-  top: 50%;
-  right: auto;
-  left: 100%;
-  margin-top: -6px;
-  margin-left: 0;
-  border-top-color: transparent;
-  border-left-color: global.$acms-color-black;
+  &:has(.acms-tooltip-command) {
+    --acms-tooltip-text-align: center;
+  }
 }
 
 .acms-table-admin-edit .acms-icon-tooltip,
@@ -112,56 +55,17 @@
   cursor: pointer;
 }
 
-// モバイル端末の時
-@media (max-width: global.$breakpoint-md-max) {
-  .acms-tooltip {
-    left: 0 !important; //デスクトップのときにJSで左寄りを調節しているのを強制的に左側に寄せる
-    max-width: 150px;
-  }
+// コマンド
+.acms-tooltip-command {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: global.$acms-color-system-gray40;
+  line-height: 1;
+
+  @include global.font-size(12);
 }
 
-// デスクトップの時
-@media (min-width: global.$breakpoint-md-min) {
-  .acms-table-admin-edit .acms-icon-tooltip {
-    margin-right: -25px;
-  }
-}
-
-// JSを使わないツールチップ
-.acms-tooltip-simple {
-  position: relative;
-
-  .acms-tooltip-simple-content {
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    display: none;
-    width: 140px;
-    transform: translate(-50%, 0);
-  }
-
-  &:hover,
-  &:focus,
-  &:active {
-    .acms-tooltip-simple-content {
-      display: block;
-    }
-  }
-}
-
-@media (max-width: global.$breakpoint-md-max) {
-  .acms-tooltip-simple-content {
-    left: auto !important;
-
-    .acms-tooltip-simple-arrow-right-md & {
-      right: 0;
-    }
-
-    .acms-tooltip-simple-arrow-right-md &::after {
-      right: 0;
-      left: auto;
-      margin-right: 10px;
-      margin-left: 0;
-    }
-  }
+.acms-tooltip-command kbd {
+  font-family: global.$acms-admin-font-family;
 }

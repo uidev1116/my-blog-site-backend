@@ -10,11 +10,11 @@ class ACMS_GET_Admin_Media_Tag_Index extends ACMS_GET_Admin
         }
         if (roleAvailableUser()) {
             if (!roleAuthorization('tag_edit', BID)) {
-                return false;
+                die403();
             }
         } else {
             if (!sessionWithCompilation()) {
-                return false;
+                die403();
             }
         }
 
@@ -71,10 +71,10 @@ class ACMS_GET_Admin_Media_Tag_Index extends ACMS_GET_Admin
         $SQL->setGroup('media_tag_name');
         ACMS_Filter::mediaTagOrder($SQL, $order);
         $SQL->setLimit($limit, (PAGE - 1) * $limit);
-        $q  = $SQL->get(dsn());
+        $q = $SQL->get(dsn());
+        $statement = $DB->query($q, 'exec');
 
-        $DB->query($q, 'fetch');
-        while ($row = $DB->fetch($q)) {
+        while ($row = $DB->next($statement)) {
             $tag    = $row['media_tag_name'];
             $Tpl->add('tag:loop', [
                 'url' => acmsLink([

@@ -14,17 +14,27 @@
 &lt;!-- BEGIN_MODULE Media_Banner --&gt;
 &lt;div&gt;
 &#64;include(&quot;/admin/module/setting.html&quot;)
-&lt;ul class=&quot;acms-list-nostyle acms-grid&quot;&gt;
-	&lt;!-- BEGIN banner:loop --&gt;
-	&lt;li class=&quot;acms-col-md-4&quot;&gt;
-		&lt;!-- BEGIN banner#src --&gt;
-		{src}[raw]
-		&lt;!-- END banner#src --&gt;
-		&lt;!-- BEGIN banner#img --&gt;
-		&lt;a href=&quot;{url}&quot; target=&quot;{target}&quot;&gt;&lt;img src=&quot;&#x0025;{MEDIA_ARCHIVES_DIR}{img}&quot; width=&quot;{x}&quot; height=&quot;{y}&quot; class=&quot;acms-img-responsive&quot; alt=&quot;{alt}&quot; /&gt;&lt;/a&gt;
-		&lt;!-- END banner#img --&gt;
-	&lt;/li&gt;
-	&lt;!-- END banner:loop --&gt;
+&lt;ul class=&quot;acms-list-nostyle acms-cssgrid acms-g-cols-1 acms-g-cols-md-3&quot;&gt;
+  &lt;!-- BEGIN banner:loop --&gt;
+  &lt;li&gt;
+    &lt;!-- BEGIN banner#src --&gt;
+    {src}[raw]
+    &lt;!-- END banner#src --&gt;
+    &lt;!-- BEGIN banner#img --&gt;
+    &lt;a href=&quot;{url}&quot; target=&quot;{target}&quot;&gt;
+      &lt;img
+        src=&quot;&#x0025;{MEDIA_ARCHIVES_DIR}{img}&quot;
+        width=&quot;{x}&quot;
+        height=&quot;{y}&quot;
+        class=&quot;acms-img-responsive&quot;
+        alt=&quot;{alt}&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+    &lt;/a&gt;
+    &lt;!-- END banner#img --&gt;
+  &lt;/li&gt;
+  &lt;!-- END banner:loop --&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;!-- END_MODULE Media_Banner --&gt;

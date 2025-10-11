@@ -9,9 +9,31 @@
 
 <!-- BEGIN_MODULE Admin_Config -->
 <!-- BEGIN_IF [{notice_mess}/nem/] -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->キャッシュ設定を保存しました<!--/T--></p><!-- END_IF -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+  >
+    ×
+  </button>
+  <!--T-->キャッシュ設定を保存しました<!--/T-->
+</div>
+<!-- END_IF -->
 
-<p class="transaction-notice-{config:validator} acms-admin-alert acms-admin-alert-danger"><!--T-->コンフィグを保存出来ませんでした。<!--/T--></p>
+<!-- BEGIN msg#error -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-danger acms-admin-alert-icon">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+  <!--T-->コンフィグを保存出来ませんでした。<!--/T-->
+</div>
+<!-- END msg#error -->
 
 <form action="" method="post" class="js-adminSave acms-admin-form">
 	<div class="js-acms_fix_marker acms_fix_bg">
@@ -108,6 +130,17 @@
 
 	<h3 class="acms-admin-admin-title2"><!--T-->クライアントキャッシュ設定<!--/T--></h3>
 	<table class="adminTable acms-admin-table-admin-edit">
+		<tr>
+			<th><!--T-->ブラウザキャッシュ無効<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ブラウザにキャッシュさせるかどうか設定します<!--/T-->"></i></th>
+			<td>
+				<input type="hidden" name="disable_browser_cache" value="off" />
+				<div class="acms-admin-form-checkbox">
+					<input type="checkbox" name="disable_browser_cache" value="on"{disable_browser_cache:checked#on} id="input-checkbox-disable_browser_cache" />
+					<label for="input-checkbox-disable_browser_cache"><i class="acms-admin-ico-checkbox"></i><!--T-->中間キャッシュ（CDN）のみキャッシュさせ、ブラウザにはキャッシュさせない<!--/T--></label>
+				</div>
+				<input type="hidden" name="config[]" value="disable_browser_cache" />
+			</td>
+		</tr>
 		<tr>
 			<th><!--T-->キャッシュ有効時間<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->サイトを閲覧している端末のクライアント（ブラウザ）のキャッシュの有効時間です。この時間内はクライアント側のキャッシュが使用されサーバにアクセスしません。そのためページが更新された場合にも反映されないことがあります。ブラウザの再読込ボタンを押したり、キャッシュを消去しないとページが切り替わらないことがあります。<!--/T-->"></i></th>
 			<td>

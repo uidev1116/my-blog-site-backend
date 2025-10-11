@@ -5,10 +5,10 @@ class ACMS_GET_Admin_Blog_Fix extends ACMS_GET_Admin
     function get()
     {
         if (!sessionWithAdministration()) {
-            return '';
+            die403();
         }
         if (0 !== ACMS_RAM::blogParent(BID)) {
-            return '';
+            die403();
         }
 
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());

@@ -1,5 +1,8 @@
 <?php
 
+use Acms\Services\Facades\Database as DB;
+use Acms\Services\Facades\Template as TemplateHelper;
+
 class ACMS_GET_Admin_User_Index extends ACMS_GET_Admin
 {
     public $_scope = [
@@ -34,10 +37,9 @@ class ACMS_GET_Admin_User_Index extends ACMS_GET_Admin
         if (empty($amount)) {
             return $tpl->get();
         }
-        $limits = configArray('admin_limit_option');
-        $limit = LIMIT ? LIMIT : $limits[config('admin_limit_default')];
+        $limit = $this->getLimit();
         $order = ORDER ? ORDER : 'sort-asc';
-        $vars += $this->buildPager(
+        $vars += TemplateHelper::buildPager(
             PAGE,
             $limit,
             $amount,
@@ -81,10 +83,7 @@ class ACMS_GET_Admin_User_Index extends ACMS_GET_Admin
         // user limit error（権限の一括変更時）
         if (!$this->Post->isValid('user', 'limit')) {
             $tpl->add('user:validator#limit');
-        } else {
-            $tpl->add('refresh');
         }
-        $vars['notice_mess']    = 'show';
     }
 
     /**
@@ -132,8 +131,7 @@ class ACMS_GET_Admin_User_Index extends ACMS_GET_Admin
 
         // limit
         $limits = configArray('admin_limit_option');
-        $limit = LIMIT ? LIMIT : $limits[config('admin_limit_default')];
-        $limit = intval($limit);
+        $limit = $this->getLimit();
         foreach ($limits as $val) {
             $_vars = ['value' => $val];
             if ($limit === intval($val)) {
@@ -154,6 +152,18 @@ class ACMS_GET_Admin_User_Index extends ACMS_GET_Admin
             $axis = 'self';
         }
         return $axis;
+    }
+
+    /**
+     * リミット数を取得
+     *
+     * @return int
+     */
+    protected function getLimit(): int
+    {
+        $limits = configArray('admin_limit_option');
+        $limit = LIMIT ? LIMIT : $limits[config('admin_limit_default')];
+        return (int) $limit;
     }
 
     /**
@@ -246,6 +256,7 @@ class ACMS_GET_Admin_User_Index extends ACMS_GET_Admin
     protected function buildQuery2(SQL_Select $sql, int $limit, string $order): void
     {
         $sql->addLeftJoin('entry', 'entry_user_id', 'user_id');
+        $sql->addLeftJoin('last_access', 'last_access_uid', 'user_id');
         $sql->addSelect('user_id');
         $sql->addSelect('user_sort');
         $sql->addSelect('user_name');
@@ -255,6 +266,9 @@ class ACMS_GET_Admin_User_Index extends ACMS_GET_Admin
         $sql->addSelect('user_status');
         $sql->addSelect('user_login_expire');
         $sql->addSelect('user_blog_id');
+        $sql->addSelect('last_access_datetime');
+        $sql->addSelect('last_access_ip');
+        $sql->addSelect('last_access_ua');
         $sql->addSelect('entry_user_id', 'entry_amount', null, 'COUNT');
 
         $sql->setGroup('user_id');
@@ -298,9 +312,8 @@ class ACMS_GET_Admin_User_Index extends ACMS_GET_Admin
         if (config('switch_user_permission') === 'root' && RBID != SBID) {
             $canSwitchUser = false;
         }
-
-        DB::query($q, 'fetch');
-        while ($row = DB::fetch($q)) {
+        $statement = DB::query($q, 'exec');
+        while ($row = DB::next($statement)) {
             $bid = $row['user_blog_id'];
             $uid = $row['user_id'];
             $auth = getAuthConsideringRole($uid);
@@ -318,6 +331,9 @@ class ACMS_GET_Admin_User_Index extends ACMS_GET_Admin
                 'code' => $row['user_code'],
                 'amount' => $row['entry_amount'],
                 'expiry' => strtotime($row['user_login_expire'] . ' 00:00:00') <= REQUEST_TIME ? 'expired' : '',
+                'lastAccessDatetime' => $row['last_access_datetime'],
+                'lastAccessAddr' => $row['last_access_ip'],
+                'lastAccessUserAgent' => $row['last_access_ua'],
                 'itemUrl' => acmsLink([
                     'admin' => 'user_edit',
                     'bid' => $bid,

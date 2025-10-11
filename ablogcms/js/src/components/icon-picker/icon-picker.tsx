@@ -79,7 +79,6 @@ const Preview = styled.div`
   box-sizing: border-box;
   display: inline-block;
   width: 50px;
-  height: 26px;
   padding: 6px 8px;
   margin-right: 0;
   line-height: 1;
@@ -161,7 +160,7 @@ const IconPicker = ({ icons = defaultIcons, defaultValue = '', onChange = () => 
 
   return (
     <>
-      <div className="acms-admin-btn-group" style={{ padding: '0' }}>
+      <div className="acms-admin-btn-group">
         <Preview>
           <span className={icon} />
         </Preview>

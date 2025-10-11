@@ -1,5 +1,6 @@
 <?php
 
+use Acms\Modules\Get\Helpers\Entry\UnitListHelper;
 use Acms\Services\Facades\Template as TemplateHelper;
 use Acms\Services\Facades\Database;
 use Acms\Services\Facades\Media;
@@ -20,33 +21,84 @@ class ACMS_GET_Unit_List extends ACMS_GET_Entry_Summary
     ];
 
     /**
+     * @var \Acms\Modules\Get\Helpers\Entry\UnitListHelper
+     */
+    protected $unitListHelper;
+
+    /**
      * コンフィグの取得
      *
-     * @return array
+     * @return array<string, mixed>
      */
-    function initVars()
+    public function initConfig(): array
     {
         return [
             'order' => [config('column_list_order')],
+            'orderFieldName' => '',
+            'noNarrowDownSort' => false,
             'limit' => (int) config('column_list_limit'),
             'offset' => 0,
-            'pagerOn' => 'on',
-            'pagerDelta' => config('column_list_pager_delta'),
-            'pagerCurAttr' => config('column_list_pager_cur_attr'),
+            'unit' => 1,
+            'parentLoopClass' => config('column_list_parent_loop_class'),
+            'loopClass' => config('column_list_loop_class'),
+            'newItemPeriod' => 0,
+            'displayIndexingOnly' => true,
+            'displayMembersOnly' => false,
+            'displaySubcategoryEntries' => false,
+            'displaySecretEntry' => false,
+            'dateOn' => true,
+            'detailDateOn' => false,
+            'notfoundBlock' => false,
+            'notfoundStatus404' => false,
+            'fulltextEnabled' => false,
+            'fulltextWidth' => 0,
+            'fulltextMarker' => '',
+            'includeTags' => false,
+            'hiddenCurrentEntry' => false,
+            'hiddenPrivateEntry' => false,
+            'includeRelatedEntries' => false,
+            // 画像系
+            'includeMainImage' => false,
+            'mainImageTarget' => 'unit',
+            'mainImageFieldName' => '',
+            'displayNoImageEntry' => false,
+            'imageX' => 200,
+            'imageY' => 200,
+            'imageTrim' => false,
+            'imageZoom' => false,
+            'imageCenter' => false,
+            // ページネーション
+            'simplePagerEnabled' => false,
+            'paginationEnabled' => true,
+            'paginationDelta' => (int) config('column_list_pager_delta', 3),
+            'paginationCurrentAttr' => config('column_list_pager_cur_attr'),
+            // フィールド・情報
+            'includeEntry' => config('column_list_entry_on') === 'on',
+            'includeEntryFields' => config('column_list_entry_field') === 'on',
+            'includeCategory' => config('column_list_category_on') === 'on',
+            'includeCategoryFields' => config('column_list_category_field_on') === 'on',
+            'includeUser' => config('column_list_user_on') === 'on',
+            'includeUserFields' => config('column_list_user_field_on') === 'on',
+            'includeBlog' => config('column_list_blog_on') === 'on',
+            'includeBlogFields' => config('column_list_blog_field_on') === 'on',
+            // 表示モード
+            'relatedEntryMode' => false,
+            'relatedEntryType' => '',
         ];
     }
 
 
     function get()
     {
-        if (!$this->setConfig()) {
+        if (!$this->setConfigTrait()) {
             return '';
         }
         $tpl = new Template($this->tpl, new ACMS_Corrector());
         TemplateHelper::buildModuleField($tpl);
-
+        $this->boot();
         $vars = [];
-        $sql = $this->buildQuery();
+        $sql = $this->unitListHelper->buildUnitListQuery();
+        $this->countSql = $this->buildCountQuery();
         $unitData = Database::query($sql->get(dsn()), 'all');
         if (count($unitData) > $this->config['limit']) {
             array_pop($unitData);
@@ -55,18 +107,42 @@ class ACMS_GET_Unit_List extends ACMS_GET_Entry_Summary
             $vars += $this->buildUnitTemplate($tpl, $unitData);
             $vars += $this->buildFullspecPager($tpl);
         }
+        $vars = array_merge($vars, $this->getRootVars());
         $tpl->add(null, $vars);
 
         return $tpl->get();
+    }
+
+    /**
+     * 起動処理
+     *
+     * @return void
+     */
+    protected function boot(): void
+    {
+        parent::boot();
+        $this->unitListHelper = new UnitListHelper($this->getBaseParams([
+            'config' => $this->config,
+        ]));
+    }
+
+    /**
+     * 件数取得用のクエリを組み立て
+     *
+     * @return SQL_Select
+     */
+    protected function buildCountQuery(): SQL_Select
+    {
+        return $this->unitListHelper->getCountQuery();
     }
 
     protected function buildUnitTemplate(Template $tpl, array $unitData): array
     {
         /** @var \Acms\Services\Unit\Repository $unitRepository */
         $unitRepository = Application::make('unit-repository');
-        /** @var \Acms\Services\Unit\Contracts\Model[] $units */
-        $units = $unitRepository->loadModels($unitData);
-        $mediaEagerLoading = Media::mediaEagerLoadFromUnit($units);
+        $collection = $unitRepository->loadModels($unitData);
+        $unitRepository->eagerLoadCustomUnitFields($collection);
+        $mediaEagerLoading = Media::mediaEagerLoadFromUnit($collection);
         $vars = [];
 
         foreach ($unitData as $row) {
@@ -74,8 +150,9 @@ class ACMS_GET_Unit_List extends ACMS_GET_Entry_Summary
             if (empty($model)) {
                 continue;
             }
-            $model->setEagerLoadedMedia($mediaEagerLoading);
-
+            if ($model instanceof \Acms\Services\Unit\Contracts\EagerLoadingMedia) {
+                $model->setEagerLoadedMedia($mediaEagerLoading);
+            }
             $eid = (int) $row['entry_id'];
             $cid = (int) $row['category_id'];
             $bid = (int) $row['blog_id'];
@@ -109,12 +186,12 @@ class ACMS_GET_Unit_List extends ACMS_GET_Entry_Summary
             }
             $row = $tmp;
 
-            $row['unit:loop.class'] = config('column_list_loop_class');
+            $row['unit:loop.class'] = $this->config['loopClass'] ?? '';
 
             //-------------
             // entry field
-            if (config('column_list_entry_on') === 'on') {
-                if (config('column_list_entry_field') === 'on') {
+            if ($this->config['includeEntry']) {
+                if ($this->config['includeEntryFields']) {
                     $Field = loadEntryField($eid);
                 } else {
                     $Field = new Field();
@@ -128,8 +205,8 @@ class ACMS_GET_Unit_List extends ACMS_GET_Entry_Summary
 
             //-------------
             // user field
-            if (config('column_list_user_on') === 'on') {
-                if (config('column_list_user_field_on') === 'on') {
+            if ($this->config['includeUser']) {
+                if ($this->config['includeUserFields']) {
                     $Field = loadUserField($uid);
                 } else {
                     $Field = new Field();
@@ -152,8 +229,8 @@ class ACMS_GET_Unit_List extends ACMS_GET_Entry_Summary
 
             //------------
             // blog field
-            if (config('column_list_blog_on') === 'on') {
-                if (config('column_list_blog_field_on') === 'on') {
+            if ($this->config['includeBlog']) {
+                if ($this->config['includeBlogFields']) {
                     $Field = loadBlogField($bid);
                 } else {
                     $Field = new Field();
@@ -167,8 +244,8 @@ class ACMS_GET_Unit_List extends ACMS_GET_Entry_Summary
 
             //----------------
             // category field
-            if (!empty($cid) && config('column_list_category_on') === 'on') {
-                if (config('column_list_category_field_on') === 'on') {
+            if (!empty($cid) && $this->config['includeCategory']) {
+                if ($this->config['includeCategoryFields']) {
                     $Field = loadCategoryField($cid);
                 } else {
                     $Field = new Field();
@@ -187,81 +264,16 @@ class ACMS_GET_Unit_List extends ACMS_GET_Entry_Summary
         return $vars;
     }
 
+
     /**
-     * sqlの組み立て
+     * ルート変数を取得
      *
-     * @return SQL_Select
+     * @return array<string, mixed>
      */
-    function buildQuery()
+    public function getRootVars(): array
     {
-        $sql = SQL::newSelect('column');
-        $sql->addLeftJoin('entry', 'entry_id', 'column_entry_id');
-        $sql->addLeftJoin('category', 'category_id', 'entry_category_id');
-        $sql->addLeftJoin('blog', 'blog_id', 'entry_blog_id');
-
-        ACMS_Filter::blogTree($sql, $this->bid, $this->blogAxis());
-        ACMS_Filter::blogStatus($sql);
-        ACMS_Filter::categoryTree($sql, $this->cid, $this->categoryAxis());
-        ACMS_Filter::categoryStatus($sql);
-
-        $this->userFilterQuery($sql);
-        $this->keywordFilterQuery($sql);
-        $this->tagFilterQuery($sql);
-        $this->fieldFilterQuery($sql);
-
-        if (!empty($this->eid)) {
-            $sql->addWhereOpr('column_entry_id', $this->eid);
-        }
-        ACMS_Filter::entrySession($sql);
-        ACMS_Filter::entrySpan($sql, $this->start, $this->end);
-        $sql->addWhereIn('column_type', array_merge(
-            configArray('column_list_type'),
-            configArray('column_list_extends_type')
-        ));
-        $this->setAmount($sql); // limitする前のクエリから全件取得のクエリを準備しておく
-        $this->orderQuery($sql);
-        $this->limitQuery($sql);
-
-        return $sql;
-    }
-
-    /**
-     * エントリー数取得sqlの準備
-     *
-     * @param SQL_Select $SQL
-     * @return void
-     */
-    function setAmount($SQL)
-    {
-        $this->amount = new SQL_Select($SQL);
-        $this->amount->addSelect('DISTINCT(`column_id`)', 'unit_amount', null, 'COUNT');
-    }
-
-    /**
-     * orderクエリ組み立て
-     *
-     * @param SQL_Select & $SQL
-     * @return void
-     */
-    function orderQuery(&$SQL)
-    {
-        $order = $this->config['order'][0];
-        if ('random' === $order) {
-            $SQL->setOrder('RAND()');
-        } else {
-            if ('datetime-asc' === $order) {
-                $SQL->addOrder('entry_datetime', 'ASC');
-            } else {
-                $SQL->addOrder('entry_datetime', 'DESC');
-            }
-        }
-    }
-
-    /**
-     * @return array
-     */
-    protected function dsn()
-    {
-        return dsn();
+        return [
+            'parent.loop.class' => $this->config['parentLoopClass'] ?? '',
+        ];
     }
 }

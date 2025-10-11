@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V2_Entry_UnitList</title>
+    <link rel="stylesheet" href="src/highlight/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="src/snippets.css" />
+    <script src="src/highlight/highlight.min.js"></script>
+    <script src="src/highlight/javascript.min.js"></script>
+    <script src="src/highlight/twig.min.js"></script>
+    <script src="src/snippets.js"></script>
+  </head>
+  <body>
+    <h1>V2_Entry_UnitList</h1>
+    <pre class="acms-admin-customfield-maker"><code class="language-twig">
+&#123;% set entryUnitList = module(&#039;V2_Entry_UnitList&#039;, null, &#123;
+  bid: null,
+  cid: null,
+  eid: null,
+  uid: null,
+  page: PAGE,
+  limit: null,
+  keyword: null,
+  tag: [],
+  field: null,
+  order: null,
+  start: &#039;1000-01-01 00:00:00&#039;,
+  end: &#039;9999-12-31 23:59:59&#039;
+&#125;) %&#125;
+
+&lt;div&gt;
+  &#123;&#123; include(&#039;/admin/module/setting.twig&#039;, &#123; moduleInfo: entryUnitList.moduleInfo &#125;) &#125;&#125;
+  &#123;% for item in entryUnitList.items %&#125;
+  &lt;table class=&quot;acms-table acms-table-bordered acms-margin-bottom-medium&quot;&gt;
+    &lt;tr&gt;
+      &lt;th&gt;id&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.unit.id &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;sort&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.unit.sort &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;align&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.unit.align &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;type&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.unit.type &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;attr&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.unit.attr &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;size&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.unit.size &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;field_1&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.unit.field_1 &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;field_2&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.unit.field_2 &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;field_3&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.unit.field_3 &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;field_4&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.unit.field_4 &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;field_5&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.unit.field_5 &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;field_6&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.unit.field_6 &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;field_7&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.unit.field_7 &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;field_8&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.unit.field_8 &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;entry_id&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.unit.entry_id &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;blog_id&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.unit.blog_id &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &#123;% if item.normal %&#125;
+    &lt;tr&gt;
+      &lt;th&gt;normal&lt;/th&gt;
+      &lt;td&gt;
+        &#123;&#123; item.normal &#125;&#125;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &#123;% endif %&#125;
+    &#123;% if item.large %&#125;
+    &lt;tr&gt;
+      &lt;th&gt;large&lt;/th&gt;
+      &lt;td&gt;
+        &#123;&#123; item.large &#125;&#125;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &#123;% endif %&#125;
+    &#123;% if item.download %&#125;
+    &lt;tr&gt;
+      &lt;th&gt;download&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.download &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &#123;% endif %&#125;
+    &lt;tr&gt;
+      &lt;th&gt;entry_title&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.entry.title &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;entry_url&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.entry.url &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;entry_datetime&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.entry.datetime &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &#123;% if item.category.items %&#125;
+    &lt;tr&gt;
+      &lt;th&gt;category_name&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.category.items[0].name &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;category_url&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.category.items[0].url &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &#123;% endif %&#125;
+    &lt;tr&gt;
+      &lt;th&gt;blog_name&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.blog.name &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;blog_url&lt;/th&gt;
+      &lt;td&gt;&#123;&#123; item.blog.url &#125;&#125;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/table&gt;
+  &#123;% endfor %&#125;
+&lt;/div&gt;
+    </code></pre>
+  </body>
+</html>

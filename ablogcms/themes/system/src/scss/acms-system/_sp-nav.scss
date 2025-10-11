@@ -24,7 +24,7 @@
     outline: 0;
   }
 
-  @media screen and (min-width: global.$breakpoint-md-min) {
+  @include global.media-breakpoint-up(md) {
     display: none;
     padding: 15px 12px;
     color: #0085cc;
@@ -45,7 +45,7 @@
   }
 }
 
-@media screen and (min-width: global.$breakpoint-md-min) {
+@include global.media-breakpoint-up(md) {
   // 固定解除
   #sidebar {
     position: fixed;

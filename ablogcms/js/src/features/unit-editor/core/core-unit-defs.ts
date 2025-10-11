@@ -1,0 +1,52 @@
+import { EditorOptions } from './types';
+import {
+  Text,
+  Image,
+  File,
+  GoogleMaps,
+  Module,
+  BlockEditor,
+  RichEditor,
+  Wysiwyg,
+  Html,
+  Markdown,
+  Media,
+  ExImage,
+  Table,
+  Embed,
+  OpenStreetMap,
+  Video,
+  YouTube,
+  Break,
+  Custom,
+  More,
+  Group,
+  Code,
+} from './unit-defs';
+
+const coreUnitDefs: EditorOptions['unitDefs'] = {
+  text: Text,
+  image: Image,
+  file: File,
+  map: GoogleMaps,
+  module: Module,
+  'block-editor': BlockEditor,
+  'rich-editor': RichEditor,
+  wysiwyg: Wysiwyg,
+  html: Html,
+  markdown: Markdown,
+  media: Media,
+  eximage: ExImage,
+  table: Table,
+  quote: Embed, // 互換性のため embed ではなく quote を使用
+  osmap: OpenStreetMap,
+  video: Video,
+  youtube: YouTube,
+  break: Break,
+  custom: Custom,
+  more: More,
+  group: Group,
+  code: Code,
+};
+
+export default coreUnitDefs;

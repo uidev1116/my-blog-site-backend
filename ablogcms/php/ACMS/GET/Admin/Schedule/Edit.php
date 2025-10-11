@@ -2,6 +2,12 @@
 
 class ACMS_GET_Admin_Schedule_Edit extends ACMS_GET_Admin_Edit
 {
+    public function auth()
+    {
+        $scid = (int) $this->Get->get('scid', 0);
+        return sessionWithScheduleAdministration(BID, $scid);
+    }
+
     function edit(&$Tpl)
     {
         $Schedule =& $this->Post->getChild('schedule');

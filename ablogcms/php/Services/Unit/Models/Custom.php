@@ -3,19 +3,138 @@
 namespace Acms\Services\Unit\Models;
 
 use Acms\Services\Unit\Contracts\Model;
+use Acms\Services\Unit\Contracts\ProcessExtender;
+use Acms\Services\Unit\Contracts\EagerLoadingCustom;
 use Acms\Services\Unit\Contracts\UnitListModule;
 use Acms\Services\Unit\Contracts\ExportEntry;
+use Acms\Services\Unit\Contracts\AlignableUnitInterface;
+use Acms\Services\Unit\Contracts\AnkerUnitInterface;
 use Acms\Services\Facades\Template as TemplateHelper;
 use Acms\Services\Facades\Common;
 use Acms\Services\Facades\Entry;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\PublicStorage;
+use Acms\Traits\Unit\AlignableUnitTrait;
+use Acms\Traits\Unit\AnkerUnitTrait;
 use Template;
 use Field;
 use ACMS_Validator;
+use ACMS_Hook;
 
-class Custom extends Model implements UnitListModule, ExportEntry
+/**
+ * @extends \Acms\Services\Unit\Contracts\Model<array<string, mixed>>
+ */
+class Custom extends Model implements UnitListModule, ExportEntry, ProcessExtender, EagerLoadingCustom, AlignableUnitInterface, AnkerUnitInterface
 {
     use \Acms\Traits\Common\AssetsTrait;
+    use AlignableUnitTrait;
+    use AnkerUnitTrait;
+
+    /**
+     * ユニットの独自データ
+     * @var array<string, mixed>
+     */
+    private $attributes = [];
+
+    /**
+     * カスタムユニットのカスタムフィールドを一時的に保持
+     *
+     * @var Field|null
+     */
+    private $tempField = null;
+
+    /**
+     * Eager Load されたカスタムユニットフィールドデータ
+     *
+     * @var array
+     */
+    private $eagerLoadedCustomUnitFields = [];
+
+    /**
+     * @inheritDoc
+     */
+    public function __clone()
+    {
+        $field = $this->getCustomUnitField();
+        if ($field instanceof Field) {
+            $this->tempField = clone $field;
+        }
+        parent::__clone(); // IDが更新されるので、必ず最後に呼び出すこと
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAttributes()
+    {
+        return $this->attributes;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setAttributes($attributes): void
+    {
+        $this->attributes = $attributes;
+    }
+
+    /**
+     * カスタムフィールドを取得
+     *
+     * @return Field|null
+     */
+    public function getCustomUnitField(): ?Field
+    {
+        $id = $this->getId();
+        $field = null;
+
+        if ($this->tempField) {
+            $field = $this->tempField;
+        } elseif ($id && isset($this->eagerLoadedCustomUnitFields[$id])) {
+            $field = $this->eagerLoadedCustomUnitFields[$id];
+        } elseif ($id) {
+            $field = loadUnitField($id, $this->getRevId());
+        }
+        if ($field instanceof Field) {
+            $this->formatField($field);
+            return $field;
+        }
+        return null;
+    }
+
+    /**
+     * 事前読み込みされたカスタムフィールドマップを設定
+     *
+     * @param array $fields
+     * @return void
+     */
+    public function setEagerLoadedCustomUnitFields(array $fields): void
+    {
+        $this->eagerLoadedCustomUnitFields = $fields;
+    }
+
+    /**
+     * ユニットロード時に拡張処理を行います
+     *
+     * @return void
+     */
+    public function extendOnLoad(): void
+    {
+    }
+
+    /**
+     * ユニット保存時に拡張処理を行います
+     *
+     * @return void
+     */
+    public function extendOnSave(): void
+    {
+        $field = $this->getCustomUnitField();
+        if ($field instanceof Field) {
+            if ($id = $this->getId()) {
+                Common::saveField('unit_id', $id, $field, null, $this->getRevId());
+            }
+        }
+    }
 
     /**
      * エントリーのエクスポートでエクスポートするアセットを返却
@@ -24,8 +143,8 @@ class Custom extends Model implements UnitListModule, ExportEntry
      */
     public function exportArchivesFiles(): array
     {
-        $field = $this->unserializeField();
-        if (empty($field)) {
+        $field = $this->getCustomUnitField();
+        if (!$field instanceof Field) {
             return [];
         }
         $exportFiles = [];
@@ -54,8 +173,8 @@ class Custom extends Model implements UnitListModule, ExportEntry
      */
     public function exportMediaIds(): array
     {
-        $field = $this->unserializeField();
-        if (empty($field)) {
+        $field = $this->getCustomUnitField();
+        if (!$field instanceof Field) {
             return [];
         }
         $exportMediaIds = [];
@@ -78,11 +197,11 @@ class Custom extends Model implements UnitListModule, ExportEntry
     /**
      * エントリーのエクスポートでエクスポートするモジュールIDを返却
      *
-     * @return int[]
+     * @inheritDoc
      */
-    public function exportModuleIds(): array
+    public function exportModuleId(): ?int
     {
-        return [];
+        return null;
     }
 
     /**
@@ -93,12 +212,14 @@ class Custom extends Model implements UnitListModule, ExportEntry
      */
     public function renderUnitListModule(Template $tpl): array
     {
-        $field = $this->unserializeField();
-        if (empty($field)) {
+        Common::setForceV1Build(true);
+        $field = $this->getCustomUnitField();
+        if (!$field instanceof Field) {
             return [];
         }
         $block = 'unit#' . $this->getType();
         $tpl->add([$block, 'unit:loop'], TemplateHelper::buildField($field, $tpl, [$block, 'unit:loop']));
+        Common::setForceV1Build(false);
 
         return [];
     }
@@ -108,19 +229,19 @@ class Custom extends Model implements UnitListModule, ExportEntry
      *
      * @return string
      */
-    public function getUnitType(): string
+    public static function getUnitType(): string
     {
         return 'custom';
     }
 
     /**
-     * ユニットが画像タイプか取得
+     * ユニットラベルを取得
      *
-     * @return bool
+     * @return string
      */
-    public function getIsImageUnit(): bool
+    public static function getUnitLabel(): string
     {
-        return false;
+        return gettext('カスタム');
     }
 
     /**
@@ -132,23 +253,21 @@ class Custom extends Model implements UnitListModule, ExportEntry
      */
     public function setDefault(string $configKeyPrefix, int $configIndex): void
     {
-        $this->setField6(config("{$configKeyPrefix}field_6", '', $configIndex));
     }
 
     /**
-     * POSTデータからユニット独自データを抽出
-     *
-     * @param array $post
-     * @param bool $removeOld
-     * @param bool $isDirectEdit
-     * @return void
+     * @inheritDoc
      */
-    public function extract(array $post, bool $removeOld = true, bool $isDirectEdit = false): void
+    public function extract(array $request): void
     {
-        $id = $this->getTempId();
+        $id = $this->getId();
+        if (is_null($id)) {
+            throw new \LogicException('Unit ID must be set before calling extract');
+        }
         $field = Common::extract('unit' . $id, new ACMS_Validator(), new Field());
         $field->retouchCustomUnit($id);
-        $this->setField6(acmsSerialize($field));
+        $this->tempField = $field;
+        $hook = HOOK_ENABLE ? ACMS_Hook::singleton() : null;
 
         if (Entry::isNewVersion()) {
             foreach ($field->listFields() as $fd) {
@@ -167,14 +286,16 @@ class Custom extends Model implements UnitListModule, ExportEntry
                     }
                     $info = pathinfo($old);
                     $dirname = empty($info['dirname']) ? '' : $info['dirname'] . '/';
-                    Storage::makeDirectory(ARCHIVES_DIR . $dirname);
+                    PublicStorage::makeDirectory(ARCHIVES_DIR . $dirname);
                     $ext = empty($info['extension']) ? '' : '.' . $info['extension'];
                     $newOld = $dirname . uniqueString() . $ext;
 
                     $path = ARCHIVES_DIR . $old;
                     $newPath = ARCHIVES_DIR . $newOld;
-                    copyFile($path, $newPath);
-
+                    copyFile($path, $newPath, true);
+                    if ($hook) {
+                        $hook->call('mediaCreate', $newPath);
+                    }
                     if (!$set) {
                         $field->delete($fd);
                         $set = true;
@@ -182,7 +303,7 @@ class Custom extends Model implements UnitListModule, ExportEntry
                     $field->add($fd, $newOld);
                 }
             }
-            $this->setField6(acmsSerialize($field));
+            $this->tempField = $field;
         }
     }
 
@@ -193,7 +314,8 @@ class Custom extends Model implements UnitListModule, ExportEntry
      */
     public function canSave(): bool
     {
-        if (empty($this->getField6())) {
+        $field = $this->getCustomUnitField();
+        if (!$field instanceof Field) {
             return false;
         }
         return true;
@@ -206,12 +328,14 @@ class Custom extends Model implements UnitListModule, ExportEntry
      */
     public function handleDuplicate(): void
     {
-        $field = acmsDangerUnserialize($this->getField6());
+        $field = $this->getCustomUnitField();
         if (!($field instanceof Field)) {
             return;
         }
         $this->duplicateFieldsTrait($field);
-        $this->setField6(acmsSerialize($field));
+        if ($id = $this->getId()) {
+            Common::saveField('unit_id', $id, $field, null, $this->getRevId());
+        }
     }
 
     /**
@@ -221,7 +345,7 @@ class Custom extends Model implements UnitListModule, ExportEntry
      */
     public function handleRemove(): void
     {
-        $field = acmsDangerUnserialize($this->getField6());
+        $field = $this->getCustomUnitField();
         if (!($field instanceof Field)) {
             return;
         }
@@ -236,13 +360,15 @@ class Custom extends Model implements UnitListModule, ExportEntry
     public function getSearchText(): string
     {
         $text = '';
-        $field = acmsDangerUnserialize($this->getField6());
-
+        $field = $this->getCustomUnitField();
         if (!($field instanceof Field)) {
             return '';
         }
         foreach ($field->listFields() as $f) {
-            $text .= implode(' ', $field->getArray($f)) . ' ';
+            $search = $field->getMeta($f, 'search');
+            if ($search) {
+                $text .= implode(' ', $field->getArray($f)) . ' ';
+            }
         }
         return $text;
     }
@@ -267,13 +393,12 @@ class Custom extends Model implements UnitListModule, ExportEntry
      */
     public function render(Template $tpl, array $vars, array $rootBlock): void
     {
-        $field = $this->unserializeField();
-        if (empty($field)) {
+        $field = $this->getCustomUnitField();
+        if (!$field instanceof Field) {
             return;
         }
-        $vars['attr'] = $this->getAttr();
-        $vars['class'] = $this->getAttr(); // legacy
-        $vars['align'] = $this->getAlign();
+        $vars['align'] = $this->getAlign()->value;
+        $vars['anker'] = $this->getAnker();
         TemplateHelper::injectMediaField($field, true);
         $block = array_merge(['unit#' . $this->getType()], $rootBlock);
         $vars += TemplateHelper::buildField($field, $tpl, $block, null, [
@@ -292,12 +417,12 @@ class Custom extends Model implements UnitListModule, ExportEntry
      */
     public function renderEdit(Template $tpl, array $vars, array $rootBlock): void
     {
-        $field = $this->unserializeField();
+        $field = $this->getCustomUnitField();
         $block = array_merge([$this->getType()], $rootBlock);
-        if ($field) {
+        if ($field instanceof Field) {
             TemplateHelper::injectMediaField($field, true);
             TemplateHelper::injectRichEditorField($field, true);
-            $vars += TemplateHelper::buildField($field, $tpl, $block, null, ['id' => $this->getTempId()]);
+            $vars += TemplateHelper::buildField($field, $tpl, $block, null, ['id' => $this->getId()]);
         }
         $tpl->add($block, $vars);
     }
@@ -309,23 +434,20 @@ class Custom extends Model implements UnitListModule, ExportEntry
      */
     protected function getLegacy(): array
     {
-        $field = $this->unserializeField();
+        $field = $this->getCustomUnitField();
         return [
-            'field' => acmsSerialize($field),
+            'field' => acmsSerialize($field)
         ];
     }
 
     /**
-     * シリアライズされたフィールドを復元
+     * フィールドを整形
      *
-     * @return Field|null
+     * @param Field $field
+     * @return void
      */
-    protected function unserializeField(): ?Field
+    protected function formatField(Field $field): void
     {
-        $field = acmsDangerUnserialize($this->getField6());
-        if (!$field instanceof Field) {
-            return null;
-        }
         foreach ($field->listFields() as $fd) {
             if (
                 !strpos($fd, '@path') &&
@@ -344,6 +466,5 @@ class Custom extends Model implements UnitListModule, ExportEntry
                 $field->add($fd, (string) $path);
             }
         }
-        return $field;
     }
 }

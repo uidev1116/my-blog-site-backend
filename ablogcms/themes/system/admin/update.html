@@ -80,8 +80,12 @@
   <div class="acms-admin-panel-body">
     <p><!--T-->最終チェック日時<!--/T--> : {finalCheckTime}&nbsp;&nbsp;&nbsp; インストールバージョン: Ver. %{VERSION}</p>
     <form action="" method="post" class="">
-      <input type="submit" name="ACMS_POST_Update_CheckForUpdate" value="<!--T-->もう一度確認する<!--/T-->"
-           class="acms-admin-btn-admin"/>
+      <input
+        type="submit"
+        name="ACMS_POST_Update_CheckForUpdate"
+        value="<!--T-->もう一度確認する<!--/T-->"
+        class="acms-admin-btn-admin"
+      />
     </form>
 
     <!-- BEGIN latest:patch -->
@@ -89,7 +93,11 @@
     <!-- END latest:patch -->
 
     <!-- BEGIN latest:minor -->
-    <p><strong><!--T-->最新のマイナーバージョンです。<!--/T--></strong></p>
+      <!-- BEGIN_IF [{latestMinorVersion}/nem] -->
+      <p><strong>Ver. {latestMinorVersion} は存在しますが、対応する PHP バージョンが v{minPhpVersion} 〜 v{maxPhpVersion} のため、現在の環境ではご利用いただけません。</strong></p>
+      <!-- ELSE -->
+      <p><strong><!--T-->最新のマイナーバージョンです。<!--/T--></strong></p>
+      <!-- END_IF -->
     <!-- END latest:minor -->
 
     <!-- BEGIN oldVersion -->
@@ -125,7 +133,7 @@
 
           </div>
 
-          <div class="acms-admin-form-group acms-admin-margin-top-medium">
+          <div class="acms-admin-form-group acms-admin-mt-5">
             <input type="submit" name="ACMS_POST_Update_Exec" value="<!--T-->今すぐ更新<!--/T-->"
                  onclick="return confirm('<!--T-->本当にアップデートしてよろしいですか？<!--/T-->');"
                  class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-large">
@@ -139,14 +147,16 @@
     <!-- BEGIN downgrade -->
     <form action="" method="post" class="js-system-update-submit">
       <div class="acms-admin-margin-top-large">
-        <p class="acms-admin-alert acms-admin-alert-danger acms-admin-alert-icon"><span
+        <div class="acms-admin-alert acms-admin-alert-danger acms-admin-alert-icon"><span
           class="acms-admin-icon-news acms-admin-alert-icon-before"></span><!--T-->システムと適用されているライセンスが一致していません。ライセンスを更新、またはCMSをダウングレードしてください。<!--/T-->
-        </p>
-        <p class="acms-admin-alert acms-admin-alert-warning acms-admin-alert-icon"><span
+        </div>
+        <div class="acms-admin-alert acms-admin-alert-warning acms-admin-alert-icon"><span
           class="acms-admin-icon-news acms-admin-alert-icon-before"></span>
+          <div>
           <!--T-->ライセンスを更新する場合はマイページから新しいライセンスファイルをダウンロードして適用してください。<!--/T--><br>
           <!--T-->アップデート期間が終了している場合、期間を延長するオプションを購入する必要があります。<!--/T--><a href="https://mypage.a-blogcms.jp"><!--T-->（マイページに移動）<!--/T--></a>
-        </p>
+          </div>
+        </div>
 
         <div class="acms-admin-update-panel">
           <p class="acms-admin-margin-bottom-medium"><strong style="font-size: 30px;">Ver. {version} にダウングレード</strong></p>
@@ -161,7 +171,7 @@
                 <!--/T--></strong></span>
             </div>
           </div>
-          <div class="acms-admin-form-group acms-admin-margin-top-medium">
+          <div class="acms-admin-form-group acms-admin-mt-5">
             <input type="submit" name="ACMS_POST_Update_DownGradeExec" value="<!--T-->今すぐダウングレード<!--/T-->"
                  onclick="return confirm('<!--T-->本当にダウングレードしてよろしいですか？<!--/T-->');"
                  class="acms-admin-btn-admin acms-admin-btn-admin-warning acms-admin-btn-large">
@@ -185,8 +195,8 @@
         <!-- END_IF -->
 
         <!-- BEGIN feature:veil -->
-        <h4 class="acms-admin-margin-none acms-admin-margin-bottom-small"><!--T-->新機能<!--/T--></h4>
-        <ul class="acms-admin-margin-none acms-admin-margin-bottom-small">
+        <h4 class="acms-admin-m-0 acms-admin-margin-bottom-small"><!--T-->新機能<!--/T--></h4>
+        <ul class="acms-admin-m-0 acms-admin-margin-bottom-small">
           <!-- BEGIN feature:loop -->
           <li>
             {log}
@@ -196,8 +206,8 @@
         <!-- END feature:veil -->
 
         <!-- BEGIN change:veil -->
-        <h4 class="acms-admin-margin-none acms-admin-margin-bottom-small"><!--T-->変更点<!--/T--></h4>
-        <ul class="acms-admin-margin-none acms-admin-margin-bottom-small">
+        <h4 class="acms-admin-m-0 acms-admin-margin-bottom-small"><!--T-->変更点<!--/T--></h4>
+        <ul class="acms-admin-m-0 acms-admin-margin-bottom-small">
           <!-- BEGIN change:loop -->
           <li>
             {log}

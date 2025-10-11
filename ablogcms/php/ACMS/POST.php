@@ -1,6 +1,6 @@
 <?php
 
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Facades\Common;
 
 class ACMS_POST
@@ -70,6 +70,19 @@ class ACMS_POST
         return Common::checkCsrfToken($this->Post->get('formToken'));
     }
 
+    protected function shouldCheckDoubleSubmit()
+    {
+        if (!$this->Post->isExists('formUniqueToken')) {
+            return false;
+        }
+
+        if (!$this->checkDoubleSubmit) {
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * 二重送信のチェック
      *
@@ -89,7 +102,7 @@ class ACMS_POST
     }
 
     /**
-     * システムエラーの
+     * システムエラーの表示登録
      *
      * @param string $block
      */
@@ -140,6 +153,21 @@ class ACMS_POST
     }
 
     /**
+     * キャッシュクリアが必要かどうかを判断
+     * @return bool
+     */
+    protected function shouldClearCache(): bool
+    {
+        if (!$this->isCacheDelete) {
+            return false;
+        }
+        if (config('cache_clear_when_post') !== 'on') {
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * @return Field_Validation
      */
     public function fire()
@@ -157,14 +185,14 @@ class ACMS_POST
         // takeover
         if ($takeover = $this->Post->get('takeover')) {
             $Post = acmsUnserialize($takeover);
-            if ($Post instanceof \Field && method_exists($Post, 'deleteField') && method_exists($Post, 'overload')) {
+            if ($Post instanceof Field) {
                 $Post->reset(true);
                 $this->Post->deleteField('takeover');
                 $Post->overload($this->Post, true);
                 $this->Post = new Field_Validation($Post, true);
             } else {
+                httpStatusCode('400 Bad Request');
                 AcmsLogger::error('POSTデータの「takeover」が復元できません');
-                $this->addSystemError('IllegalAccess');
                 return $this->Post;
             }
         }
@@ -185,7 +213,7 @@ class ACMS_POST
                 $this->addSystemError('CsrfTokenExpired');
                 return $this->Post;
             }
-            if ($this->checkDoubleSubmit && !$this->checkDoubleSubmit()) {
+            if ($this->shouldCheckDoubleSubmit() && !$this->checkDoubleSubmit()) {
                 AcmsLogger::notice('重複送信を検知したため、処理を中断しました');
                 $this->addSystemError('DoubleTransmission');
                 return $this->Post;
@@ -216,6 +244,16 @@ class ACMS_POST
         }
 
         //----------------
+        // register cache clear
+        if ($this->shouldClearCache()) {
+            register_shutdown_function(function () {
+                // モジュールの処理内でリダイレクトやdie()された場合を考慮して、
+                // register_shutdown_function()でページキャッシュをクリアする。
+                ACMS_POST_Cache::clearPageCache(BID);
+            });
+        }
+
+        //----------------
         // execute & hook
         if (HOOK_ENABLE) {
             $Hook = ACMS_Hook::singleton();
@@ -226,23 +264,7 @@ class ACMS_POST
             $res = $this->post();
         }
 
-        //-------
-        // cache
-        if ($this->isCacheDelete) {
-            if (config('cache_clear_when_post') === 'on') {
-                ACMS_POST_Cache::clearPageCache(BID);
-            }
-        }
         define('ACMS_POST_VALID', $this->Post->isValidAll() ? 'true' : 'false');
-
-        if ($this->Post->get('ajaxUploadImageAccess') === 'true') {
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode([
-                'action' => 'post',
-                'throughPost' => acmsSerialize($this->Post),
-            ]);
-            die();
-        }
 
         return $res;
     }
@@ -267,7 +289,7 @@ class ACMS_POST
      */
     public function archivesDir()
     {
-        return Storage::archivesDir();
+        return LocalStorage::archivesDir();
     }
 
     /**
@@ -279,7 +301,7 @@ class ACMS_POST
      */
     public function setupDir($path, $mod)
     {
-        return Storage::makeDirectory($path);
+        return LocalStorage::makeDirectory($path);
     }
 
     /**
@@ -290,82 +312,7 @@ class ACMS_POST
      */
     public function removeDir($dir)
     {
-        return Storage::removeDirectory($dir);
-    }
-
-    /**
-     * ToDo: deplicated mehod Ver. 2.7.0
-     * @deprecated
-     * @param string $from
-     * @param string $to
-     * @param int|null $width
-     * @param int|null $height
-     * @param int|null $size
-     * @param int|null $angle
-     *
-     * @return bool
-     */
-    public function copyImage($from, $to, $width = null, $height = null, $size = null, $angle = null)
-    {
-        return Image::copyImage($from, $to, $width, $height, $size, $angle);
-    }
-
-    /**
-     * ToDo: deplicated mehod Ver. 2.7.0
-     * @deprecated
-     * @param string $rsrc
-     * @param string $file
-     * @param int|null $width
-     * @param int|null $height
-     * @param int|null $size
-     * @param int|null $angle
-     *
-     * @return void
-     * @throws \ImagickException
-     */
-    public function editImageForImagick($rsrc, $file, $width = null, $height = null, $size = null, $angle = null)
-    {
-        Image::editImageForImagick($rsrc, $file, $width, $height, $size, $angle);
-    }
-
-    /**
-     * ToDo: deplicated mehod Ver. 2.7.0
-     * @deprecated
-     * @param resource|\GdImage $rsrc
-     * @param int|null $width
-     * @param int|null $height
-     * @param int|null $size
-     * @param int|null $angle
-     *
-     * @return resource|\GdImage
-     */
-    public function editImage($rsrc, $width = null, $height = null, $size = null, $angle = null) // @phpstan-ignore-line
-    {
-        return Image::editImage($rsrc, $width, $height, $size, $angle);
-    }
-
-    /**
-     * ToDo: deplicated mehod Ver. 2.7.0
-     * @deprecated
-     * @param string $path
-     *
-     * @return void
-     */
-    public function deleteImageAllSize($path)
-    {
-        Image::deleteImageAllSize($path);
-    }
-
-    /**
-     * ToDo: deplicated mehod Ver. 2.7.0
-     * @deprecated
-     * @param string $mime
-     *
-     * @return 'gif' | 'png' | 'bmp' | 'xbm' | 'jpg' | ''
-     */
-    public function detectImageExtenstion($mime)
-    {
-        return Image::detectImageExtenstion($mime);
+        return LocalStorage::removeDirectory($dir);
     }
 
     /**
@@ -413,12 +360,13 @@ class ACMS_POST
      *   smtp-port?: string,
      *   smtp-user?: string,
      *   smtp-pass?: string,
+     *   smtp-verify-peer?: string,
      *   mail_from?: string,
      *   sendmail_path?: string,
      *   additional_headers?: string
      * } $argConfig
      *
-     * @return non-empty-array<'additional_headers'|'mail_from'|'sendmail_path'|'smtp-google'|'smtp-google-user'|'smtp-host'|'smtp-pass'|'smtp-port'|'smtp-user',
+     * @return non-empty-array<'additional_headers'|'mail_from'|'sendmail_path'|'smtp-google'|'smtp-google-user'|'smtp-host'|'smtp-pass'|'smtp-verify-peer'|'smtp-port'|'smtp-user',
      *   string
      * >
      */
@@ -700,7 +648,7 @@ class ACMS_POST
             $SQL->addSelect('blog_code');
             ACMS_Filter::blogTree($SQL, BID, 'descendant');
             $SQL->addGroup('blog_code');
-            $SQL->addHaving('count(*)>1');
+            $SQL->addHaving(SQL::newOpr('*', 1, '>', null, 'COUNT'));
             if ($DB->query($SQL->get(dsn()), 'one')) {
                 return false;
             }

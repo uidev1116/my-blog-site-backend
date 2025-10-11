@@ -1,0 +1,52 @@
+@use '../global/common' as global;
+
+/* ------------------------------
+ Trumbowyg
+------------------------------- */
+
+:root {
+  --tbw-cell-vertical-padding: 4px;
+  --tbw-cell-horizontal-padding: 8px;
+  --tbw-cell-line-height: 1.5em;
+  --tbw-box-min-height: 100px;
+  --tbw-box-max-height: 500px;
+  --tbw-editor-background-color: #{global.$acms-color-white};
+}
+
+.trumbowyg-box {
+  min-height: var(--tbw-box-min-height) !important;
+
+  &:not(.trumbowyg-fullscreen) {
+    max-height: var(--tbw-box-max-height) !important;
+  }
+
+  .trumbowyg-button-pane {
+    flex-shrink: 0;
+  }
+}
+
+.trumbowyg-fullscreen {
+  z-index: global.zIndex(wysiwyg-fullscreen) !important;
+}
+
+.trumbowyg-editor-box {
+  table {
+    margin-bottom: var(--tbw-cell-line-height);
+  }
+
+  th,
+  td {
+    min-width: calc(var(--tbw-cell-horizontal-padding) * 8);
+    height: calc(var(--tbw-cell-vertical-padding) * 2 + var(--tbw-cell-line-height));
+    padding: var(--tbw-cell-vertical-padding) var(--tbw-cell-horizontal-padding);
+    border: 1px solid #e7eaec;
+  }
+}
+
+.trumbowyg-box.trumbowyg-editor-hidden .trumbowyg-textarea {
+  flex: 1 1 auto !important; // WYSIWYG エディターでソースを表示するとテキストユニットの高さが固定になってしまう問題の修正
+}
+
+.trumbowyg-editor {
+  background-color: var(--tbw-editor-background-color);
+}

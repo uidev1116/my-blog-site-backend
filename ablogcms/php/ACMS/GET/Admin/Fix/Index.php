@@ -8,7 +8,7 @@ class ACMS_GET_Admin_Fix_Index extends ACMS_GET_Admin
             return '';
         }
         if (!sessionWithAdministration()) {
-            return false;
+            die403();
         }
 
         $Tpl = new Template($this->tpl, new ACMS_Corrector());
@@ -19,7 +19,6 @@ class ACMS_GET_Admin_Fix_Index extends ACMS_GET_Admin
             'fix_unit-map',
             'fix_sequence',
             'fix_fulltext',
-            'fix_ngram',
             'fix_tag',
             'fix_replacement',
         ];

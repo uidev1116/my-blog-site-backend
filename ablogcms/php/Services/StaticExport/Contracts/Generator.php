@@ -17,7 +17,7 @@ abstract class Generator
     /**
      * @var int
      */
-    private const PUBLISH_INTERVAL_SECONDS = 1;
+    private const PUBLISH_INTERVAL_SECONDS = 500000; // 0.5秒
 
     /**
      * @var \Acms\Services\StaticExport\Compiler
@@ -61,7 +61,9 @@ abstract class Generator
         $this->compiler = $compiler;
         $this->destination = $destination;
         $this->logger = $logger;
-        $this->maxPublishCount = $maxPublishCount;
+        if ($maxPublishCount > 0) {
+            $this->maxPublishCount = $maxPublishCount;
+        }
         $this->httpClient = $this->createHttpClient($nameServer);
     }
 
@@ -73,13 +75,13 @@ abstract class Generator
     {
         return new Promise(
             function (callable $resolve) use ($pages) {
-                $publishChunks = array_chunk($pages, $this->maxPublishCount);
+                $publishChunks = array_chunk($pages, $this->maxPublishCount > 0 ? $this->maxPublishCount : 5);
                 foreach ($publishChunks as $publishChunk) {
                     if (!$this->shouldGenerateNextPage()) {
                         break;
                     }
                     await($this->generate($publishChunk));
-                    sleep(self::PUBLISH_INTERVAL_SECONDS);
+                    usleep(self::PUBLISH_INTERVAL_SECONDS);
                 }
                 $resolve(null);
             }

@@ -11,7 +11,7 @@ class ACMS_POST_User_Switch extends ACMS_POST_User
     {
         $targetUid = intval($this->Post->get('uid'));
         if (!$this->validate(SUID, $targetUid)) {
-            die('Invalid operation.');
+            die400();
         }
         $this->switchUser(SUID, $targetUid);
 

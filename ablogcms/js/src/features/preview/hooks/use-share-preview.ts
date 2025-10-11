@@ -3,7 +3,7 @@ import * as api from '../api';
 
 export default function useShareUrl() {
   const [status, setStatus] = useState<'standby' | 'waiting' | 'done'>('standby');
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<string>('');
   const [shareUrl, setShareUrl] = useState('');
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -12,7 +12,7 @@ export default function useShareUrl() {
   }, []);
   const standby = useCallback(() => {
     setStatus('standby');
-    setError(null);
+    setError('');
     setShareUrl('');
   }, []);
 
@@ -29,13 +29,12 @@ export default function useShareUrl() {
       try {
         const shareUrl = await doCreatePreviewShareUrl(url);
         setShareUrl(shareUrl);
-      } catch (error) {
-        console.log(error); // eslint-disable-line no-console
-        if (error instanceof Error) {
-          setError(error);
-        }
-      } finally {
         setStatus('done');
+      } catch (error) {
+        if (error instanceof Error) {
+          setError(error.message);
+        }
+        setStatus('standby');
       }
     },
     [doCreatePreviewShareUrl]

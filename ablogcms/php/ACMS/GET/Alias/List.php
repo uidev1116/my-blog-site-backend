@@ -8,7 +8,7 @@ class ACMS_GET_Alias_List extends ACMS_GET
 
         $limit  = 3;
         $order  = 'code-asc';
-        $blogAliasSort  = ACMS_RAM::blogAliasSort($this->bid);
+        $blogAliasSort = ACMS_RAM::blogAliasSort($this->bid);
 
         $SQL    = SQL::newSelect('alias');
         $SQL->addWhereOpr('alias_blog_id', $this->bid);

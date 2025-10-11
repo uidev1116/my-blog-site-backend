@@ -1,0 +1,23 @@
+<div class="acms-admin-g-col-12 acms-admin-g-col-md-6">
+  <!-- BEGIN pager:veil -->
+  <div class="acms-admin-pager-container">
+    <ul class="acms-admin-pager"><!-- BEGIN backLink -->
+      <li class="prev"><a href="{url}">&laquo;&nbsp;<!--T-->前へ<!--/T--></a></li><!-- END backLink -->
+      <!-- BEGIN page:loop -->
+      <li
+      {pageCurAttr}[raw]><span><!-- BEGIN link#front --><a href="{url}"><!-- END link#front -->{page}
+        <!-- BEGIN link#rear --></a><!-- END link#rear --></span></li><!-- END page:loop -->
+      <!-- BEGIN lastPage:veil -->
+      <li class="last"><a href="{lastPageUrl}">...{lastPage}</a></li><!-- END lastPage:veil -->
+      <!-- BEGIN forwardLink -->
+      <li class="next"><a href="{url}"><!--T-->次へ<!--/T-->&nbsp;&raquo;</a></li><!-- END forwardLink -->
+    </ul>
+  </div>
+  <!-- END pager:veil -->
+</div>
+<div class="acms-admin-g-col-12 acms-admin-g-col-md-6">
+  <div class="acms-admin-itemsAmount-container">
+    <p>{itemsFrom}<!--T--> 件<!--/T--> - {itemsTo}<!--T--> 件<!--/T--> / <!--T-->全<!--/T--> {itemsAmount}<!--T--> 件
+      <!--/T--></p>
+  </div>
+</div>

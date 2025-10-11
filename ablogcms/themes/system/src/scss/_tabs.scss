@@ -5,6 +5,7 @@
 ------------------------------- */
 .acms-tabs {
   .acms-tabs-panel {
+    display: none;
     padding: 10px;
     background: global.$acms-color-white;
     border: 1px solid global.$acms-color-gray60;
@@ -36,7 +37,6 @@
       text-decoration: none;
       background-color: transparent;
       border: none;
-      outline: none;
 
       @include global.font-size(14);
 
@@ -68,6 +68,7 @@
 
 .acms-tabs-inverse {
   .acms-tabs-panel {
+    display: none;
     padding: 20px;
     background: global.$acms-color-white;
   }
@@ -95,7 +96,6 @@
       line-height: 1;
       background: global.$acms-color-system-gray10;
       border-radius: 3px 3px 0 0;
-      outline: none;
       transition: background-color 0.2s;
 
       @include global.font-size(14);
@@ -122,7 +122,7 @@
   }
 }
 
-@media screen and (min-width: global.$breakpoint-md-min) {
+@include global.media-breakpoint-up(md) {
   .acms-tabs {
     .acms-tabs-panel {
       padding: 20px;

@@ -2,7 +2,7 @@
 
 namespace Acms\Services\StaticExport;
 
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Facades\Application;
 
 class CopyEntryArchive
@@ -44,16 +44,16 @@ class CopyEntryArchive
      */
     protected function copyUnitArchives($eid)
     {
-        $units = $this->unitRepository->loadUnits($eid);
+        $collection = $this->unitRepository->loadUnits($eid);
 
-        foreach ($units as $unit) {
+        foreach ($collection->flat() as $unit) {
             if ($unit instanceof \Acms\Services\Unit\Contracts\StaticExport) {
                 $paths = $unit->outputAssetPaths();
                 foreach ($paths as $path) {
                     $this->allCopy($path);
                 }
             }
-            if ($unit->getUnitType() === 'custom') {
+            if ($unit::getUnitType() === 'custom') {
                 $field = acmsDangerUnserialize($unit->getField6());
                 $this->fieldDupe($field);
             }
@@ -76,7 +76,7 @@ class CopyEntryArchive
                     foreach ($ary_path as $path) {
                         if (
                             1
-                            and Storage::isFile(ARCHIVES_DIR . $path)
+                            and LocalStorage::isFile(ARCHIVES_DIR . $path)
                             and preg_match('@^(.*?)([^/]+)(\.[^.]+)$@', $path, $match)
                         ) {
                             foreach (
@@ -90,7 +90,7 @@ class CopyEntryArchive
                                 if (
                                     1
                                     and $path = $Field->get($_fd . $name, null, $fieldIndex)
-                                    and Storage::isFile(ARCHIVES_DIR . $path)
+                                    and LocalStorage::isFile(ARCHIVES_DIR . $path)
                                 ) {
                                     $this->allCopy(ARCHIVES_DIR . $path);
                                 }
@@ -109,17 +109,17 @@ class CopyEntryArchive
     protected function allCopy($path)
     {
         foreach ($this->destinationPaths as $destinationPath) {
-            Storage::makeDirectory(dirname($destinationPath . $path));
-            Storage::copy($path, $destinationPath . $path);
+            LocalStorage::makeDirectory(dirname($destinationPath . $path));
+            LocalStorage::copy($path, $destinationPath . $path);
 
             if ($dirname = dirname($path)) {
                 $dirname .= '/';
             }
-            $basename = Storage::mbBasename($path);
+            $basename = LocalStorage::mbBasename($path);
             $files = glob($dirname . '*-' . $basename);
             if (is_array($files)) {
                 foreach ($files as $file) {
-                    Storage::copy($file, $destinationPath . $file);
+                    LocalStorage::copy($file, $destinationPath . $file);
                 }
             }
         }

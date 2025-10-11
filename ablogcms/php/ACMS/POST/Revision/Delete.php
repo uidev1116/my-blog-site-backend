@@ -36,16 +36,16 @@ class ACMS_POST_Revision_Delete extends ACMS_POST
             }
             if (roleAvailableUser()) {
                 if (!roleAuthorization('entry_edit', BID, EID)) {
-                    die();
+                    die403();
                 }
             } else {
                 if (!sessionWithCompilation(BID)) {
                     if (!sessionWithContribution(BID)) {
-                        die();
+                        die403();
                     }
 
                     if (SUID != ACMS_RAM::entryUser(EID)) {
-                        die();
+                        die403();
                     }
                 }
             }
@@ -89,6 +89,7 @@ class ACMS_POST_Revision_Delete extends ACMS_POST
         } catch (\Exception $e) {
             AcmsLogger::info('バージョンを削除できませんでした。' . $e->getMessage(), Common::exceptionArray($e));
         }
+        Common::setSafeHeadersWithoutCache(200, 'text/plain');
         die('OK');
     }
 }

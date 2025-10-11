@@ -1,5 +1,8 @@
 <?php
 
+use Acms\Modules\Get\Helpers\Json2TplHelper;
+use Acms\Services\Facades\Template as TemplateHelper;
+
 class ACMS_GET_Json_2Tpl extends ACMS_GET
 {
     /**
@@ -11,25 +14,32 @@ class ACMS_GET_Json_2Tpl extends ACMS_GET
     public function get()
     {
         $uri = setGlobalVars(config('json_2tpl_source'));
+        $expire = (int) config('json_2tpl_cache_expire', 120);
+        $tpl = new Template($this->tpl, new ACMS_Corrector());
 
-        $Tpl = new Template($this->tpl, new ACMS_Corrector());
-        $this->buildModuleField($Tpl);
+        if (!$uri) {
+            return '';
+        }
+
+        TemplateHelper::buildModuleField($tpl, $this->mid, $this->showField);
 
         try {
-            $response = $this->getJsonCache($uri);
+            $json2TplHelper = new Json2TplHelper();
+            $response = $json2TplHelper->getJsonCache($uri);
             if (empty($response)) {
-                $response = $this->getContents($uri);
-                $this->saveCache($uri, $response);
+                $response = $json2TplHelper->getContents($uri);
+                $json2TplHelper->saveCache($uri, $response, $expire);
             }
             $vars = json_decode($response, true);
-            if (is_array($vars) && $this->is_vector($vars)) {
+            if (is_array($vars) && $json2TplHelper->isVector($vars)) {
                 $vars = [
                     'root' => $vars,
                 ];
             }
             if (is_array($vars)) {
-                return $Tpl->render($vars);
+                return $tpl->render($vars);
             }
+            return '';
         } catch (\Exception $e) {
             AcmsLogger::critical('「Json_2Tpl」モジュールで「' . $uri . '」から情報を取得できませんでした', [
                 'detail' => $e->getMessage(),
@@ -39,82 +49,5 @@ class ACMS_GET_Json_2Tpl extends ACMS_GET
             }
             return '';
         }
-        return '';
-    }
-
-    /**
-     * 添え字が0から連続する数値(=配列とみなせる)ときにtrue
-     *
-     * @param array $ary
-     * @return boolean
-     */
-    protected function is_vector($ary)
-    {
-        return array_values($ary) === $ary;
-    }
-
-    /**
-     * urlからコンテンツの取得
-     *
-     * @param string $uri
-     *
-     * @return string
-     */
-    protected function getContents($uri)
-    {
-        try {
-            $contents = @file_get_contents($uri);
-            if (empty($contents)) {
-                throw new \RuntimeException('Empty contents.');
-            }
-        } catch (\Exception $e) {
-            return '';
-        }
-        if ($charset = mb_detect_encoding($contents, 'UTF-8, EUC-JP, SJIS-win, SJIS') and 'UTF-8' <> $charset) {
-            $contents = mb_convert_encoding($contents, 'UTF-8', $charset);
-        }
-        return $contents;
-    }
-
-    /**
-     * キャッシュの取得
-     *
-     * @param string $uri
-     *
-     * @return string|bool
-     */
-    protected function getJsonCache($uri)
-    {
-        $id = $this->getCacheId($uri);
-        $cache = Cache::module();
-        $cacheItem = $cache->getItem($id);
-        if ($cacheItem && $cacheItem->isHit()) {
-            return $cacheItem->get();
-        }
-        return false;
-    }
-
-    /**
-     * キャッシュの保存
-     *
-     * @param string $uri
-     * @param string $contents
-     */
-    protected function saveCache($uri, $contents)
-    {
-        $id = $this->getCacheId($uri);
-        $cache = Cache::module();
-        $cache->put($id, $contents, config('json_2tpl_cache_expire', 0));
-    }
-
-    /**
-     * キャッシュidの取得
-     *
-     * @param string $uri
-     * @return string
-     */
-    protected function getCacheId($uri)
-    {
-        return md5($uri);
     }
 }

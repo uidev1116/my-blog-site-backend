@@ -2,11 +2,13 @@
 
 class ACMS_POST_Import extends ACMS_POST
 {
+    use \Acms\Traits\Unit\UnitModelTrait;
+
     public const SORT_ENTRY    = 1;
     public const SORT_USER     = 2;
     public const SORT_CATEGORY = 3;
 
-    protected $textType;
+    protected $unitType;
     protected $uploadFiledName;
 
     /**
@@ -45,7 +47,7 @@ class ACMS_POST_Import extends ACMS_POST
 
         $path = null;
         $this->init();
-        $this->textType = $this->Post->get('text_type');
+        $this->unitType = $this->Post->get('unit_type');
 
         try {
             $this->httpFile = ACMS_Http::file($this->uploadFiledName);
@@ -190,40 +192,58 @@ class ACMS_POST_Import extends ACMS_POST
 
     public function insertUnit($eid, $contents = [])
     {
-        $DB = DB::singleton(dsn());
-
+        $sql = SQL::newBulkInsert('column');
+        $sql->addColumn('column_id');
+        $sql->addColumn('column_sort');
+        $sql->addColumn('column_type');
+        $sql->addColumn('column_entry_id');
+        $sql->addColumn('column_blog_id');
+        $sql->addColumn('column_field_1');
+        if ($this->unitType === 'text') {
+            $sql->addColumn('column_field_2');
+        }
         for ($i = 0; $i < count($contents); $i++) {
-            $clid   = $DB->query(SQL::nextval('column_id', dsn()), 'seq');
-            $SQL    = SQL::newInsert('column');
-
-            $SQL->addInsert('column_id', intval($clid));
-            $SQL->addInsert('column_sort', $i + 1);
-            $SQL->addInsert('column_align', 'auto');
-            $SQL->addInsert('column_type', 'text');
-            $SQL->addInsert('column_entry_id', intval($eid));
-            $SQL->addInsert('column_blog_id', intval(BID));
-            $SQL->addInsert('column_field_1', $contents[$i]);
-            $SQL->addInsert('column_field_2', $this->textType);
-            $DB->query($SQL->get(dsn()), 'exec');
+            $data = [
+                'column_id' => $this->generateNewIdTrait(),
+                'column_sort' => $i + 1,
+                'column_type' => $this->unitType,
+                'column_entry_id' => intval($eid),
+                'column_blog_id' => intval(BID),
+                'column_field_1' => $contents[$i],
+            ];
+            if ($this->unitType === 'text') {
+                $data['column_field_2'] = 'p';
+            }
+            $sql->addInsert($data);
+        }
+        if ($sql->hasData()) {
+            DB::query($sql->get(dsn()), 'exec');
         }
     }
 
     public function insertTag($eid, $entry)
     {
-        $DB     = DB::singleton(dsn());
+        $sql = SQL::newBulkInsert('tag');
+        $sql->addColumn('tag_name');
+        $sql->addColumn('tag_sort');
+        $sql->addColumn('tag_entry_id');
+        $sql->addColumn('tag_blog_id');
 
-        $tags   = array_unique($entry['tags']);
+        $tags = array_unique($entry['tags']);
         foreach ($tags as $sort => $tag) {
             if (isReserved($tag)) {
                 continue;
             }
             $tag = preg_replace('/[ 　]+/u', '_', $tag);
-            $SQL    = SQL::newInsert('tag');
-            $SQL->addInsert('tag_name', $tag);
-            $SQL->addInsert('tag_sort', intval($sort) + 1);
-            $SQL->addInsert('tag_entry_id', intval($eid));
-            $SQL->addInsert('tag_blog_id', intval(BID));
-            $DB->query($SQL->get(dsn()), 'exec');
+            $sql->addInsert([
+                'tag_name' => $tag,
+                'tag_sort' => intval($sort) + 1,
+                'tag_entry_id' => intval($eid),
+                'tag_blog_id' => intval(BID),
+            ]);
+        }
+        if ($sql->hasData()) {
+            DB::query($sql->get(dsn()), 'exec');
         }
     }
 
@@ -232,15 +252,32 @@ class ACMS_POST_Import extends ACMS_POST
         $DB = DB::singleton(dsn());
         Common::deleteField('eid', $eid);
 
+        $sql = SQL::newBulkInsert('field');
+        $sql->addColumn('field_key');
+        $sql->addColumn('field_value');
+        $sql->addColumn('field_type');
+        $sql->addColumn('field_sort');
+        $sql->addColumn('field_search');
+        $sql->addColumn('field_eid');
+        $sql->addColumn('field_blog_id');
+
         foreach ($entry['fields'] as $i => $val) {
-            $SQL = SQL::newInsert('field');
-            $SQL->addInsert('field_key', $val['key']);
-            $SQL->addInsert('field_value', $val['value']);
-            $SQL->addInsert('field_sort', $i + 1);
-            $SQL->addInsert('field_search', 'on');
-            $SQL->addInsert('field_eid', intval($eid));
-            $SQL->addInsert('field_blog_id', intval(BID));
-            $DB->query($SQL->get(dsn()), 'exec');
+            $fieldTypeValue = null;
+            if (preg_match('/@(html|media|title)$/', $val['key'], $match)) {
+                $fieldTypeValue = $match[1];
+            }
+            $sql->addInsert([
+                'field_key' => $val['key'],
+                'field_value' => $val['value'],
+                'field_type' => $fieldTypeValue,
+                'field_sort' => $i + 1,
+                'field_search' => 'on',
+                'field_eid' => intval($eid),
+                'field_blog_id' => BID,
+            ]);
+        }
+        if ($sql->hasData()) {
+            DB::query($sql->get(dsn()), 'exec');
         }
     }
 

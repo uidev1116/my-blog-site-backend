@@ -5,7 +5,7 @@ class ACMS_GET_Admin_Webhook_Log extends ACMS_GET_Admin
     public function get()
     {
         if (!sessionWithAdministration()) {
-            return '';
+            die403();
         }
 
         $id = $this->Get->get('id');
@@ -15,7 +15,7 @@ class ACMS_GET_Admin_Webhook_Log extends ACMS_GET_Admin
         $bid = DB::query($sql->get(dsn()), 'one');
 
         if (!sessionWithAdministration($bid)) {
-            return '';
+            die403();
         }
 
         $Tpl = new Template($this->tpl, new ACMS_Corrector());

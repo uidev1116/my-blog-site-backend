@@ -4,6 +4,9 @@ class ACMS_GET_Admin_Usergroup_UserList extends ACMS_GET
 {
     public function get()
     {
+        if (BID !== 1 || !sessionWithEnterpriseAdministration()) {
+            die403();
+        }
         $DB     = DB::singleton(dsn());
         $SQL    = SQL::newSelect('user');
         $SQL->addWhereOpr('user_pass', '', '<>');

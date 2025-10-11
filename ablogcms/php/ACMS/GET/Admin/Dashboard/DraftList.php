@@ -68,7 +68,7 @@ class ACMS_GET_Admin_Dashboard_DraftList extends ACMS_GET
                 'datetime'  => $row['entry_datetime'],
                 'title' => $row['entry_title'],
                 'entryUrl'  => acmsLink([
-                    'admin' => false,
+                    'admin' => null,
                     'bid'   => $bid,
                     'eid'   => $eid,
                 ]),

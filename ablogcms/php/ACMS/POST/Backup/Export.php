@@ -1,6 +1,8 @@
 <?php
 
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\PrivateStorage;
+use Acms\Services\Facades\Common;
 
 class ACMS_POST_Backup_Export extends ACMS_POST_Backup_Base
 {
@@ -47,7 +49,7 @@ class ACMS_POST_Backup_Export extends ACMS_POST_Backup_Base
 
             $this->authCheck('backup_export');
 
-            if (Storage::exists($this->lockFile)) {
+            if (PrivateStorage::exists($this->lockFile)) {
                 throw new \RuntimeException('データベースのバックアップを中止しました。すでにバックアップ中の可能性があります。変化がない場合は、cache/system-backup-lock ファイルを削除してお試しください。');
             }
             Common::backgroundRedirect(HTTP_REQUEST_URL);
@@ -65,7 +67,7 @@ class ACMS_POST_Backup_Export extends ACMS_POST_Backup_Base
      */
     protected function run()
     {
-        Storage::put($this->lockFile, 'lock');
+        PrivateStorage::put($this->lockFile, 'lock');
         set_time_limit(0);
         $logger = App::make('db.logger');
         $this->replication = App::make('db.replication');
@@ -73,17 +75,23 @@ class ACMS_POST_Backup_Export extends ACMS_POST_Backup_Base
         DB::setThrowException(true);
         try {
             $logger->init();
-            if (!Storage::makeDirectory($this->tempDirectory)) {
+            if (!LocalStorage::makeDirectory($this->tempDirectory)) {
                 throw new Exception('ディレクトリの作成に失敗しました。storageディレクトリへの権限を確認して下さい。');
             }
             $this->dumpSql($logger);
             $logger->addMessage('圧縮中...', 0);
 
-            Storage::makeDirectory($this->backupDatabaseDir);
+            LocalStorage::makeDirectory($this->backupDatabaseDir);
             $dest = $this->backupDatabaseDir . 'database' . date('_Ymd_Hi') . '.zip';
-            Storage::compress($this->tempDirectory, $dest, 'backup_tmp');
-            Storage::removeDirectory($this->tempDirectory);
-
+            LocalStorage::compress($this->tempDirectory, $dest, 'backup_tmp');
+            if (!Common::isLocalPrivateStorage()) {
+                $content = LocalStorage::get($dest);
+                if ($content === false) {
+                    throw new RuntimeException('ファイルの読み込みに失敗しました: ' . $dest);
+                }
+                PrivateStorage::put($dest, $content);
+                LocalStorage::remove($dest);
+            }
             $logger->addMessage('バックアップ完了', 3);
             $logger->success();
         } catch (Exception $e) {
@@ -91,12 +99,13 @@ class ACMS_POST_Backup_Export extends ACMS_POST_Backup_Base
                 $logger->error($message);
                 AcmsLogger::warning('データベースのバックアップ中にでエラーが発生しました。', Common::exceptionArray($e));
             }
+        } finally {
+            LocalStorage::removeDirectory($this->tempDirectory);
+            PrivateStorage::remove($this->lockFile);
+            sleep(3);
+            $logger->terminate();
         }
         DB::setThrowException(false);
-
-        Storage::remove($this->lockFile);
-        sleep(3);
-        $logger->terminate();
     }
 
     /**
@@ -154,21 +163,26 @@ class ACMS_POST_Backup_Export extends ACMS_POST_Backup_Base
                 $logger->addMessage($table . ' をバックアップ中...', $percentage);
                 $this->replication->buildInsertSql($table, $tmp_fp);
             }
+            fclose($tmp_fp);
         } else {
             $not_writable = true;
         }
-        fclose($tmp_fp);
 
         $logger->addMessage('バックアップ確認用ファイルの生成...', 2);
         if ($hash_fp = fopen($this->hashFilePath, 'w')) {
             $str_md5 = md5_file($this->sqlFilePath);
-            $str_md5 = @mb_convert_encoding($str_md5, "UTF-8");
+            if ($str_md5 === false) {
+                throw new RuntimeException('バックアップ確認用ファイルの生成に失敗しました。');
+            }
+            $str_md5 = mb_convert_encoding($str_md5, "UTF-8");
+            if ($str_md5 === false) {
+                throw new RuntimeException('バックアップ確認用ファイルの生成に失敗しました。');
+            }
             fwrite($hash_fp, $str_md5);
+            fclose($hash_fp);
         } else {
             $not_writable = true;
         }
-        fclose($hash_fp);
-
         if ($not_writable) {
             throw new RuntimeException('ファイルへの書き込に失敗しました。storageディレクトリへの権限を確認して下さい。');
         }
@@ -184,9 +198,9 @@ class ACMS_POST_Backup_Export extends ACMS_POST_Backup_Base
     {
         $source = preg_replace('/' . DB_PREFIX . '/', 'DB_PREFIX_STR_', $source);
 
-        if ('UTF-8' <> DB_CHARSET) {
-            $val = @mb_convert_encoding($source, "UTF-8", DB_CHARSET);
-            if ($source === mb_convert_encoding($val, DB_CHARSET, 'UTF-8')) {
+        if ('UTF-8' !== DB_CHARSET && $source) {
+            $val = mb_convert_encoding($source, "UTF-8", DB_CHARSET);
+            if ($val && $source === mb_convert_encoding($val, DB_CHARSET, 'UTF-8')) {
                 $source = $val;
             }
         }

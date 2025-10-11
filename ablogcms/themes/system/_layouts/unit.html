@@ -1,38 +1,144 @@
-<!-- BEGIN edit_inplace --><div class="{class}" ></div><!-- END edit_inplace -->
-<!-- BEGIN unit:loop --><!-- BEGIN unitGroup#rear -->
-</div><!-- END unitGroup#rear --><!-- BEGIN unitGroup#front -->
-<div class="js-unit_group-align acms-entry-unit-full {class}"><!-- END unitGroup#front --><!-- BEGIN inplace#front --><!-- BEGIN_MODULE Touch_SessionWithContribution -->
-<div class="js-edit_inplace align_{unit:loop.align}" data-align="{unit:loop.align}[align2label]" id="{unit:loop.unit_eid}-{unit:loop.utid}"><!-- END_MODULE Touch_SessionWithContribution --><!-- END inplace#front -->
+<!-- BEGIN unit:loop -->
+<!-- BEGIN tree#front -->
+<!-- BEGIN unit#group -->
+@section(group-unit-start)
+<<!-- BEGIN_IF [{tag}/nem] -->{tag}<!-- ELSE -->div<!-- END_IF --><!-- BEGIN_IF [{anker}/nem] --> id="{anker}"<!-- END_IF --> class="column-group<!-- BEGIN_IF [{class}/nem] --> {class}<!-- END_IF -->">
+@endsection
+<!-- END unit#group -->
+<!-- END tree#front -->
+<!-- BEGIN unitGroup#rear -->
+<!-- ユニットグループの終了タグ -->
+</div>
+<!-- END unitGroup#rear -->
+<!-- BEGIN unitGroup#front -->
+<!-- ユニットグループの開始タグ -->
+<div class="js-unit_group-align acms-entry-unit-full {class}">
+<!-- END unitGroup#front -->
+<!-- BEGIN inplace#front -->
+<!-- BEGIN_MODULE Touch_SessionWithContribution -->
+<!-- ダイレクト編集用のタグ -->
+<div
+  class="js-edit_inplace align_{unit:loop.align}"
+  data-unit-id="{unit:loop.utid}"
+  data-unit-type="{unit:loop.type}"
+  data-unit-align="{unit:loop.align}[align2label]"
+  data-unit-status="{unit:loop.status}"
+  data-unit-entry-id="{unit:loop.unit_eid}"
+>
+<!-- END_MODULE Touch_SessionWithContribution -->
+<!-- END inplace#front -->
 <!-- BEGIN clear -->
-<hr class="clearHidden"><!-- END clear --><!-- BEGIN unit#text -->
+<!-- 非推奨（配置v1でのみ利用されます） -->
+<hr class="clearHidden">
+<!-- END clear -->
+<!-- BEGIN unit#text -->
 @section(text-unit)
 <!-- テキスト -->
 <!-- BEGIN p -->
-<p{class}>{text}[raw|nl2br]</p><!-- END p --><!-- BEGIN h2 -->
-<h2{class} <!-- BEGIN_IF [{extend_tag}/nem] -->id="{extend_tag}"<!-- END_IF -->>{text}[raw|nl2br]</h2><!-- END h2 --><!-- BEGIN h3 -->
-<h3{class} <!-- BEGIN_IF [{extend_tag}/nem] -->id="{extend_tag}"<!-- END_IF -->>{text}[raw|nl2br]</h3><!-- END h3 --><!-- BEGIN h4 -->
-<h4{class} <!-- BEGIN_IF [{extend_tag}/nem] -->id="{extend_tag}"<!-- END_IF -->>{text}[raw|nl2br]</h4><!-- END h4 --><!-- BEGIN h5 -->
-<h5{class} <!-- BEGIN_IF [{extend_tag}/nem] -->id="{extend_tag}"<!-- END_IF -->>{text}[raw|nl2br]</h5><!-- END h5 --><!-- BEGIN ul -->
-<ul{class}>{text}[raw|list]</ul><!-- END ul --><!-- BEGIN ol -->
-<ol{class}>{text}[raw|list]</ol><!-- END ol --><!-- BEGIN dl -->
-<dl{class}>{text}[raw|definition_list]</dl><!-- END dl --><!-- BEGIN blockquote -->
-<div class="entry-container"><blockquote{class}>{text}[raw|nl2br]</blockquote></div><!-- END blockquote --><!-- BEGIN table -->
-<div class="entry-container"><table{class}>{text}[raw|table]</table></div><!-- END table --><!-- BEGIN pre -->
-<div class="entry-container"><pre{class}>{text}</pre></div><!-- END pre --><!-- BEGIN none -->
-{text}[raw]<!-- END none --><!-- BEGIN markdown -->
-{text}[raw|markdown]<!-- END markdown --><!-- BEGIN wysiwyg -->
-{text}[raw]<!-- END wysiwyg -->
+<p{class}<!-- BEGIN_IF [{anker}/nem] --> id="{anker}"<!-- ELSE_IF [{extend_tag}/nem] --> id="{extend_tag}"<!-- END_IF -->>{text}[raw|nl2br]</p>
+<!-- END p -->
+<!-- BEGIN h2 -->
+<h2{class}<!-- BEGIN_IF [{anker}/nem] --> id="{anker}"<!-- ELSE_IF [{extend_tag}/nem] --> id="{extend_tag}"<!-- END_IF -->>{text}[raw|nl2br]</h2>
+<!-- END h2 -->
+<!-- BEGIN h3 -->
+<h3{class}<!-- BEGIN_IF [{anker}/nem] --> id="{anker}"<!-- ELSE_IF [{extend_tag}/nem] --> id="{extend_tag}"<!-- END_IF -->>{text}[raw|nl2br]</h3>
+<!-- END h3 -->
+<!-- BEGIN h4 -->
+<h4{class}<!-- BEGIN_IF [{anker}/nem] --> id="{anker}"<!-- ELSE_IF [{extend_tag}/nem] --> id="{extend_tag}"<!-- END_IF -->>{text}[raw|nl2br]</h4>
+<!-- END h4 -->
+ <!-- BEGIN h5 -->
+<h5{class}<!-- BEGIN_IF [{anker}/nem] --> id="{anker}"<!-- ELSE_IF [{extend_tag}/nem] --> id="{extend_tag}"<!-- END_IF -->>{text}[raw|nl2br]</h5>
+<!-- END h5 -->
+<!-- BEGIN ul -->
+<ul{class}<!-- BEGIN_IF [{anker}/nem] --> id="{anker}"<!-- ELSE_IF [{extend_tag}/nem] --> id="{extend_tag}"<!-- END_IF -->>{text}[raw|list]</ul>
+<!-- END ul -->
+<!-- BEGIN ol -->
+<ol{class}<!-- BEGIN_IF [{anker}/nem] --> id="{anker}"<!-- ELSE_IF [{extend_tag}/nem] --> id="{extend_tag}"<!-- END_IF -->>{text}[raw|list]</ol>
+<!-- END ol -->
+<!-- BEGIN dl -->
+<dl{class}<!-- BEGIN_IF [{anker}/nem] --> id="{anker}"<!-- ELSE_IF [{extend_tag}/nem] --> id="{extend_tag}"<!-- END_IF -->>{text}[raw|definition_list]</dl>
+<!-- END dl -->
+<!-- BEGIN blockquote -->
+<!-- BEGIN_IF [{unitGroupEnable}/eq/on] -->
+<div class="entry-container">
+<!-- END_IF -->
+<blockquote{class}<!-- BEGIN_IF [{anker}/nem] --> id="{anker}"<!-- ELSE_IF [{extend_tag}/nem] --> id="{extend_tag}"<!-- END_IF -->>
+  <p>{text}[raw|nl2br]</p>
+</blockquote>
+<!-- BEGIN_IF [{unitGroupEnable}/eq/on] -->
+</div>
+<!-- END_IF -->
+<!-- END blockquote -->
+<!-- BEGIN table -->
+<!-- BEGIN_IF [{unitGroupEnable}/eq/on] -->
+<div class="entry-container">
+<!-- END_IF -->
+<table{class}<!-- BEGIN_IF [{anker}/nem] --> id="{anker}"<!-- ELSE_IF [{extend_tag}/nem] --> id="{extend_tag}"<!-- END_IF -->>{text}[raw|table]</table>
+<!-- BEGIN_IF [{unitGroupEnable}/eq/on] -->
+</div>
+<!-- END_IF -->
+<!-- END table -->
+<!-- BEGIN pre -->
+<!-- BEGIN_IF [{unitGroupEnable}/eq/on] -->
+<div class="entry-container">
+<!-- END_IF -->
+<pre{class}<!-- BEGIN_IF [{anker}/nem] --> id="{anker}"<!-- ELSE_IF [{extend_tag}/nem] --> id="{extend_tag}"<!-- END_IF -->><code>{text}</code></pre>
+<!-- BEGIN_IF [{unitGroupEnable}/eq/on] -->
+</div>
+<!-- END_IF -->
+<!-- END pre -->
+
+<!-- BEGIN none -->
+{text}[raw]
+<!-- END none -->
+
+<!-- BEGIN markdown -->
+{text}[raw|markdown]
+<!-- END markdown -->
+
+<!-- BEGIN wysiwyg -->
+{text}[raw]
+<!-- END wysiwyg -->
 
 @include("/include/unit/tag-select.html")
 @endsection
 <!-- END unit#text -->
 
+<!-- BEGIN unit#html -->
+@section(html-unit)
+<div class="column-html">
+{html}[raw]
+</div>
+@endsection
+<!-- END unit#html -->
+
+<!-- BEGIN unit#markdown -->
+@section(markdown-unit)
+<div class="column-markdown">
+{html}[raw]
+</div>
+@endsection
+<!-- END unit#markdown -->
+
+<!-- BEGIN unit#wysiwyg -->
+@section(wysiwyg-unit)
+<div class="column-wysiwyg">
+{html}[raw]
+</div>
+@endsection
+<!-- END unit#wysiwyg -->
+
+<!-- BEGIN unit#code -->
+@section(code-unit)
+<pre<!-- BEGIN_IF [{anker}/nem] --> id="{anker}"<!-- END_IF -->><code>{value}</code></pre>
+@endsection
+<!-- END unit#code -->
+
 <!-- BEGIN unit#table -->
 @section(table-unit)
 <!-- テーブル -->
-<hr class="clearHidden">
-<div class="column-table-{align}">
-  <div class="entry-container">
+<div class="column-table">
+  <div<!-- BEGIN_IF [{anker}/nem] --> id="{anker}"<!-- END_IF --> <!-- BEGIN_IF [{unitGroupEnable}/eq/on] --> class="entry-container"<!-- END_IF -->>
   {table}[raw]
   </div>
 </div>
@@ -42,16 +148,30 @@
 <!-- BEGIN unit#image -->
 @section(image-unit)
 <!-- 画像 -->
-<div class="column-image-{align}{display_size_class}"{display_size}[raw]><!-- BEGIN link#front --><!-- BEGIN_IF [{url}/nem/] -->
-  <a href="{url}" {viewer}[raw] data-group="{link_eid}" data-caption="{caption}[nl2br|delnl]"><!-- END_IF --><!-- END link#front -->
-    <img
-      class="js-lazy-load columnImage unit-id-{utid}"
-      data-src="%{HTTP_ROOT}{path}"
-      alt="{alt}[delnl]"
-      width="{x}"
-      height="{y}"><!-- BEGIN link#rear -->
-  </a><!-- END link#rear --><!-- BEGIN_IF [{caption}[delnl]/nem] -->
-  <p class="caption">{caption}[raw|nl2br]</p><!-- END_IF -->
+<div class="column-image column-image-{align} align-{align}">
+  <div class="{display_size_class}" {display_size}[raw]>
+    <!-- BEGIN link#front --><!-- BEGIN_IF [{url}/nem/] -->
+    <a href="{url}" {viewer}[raw] data-group="{link_eid}">
+    <!-- END_IF --><!-- END link#front -->
+      <img
+        <!-- BEGIN_IF [{anker}/nem] -->
+        id="{anker}"
+        <!-- END_IF -->
+        src="%{HTTP_ROOT}{path}"
+        class="columnImage unit-id-{utid}"
+        alt="{alt}[delnl]"
+        width="{x}"
+        height="{y}"
+        loading="lazy"
+        decoding="async"
+      >
+    <!-- BEGIN link#rear -->
+    </a>
+    <!-- END link#rear -->
+    <!-- BEGIN_IF [{caption}[delnl]/nem] -->
+    <p class="caption">{caption}[raw|nl2br]</p>
+    <!-- END_IF -->
+  </div>
 </div>
 @endsection
 <!-- END unit#image -->
@@ -59,11 +179,25 @@
 <!-- BEGIN unit#file -->
 @section(file-unit)
 <!-- ファイル -->
-<div class="column-file-{align} js_notStyle">
-  <a href="%{HTTP_ROOT}{path}">
-    <img class="columnIcon unit-id-{utid}" src="%{HTTP_ROOT}{icon}" alt="ファイルを開く" width="{x}" height="{y}">
-  </a>
-  <!-- BEGIN_IF [{caption}[delnl]/nem] --><p class="caption">{caption}[raw|nl2br]</p><!-- END_IF -->
+<div class="column-file column-file-{align} align-{align}">
+  <div>
+    <a href="%{HTTP_ROOT}{path}">
+      <img
+        <!-- BEGIN_IF [{anker}/nem] -->
+        id="{anker}"
+        <!-- END_IF -->
+        class="columnIcon
+        unit-id-{utid}"
+        src="%{HTTP_ROOT}{icon}"
+        alt="ファイルを開く"
+        width="{x}"
+        height="{y}"
+        loading="lazy"
+        decoding="async"
+      >
+    </a>
+    <!-- BEGIN_IF [{caption}[delnl]/nem] --><p class="caption">{caption}[raw|nl2br]</p><!-- END_IF -->
+  </div>
 </div>
 @endsection
 <!-- END unit#file -->
@@ -71,8 +205,21 @@
 <!-- BEGIN unit#osmap -->
 @section(osmap-unit)
 <!-- Open Street Map -->
-<div class="column-map-{align}{display_size_class}"{display_size}[raw]>
-  <div class="js-open-street-map" data-lazy="true" data-lat="{lat}" data-lng="{lng}" data-zoom="{zoom}" data-msg="{msgRaw}" style="width: {x}px; height: {y}px;"></div>
+<div class="column-map column-map-{align} align-{align}" style="overflow: hidden;">
+  <div class="{display_size_class}" {display_size}[raw]<!-- BEGIN_IF [{display_size_class}{display_size}/em] --> style="width: {x}px;"<!-- END_IF -->>
+    <div
+      <!-- BEGIN_IF [{anker}/nem] -->
+      id="{anker}"
+      <!-- END_IF -->
+      class="js-open-street-map"
+      style="max-width: 100%; height: auto;<!-- BEGIN_IF [{x}/nem/_and_/{y}/nem] --> aspect-ratio: {x}/{y};<!-- END_IF -->"
+      data-lazy="true"
+      data-lat="{lat}"
+      data-lng="{lng}"
+      data-zoom="{zoom}"
+      data-msg="{msgRaw}"
+    ></div>
+  </div>
 </div>
 @endsection
 <!-- END unit#osmap -->
@@ -80,22 +227,41 @@
 <!-- BEGIN unit#map -->
 @section(map-unit)
 <!-- Google Maps -->
-
 <!-- BEGIN_IF [{view_activate}/nem] -->
-<div class="column-street-view-{align}{display_size_class}"{display_size}[raw]>
-  <div class="js-street-view column-inner-street-view" data-lazy="true" data-lat="{lat}" data-lng="{lng}" data-pitch="{view_pitch}" data-zoom="{view_zoom}" data-heading="{view_heading}"></div>
+<div class="column-street-view column-street-view-{align} align-{align}">
+  <div class="{display_size_class}" {display_size}[raw]<!-- BEGIN_IF [{display_size_class}{display_size}/em] --> style="width: {x}px;"<!-- END_IF -->>
+    <div
+      <!-- BEGIN_IF [{anker}/nem] -->
+      id="{anker}"
+      <!-- END_IF -->
+      class="js-street-view"
+      style="max-width: 100%; height: auto;<!-- BEGIN_IF [{x}/nem/_and_/{y}/nem] --> aspect-ratio: {x}/{y};<!-- END_IF -->"
+      data-lazy="true"
+      data-lat="{lat}"
+      data-lng="{lng}"
+      data-pitch="{view_pitch}"
+      data-zoom="{view_zoom}"
+      data-heading="{view_heading}"
+    ></div>
+  </div>
 </div>
 <!-- ELSE -->
-<div class="column-map-{align}{display_size_class}"{display_size}[raw]>
-  @include("/include/gmaps-error.html")
-  <img
-    data-lazy="true"
-    src="https://maps.googleapis.com/maps/api/staticmap?center={lat},{lng}&zoom={zoom}&size={x}x{y}&maptype=roadmap&markers={lat},{lng}&key=%{GOOGLE_API_KEY}"
-    alt="{msg}"
-    width="{x}"
-    height="{y}"
-    title="クリックで地図が動かせるようになります。"
-  >
+<div class="column-map column-map-{align} align-{align}">
+  <div class="{display_size_class}" {display_size}[raw]<!-- BEGIN_IF [{display_size_class}{display_size}/em] --> style="width: {x}px;"<!-- END_IF -->>
+    @include("/include/gmaps-error.html")
+    <img
+      <!-- BEGIN_IF [{anker}/nem] -->
+      id="{anker}"
+      <!-- END_IF -->
+      class="js-s2d-ready"
+      style="max-width: 100%; height: auto;<!-- BEGIN_IF [{x}/nem/_and_/{y}/nem] --> aspect-ratio: {x}/{y};<!-- END_IF -->"
+      width="{x}"
+      height="{y}"
+      src="https://maps.googleapis.com/maps/api/staticmap?center={lat},{lng}&zoom={zoom}&size={x}x{y}&maptype=roadmap&markers={lat},{lng}&key=%{GOOGLE_API_KEY}"
+      alt="{msg}"
+      data-lazy="true"
+    >
+  </div>
 </div>
 <!-- END_IF -->
 @endsection
@@ -104,9 +270,24 @@
 <!-- BEGIN unit#youtube -->
 @section(youtube-unit)
 <!-- YouTube -->
-<div class="column-youtube-{align}{display_size_class}"{display_size}[raw]>
-  <div class="column-iframe">
-    <iframe width="{x}" height="{y}" src="https://www.youtube.com/embed/{youtubeId}?wmode=transparent&rel=0" frameborder="0" allowfullscreen></iframe>
+<div class="column-youtube column-youtube-{align} align-{align}">
+  <div class="{display_size_class}" {display_size}[raw]>
+    <div class="column-iframe">
+      <iframe
+        <!-- BEGIN_IF [{anker}/nem] -->
+        id="{anker}"
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{x}/nem/_and_/{y}/nem] -->
+        style="aspect-ratio: {x}/{y};"
+        <!-- END_IF -->
+        width="{x}"
+        height="{y}"
+        src="https://www.youtube.com/embed/{youtubeId}?wmode=transparent&rel=0"
+        frameborder="0"
+        allowfullscreen
+        loading="lazy"
+      ></iframe>
+    </div>
   </div>
 </div>
 @endsection
@@ -115,9 +296,25 @@
 <!-- BEGIN unit#video -->
 @section(video-unit)
 <!-- Video -->
-<div class="column-video-{align}{display_size_class}"{display_size}[raw]>
-  <div class="column-iframe">
-    <iframe class="js-lazy-load is-movie" width="{x}" height="{y}" data-src="https://www.youtube.com/embed/{videoId}?wmode=transparent&rel=0" frameborder="0" allowfullscreen></iframe>
+<div class="column-video column-video-{align} align-{align}">
+  <div class="{display_size_class}" {display_size}[raw]>
+    <div class="column-iframe">
+      <iframe
+        <!-- BEGIN_IF [{anker}/nem] -->
+        id="{anker}"
+        <!-- END_IF -->
+        class="is-movie"
+        <!-- BEGIN_IF [{x}/nem/_and_/{y}/nem] -->
+        style="aspect-ratio: {x}/{y};"
+        <!-- END_IF -->
+        width="{x}"
+        height="{y}"
+        src="https://www.youtube.com/embed/{videoId}?wmode=transparent&rel=0"
+        frameborder="0"
+        allowfullscreen
+        loading="lazy"
+      ></iframe>
+    </div>
   </div>
 </div>
 @endsection
@@ -126,17 +323,25 @@
 <!-- BEGIN unit#eximage -->
 @section(eximage-unit)
 <!-- 画像URL -->
-<div class="column-eximage-{align}{display_size_class}"{display_size}[raw]><!-- BEGIN link#front -->
-  <a href="{url}" {viewer}[raw] data-group="{link_eid}"><!-- END link#front -->
-    <img
-      class="js-lazy-load columnImage"
-      data-src="{normal}"
-      alt="{alt}"
-      width="{x}"
-      height="{y}"
-    ><!-- BEGIN link#rear -->
-  </a><!-- END link#rear --><!-- BEGIN_IF [{caption}[delnl]/nem] -->
-  <p class="caption">{caption}[raw|nl2br]</p><!-- END_IF -->
+<div class="column-eximage column-eximage-{align} align-{align}">
+  <div class="{display_size_class}" {display_size}[raw]>
+    <!-- BEGIN link#front -->
+    <a href="{url}" {viewer}[raw] data-group="{link_eid}"><!-- END link#front -->
+      <img
+        <!-- BEGIN_IF [{anker}/nem] -->
+        id="{anker}"
+        <!-- END_IF -->
+        src="{normal}"
+        class="columnImage"
+        alt="{alt}"
+        width="{x}"
+        height="{y}"
+        loading="lazy"
+        decoding="async"
+      ><!-- BEGIN link#rear -->
+    </a><!-- END link#rear --><!-- BEGIN_IF [{caption}[delnl]/nem] -->
+    <p class="caption">{caption}[raw|nl2br]</p><!-- END_IF -->
+  </div>
 </div>
 @endsection
 <!-- END unit#eximage -->
@@ -144,65 +349,128 @@
 <!-- BEGIN unit#media -->
 @section(media-unit)
 <!-- media -->
-<div class="column-media-{align}{display_size_class}"{display_size}[raw]><!-- BEGIN type#image --><!-- BEGIN link#front -->
-  <a href="{url}" {viewer}[raw] data-group="{link_eid}"><!-- END link#front -->
-    <img
-      class="js-lazy-load columnImage unit-id-{image_utid}"
-      data-src="%{HTTP_ROOT}{path}[resizeImg({resizeWidth})]"
-      width="{x}"
-      height="{y}"
-      alt="{alt}"
-    >
+<div class="column-media column-media-{align} align-{align}">
+  <div class="{display_size_class}" {display_size}[raw]>
+    <!-- BEGIN type#image -->
+    <!-- BEGIN link#front -->
+    <a href="{url}" {viewer}[raw] data-group="{link_eid}">
+    <!-- END link#front -->
+      <img
+        <!-- BEGIN_IF [{anker}/nem] -->
+        id="{anker}"
+        <!-- END_IF -->
+        src="%{HTTP_ROOT}{path}[resizeImg({resizeWidth})]"
+        class="columnImage unit-id-{image_utid}"
+        width="{x}"
+        height="{y}"
+        alt="{alt}"
+        loading="lazy"
+        decoding="async"
+      >
     <!-- BEGIN link#rear -->
-  </a><!-- END link#rear --><!-- BEGIN_IF [{caption}[delnl]/nem] -->
-  <p class="caption">{caption}[raw|nl2br]</p><!-- END_IF -->
-
-  <!-- END type#image --><!-- BEGIN type#svg --><!-- BEGIN link#front -->
-  <a href="{url}" {viewer}[raw] data-group="{link_eid}"><!-- END link#front -->
-    <img
-      class="js-lazy-load columnImage unit-id-{svg_utid}"
-      data-src="%{HTTP_ROOT}{path}"
-      alt="{alt}"
-      width="{x}"
-      height="{y}"
-    ><!-- BEGIN link#rear -->
-  </a><!-- END link#rear --><!-- BEGIN_IF [{caption}[delnl]/nem] -->
-  <p class="caption">{caption}[raw|nl2br]</p><!-- END_IF -->
-
-  <!-- END type#svg --><!-- BEGIN type#file -->
-  <a href="{url}" target="_blank" class="js-link_no_rewrite"><!-- BEGIN_IF [{thumbnail}/nem/_and_/{use_icon}/neq/yes] -->
-    <img class="column-pdf-image unit-id-{file_utid}" src="%{MEDIA_ARCHIVES_DIR}{thumbnail}" alt="{alt}">
-    <!-- ELSE -->
-    <img class="columnIcon" src="%{HTTP_ROOT}{icon}" alt="{alt}" width="{x}" height="{y}">
+    </a>
+    <!-- END link#rear -->
+    <!-- BEGIN_IF [{caption}[delnl]/nem] -->
+    <p class="caption">{caption}[raw|nl2br]</p>
     <!-- END_IF -->
-  </a> <!-- BEGIN_IF [{caption}[delnl]/nem] -->
-  <p class="caption">{caption}[raw|nl2br]</p><!-- END_IF --><!-- END type#file -->
+    <!-- END type#image -->
+    <!-- BEGIN type#svg -->
+    <!-- BEGIN link#front -->
+    <a href="{url}" {viewer}[raw] data-group="{link_eid}">
+    <!-- END link#front -->
+      <img
+        <!-- BEGIN_IF [{anker}/nem] -->
+        id="{anker}"
+        <!-- END_IF -->
+        src="%{HTTP_ROOT}{path}"
+        class="columnImage unit-id-{svg_utid}"
+        alt="{alt}"
+        width="{x}"
+        height="{y}"
+        loading="lazy"
+        decoding="async"
+      >
+    <!-- BEGIN link#rear -->
+    </a>
+    <!-- END link#rear -->
+    <!-- BEGIN_IF [{caption}[delnl]/nem] -->
+    <p class="caption">{caption}[raw|nl2br]</p>
+    <!-- END_IF -->
+    <!-- END type#svg -->
+    <!-- BEGIN type#file -->
+    <a<!-- BEGIN_IF [{anker}/nem] --> id="{anker}"<!-- END_IF --> href="{url}" target="_blank">
+      <!-- BEGIN_IF [{thumbnail}/nem/_and_/{use_icon}/neq/yes] -->
+      <img
+        class="column-pdf-image unit-id-{file_utid}"
+        src="%{MEDIA_ARCHIVES_DIR}{thumbnail}"
+        alt="{alt}"
+        width="{x}"
+        height="{y}"
+        loading="lazy"
+        decoding="async"
+      >
+      <!-- ELSE -->
+      <img
+        class="columnIcon"
+        src="%{HTTP_ROOT}{icon}"
+        alt="{alt}"
+        width="{x}"
+        height="{y}"
+        loading="lazy"
+        decoding="async"
+      >
+      <!-- END_IF -->
+    </a>
+    <!-- BEGIN_IF [{caption}[delnl]/nem] -->
+    <p class="caption">{caption}[raw|nl2br]</p>
+    <!-- END_IF -->
+    <!-- END type#file -->
+  </div>
 </div>
 @endsection
 <!-- END unit#media -->
 
 <!-- BEGIN unit#rich-editor -->
 @section(rich-editor)
-<div>{html}[raw]</div>
+<div class="column-rich-editor">
+{html}[raw]
+</div>
 @endsection
 <!-- END unit#rich-editor -->
 
+<!-- BEGIN unit#block-editor -->
+@section(block-editor)
+<div class="column-block-editor">
+{html}[raw]
+</div>
+@endsection
+<!-- END unit#block-editor -->
+
 <!-- BEGIN unit#quote -->
 @section(quote-unit)
-<!-- 引用 -->
-<div class="column-quote-{align}"{display_size}[raw]><!-- BEGIN html:veil -->
+<!-- 埋め込み -->
+<div class="column-embed column-embed-{align} align-{align}"><!-- BEGIN html:veil -->
   {quote_html}[raw]<!-- END html:veil --><!-- BEGIN_IF [{quote_title}/nem/] -->
-  <blockquote class="js-biggerlink"><!-- BEGIN image:veil -->
-    <div class="quoteImageContainer">
-      <img src="{quote_image}" class="quoteImage" width="{x}" height="{y}"  alt="">
-    </div><!-- END image:veil -->
-    <div>
-      <p class="quoteTitle"><a href="{quote_url}" class="quoteTitleLink">{quote_title}</a></p><!-- BEGIN site_name:veil -->
-      <p class="quoteSiteName">{quote_site_name}</p><!-- END site_name:veil --><!-- BEGIN description:veil -->
-      <p class="quoteDescription">{quote_description}[raw|trim(180, '...')]</p><!-- END description:veil -->
+  <a <!-- BEGIN_IF [{anker}/nem] --> id="{anker}"<!-- END_IF --> href="{quote_url}" target="_blank" rel="noopener noreferrer" class="not-editor-style acms-embed-link">
+    <!-- BEGIN image:veil -->
+    <div class="acms-embed-link-image-container quoteImageContainer">
+      <img
+        src="{quote_image}"
+        class="quoteImage"
+        width="{x}"
+        height="{y}"
+        loading="lazy"
+        decoding="async"
+        alt="{quote_title}"
+      >
     </div>
-    <hr class="clearHidden">
-  </blockquote><!-- END_IF -->
+    <!-- END image:veil -->
+    <div class="acms-embed-link-content">
+      <div class="acms-embed-link-title quoteTitle">{quote_title}</div><!-- BEGIN site_name:veil -->
+      <div class="acms-embed-link-site-name quoteSiteName">{quote_site_name}</div><!-- END site_name:veil --><!-- BEGIN description:veil -->
+      <div class="acms-embed-link-description quoteDescription">{quote_description}[raw|trim(180, '...')]</div><!-- END description:veil -->
+    </div>
+  </a><!-- END_IF -->
 </div>
 @endsection
 <!-- END unit#quote -->
@@ -234,6 +502,21 @@
 @include("/include/unit/extend.html")
 @endsection
 
-<!-- BEGIN inplace#rear --><!-- BEGIN_MODULE Touch_SessionWithContribution --></div><!-- END_MODULE Touch_SessionWithContribution --><!-- END inplace#rear -->
-<!-- BEGIN unitGroup#last --></div><!-- END unitGroup#last -->
+<!-- BEGIN inplace#rear -->
+<!-- BEGIN_MODULE Touch_SessionWithContribution -->
+<!-- ダイレクト編集用の終了タグ -->
+</div>
+<!-- END_MODULE Touch_SessionWithContribution -->
+<!-- END inplace#rear -->
+<!-- BEGIN unitGroup#last -->
+<!-- ユニットグループの終了タグ -->
+</div>
+<!-- END unitGroup#last -->
+<!-- BEGIN tree#rear -->
+<!-- BEGIN unit#group -->
+@section(group-unit-end)
+</<!-- BEGIN_IF [{tag}/nem] -->{tag}<!-- ELSE -->div<!-- END_IF -->>
+@endsection
+<!-- END unit#group -->
+<!-- END tree#rear -->
 <!-- END unit:loop -->

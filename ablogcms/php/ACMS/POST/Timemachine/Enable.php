@@ -7,7 +7,7 @@ class ACMS_POST_Timemachine_Enable extends ACMS_POST
     public function post()
     {
         if (!timemachineAuth()) {
-            die('NG');
+            die403();
         }
         $session =& Field::singleton('session');
         $date = $this->Post->get('date');
@@ -31,8 +31,10 @@ class ACMS_POST_Timemachine_Enable extends ACMS_POST
             Preview::startPreviewMode($fakeUa, $token);
 
             AcmsLogger::info('タイムマシンモードを開始しました');
+            Common::setSafeHeadersWithoutCache(200, 'text/plain');
             die('OK');
         }
+        Common::setSafeHeadersWithoutCache(200, 'text/plain');
         die('NG');
     }
 }

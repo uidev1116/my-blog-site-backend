@@ -5,7 +5,7 @@ class ACMS_GET_Admin_Fix_UnitGroup extends ACMS_GET_Admin_Fix
     function fix(&$Tpl, $block)
     {
         if (!sessionWithAdministration()) {
-            return false;
+            die403();
         }
 
         $DB     = DB::singleton(dsn());

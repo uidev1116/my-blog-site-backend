@@ -1,0 +1,52 @@
+<h3 class="acms-admin-admin-title2"><!--T-->位置オプション<!--/T--></h3>
+<table class="adminTable acms-admin-table-admin-edit">
+  <tr>
+    <th><!--T-->半径<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ここで指定した半径以内のエントリーで絞り込みます。0を指定した場合絞り込みません。<!--/T-->"></i></th>
+    <td>
+      <input type="text" name="blog_geo-list_within" value="{blog_geo-list_within}" size="4" class="acms-admin-form-width-mini"  /> km以内で絞り込む
+      <input type="hidden" name="config[]" value="blog_geo-list_within" />
+      <input type="hidden" name="blog_geo-list_within:c" value="a" />
+      <input type="hidden" name="blog_geo-list_within:validator#digits" id="validator-blog_geo-list_within-digits" />
+      <div role="alert" aria-live="assertive">
+        <div data-validator-label="validator-blog_geo-list_within-digits" class="validator-result-{blog_geo-list_within:validator#digits}">
+          <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->数字を入力して下さい。<!--/T--></p>
+        </div>
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <th><!--T-->基準点<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->基準点の参照方法を指定します。<!--/T-->"></i></th>
+    <td>
+      <div class="acms-admin-form-radio">
+        <input type="radio" name="blog_geo-list_reference_point" value="url_context"{blog_geo-list_reference_point:checked#url_context} id="input-raido-entry-geo-list-reference-point-url-context" />
+        <label for="input-raido-entry-geo-list-reference-point-url-context"><i class="acms-admin-ico-radio"></i><!--T-->URLコンテキストのブログの位置情報を参照<!--/T--></label>
+      </div>
+      <div class="acms-admin-form-radio">
+        <input type="radio" name="blog_geo-list_reference_point" value="url_query_string"{blog_geo-list_reference_point:checked#url_query_string} id="input-raido-entry-geo-list-reference-point-url-query-string" />
+        <label for="input-raido-entry-geo-list-reference-point-url-query-string"><i class="acms-admin-ico-radio"></i><!--T-->URLクエリストリングの位置情報を参照<!--/T-->（?lat=xxx&lng=xxx）</label>
+      </div>
+      <input type="hidden" name="config[]" value="blog_geo-list_reference_point" />
+    </td>
+  </tr>
+</table>
+
+<h3 class="acms-admin-admin-title2"><!--T-->ブログ<!--/T--></h3>
+<table class="adminTable acms-admin-table-admin-edit">
+  <tr>
+    <th><!--T-->表示件数<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->一度に表示される件数です。<!--/T-->"></i></th>
+    <td>
+      <input type="text" name="blog_geo-list_limit" value="{blog_geo-list_limit}" size="4" class="acms-admin-form-width-mini" />
+      <input type="hidden" name="config[]" value="blog_geo-list_limit" />
+      <input type="hidden" name="blog_geo-list_limit:c" value="a" />
+      <input type="hidden" name="blog_geo-list_limit:validator#digits" id="validator-blog_geo-list_limit-digits" />
+      <div role="alert" aria-live="assertive">
+        <div data-validator-label="validator-blog_geo-list_limit-digits" class="validator-result-{blog_geo-list_limit:validator#digits}">
+          <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->数字を入力して下さい。<!--/T--></p>
+        </div>
+      </div>
+    </td>
+  </tr>
+</table><!-- BEGIN_MODULE Admin_Rule_Name -->
+<input type="hidden" name="rid" value="{rid}" /><!-- END_MODULE Admin_Rule_Name --><!-- BEGIN_MODULE Admin_Module_Name -->
+<input type="hidden" name="mid" value="{mid}" /><!-- END_MODULE Admin_Module_Name --><!-- BEGIN_MODULE Admin_Config_Set_Name -->
+<input type="hidden" name="setid" value="{setid}" /><!-- END_MODULE Admin_Config_Set_Name -->

@@ -42,11 +42,9 @@ class ACMS_GET_Admin_Module_Edit extends ACMS_GET_Admin_Edit
         if (Module::canUpdate(BID)) {
             return true;
         }
-
-        if ($this->shortcutAuthorization()) {
+        if (Module::canUpdateWithShortcut($this->moduleId, $this->ruleId)) {
             return true;
         }
-
         return false;
     }
 

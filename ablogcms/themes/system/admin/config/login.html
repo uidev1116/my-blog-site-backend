@@ -22,7 +22,19 @@
 </div>
 <!-- END_IF -->
 
-<p class="transaction-notice-{config:validator} acms-admin-alert acms-admin-alert-danger"><!--T-->コンフィグを保存出来ませんでした。<!--/T--></p>
+<!-- BEGIN msg#error -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-danger acms-admin-alert-icon">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+  <!--T-->コンフィグを保存出来ませんでした。<!--/T-->
+</div>
+<!-- END msg#error -->
 
 <form action="" method="post" class="js-adminSave acms-admin-form">
   <div class="js-acms_fix_marker acms_fix_bg">
@@ -100,6 +112,19 @@
           </label>
         </div>
         <input type="hidden" name="config[]" value="subscriber_view_mode" />
+      </td>
+    </tr>
+    <tr>
+      <th><!--T-->一般サインイン機能<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->チェックをすると一般サインイン・パスワード再発行機能を有効にします。<!--/T-->"></i></th>
+      <td>
+        <input type="hidden" name="member_login_enable" value="off" />
+        <div class="acms-admin-form-checkbox">
+          <input type="checkbox" name="member_login_enable" value="on"{member_login_enable:checked#on} id="input-checkbox-member_login_enable" />
+          <label for="input-checkbox-member_login_enable">
+            <i class="acms-admin-ico-checkbox"></i><!--T-->一般サインイン機能を有効にする<!--/T-->
+          </label>
+        </div>
+        <input type="hidden" name="config[]" value="member_login_enable" />
       </td>
     </tr>
     <tr>
@@ -607,42 +632,6 @@
         </p>
         <br>
         <p>Callback URL : %{BLOG_URL}callback/signin/twitter.html</p>
-      </td>
-    </tr>
-    <tr>
-      <th>
-        <a href="http://developers.facebook.com/">Facebook</a>
-        <i
-          class="acms-admin-icon-tooltip js-acms-tooltip-hover"
-          data-acms-tooltip="取得した<a href='http://developers.facebook.com/' target='_blank'>Facebookアプリケーション</a>の情報をセットします。"
-        ></i>
-      </th>
-      <td>
-        <div class="acms-admin-alert acms-admin-alert-warning">
-          Facebookによるログイン機能は、将来廃止予定になります。
-        </div>
-        <p>
-          Application ID<br>
-          <input
-            type="text"
-            name="facebook_app_id"
-            value="{facebook_app_id}"
-            class="acms-admin-form-width-large"
-          />
-          <input type="hidden" name="config[]" value="facebook_app_id" />
-        </p>
-        <p>
-          <br>Application Secret<br>
-          <input
-            type="text"
-            name="facebook_app_secret"
-            value="{facebook_app_secret}"
-            class="acms-admin-form-width-large"
-          />
-          <input type="hidden" name="config[]" value="facebook_app_secret" />
-        </p>
-        <br>
-        <p>Callback URL : %{BLOG_URL}callback/signin/facebook.html</p>
       </td>
     </tr>
   </table>

@@ -1,59 +1,66 @@
 <div class="acms-admin-system-topicpath-wrap">
-	<!-- BEGIN_MODULE Admin_Topicpath -->
-	<ol class="acms-admin-system-topicpath">
-		<!-- BEGIN_IF [{blog_theme_logo@squarePath}/nem/] -->
-		<li class="site-image">
-			<img src="%{ARCHIVES_DIR}{blog_theme_logo@squarePath}" width="36" height="36" >
-		</li>
-		<!-- END_IF -->
-		<!-- BEGIN topic:loop -->
-		<li>
-			<!-- BEGIN_IF [{child_blog}/nem] -->
-			<span class="js-acms-dropdown-toggle js-acms-dropdown-toggle-hover acms-admin-dropdown-bottom">
-				<a href="{url}" class="js-acms-dropdown-btn link">
-					@include("/admin/topicpath-list.html")
-					<span class="acms-admin-arrow-bottom"></span>
-				</a>
-				<ul class="js-acms-dropdown-menu acms-admin-list-scroll"><!-- BEGIN childBlog:loop -->
-					<li><a href="{blogUrl}">{name}</a></li><!-- END childBlog:loop -->
-				</ul>
-			</span>
-			<!-- ELSE_IF [{config_set}/nem] -->
-			<span class="js-acms-dropdown-toggle js-acms-dropdown-toggle-hover acms-admin-dropdown-bottom">
-				<a href="{url}" class="js-acms-dropdown-btn link">
-					@include("/admin/topicpath-list.html")
-					<span class="acms-admin-arrow-bottom"></span>
-				</a>
-				<ul class="js-acms-dropdown-menu acms-admin-list-scroll"><!-- BEGIN configSet:loop -->
-					<li><a href="{configSetUrl}">{name}</a></li><!-- END configSet:loop -->
-				</ul>
-			</span>
-			<!-- ELSE_IF [{rule}/nem] -->
-			<span class="js-acms-dropdown-toggle js-acms-dropdown-toggle-hover acms-admin-dropdown-bottom">
-				<a href="{url}" class="js-acms-dropdown-btn link">
-					@include("/admin/topicpath-list.html")
-					<span class="acms-admin-arrow-bottom"></span>
-				</a>
-				<ul class="js-acms-dropdown-menu acms-admin-list-scroll"><!-- BEGIN rule:loop -->
-					<li><a href="{ruleUrl}">{name}</a></li><!-- END rule:loop -->
-				</ul>
-			</span>
-			<!-- ELSE -->
-			<a href="{url}" class="link">
-				@include("/admin/topicpath-list.html")
-			</a>
-			<!-- END_IF -->
-		</li><!-- END topic:loop -->
-	</ol>
-	<!-- END_MODULE Admin_Topicpath -->
+  <!-- BEGIN_MODULE Admin_Topicpath -->
+  <ol class="acms-admin-system-topicpath">
+    <!-- BEGIN_IF [{blog_theme_logo@squarePath}/nem/] -->
+    <li class="site-image">
+      <img src="%{ARCHIVES_DIR}{blog_theme_logo@squarePath}" width="36" height="36" >
+    </li>
+    <!-- END_IF -->
+    <!-- BEGIN topic:loop -->
+    <li>
+      <!-- BEGIN_IF [{child_blog}/nem] -->
+      <span class="js-acms-dropdown-toggle js-acms-dropdown-toggle-hover acms-admin-dropdown-bottom">
+        <a href="{url}" class="js-acms-dropdown-btn link">
+          @include("/admin/topicpath-list.html")
+          <span class="acms-admin-arrow-bottom acms-admin-margin-left-mini"></span>
+        </a>
+        <ul class="js-acms-dropdown-menu acms-admin-dropdown-menu acms-admin-list-scroll">
+          <!-- BEGIN childBlog:loop -->
+          <li><a href="{blogUrl}">{name}</a></li>
+          <!-- END childBlog:loop -->
+        </ul>
+      </span>
+      <!-- ELSE_IF [{config_set}/nem] -->
+      <span class="js-acms-dropdown-toggle js-acms-dropdown-toggle-hover acms-admin-dropdown-bottom">
+        <a href="{url}" class="js-acms-dropdown-btn link">
+          @include("/admin/topicpath-list.html")
+          <span class="acms-admin-arrow-bottom acms-admin-margin-left-mini"></span>
+        </a>
+        <ul class="js-acms-dropdown-menu acms-admin-dropdown-menu acms-admin-list-scroll">
+          <!-- BEGIN configSet:loop -->
+          <li><a href="{configSetUrl}">{name}</a></li>
+          <!-- END configSet:loop -->
+        </ul>
+      </span>
+      <!-- ELSE_IF [{rule}/nem] -->
+      <span class="js-acms-dropdown-toggle js-acms-dropdown-toggle-hover acms-admin-dropdown-bottom">
+        <a href="{url}" class="js-acms-dropdown-btn link">
+          @include("/admin/topicpath-list.html")
+          <span class="acms-admin-arrow-bottom acms-admin-margin-left-mini"></span>
+        </a>
+        <ul class="js-acms-dropdown-menu acms-admin-dropdown-menu acms-admin-list-scroll">
+          <!-- BEGIN rule:loop -->
+          <li><a href="{ruleUrl}">{name}</a></li>
+          <!-- END rule:loop -->
+        </ul>
+      </span>
+      <!-- ELSE -->
+      <a href="{url}" class="link">
+        @include("/admin/topicpath-list.html")
+      </a>
+      <!-- END_IF -->
+    </li><!-- END topic:loop -->
+  </ol>
+  <!-- END_MODULE Admin_Topicpath -->
 
-	<form action="" method="post" class="acms-admin-system-view-site-wrap">
-		<p class="acms-admin-system-view-site">
-			<!-- BEGIN_MODULE Touch_SwitchingUser -->
-			<button type="submit" name="ACMS_POST_User_SwitchOriginal" class="acms-admin-btn-admin acms-admin-btn-admin-info"><i class="acms-admin-icon-config_user_profile" aria-hidden="true"></i><!--T-->元のユーザーに戻る<!--/T--></button>
-			<!-- END_MODULE Touch_SwitchingUser -->
-
-			<a href="%{BLOG_URL}" class="acms-admin-btn"><i class="acms-admin-icon-exit" aria-hidden="true"></i><!--T-->サイトを表示<!--/T--></a>
-		</p>
-	</form>
+  <form action="" method="post" class="acms-admin-system-view-site-wrap">
+    <p class="acms-admin-system-view-site">
+      <!-- BEGIN_MODULE Touch_SwitchingUser -->
+      <button type="submit" name="ACMS_POST_User_SwitchOriginal" class="acms-admin-btn-admin acms-admin-btn-admin-info"><i class="acms-admin-icon-config_user_profile" aria-hidden="true"></i><!--T-->元のユーザーに戻る<!--/T--></button>
+      <!-- END_MODULE Touch_SwitchingUser -->
+      <!-- BEGIN_MODULE Touch_NotEdit -->
+      <a href="%{BLOG_URL}" class="acms-admin-btn"><i class="acms-admin-icon-exit" aria-hidden="true"></i><!--T-->サイトを表示<!--/T--></a>
+      <!-- END_MODULE Touch_NotEdit -->
+    </p>
+  </form>
 </div>

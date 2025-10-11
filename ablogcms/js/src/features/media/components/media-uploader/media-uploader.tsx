@@ -18,6 +18,7 @@ interface MediaUploadItem {
   file: File;
   filetype: string;
   preview: string;
+  blob?: Blob | null; // for heic
   id: string;
   idx: number;
   progress: number;
@@ -72,8 +73,7 @@ export default class MediaUploader extends Component<MediaUploaderProps, MediaUp
   }
 
   async createPdfThumbnail(file: Blob | File) {
-    const [, largeSize] = ACMS.Config.lgImg.split(':');
-    const pdf = await createPdf(file, parseInt(largeSize, 10), 1);
+    const pdf = await createPdf(file, 1);
     return pdf;
   }
 
@@ -206,25 +206,48 @@ export default class MediaUploader extends Component<MediaUploaderProps, MediaUp
 
       [].forEach.call(items, (item: MediaUploadItem) => {
         const { name, filetype, file } = item;
+        const isHeic = filetype === 'image' && /(heic|heif)/i.test(file.type);
+        const isSvg = filetype === 'image' && file.type.includes('svg');
+        const isGif = filetype === 'image' && file.type.includes('gif');
+
         const promise = new Promise<MediaItem>((resolve) => {
-          if (filetype === 'image' && file.type.indexOf('svg') === -1 && file.type.indexOf('gif') === -1) {
-            resizeImage.getBlobFromFile(file, resizeType, parseInt(largeSize, 10)).then(({ blob, resize }) => {
-              const uploadData = resize && ACMS.Config.mediaClientResize !== 'off' ? blob : file;
-              this.upload(uploadData, label, name, item).then((uploadedItem) => {
+          if (filetype === 'image') {
+            if (isHeic) {
+              // heic は blob があるのでそれをアップロード
+              if (item.blob instanceof Blob) {
+                this.upload(item.blob, label, name, item).then((uploadedItem) => {
+                  this.setUploadedItem(item, uploadedItem);
+                  resolve(uploadedItem);
+                });
+              }
+            } else if (isSvg) {
+              // svg は text を取得して DOMPurify でクリーンアップしてからアップロード
+              file.text().then((text) => {
+                const clean = DOMPurify.sanitize(text, { USE_PROFILES: { svg: true, svgFilters: true } });
+                const reBlob = new Blob([clean], { type: 'image/svg+xml' });
+                this.upload(reBlob, label, name, item).then((uploadedItem) => {
+                  this.setUploadedItem(item, uploadedItem);
+                  resolve(uploadedItem);
+                });
+              });
+            } else if (isGif) {
+              // gif はリサイズせずそのままアップロード
+              this.upload(file, label, name, item).then((uploadedItem) => {
                 this.setUploadedItem(item, uploadedItem);
                 resolve(uploadedItem);
               });
-            });
-          } else if (file.type.indexOf('svg') !== -1) {
-            file.text().then((text) => {
-              const clean = DOMPurify.sanitize(text, { USE_PROFILES: { svg: true, svgFilters: true } });
-              const reBlob = new Blob([clean], { type: 'image/svg+xml' });
-              this.upload(reBlob, label, name, item).then((uploadedItem) => {
-                this.setUploadedItem(item, uploadedItem);
-                resolve(uploadedItem);
+            } else {
+              // それ以外はリサイズしてアップロード
+              resizeImage.getBlobFromFile(file, resizeType, parseInt(largeSize, 10)).then(({ blob, resize }) => {
+                const uploadData = resize && ACMS.Config.mediaClientResize !== 'off' ? blob : file;
+                this.upload(uploadData, label, name, item).then((uploadedItem) => {
+                  this.setUploadedItem(item, uploadedItem);
+                  resolve(uploadedItem);
+                });
               });
-            });
+            }
           } else {
+            // ファイルはそのままアップロード
             this.upload(file, label, name, item).then((uploadedItem) => {
               this.setUploadedItem(item, uploadedItem);
               resolve(uploadedItem);
@@ -252,6 +275,7 @@ export default class MediaUploader extends Component<MediaUploaderProps, MediaUp
             file: file.file,
             filetype: file.filetype,
             preview: file.filetype === 'image' ? file.preview : '',
+            blob: file.filetype === 'image' ? file.blob : null, // for heic
             name: file.file.name,
             size: file.file.size,
             idx: -1,
@@ -272,6 +296,8 @@ export default class MediaUploader extends Component<MediaUploaderProps, MediaUp
         idx: index,
         id: random(10),
       }));
+    // 重複を削除
+    items = Array.from(new Map(items.map((item) => [item.file.name, item])).values());
 
     if (items.length > 20) {
       alert(ACMS.i18n('media.more_than_20_not_allowed'));

@@ -1,0 +1,74 @@
+<!-- BEGIN_SetTemplate id="columns" -->
+"columns": [
+  <!-- BEGIN entry_custom_column_group:loop -->
+  <!-- BEGIN entry_custom_column_group:glue -->,<!-- END entry_custom_column_group:glue -->
+  {
+      "id": "{entry_custom_column_id}[jsonEscape|raw|allow_dangerous_tag]",
+      "label": "{entry_custom_column_label}[jsonEscape|raw|allow_dangerous_tag]",
+      "accessorKey": "{entry_custom_column_accessor_key}[jsonEscape|raw|allow_dangerous_tag]",
+      "type": "{entry_custom_column_type}[jsonEscape|raw|allow_dangerous_tag]",
+      "enableSorting": <!-- BEGIN_IF [{entry_custom_column_sort}/eq/on] -->true<!-- ELSE -->false<!-- END_IF -->,
+      <!-- BEGIN_IF [{entry_custom_column_type}/re/^(textarea|rich-editor|block-editor)$] -->
+      "styles": {
+        "header": {
+          "minWidth": "240px"
+        },
+        "cell": {
+          "maxWidth": "240px"
+        }
+      },
+      <!-- END_IF -->
+      "isCustom": true
+  }
+  <!-- END entry_custom_column_group:loop -->
+]
+<!-- END_SetTemplate -->
+
+<!-- BEGIN_MODULE Touch_SessionWithContribution -->
+<!-- BEGIN_MODULE Touch_Get -->
+<!-- BEGIN_MODULE BlogConfig -->
+{
+  <!-- GET_Template id="columns" -->
+}
+<!-- END_MODULE BlogConfig -->
+<!-- END_MODULE Touch_Get -->
+<!-- BEGIN_MODULE Touch_Post -->
+<!-- BEGIN_MODULE Admin_Config -->
+{
+  <!-- BEGIN_IF [{notice_mess}/em] -->
+  "status": "failure",
+  "errors": [<!-- BEGIN_IF [{entry_custom_column_id:v#all_unique}/eq/0] -->
+    {
+      "field": "column_id",
+      "option": "all_unique"
+    },<!-- END_IF --><!-- BEGIN_IF [{entry_custom_column_id:v#required}/eq/0] -->
+    {
+      "field": "column_id",
+      "option": "required"
+    },<!-- END_IF --><!-- BEGIN_IF [{entry_custom_column_accessor_key:v#all_unique}/eq/0] -->
+    {
+      "field": "column_accessor_key",
+      "option": "all_unique"
+    },<!-- END_IF --><!-- BEGIN_IF [{entry_custom_column_accessor_key:v#required}/eq/0] -->
+    {
+      "field": "column_accessor_key",
+      "option": "required"
+    },<!-- END_IF --><!-- BEGIN_IF [{entry_custom_column_label:v#required}/eq/0] -->
+    {
+      "field": "column_label",
+      "option": "required"
+    },<!-- END_IF --><!-- BEGIN_IF [{entry_custom_column_type:v#required}/eq/0] -->
+    {
+      "field": "column_type",
+      "option": "required"
+    },<!-- END_IF -->
+    {}
+  ]
+  <!-- ELSE -->
+  "status": "success",
+  <!-- GET_Template id="columns" -->
+  <!-- END_IF -->
+}
+<!-- END_MODULE Admin_Config -->
+<!-- END_MODULE Touch_Post -->
+<!-- END_MODULE Touch_SessionWithContribution -->

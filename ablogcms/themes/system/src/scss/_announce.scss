@@ -21,10 +21,12 @@
 }
 
 .acms-announce-action {
+  display: flex;
+  justify-content: center;
   margin: 20px 0 0;
 }
 
-@media (min-width: global.$breakpoint-md-min) {
+@include global.media-breakpoint-up(md) {
   .acms-announce {
     padding: 70px 15px 50px;
   }

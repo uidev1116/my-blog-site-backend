@@ -1,5 +1,4 @@
 import ResizeImage from '../lib/resize-image/util';
-import tooltip from '../lib/tooltip';
 
 export const parseQuery = (query: string): { [key: string]: string } => {
   const s = query.split('&');
@@ -113,7 +112,7 @@ export const getOffset = (el: Element) => {
  * RFC 3986 に基づいてURLエンコードを行う
  * https://www.rfc-editor.org/rfc/rfc3986
  */
-export const encodeUri = (str: string): string =>
+export const encodeUri = (str: string | number | boolean): string =>
   encodeURIComponent(str).replace(/[!'()*]/g, (match) => `%${match.charCodeAt(0).toString(16)}`);
 
 /**
@@ -133,8 +132,23 @@ export const reloadIframe = (iframe: HTMLIFrameElement): Promise<void> =>
     iframe.src = iframe.src; // Reload the iframe by reassigning the same src
   });
 
-export const range = (start: number, end: number, step = 1) =>
-  Array.from({ length: (end - start) / step + 1 }, (_, i) => start + i * step);
+export const range = (start: number, end?: number, step = 1): number[] => {
+  // end が undefined の場合、start を end として扱い、start を 0 とする
+  if (end === undefined) {
+    end = start;
+    start = 0;
+  }
+
+  // step が 0 の場合は、start を end - start の回数だけ繰り返す
+  if (step === 0) {
+    const length = Math.max(end - start, 0);
+    return Array.from({ length }, () => start);
+  }
+
+  const length = Math.max(Math.floor((end - start) / step), 0);
+
+  return Array.from({ length }, (_, i) => start + i * step);
+};
 
 export const getBrowser = () => {
   const ua = window.navigator.userAgent.toLowerCase();
@@ -263,6 +277,30 @@ export const getExt = (name: string): string => name.split('.').pop() as string;
 
 export const getFileName = (name: string): string => name.split('/').pop() as string;
 
+/**
+ * Content-Dispositionヘッダーからファイル名を取得する
+ * @param contentDisposition Content-Dispositionヘッダーの値
+ * @param defaultFileName デフォルトのファイル名
+ * @returns ファイル名
+ */
+export const getFileNameFromContentDisposition = (
+  contentDisposition: string | undefined,
+  defaultFileName: string
+): string => {
+  if (!contentDisposition) {
+    return defaultFileName;
+  }
+
+  // filename="..." または filename*=UTF-8''... の形式を解析
+  const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+  if (fileNameMatch && fileNameMatch[1]) {
+    // デコードするとスペースが"+"になるのでスペースへ置換します
+    return decodeURIComponent(fileNameMatch[1].replace(/['"]/g, '')).replace(/\+/g, ' ');
+  }
+
+  return defaultFileName;
+};
+
 export const setDropArea = (target: HTMLElement, dropAreaMark: string, callback: (files: FileList) => void) => {
   const $dropArea = $(dropAreaMark, target);
   const objDropArea = $dropArea.get(0);
@@ -360,36 +398,6 @@ export const setDropArea = (target: HTMLElement, dropAreaMark: string, callback:
   }
 };
 
-export const setTooltips = (context: Element | Document = document) => {
-  const tooltips = context.querySelectorAll<HTMLElement>('.js-acms-tooltip-hover');
-  [].forEach.call(tooltips, (item: HTMLElement) => {
-    let interval: NodeJS.Timeout;
-    item.addEventListener('mouseenter', () => {
-      tooltip(item, true);
-      interval = setInterval(() => {
-        if (!document.body.contains(item)) {
-          $('.js-tooltip').remove();
-          clearInterval(interval);
-        }
-      }, 300);
-    });
-    item.addEventListener('mouseleave', (e) => {
-      clearInterval(interval);
-      if (e.relatedTarget !== null && $(e.relatedTarget).hasClass('js-tooltip')) {
-        const leaveFunc = (evt: MouseEvent) => {
-          if (evt.relatedTarget !== item) {
-            evt.relatedTarget?.removeEventListener('mouseleave', leaveFunc as EventListener);
-            tooltip(item, false);
-          }
-        };
-        e.relatedTarget.addEventListener('mouseleave', leaveFunc as EventListener);
-      } else {
-        tooltip(item, false);
-      }
-    });
-  });
-};
-
 export const dataURItoBlob = (dataURI: string) => {
   // convert base64 to raw binary data held in a string
   // doesn't handle URLEncoded DataURIs - see SO answer #6850276 for code that does this
@@ -424,4 +432,36 @@ export function calcWidthFromRatio(ratio: number, height: number): number {
 export function calcHeightFromRatio(ratio: number, width: number): number {
   // 縦幅を計算 (縦幅 = 横幅 ÷ 縦横比)
   return width / ratio;
+}
+
+/**
+ * Parse URLSearchParams to plain object.
+ * @see https://github.com/jeremy-code/ts-utils#parseurlsearchparamsts
+ */
+export function parseUrlSearchParams(urlSearchParams: URLSearchParams) {
+  return Array.from(urlSearchParams).reduce<Record<string, string | string[]>>((acc, [k, v]) => {
+    if (!acc[k]) {
+      // Returns array only if there are multiple values
+      const values = urlSearchParams.getAll(k);
+      acc[k] = values.length > 1 ? values : v;
+    }
+    return acc;
+  }, {});
+}
+
+export function isValidUrl(url: string, validProtocols?: string[]): boolean {
+  try {
+    const parsedUrl = new URL(url, window.location.href);
+
+    const protocolsToCheck = validProtocols || ['https:', 'http:', 'mailto:', 'tel:'];
+
+    // parsedUrl.protocolがprotocolsToCheckに含まれていればtrue
+    if (parsedUrl.protocol === '' || protocolsToCheck.includes(parsedUrl.protocol)) {
+      return true;
+    }
+
+    return false; // その他のスキーム（例：file://, script://）は無効
+  } catch {
+    return false; // URL形式が不正な場合は無効
+  }
 }

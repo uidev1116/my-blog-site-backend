@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Logger\Deprecated;
+
 class ACMS_GET_Category_EntryList extends ACMS_GET
 {
     public $_scope  = [
@@ -12,6 +14,9 @@ class ACMS_GET_Category_EntryList extends ACMS_GET
 
     protected $eagerLoadingData = [];
 
+    /**
+     * @inheritdoc
+     */
     protected function initVars()
     {
         return [
@@ -29,8 +34,18 @@ class ACMS_GET_Category_EntryList extends ACMS_GET
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
     public function get()
     {
+        if (get_called_class() === __CLASS__) {
+            Deprecated::once('Category_EntryList モジュール', [
+                'since' => '3.2.0',
+                'alternative' => ' Category_EntrySummary モジュール',
+            ]);
+        }
+
         $this->_config = $this->initVars();
 
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());
@@ -42,28 +57,27 @@ class ACMS_GET_Category_EntryList extends ACMS_GET
         $aryHidden  = [];
         $eagerLoadCategoryFields = $this->eagerLoadCategoryFields();
 
+        $sqlStock = [];
         while (array_key_exists(0, $aryStack)) {
-            $pid    = $aryStack[0];
+            $pid = $aryStack[0];
 
-            $SQL    = SQL::newSelect('category');
-            $SQL->addLeftJoin('blog', 'blog_id', 'category_blog_id');
-            $SQL->addWhereOpr('category_parent', $pid);
-            ACMS_Filter::blogTree($SQL, $this->bid, 'ancestor-or-self');
-            ACMS_Filter::categoryStatus($SQL);
-            ACMS_Filter::categoryOrder($SQL, $this->_config['categoryOrder']);
+            if (isset($sqlStock[$pid])) {
+                $categoryStmt = $sqlStock[$pid];
+            } else {
+                $SQL = SQL::newSelect('category');
+                $SQL->addLeftJoin('blog', 'blog_id', 'category_blog_id');
+                $SQL->addWhereOpr('category_parent', $pid);
+                ACMS_Filter::blogTree($SQL, $this->bid, 'ancestor-or-self');
+                ACMS_Filter::categoryStatus($SQL);
+                ACMS_Filter::categoryOrder($SQL, $this->_config['categoryOrder']);
 
-            $Where  = SQL::newWhere();
-            $Where->addWhereOpr('category_blog_id', $this->bid, '=', 'OR');
-            $Where->addWhereOpr('category_scope', 'global', '=', 'OR');
-            $SQL->addWhere($Where);
-
-            $cQ = $SQL->get(dsn());
-
-            if (!$DB->isFetched($cQ) and !$DB->query($cQ, 'fetch')) {
-                array_shift($aryStack);
-                continue;
+                $Where  = SQL::newWhere();
+                $Where->addWhereOpr('category_blog_id', $this->bid, '=', 'OR');
+                $Where->addWhereOpr('category_scope', 'global', '=', 'OR');
+                $SQL->addWhere($Where);
+                $categoryStmt = $DB->query($SQL->get(dsn()), 'exec');
+                $sqlStock[$pid] = $categoryStmt;
             }
-
             $level  = 0;
             foreach ($aryStack as $cid) {
                 if (empty($aryHidden[$cid])) {
@@ -73,16 +87,17 @@ class ACMS_GET_Category_EntryList extends ACMS_GET
             $cid    = null;
 
             if (intval($this->_config['categoryEntryListLevel']) >= $level) {
-                while (!!($cRow = $DB->fetch($cQ))) {
+                while (!!($cRow = $DB->next($categoryStmt))) {
                     $cid = intval($cRow['category_id']);
                     $this->entries = [];
-                    $eQ = false;
+                    $entryStmt = null;
 
                     //--------------------
                     // entry build query
                     if (!('on' == $this->_config['categoryIndexing'] and 'on' <> $cRow['category_indexing'])) {
                         if ($eQ = $this->buildQuery($cid, $Tpl)) {
-                            if (!!$DB->query($eQ, 'fetch') and !!($eRow = $DB->fetch($eQ))) {
+                            $entryStmt = $DB->query($eQ, 'exec');
+                            if ($entryStmt && !!($eRow = $DB->next($entryStmt))) {
                             }
                         }
                     }
@@ -100,11 +115,11 @@ class ACMS_GET_Category_EntryList extends ACMS_GET
                         if (isset($this->_config['entryActiveCategory']) && 'on' == $this->_config['entryActiveCategory'] && ($cid != CID || intval(CID) == 0)) {
                         } else {
                             $i = 0;
-                            if (!empty($eRow) && is_string($eQ)) {
+                            if (!empty($eRow) && $entryStmt) {
                                 do {
                                     $i++;
                                     $this->entries[$i] = $eRow;
-                                } while (!!($eRow = $DB->fetch($eQ) ));
+                                } while (!!($eRow = $DB->next($entryStmt)));
                             }
                             foreach ($this->entries as $entry) {
                                 ACMS_RAM::entry($entry['entry_id'], $entry);
@@ -173,10 +188,16 @@ class ACMS_GET_Category_EntryList extends ACMS_GET
             }
         }
 
+        $rootVars = $this->getRootVars();
+        $Tpl->add(null, $rootVars);
         return $Tpl->get();
     }
 
-    protected function unionQuery($SQL)
+    /**
+     * @param SQL_Select $SQL
+     * @return void
+     */
+    protected function filterQuery($SQL)
     {
         ACMS_Filter::entrySpan($SQL, $this->start, $this->end);
         ACMS_Filter::entrySession($SQL);
@@ -213,43 +234,32 @@ class ACMS_GET_Category_EntryList extends ACMS_GET
 
         $subCategory = isset($this->_config['subCategory']) && $this->_config['subCategory'] === 'on';
 
-        $SQL1 = SQL::newSelect('entry', 'union1');
+        $sql = SQL::newSelect('entry', 'entry');
         foreach ($list as $name) {
-            $SQL1->addSelect($name);
+            $sql->addSelect($name);
         }
-        $SQL1->addLeftJoin('category', 'entry_category_id', 'category_id');
+        $sql->addLeftJoin('category', 'category_id', 'entry_category_id', 'category', 'entry');
+        $this->filterQuery($sql);
+        ACMS_Filter::categoryStatus($sql);
+        $where = SQL::newWhere();
+        $where->addWhereOpr('entry_category_id', $cid, '=', 'AND', 'entry');
         if ($subCategory) {
-            $SQL1->addLeftJoin('entry_sub_category', 'entry_id', 'entry_sub_category_eid');
+            $subCategorySql = SQL::newSelect('entry_sub_category', 'sub_category');
+            $subCategorySql->setSelect(SQL::newField(1, null, false));
+            $subCategorySql->addWhereOpr('entry_sub_category_eid', SQL::newField('entry.entry_id'), '=', 'AND', 'sub_category');
+            $subCategorySql->addWhereOpr('entry_sub_category_id', $cid, '=', 'AND', 'sub_category');
+            $existsSql = SQL::newOprExists($subCategorySql);
+            $where->addWhere($existsSql, 'OR');
         }
-        $SQL1->addWhereOpr('entry_category_id', $cid);
-        $this->unionQuery($SQL1);
-        $q1 = $SQL1->get(dsn());
-
-        if ($subCategory) {
-            $SQL2 = SQL::newSelect('entry', 'union2');
-            foreach ($list as $name) {
-                $SQL2->addSelect($name);
-            }
-            $SQL2->addLeftJoin('entry_sub_category', 'entry_id', 'entry_sub_category_eid');
-            $SQL2->addLeftJoin('category', 'entry_sub_category_id', 'category_id');
-            $SQL2->addWhereOpr('entry_sub_category_id', $cid);
-            $this->unionQuery($SQL2);
-            $q2 = $SQL2->get(dsn());
-
-            $sql = '((' . $q1 . ') UNION (' . $q2 . '))';
-        } else {
-            $sql = '(' . $q1 . ')';
-        }
-        $SQL = SQL::newSelect($sql, 'master');
-
-        $sortFd = ACMS_Filter::entryOrder($SQL, $this->_config['order'], $this->uid, $cid);
+        $sql->addWhere($where);
+        $sortFd = ACMS_Filter::entryOrder($sql, $this->_config['order'], $this->uid, $cid);
         if (!empty($sortFd)) {
-            $SQL->setGroup($sortFd);
+            $sql->setGroup($sortFd);
         }
-        $SQL->addGroup('entry_id');
+        $sql->addGroup('entry_id');
 
-        $SQL->setLimit($this->_config['limit']);
-        $eQ = $SQL->get(dsn(['prefix' => '']));
+        $sql->setLimit($this->_config['limit']);
+        $eQ = $sql->get(dsn());
 
         return $eQ;
     }
@@ -311,7 +321,9 @@ class ACMS_GET_Category_EntryList extends ACMS_GET
     {
         $SQL = SQL::newSelect('category');
         $SQL->setSelect('category_id');
-        ACMS_Filter::categoryTree($SQL, $this->cid, 'descendant');
+        if ($this->cid) {
+            ACMS_Filter::categoryTree($SQL, $this->cid, 'descendant');
+        }
         ACMS_Filter::categoryStatus($SQL);
 
         $Where  = SQL::newWhere();
@@ -322,5 +334,17 @@ class ACMS_GET_Category_EntryList extends ACMS_GET
         $categoryIds = DB::query($SQL->get(dsn()), 'list');
 
         return eagerLoadField($categoryIds, 'cid');
+    }
+
+    /**
+     * ルート変数を取得
+     *
+     * @return array
+     */
+    protected function getRootVars(): array
+    {
+        return [
+            'parent.loop.class' => $this->_config['categoryParentLoopClass'] ?? '',
+        ];
     }
 }

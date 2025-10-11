@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import MediaInsert from '../../../../media/components/media-insert/media-insert';
 import MediaUpdate from '../../../../media/components/media-update/media-update';
 import DropZone from '../../../../../components/drop-zone/drop-zone';
@@ -30,6 +30,11 @@ const DropArea = ({
   const [updateModalOpened, setUpdateModalOpened] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [thumbnail, setThumbnail] = useState(thumbnailProp);
+  const inputFileRef = useRef<HTMLInputElement>(null);
+
+  const handleUpdateButtonClick = useCallback(() => {
+    inputFileRef.current?.click();
+  }, []);
 
   const handleComplete = useCallback((files: ExtendedFile[]) => {
     setFiles(files.map((item) => item.file));
@@ -107,12 +112,17 @@ const DropArea = ({
               </div>
               <p className="acms-admin-media-unit-droparea-text">新規メディアを追加 または ファイルをドロップ</p>
               <div style={{ marginTop: '5px' }}>
-                <label htmlFor="input-file" className="acms-admin-editor-media-btn" style={{ cursor: 'pointer' }}>
+                <button type="button" className="acms-admin-editor-media-btn" onClick={handleUpdateButtonClick}>
                   アップロード
-                  {!insertModalOpened && (
-                    <input id="input-file" type="file" onChange={uploadFile} style={{ display: 'none' }} multiple />
-                  )}
-                </label>
+                </button>
+                <input
+                  ref={inputFileRef}
+                  id="input-file"
+                  type="file"
+                  onChange={uploadFile}
+                  style={{ display: 'none' }}
+                  multiple
+                />
                 <button type="button" className="acms-admin-editor-media-btn" onClick={selectMedia}>
                   メディアを選択
                 </button>

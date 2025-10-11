@@ -3,6 +3,7 @@
 use Acms\Services\Cache\Exceptions\NotFoundException;
 use Acms\Services\Login\Exceptions\BadRequestException;
 use Acms\Services\Login\Exceptions\ExpiredException;
+use Acms\Services\Facades\Login;
 
 class ACMS_POST_Member_ResetPasswordAuth extends ACMS_POST_Member
 {
@@ -11,15 +12,11 @@ class ACMS_POST_Member_ResetPasswordAuth extends ACMS_POST_Member
     /**
      * トークンのキーを取得
      *
-     * @param array $data
      * @return string
      */
-    protected function getTokenKey(array $data): string
+    protected function getTokenKey(): string
     {
-        if (!isset($data['email']) || empty($data['email'])) {
-            return '';
-        }
-        return BID . '_' . $data['email'];
+        return 'reset-password';
     }
 
     /**
@@ -117,6 +114,10 @@ class ACMS_POST_Member_ResetPasswordAuth extends ACMS_POST_Member
      */
     protected function validate(Field_Validation $user): void
     {
+        if (!Login::canMemberSignin()) {
+            $user->setMethod('resetPasswordAuth', 'operable', false);
+            httpStatusCode('403 Forbidden');
+        }
         $user->setMethod('pass', 'required');
         $user->setMethod('pass', 'password');
         $user->setMethod('retype_pass', 'equalTo', 'pass');
@@ -141,7 +142,7 @@ class ACMS_POST_Member_ResetPasswordAuth extends ACMS_POST_Member
      */
     protected function findUser(array $context): int
     {
-        if (!isset($context['email']) || !isset($context['token'])) {
+        if (!isset($context['email'])) {
             return -1;
         }
         $sql = SQL::newSelect('user');

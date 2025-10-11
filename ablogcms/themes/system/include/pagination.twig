@@ -1,0 +1,92 @@
+<!-- ページネーション -->
+{% if pagination and pagination.totalPages > 1 %}
+  <nav class="pager" aria-label="ページ送り">
+    <p class="acms-margin-bottom-small acms-margin-top-large">
+      <span class="font-medium">{{ pagination.total }}</span>件中
+      <span class="font-medium">{{ pagination.from }}</span> 〜
+      <span class="font-medium">{{ pagination.to }}</span>件を表示中
+    </p>
+    <ul class="clearfix">
+      <!-- 最初のページ -->
+      {% if pagination.firstPage %}
+        {% if pagination.firstPage.current %}
+          <li class="pager-item"><span>1</span></li>
+        {% else %}
+          <li class="pager-item"><a href="{{ pagination.firstPage.url }}"><span>1</span></a></li>
+        {% endif %}
+      {% endif %}
+      <!-- 前方省略記号 -->
+      {% if pagination.prevEllipsis %}
+        <li class="pager-item">...</li>
+      {% endif %}
+      <!-- ページループ -->
+      {% for page in pagination.pages %}
+        {% if page.current %}
+          <li class="pager-item"><span>{{ page.page }}</span></li>
+        {% else %}
+          <li class="pager-item"><a href="{{ page.url }}"><span>{{ page.page }}</span></a></li>
+        {% endif %}
+      {% endfor %}
+      <!-- 後方省略記号 -->
+      {% if pagination.nextEllipsis %}
+        <li class="pager-item">...</li>
+      {% endif %}
+      <!-- 最後のページ -->
+      {% if pagination.lastPage %}
+        {% if pagination.lastPage.current %}
+          <li class="pager-item"><span>{{ pagination.lastPage.page }}</span></li>
+        {% else %}
+          <li class="pager-item"><a href="{{ pagination.lastPage.url }}"><span>{{ pagination.lastPage.page }}</span></a></li>
+        {% endif %}
+      {% endif %}
+    </ul>
+  </nav>
+{% endif %}
+
+<!-- 前後リンク -->
+{% if serialNavi %}
+  <nav class="serial-nav clearfix" aria-label="ページ送り">
+    <ul class="serial-nav-list">
+      <li class="serial-nav-prev">
+        {% if serialNavi.prevLink %}
+          <a href="{{ serialNavi.prevLink.url }}">
+            <span class="acms-icon-arrow-small-left serial-nav-prev-icon" />
+            <span class="serial-nav-prev-title">{{ serialNavi.prevLink.name|mb_trim(54, '...') }}</span>
+          </a>
+        {% endif %}
+      </li>
+      <li class="serial-nav-next">
+        {% if serialNavi.nextLink %}
+          <a href="{{ serialNavi.nextLink.url }}">
+            <span class="serial-nav-next-title">{{ serialNavi.nextLink.name|mb_trim(54, '...') }}</span>
+            <span class="acms-icon-arrow-small-right serial-nav-next-icon" />
+          </a>
+        {% endif %}
+      </li>
+    </ul>
+  </nav>
+{% endif %}
+
+<!-- シンプルなページ送り -->
+{% if pager %}
+  <nav class="serial-nav clearfix" aria-label="ページ送り">
+    <ul class="serial-nav-list">
+      <li class="serial-nav-prev">
+        {% if pager.prevPageLink %}
+          <a href="{{ pager.prevPageLink }}">
+            <span class="acms-icon-arrow-small-left serial-nav-prev-icon" />
+            前ページ
+          </a>
+        {% endif %}
+      </li>
+      <li class="serial-nav-next">
+        {% if pager.nextPageLink %}
+          <a href="{{ pager.nextPageLink }}">
+            次ページ
+            <span class="acms-icon-arrow-small-right serial-nav-next-icon" />
+          </a>
+        {% endif %}
+      </li>
+    </ul>
+  </nav>
+{% endif %}

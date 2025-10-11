@@ -1,7 +1,8 @@
-import { Component } from 'react';
+import { Component, createRef } from 'react';
 import MediaInsert from '../media-insert/media-insert';
 import MediaUpdate from '../media-update/media-update';
-import DropZone from '../../../../components/drop-zone/drop-zone';
+import DropZone, { DropZoneFileSelector, DropZoneText } from '../../../../components/drop-zone/drop-zone';
+import AutoResizeTextarea from '../../../../components/textarea/auto-resize-textarea';
 import { MediaItem } from '../../types';
 import { ExtendedFile } from '../../../../lib/read-files';
 
@@ -10,13 +11,9 @@ type MediaUnitProps = {
   mediaSizes?: { value: string; label: string; selected: boolean }[];
   primaryImageId: string;
   id: string;
-  bid: string;
-  diff: string;
   active: string;
   mediaDir: string;
-  rootDir: string;
   lang?: string;
-  path: string;
   usePdfIcon: 'yes' | 'no';
   primary: 'true' | 'false';
   hasLink: 'true' | 'false';
@@ -25,6 +22,7 @@ type MediaUnitProps = {
   overrideLink: string;
   overrideAlt: string;
   overrideCaption: string;
+  onMount?: () => void;
   onChange?: (mediaItems: MediaItem[]) => void;
 };
 
@@ -51,6 +49,8 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
     mediaSizes: [],
     lang: 'ja',
   };
+
+  rootRef = createRef<HTMLDivElement>();
 
   constructor(props: MediaUnitProps) {
     super(props);
@@ -79,22 +79,22 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
 
   componentDidMount() {
     const { items, newMedia } = this.state;
-    if (items.length === 0) {
-      return;
+    if (items.length > 0 && !newMedia) {
+      const [item] = items;
+      const img = new Image();
+      img.onload = () => {
+        if (img.width < img.height) {
+          this.setState({
+            landscape: false,
+          });
+        }
+      };
+      img.src = item.media_thumbnail;
     }
-    if (newMedia) {
-      return;
+
+    if (this.props.onMount) {
+      this.props.onMount();
     }
-    const [item] = items;
-    const img = new Image();
-    img.onload = () => {
-      if (img.width < img.height) {
-        this.setState({
-          landscape: false,
-        });
-      }
-    };
-    img.src = item.media_thumbnail;
   }
 
   componentDidUpdate(_: MediaUnitProps, prevState: MediaUnitState) {
@@ -193,334 +193,340 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
       alt,
       caption,
     } = this.state;
-    const { mediaSizes, primaryImageId, id, active, rootDir, enlarged, usePdfIcon, primary, bid, lang, multiUpload } =
-      this.props;
+    const { mediaSizes, primaryImageId, id, active, enlarged, usePdfIcon, primary, lang, multiUpload } = this.props;
     const [item] = items;
 
     return (
-      <DropZone
-        onComplete={(files) => {
-          this.onComplete(files);
-        }}
-      >
-        <table className="entryFormColumnSettingTable entryFormColumnTable">
-          <tbody>
-            <tr className="entryFormFileControl">
-              <td className="acms-admin-media-unit-preview-area">
-                {(items.length === 0 || (items.length < 2 && !item.media_id)) && (
-                  <div>
-                    <div className="acms-admin-media-unit-droparea">
-                      <p className="acms-admin-media-unit-droparea-text">{ACMS.i18n('media.add_new_media')}</p>
-                      {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                      <label className="acms-admin-media-unit-droparea-btn" style={{ cursor: 'pointer' }}>
-                        {ACMS.i18n('media.upload')}
-                        {!insertModalOpened && (
-                          <input type="file" onChange={this.uploadFile} style={{ display: 'none' }} multiple />
-                        )}
-                      </label>
-                      <p className="acms-admin-media-unit-droparea-text">{ACMS.i18n('media.drop_file')}</p>
-                    </div>
-                    <input type="hidden" name={`media_id_${id}[]`} value="" />
-                  </div>
-                )}
-                {items.length > 0 && items.length < 2 && item.media_id && (
-                  <div className="acms-admin-media-unit-preview-wrap">
-                    <div className="acms-admin-media-unit-preview-overlay" />
-                    <button
-                      type="button"
-                      className="acms-admin-media-unit-preview-remove-btn"
-                      onClick={() => this.removeMediaAt(0)}
-                      aria-label={ACMS.i18n('media.clear_button_label')}
-                    />
-                    <div className="acms-admin-media-unit-preview-edit-overlay" />
-                    {(item.media_type === 'image' || item.media_type === 'svg') && (
-                      <img className="acms-admin-media-unit-preview" src={`${item.media_thumbnail}`} alt="" />
-                    )}
-                    {item.media_type === 'file' && (
-                      <div className="acms-admin-media-unit-file-icon-wrap">
-                        <img className="acms-admin-media-unit-file-icon" src={`${item.media_thumbnail}`} alt="" />
-                        <p className="acms-admin-media-unit-file-caption">{item.media_title}</p>
+      <div ref={this.rootRef}>
+        <DropZone
+          onComplete={(files) => {
+            this.onComplete(files);
+          }}
+        >
+          <table className="entryFormColumnSettingTable entryFormColumnTable">
+            <tbody>
+              <tr className="entryFormFileControl">
+                <td className="acms-admin-media-unit-preview-area">
+                  {(items.length === 0 || (items.length < 2 && !item.media_id)) && (
+                    <div>
+                      <div className="acms-admin-media-unit-droparea">
+                        <DropZoneText>{ACMS.i18n('media.add_new_media')}</DropZoneText>
+                        <DropZoneFileSelector onChange={this.uploadFile} disabled={insertModalOpened} />
+                        <DropZoneText>{ACMS.i18n('media.drop_file')}</DropZoneText>
                       </div>
-                    )}
-                    <button
-                      type="button"
-                      className="acms-admin-media-edit-btn acms-admin-media-unit-preview-edit-btn"
-                      onClick={() => this.openEditModal(item.media_id)}
-                    >
-                      {ACMS.i18n('media.edit')}
-                    </button>
-                    <input type="hidden" name={`media_id_${id}[]`} value={item && item.media_id} />
-                  </div>
-                )}
-              </td>
-              <td className="entryFormFileControl">
-                <table className="acms-admin-margin-bottom-mini" style={{ width: '100%' }}>
-                  <tbody>
-                    <tr>
-                      <th>ID</th>
-                      <td>
-                        <div style={{ display: 'inline-block' }}>
-                          {item && item.media_id && (
-                            <span className="acms-admin-label acms-admin-label-default acms-admin-margin-right-mini">
-                              {item.media_id}
-                            </span>
-                          )}
+                      <input type="hidden" name={`media_id_${id}[]`} value="" />
+                    </div>
+                  )}
+                  {items.length > 0 && items.length < 2 && item.media_id && (
+                    <div className="acms-admin-media-unit-preview-wrap">
+                      <div className="acms-admin-media-unit-preview-overlay" />
+                      <button
+                        type="button"
+                        className="acms-admin-media-unit-preview-remove-btn"
+                        onClick={() => this.removeMediaAt(0)}
+                        aria-label={ACMS.i18n('media.clear_button_label')}
+                      />
+                      <div className="acms-admin-media-unit-preview-edit-overlay" />
+                      {(item.media_type === 'image' || item.media_type === 'svg') && (
+                        <img className="acms-admin-media-unit-preview" src={`${item.media_thumbnail}`} alt="" />
+                      )}
+                      {item.media_type === 'file' && (
+                        <div className="acms-admin-media-unit-file-icon-wrap">
+                          <img className="acms-admin-media-unit-file-icon" src={`${item.media_thumbnail}`} alt="" />
+                          <p className="acms-admin-media-unit-file-caption">{item.media_title}</p>
                         </div>
-                        <button type="button" className="acms-admin-btn-admin" onClick={this.openInsertModal}>
-                          {ACMS.i18n('media.select_from_media')}
-                        </button>
-                        {active !== 'on' && (
-                          <span style={{ color: 'red' }}>
-                            {ACMS.i18n('media.media_unit_use1')}
-                            <a href={`${rootDir}bid/${bid}/admin/config_function/`}>
-                              {ACMS.i18n('media.media_unit_use2')}
-                            </a>
-                            {ACMS.i18n('media.media_unit_use3')}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                    {mediaSizes && mediaSizes.length !== 0 && (
+                      )}
+                      <button
+                        type="button"
+                        className="acms-admin-media-edit-btn acms-admin-media-unit-preview-edit-btn"
+                        onClick={() => this.openEditModal(item.media_id)}
+                      >
+                        {ACMS.i18n('media.edit')}
+                      </button>
+                      <input type="hidden" name={`media_id_${id}[]`} value={item && item.media_id} />
+                    </div>
+                  )}
+                </td>
+                <td className="entryFormFileControl">
+                  <table className="acms-admin-margin-bottom-mini" style={{ width: '100%' }}>
+                    <tbody>
                       <tr>
-                        <th>
-                          <label htmlFor={`unit-media-size-${id}`}>{ACMS.i18n('media.size')}</label>
-                        </th>
+                        <th>ID</th>
                         <td>
-                          <select
-                            defaultValue={mediaSizes.find((size) => size.selected)?.value}
-                            name={`media_size_${id}[]`}
-                            id={`unit-media-size-${id}`}
-                          >
-                            {mediaSizes.map((mediaSize) => (
-                              <option value={mediaSize.value} key={mediaSize.label}>
-                                {mediaSize.label}
-                              </option>
-                            ))}
-                          </select>
-                          {item &&
-                            item.media_type === 'file' &&
-                            (item.media_pdf === 'yes' ||
-                              (item.media_ext && item.media_ext.toUpperCase() === 'PDF')) && (
-                              <div className="acms-admin-form-checkbox" style={{ marginLeft: '10px' }}>
-                                <input type="hidden" name={`media_use_icon_${id}[]`} value={useIcon} />
-                                <input
-                                  type="checkbox"
-                                  value="yes"
-                                  id={`input-checkbox-media_use_icon_${id}_${lang}`}
-                                  defaultChecked={usePdfIcon === 'yes'}
-                                  onChange={(e) => {
-                                    if (e.target.checked) {
-                                      this.setState({
-                                        useIcon: 'yes',
-                                      });
-                                    } else {
-                                      this.setState({
-                                        useIcon: 'no',
-                                      });
-                                    }
-                                  }}
-                                />
-                                <label htmlFor={`input-checkbox-media_use_icon_${id}_${lang}`}>
-                                  <i className="acms-admin-ico-checkbox" />
-                                  {ACMS.i18n('media.use_icon')}
-                                </label>
-                              </div>
+                          <div style={{ display: 'inline-block' }}>
+                            {item && item.media_id && (
+                              <span className="acms-admin-label acms-admin-label-default acms-admin-margin-right-mini">
+                                {item.media_id}
+                              </span>
                             )}
+                          </div>
+                          <button type="button" className="acms-admin-btn-admin" onClick={this.openInsertModal}>
+                            {ACMS.i18n('media.select_from_media')}
+                          </button>
+                          {active !== 'on' && <span style={{ color: 'red' }}>{ACMS.i18n('media.media_unit_use')}</span>}
                         </td>
                       </tr>
-                    )}
-                    {items.length < 2 && (
-                      <tr>
-                        <th>
-                          <label htmlFor={`unit-media-caption-${id}`}>{ACMS.i18n('media.caption')}</label>
-                        </th>
-                        <td>
-                          <input
-                            type="text"
-                            name={`media_caption_${id}[]`}
-                            id={`unit-media-caption-${id}`}
-                            className="acms-admin-form-width-full"
-                            defaultValue={caption}
-                            placeholder={item && item.media_caption ? `${item.media_caption}` : ''}
-                          />
-                        </td>
-                      </tr>
-                    )}
-                    {items.length < 2 && (
-                      <tr>
-                        <th>
-                          <label htmlFor={`unit-media-alt-text-${id}`}>{ACMS.i18n('media.alt')}</label>
-                        </th>
-                        <td>
-                          <input
-                            type="text"
-                            name={`media_alt_${id}[]`}
-                            id={`unit-media-alt-text-${id}`}
-                            className="acms-admin-form-width-full"
-                            defaultValue={alt}
-                            placeholder={item && item.media_alt ? `${item.media_alt}` : ''}
-                          />
-                        </td>
-                      </tr>
-                    )}
-                    {items.length < 2 &&
-                      item &&
-                      item.media_id !== '' &&
-                      (item.media_type === 'image' || item.media_type === 'svg') && (
+                      {mediaSizes && mediaSizes.length !== 0 && (
                         <tr>
                           <th>
-                            <label htmlFor={`input-text-media_link_${id}_${lang}`}>
-                              {ACMS.i18n('media.url_link_to')}
-                            </label>
+                            <label htmlFor={`unit-media-size-${id}`}>{ACMS.i18n('media.size')}</label>
+                          </th>
+                          <td>
+                            <select
+                              defaultValue={mediaSizes.find((size) => size.selected)?.value}
+                              key={mediaSizes.find((size) => size.selected)?.value}
+                              name={`media_size_${id}[]`}
+                              id={`unit-media-size-${id}`}
+                            >
+                              {mediaSizes.map((mediaSize) => (
+                                <option value={mediaSize.value} key={mediaSize.label}>
+                                  {mediaSize.label}
+                                </option>
+                              ))}
+                            </select>
+                            {item &&
+                              item.media_type === 'file' &&
+                              (item.media_pdf === 'yes' ||
+                                (item.media_ext && item.media_ext.toUpperCase() === 'PDF')) && (
+                                <div className="acms-admin-form-checkbox" style={{ marginLeft: '10px' }}>
+                                  <input type="hidden" name={`media_use_icon_${id}[]`} value={useIcon} />
+                                  <input
+                                    type="checkbox"
+                                    value="yes"
+                                    id={`input-checkbox-media_use_icon_${id}_${lang}`}
+                                    defaultChecked={usePdfIcon === 'yes'}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        this.setState({
+                                          useIcon: 'yes',
+                                        });
+                                      } else {
+                                        this.setState({
+                                          useIcon: 'no',
+                                        });
+                                      }
+                                    }}
+                                  />
+                                  <label htmlFor={`input-checkbox-media_use_icon_${id}_${lang}`}>
+                                    <i className="acms-admin-ico-checkbox" />
+                                    {ACMS.i18n('media.use_icon')}
+                                  </label>
+                                </div>
+                              )}
+                          </td>
+                        </tr>
+                      )}
+                      {items.length < 2 && (
+                        <tr>
+                          <th>
+                            <label htmlFor={`unit-media-caption-${id}`}>{ACMS.i18n('media.caption')}</label>
                           </th>
                           <td>
                             <input
                               type="text"
-                              id={`input-text-media_link_${id}_${lang}`}
-                              name={`media_link_${id}[]`}
+                              name={`media_caption_${id}[]`}
+                              id={`unit-media-caption-${id}`}
                               className="acms-admin-form-width-full"
-                              placeholder={item.media_link || ''}
-                              defaultValue={link}
+                              defaultValue={caption}
+                              placeholder={item && item.media_caption ? `${item.media_caption}` : ''}
                             />
                           </td>
                         </tr>
                       )}
-                    {items.length < 2 && item && (item.media_type === 'image' || item.media_type === 'svg') && (
-                      <tr>
-                        <th>
-                          <label htmlFor={`input-checkbox-media_enlarged_${id}_${lang}`}>
-                            {ACMS.i18n('media.image_link')}
-                          </label>
-                        </th>
-                        <td>
-                          <div className="acms-admin-form-checkbox">
-                            <input type="hidden" name={`media_enlarged_${id}[]`} value={noLarge} />
-                            <input
-                              type="checkbox"
-                              value="no"
-                              id={`input-checkbox-media_enlarged_${id}_${lang}`}
-                              defaultChecked={enlarged === 'true'}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  this.setState({
-                                    noLarge: 'no',
-                                  });
-                                } else {
-                                  this.setState({
-                                    noLarge: 'yes',
-                                  });
-                                }
-                              }}
-                            />
-                            <label htmlFor={`input-checkbox-media_enlarged_${id}_${lang}`}>
-                              <i className="acms-admin-ico-checkbox" />
-                              {ACMS.i18n('media.no_image_link')}
-                            </label>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                    {items.length < 2 &&
-                      primaryImageId !== 'no' &&
-                      item &&
-                      item.media_type === 'image' &&
-                      !newMedia && (
+                      {items.length < 2 && (
                         <tr>
                           <th>
-                            <label htmlFor={`input-radio-image_primary_image_${id}_${lang}`}>
-                              {ACMS.i18n('media.main_image')}
+                            <label htmlFor={`unit-media-alt-text-${id}`}>{ACMS.i18n('media.alt')}</label>
+                          </th>
+                          <td>
+                            <AutoResizeTextarea
+                              name={`media_alt_${id}[]`}
+                              defaultValue={alt}
+                              id={`unit-media-alt-text-${id}`}
+                              className="acms-admin-form-width-full"
+                              placeholder={item && item.media_alt ? `${item.media_alt}` : ''}
+                              maxRows={4}
+                              data-validator={`media_alt_${id}`}
+                            />
+
+                            <div data-validator-label={`media_alt_${id}-v-maxlength`} className="validator-result-1">
+                              <p className="error-text acms-admin-m-0">
+                                <span className="acms-admin-icon acms-admin-icon-attention" />
+                                {ACMS.i18n('media.validate_message.alt_maxlength')}
+                              </p>
+                            </div>
+                            <input
+                              type="hidden"
+                              name={`media_alt_${id}:v#maxlength`}
+                              id={`media_alt_${id}-v-maxlength`}
+                              value="150"
+                            />
+                          </td>
+                        </tr>
+                      )}
+                      {items.length < 2 &&
+                        item &&
+                        item.media_id !== '' &&
+                        (item.media_type === 'image' || item.media_type === 'svg') && (
+                          <tr>
+                            <th>
+                              <label htmlFor={`input-text-media_link_${id}_${lang}`}>
+                                {ACMS.i18n('media.url_link_to')}
+                              </label>
+                            </th>
+                            <td>
+                              <input
+                                type="text"
+                                id={`input-text-media_link_${id}_${lang}`}
+                                name={`media_link_${id}[]`}
+                                className="acms-admin-form-width-full"
+                                placeholder={item.media_link || ''}
+                                defaultValue={link}
+                              />
+                            </td>
+                          </tr>
+                        )}
+                      {items.length < 2 && item && (item.media_type === 'image' || item.media_type === 'svg') && (
+                        <tr>
+                          <th>
+                            <label htmlFor={`input-checkbox-media_enlarged_${id}_${lang}`}>
+                              {ACMS.i18n('media.image_link')}
                             </label>
                           </th>
                           <td>
-                            <div className="acms-admin-form-radio">
+                            <div className="acms-admin-form-checkbox">
+                              <input type="hidden" name={`media_enlarged_${id}[]`} value={noLarge} />
                               <input
-                                type="radio"
-                                name="primary_image"
-                                value={primaryImageId}
-                                id={`input-radio-image_primary_image_${id}_${lang}`}
-                                defaultChecked={primary === 'true'}
+                                type="checkbox"
+                                value="no"
+                                id={`input-checkbox-media_enlarged_${id}_${lang}`}
+                                defaultChecked={enlarged === 'true'}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    this.setState({
+                                      noLarge: 'no',
+                                    });
+                                  } else {
+                                    this.setState({
+                                      noLarge: 'yes',
+                                    });
+                                  }
+                                }}
                               />
-                              <label htmlFor={`input-radio-image_primary_image_${id}_${lang}`}>
-                                <i className="acms-admin-ico-radio" />
-                                {ACMS.i18n('media.set_as_main_image')}
+                              <label htmlFor={`input-checkbox-media_enlarged_${id}_${lang}`}>
+                                <i className="acms-admin-ico-checkbox" />
+                                {ACMS.i18n('media.no_image_link')}
                               </label>
                             </div>
                           </td>
                         </tr>
                       )}
-                  </tbody>
-                </table>
-                {!(items.length < 2 && item && (item.media_type === 'image' || item.media_type === 'svg')) && (
-                  <input type="hidden" name={`media_enlarged_${id}[]`} value="no" />
-                )}
-              </td>
-            </tr>
-            {items.length >= 2 && (
-              <tr>
-                <td colSpan={2}>
-                  <div className="acms-admin-media-unit-preview-group">
-                    {items.map((item, index) => (
-                      <div
-                        className="acms-admin-media-unit-preview-wrap acms-admin-media-unit-preview-group-item"
-                        key={item.media_id}
-                      >
-                        <div className="acms-admin-media-unit-preview-group-item-inner">
-                          <div className="acms-admin-media-unit-preview-edit-overlay" />
-                          {(item.media_type === 'image' || item.media_type === 'svg') && (
-                            <img
-                              className="acms-admin-media-unit-preview-group-img"
-                              src={`${item.media_thumbnail}`}
-                              alt=""
-                            />
-                          )}
-                          {item.media_type === 'file' && (
-                            <div className="acms-admin-media-unit-file-icon-wrap">
-                              <img className="acms-admin-media-unit-file-icon" src={`${item.media_thumbnail}`} alt="" />
-                              <p className="acms-admin-media-unit-file-caption">{item.media_title}</p>
-                            </div>
-                          )}
-                          <input type="hidden" name={`media_id_${id}[]`} value={item && item.media_id} />
-                        </div>
-                        <div className="acms-admin-media-unit-preview-overlay" />
-                        <button
-                          type="button"
-                          className="acms-admin-media-unit-preview-remove-btn"
-                          onClick={() => this.removeMediaAt(index)}
-                          aria-label={ACMS.i18n('media.clear_button_label')}
-                        />
-                        <button
-                          type="button"
-                          className="acms-admin-media-edit-btn acms-admin-media-unit-preview-edit-btn"
-                          onClick={() => this.openEditModal(item.media_id)}
-                        >
-                          {ACMS.i18n('media.edit')}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                      {items.length < 2 &&
+                        primaryImageId !== 'no' &&
+                        item &&
+                        item.media_type === 'image' &&
+                        !newMedia && (
+                          <tr>
+                            <th>
+                              <label htmlFor={`input-radio-image_primary_image_${id}_${lang}`}>
+                                {ACMS.i18n('media.main_image')}
+                              </label>
+                            </th>
+                            <td>
+                              <div className="acms-admin-form-radio">
+                                <input
+                                  type="radio"
+                                  name="primary_image"
+                                  value={primaryImageId}
+                                  id={`input-radio-image_primary_image_${id}_${lang}`}
+                                  defaultChecked={primary === 'true'}
+                                />
+                                <label htmlFor={`input-radio-image_primary_image_${id}_${lang}`}>
+                                  <i className="acms-admin-ico-radio" />
+                                  {ACMS.i18n('media.set_as_main_image')}
+                                </label>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                    </tbody>
+                  </table>
+                  {!(items.length < 2 && item && (item.media_type === 'image' || item.media_type === 'svg')) && (
+                    <input type="hidden" name={`media_enlarged_${id}[]`} value="no" />
+                  )}
                 </td>
               </tr>
-            )}
-          </tbody>
-        </table>
-        <MediaInsert
-          isOpen={insertModalOpened}
-          onInsert={this.onInsert}
-          radioMode={multiUpload === 'false'}
-          files={files}
-          onClose={this.onClose}
-          tab={modalType}
-          filetype="all"
-        />
-        {targetId && (
-          <MediaUpdate
-            isOpen={updateModalOpened}
-            mid={targetId}
-            onClose={this.onUpdateModalClose}
-            onUpdate={this.onUpdateModalUpdate}
+              {items.length >= 2 && (
+                <tr>
+                  <td colSpan={2}>
+                    <div className="acms-admin-media-unit-preview-group">
+                      {items.map((item, index) => (
+                        <div
+                          className="acms-admin-media-unit-preview-wrap acms-admin-media-unit-preview-group-item"
+                          key={item.media_id}
+                        >
+                          <div className="acms-admin-media-unit-preview-group-item-inner">
+                            <div className="acms-admin-media-unit-preview-edit-overlay" />
+                            {(item.media_type === 'image' || item.media_type === 'svg') && (
+                              <img
+                                className="acms-admin-media-unit-preview-group-img"
+                                src={`${item.media_thumbnail}`}
+                                alt=""
+                              />
+                            )}
+                            {item.media_type === 'file' && (
+                              <div className="acms-admin-media-unit-file-icon-wrap">
+                                <img
+                                  className="acms-admin-media-unit-file-icon"
+                                  src={`${item.media_thumbnail}`}
+                                  alt=""
+                                />
+                                <p className="acms-admin-media-unit-file-caption">{item.media_title}</p>
+                              </div>
+                            )}
+                            <input type="hidden" name={`media_id_${id}[]`} value={item && item.media_id} />
+                          </div>
+                          <div className="acms-admin-media-unit-preview-overlay" />
+                          <button
+                            type="button"
+                            className="acms-admin-media-unit-preview-remove-btn"
+                            onClick={() => this.removeMediaAt(index)}
+                            aria-label={ACMS.i18n('media.clear_button_label')}
+                          />
+                          <button
+                            type="button"
+                            className="acms-admin-media-edit-btn acms-admin-media-unit-preview-edit-btn"
+                            onClick={() => this.openEditModal(item.media_id)}
+                          >
+                            {ACMS.i18n('media.edit')}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+          <MediaInsert
+            isOpen={insertModalOpened}
+            onInsert={this.onInsert}
+            radioMode={multiUpload === 'false'}
+            files={files}
+            onClose={this.onClose}
+            tab={modalType}
+            filetype="all"
           />
-        )}
-      </DropZone>
+          {targetId && (
+            <MediaUpdate
+              isOpen={updateModalOpened}
+              mid={targetId}
+              onClose={this.onUpdateModalClose}
+              onUpdate={this.onUpdateModalUpdate}
+            />
+          )}
+        </DropZone>
+      </div>
     );
   }
 }

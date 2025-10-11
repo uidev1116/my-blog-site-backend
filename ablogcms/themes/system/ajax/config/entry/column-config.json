@@ -1,0 +1,39 @@
+<!-- BEGIN_SetTemplate id="config" -->
+"config": {
+  "visibility": {
+    <!-- BEGIN entry_column_group:loop -->
+    <!-- BEGIN entry_column_group:glue -->,<!-- END entry_column_group:glue -->
+    "{entry_column_id}": <!-- BEGIN_IF [{entry_column_visibility}/eq/on] -->true<!-- ELSE -->false<!-- END_IF -->
+    <!-- END entry_column_group:loop -->
+  },
+  "order": [
+    <!-- BEGIN entry_column_group:loop -->
+    <!-- BEGIN entry_column_group:glue -->,<!-- END entry_column_group:glue -->
+    "{entry_column_id}"
+    <!-- END entry_column_group:loop -->
+  ]
+}
+<!-- END_SetTemplate -->
+
+<!-- BEGIN_MODULE Touch_SessionWithContribution -->
+<!-- BEGIN_MODULE Touch_Get -->
+<!-- BEGIN_MODULE BlogConfig -->
+{
+  <!-- GET_Template id="config" -->
+}
+<!-- END_MODULE BlogConfig -->
+<!-- END_MODULE Touch_Get -->
+<!-- BEGIN_MODULE Touch_Post -->
+<!-- BEGIN_MODULE Admin_Config -->
+{
+  <!-- BEGIN_IF [{notice_mess}/em] -->
+  "status": "failure",
+  "errors": []
+  <!-- ELSE -->
+  "status": "success",
+  <!-- GET_Template id="config" -->
+  <!-- END_IF -->
+}
+<!-- END_MODULE Admin_Config -->
+<!-- END_MODULE Touch_Post -->
+<!-- END_MODULE Touch_SessionWithContribution -->

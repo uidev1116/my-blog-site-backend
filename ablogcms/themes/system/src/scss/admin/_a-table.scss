@@ -1,0 +1,69 @@
+@use '../global/common' as global;
+
+/* ------------------------------
+ a-table
+------------------------------- */
+
+.acms-tabs-panel .a-table {
+  background-color: global.$acms-color-gray50;
+}
+
+.a-table th {
+  font-weight: normal;
+  cursor: pointer;
+}
+
+.a-table-container .a-table td {
+  border: 1px solid global.$acms-color-gray60 !important;
+}
+
+.a-table-container .acms-btn-group {
+  margin: 7px 10px 7px 0;
+  padding: 0;
+}
+
+.a-table-container .acms-btn-group {
+  float: left;
+}
+
+.a-table-container .a-table-header th {
+  height: 20px;
+}
+
+.a-table td,
+.a-table th {
+  padding: 5px !important;
+  font-size: 13px;
+}
+
+.acms-table-unit-handle {
+  display: none;
+  width: 80vw;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  text-align: right;
+}
+
+.acms-table-unit-handle-inner span {
+  color: global.$acms-color-white;
+  vertical-align: middle;
+  transform: rotate(90deg);
+}
+
+@include global.media-breakpoint-down(md) {
+  .acms-table-unit-handle {
+    display: block;
+  }
+
+  .a-table-wrapper .a-table td,
+  .a-table-wrapper .a-table th {
+    display: table-cell !important;
+    padding: 10px !important;
+    padding-bottom: 10px !important;
+  }
+
+  .a-table td,
+  .a-table th {
+    font-size: 16px;
+  }
+}

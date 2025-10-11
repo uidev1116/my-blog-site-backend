@@ -43,6 +43,7 @@ class ACMS_POST_Media_Index_Tags extends ACMS_POST_Media_Tags
                 ]);
             }
         }
+        Common::setSafeHeadersWithoutCache(200, 'text/plain');
         die();
     }
 }

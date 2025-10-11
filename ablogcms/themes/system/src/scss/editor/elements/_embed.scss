@@ -1,0 +1,78 @@
+@use '../../global/common' as global;
+
+/* ------------------------------
+ 埋め込み
+------------------------------ */
+[class*='column-embed'] {
+  container-type: inline-size;
+  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+
+  a.acms-embed-link {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    color: global.$acms-color-link-text;
+    text-align: left;
+    background-color: global.$acms-color-gray20;
+
+    @container (min-width: 470px) {
+      flex-direction: row;
+    }
+
+    @media (hover: hover) {
+      transition: background-color 0.2s ease;
+
+      .acms-embed-link-title {
+        text-decoration: underline;
+      }
+
+      &:hover {
+        background-color: global.$acms-color-gray40;
+      }
+    }
+  }
+
+  /* 引用ユニット画像 */
+  .acms-embed-link-image-container {
+    flex-shrink: 0;
+    width: 100%;
+
+    @container (min-width: 470px) {
+      width: 154px;
+    }
+
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+  }
+
+  /* 引用ユニットテキスト */
+  .acms-embed-link-title {
+    margin: 0 0 0.5rem;
+    padding: 0;
+    color: global.$acms-color-black;
+    line-height: 1.4;
+
+    @include global.font-size(16);
+  }
+
+  .acms-embed-link-site-name {
+    margin: 0;
+    padding: 0;
+    color: global.$acms-color-black;
+
+    @include global.font-size(12);
+  }
+
+  .acms-embed-link-description {
+    margin: 0.5rem 0 0;
+    padding: 0;
+    color: global.$acms-color-black;
+    line-height: 1.6;
+
+    @include global.font-size(14);
+  }
+}

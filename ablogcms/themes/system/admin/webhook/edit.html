@@ -102,7 +102,14 @@
           <input type="hidden" name="webhook[]" value="events">
           <input type="hidden" name="event:validator#required" id="validator-events-required">
         </div>
-        <label class="validator-result-{events:validator#required}"><!--T-->イベントを選択してください。<!--/T--></label>
+        <div role="alert" aria-live="assertive">
+          <div class="validator-result-{events:validator#required}">
+            <p class="error-text">
+              <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+              <!--T-->イベントを選択してください。<!--/T-->
+            </p>
+          </div>
+        </div>
         <p class="acms-admin-margin-top-small" style="font-size: 12px;">※ <!--T-->一括更新などのイベントには対応していません。<!--/T--></p>
       </td>
     </tr>
@@ -112,9 +119,26 @@
         <input type="text" name="url" value="{url}" class="acms-admin-form-width-full" placeholder="https://hooks.example.com/servicex/xxxxxx/xxxxxxxxxxxxxxxxxxxxxx"/>
         <input type="hidden" name="webhook[]" value="url">
         <input type="hidden" name="url:validator#required" id="validator-url-required">
-        <label class="validator-result-{url:validator#required}"><!--T-->Webhook URLを入力して下さい。<!--/T--></label>
-        <label class="validator-result-{url:validator#webhookScheme}"><!--T-->許可されていないプロトコルです。「http」もしくは「https」を指定ください。<!--/T--></label>
-        <label class="validator-result-{url:validator#webhookWhitelist}"><!--T-->許可されていないホストです。 「.env」ファイルの「WEBHOOK_WHITE_LIST」に許可するホストを設定してください。<!--/T--></label>
+        <div role="alert" aria-live="assertive">
+          <div class="validator-result-{url:validator#required}">
+            <p class="error-text">
+              <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+              <!--T-->Webhook URLを入力して下さい。<!--/T-->
+            </p>
+          </div>
+          <div class="validator-result-{url:validator#webhookScheme}">
+            <p class="error-text">
+              <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+              <!--T-->許可されていないプロトコルです。「http」もしくは「https」を指定ください。<!--/T-->
+            </p>
+          </div>
+          <div class="validator-result-{url:validator#webhookWhitelist}">
+            <p class="error-text">
+              <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+              <!--T-->許可されていないホストです。 「.env」ファイルの「WEBHOOK_WHITE_LIST」に許可するホストを設定してください。<!--/T-->
+            </p>
+          </div>
+        </div>
       </td>
     </tr>
     <tr>

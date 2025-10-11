@@ -1,8 +1,14 @@
 <!-- BEGIN step#4 -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
 	<span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
 	<!--T-->一括変更を完了しました。<!--/T-->
-</p>
-
+	<button
+    type="button"
+    class="js-acms-alert-close acms-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+</div>
 @include("/admin/entry/bulk-change/confirm.html")
 <!-- END step#4 -->

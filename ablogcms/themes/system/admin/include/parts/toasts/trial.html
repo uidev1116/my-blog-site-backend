@@ -1,0 +1,24 @@
+  <!-- BEGIN_IF [%{IS_TRIAL}/eq/on] -->
+  <div class="js-admin-toast-toggle acms-admin-toast acms-admin-toast-warning acms-admin-toast-closed<!-- BEGIN_IF [{{static}}/eq/on] --> acms-admin-toast-static-md<!-- END_IF -->">
+    <div class="acms-admin-toast-header">
+      <i class="acms-admin-icon-news" aria-hidden="true"></i>
+      <h2 class="acms-admin-toast-heading"><!--T-->トライアルモードで動作中<!--/T--></h2>
+    </div>
+    <div class="acms-admin-toast-body">
+      <p class="acms-admin-toast-lead"><!--T-->マイナーバージョン（２桁目）のアップデートにはライセンスの更新が必要です。<!--/T--></p>
+      <p class="acms-admin-toast-desc"><!--T-->現在はトライアルモードで動作しています。バージョンをダウングレードするか、新しいライセンスファイルを適用してください。<br>アップデート期間が終了している場合、アップデート期間延長オプションをマイページより購入する必要があります。<!--/T-->（※<!--T-->トライアルモードが終了すると、検索エンジンから検索されない開発モードに切り替わります。<!--/T-->）</p>
+      <p><strong><!--T-->トライアル期間<!--/T-->：<span style="font-size:125%;">残り<span style="font-size:150%;">%{TRIAL_COUNT_DOWN}</span>日</span></strong></p>
+
+      <!-- BEGIN_MODULE Touch_SessionWithAdministration -->
+      <div>
+        <a href="%{ADMIN_BASE_URL}bid/%{BID}/admin/update/" class="acms-admin-btn acms-admin-btn-large acms-admin-btn-block acms-admin-margin-bottom-small">
+          <!--T-->ダウングレードする（無料）<!--/T-->
+        </a>
+        <a href="https://mypage.a-blogcms.jp" target="_blank" rel="noopener noreferrer" class="acms-admin-btn acms-admin-btn-large acms-admin-btn-block acms-admin-btn-primary">
+          <!--T-->マイページに移動する<!--/T-->
+        </a>
+      </div>
+      <!-- END_MODULE Touch_SessionWithAdministration -->
+    </div>
+  </div>
+  <!-- END_IF -->

@@ -22,6 +22,7 @@ export type MediaItem = {
   media_size: string;
   media_filesize: number;
   media_path: string;
+  media_root_path: string;
   media_pdf: string;
   media_original: string;
   media_edited: string;
@@ -35,6 +36,9 @@ export type MediaItem = {
   media_focal_point: string;
   media_landscape?: 'horizontal' | 'vertical';
   media_editable: boolean;
+  media_icon: string;
+  media_icon_width?: string;
+  media_icon_height?: string;
   checked: boolean;
   width?: number;
   height?: number;
@@ -52,6 +56,7 @@ export interface MediaAjaxConfig {
   year?: string;
   month?: string;
   owner?: boolean;
+  blogAxis?: boolean;
 }
 
 export interface MediaStateProps {

@@ -2,29 +2,45 @@
 
 namespace Acms\Services\RichEditor;
 
+use Acms\Services\Facades\Common;
+
 class Helper
 {
+    /**
+     * リッチエディタのHTMLをレンダリング
+     *
+     * @param mixed $value
+     * @return string
+     */
     public function render($value)
     {
         if (is_string($value)) {
             $value = json_decode($value);
-            if ($value && $value->html) {
+            if ($value && property_exists($value, 'html') && $value->html) {
                 return $this->fix($value->html);
             }
         }
         return $value;
     }
 
+    /**
+     * リッチエディタのタイトルをレンダリング
+     *
+     * @param mixed $value
+     * @return string
+     */
     public function renderTitle($value)
     {
         if (is_string($value)) {
             $value = json_decode($value);
-            return $value->title;
+            if ($value && property_exists($value, 'title') && $value->title) {
+                return $value->title;
+            }
         }
         return "";
     }
 
-    public function getAttributeMap($attributes, $values)
+    private function getAttributeMap($attributes, $values)
     {
         $map = [];
         foreach ($attributes as $i => $attribute) {
@@ -34,7 +50,7 @@ class Helper
         return $map;
     }
 
-    public function getTagFromAttributeMap($map)
+    private function getTagFromAttributeMap($map)
     {
         $img = "<img ";
         foreach ($map as $key => $value) {
@@ -44,6 +60,12 @@ class Helper
         return $img;
     }
 
+    /**
+     * リッチエディタの内容を修正
+     *
+     * @param string $value
+     * @return string
+     */
     public function fix($value)
     {
         $value = preg_replace_callback('/<img(.*?)>/', function ($match) {
@@ -61,6 +83,13 @@ class Helper
             $map["src"] = $path;
             return $this->getTagFromAttributeMap($map);
         }, $value);
+
+        if (!is_string($value)) {
+            return '';
+        }
+
+        $value = Common::replaceDeliveryUrlAll($value);
+
         return $value;
     }
 }

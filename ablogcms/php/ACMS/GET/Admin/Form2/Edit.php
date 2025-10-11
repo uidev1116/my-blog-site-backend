@@ -1,11 +1,18 @@
 <?php
 
-class ACMS_GET_Admin_Form2_Edit extends ACMS_GET_Admin_Entry
+use Acms\Services\Facades\Template as Tpl;
+
+/**
+ * @phpstan-import-type FormColumn from ACMS_POST_Form2_Update
+ */
+class ACMS_GET_Admin_Form2_Edit extends ACMS_GET_Admin
 {
+    use \Acms\Traits\Unit\UnitModelTrait;
+
     public function get()
     {
         if (!sessionWithContribution()) {
-            return '';
+            die403();
         }
         if ('form2-edit' !== ADMIN) {
             return '';
@@ -26,10 +33,10 @@ class ACMS_GET_Admin_Form2_Edit extends ACMS_GET_Admin_Entry
             $formId     = $this->Post->get('form_id');
             $formStatus = $this->Post->get('form_status');
             $Form       =& $this->Post->getChild('form');
-            $Column     = Entry::getTempUnitData();
+            /** @var FormColumn[] $Column */
+            $Column = Entry::getTempUnitData() ?? [];
         } else {
             $Form       = new Field();
-            $Field      = new Field();
             $Column     = [];
             $step       = 'reapply';
             $action     = 'update';
@@ -40,13 +47,7 @@ class ACMS_GET_Admin_Form2_Edit extends ACMS_GET_Admin_Entry
 
             //--------
             // column
-            if ($Column = loadFormUnit(EID)) {
-                $cnt    = count($Column);
-                for ($i = 0; $i < $cnt; $i++) {
-                    $Column[$i]['id']   = uniqueString();
-                    $Column[$i]['sort'] = $i + 1;
-                }
-            }
+            $Column = loadFormUnit(EID);
         }
 
         $vars   = [];
@@ -76,37 +77,23 @@ class ACMS_GET_Admin_Form2_Edit extends ACMS_GET_Admin_Entry
             $aryTypeLabel[$type]    = config('column_form_add_type_label', '', $i);
         }
 
-        if ($cnt = count($Column)) {
-            foreach ($Column as $data) {
+        if (count($Column) > 0) {
+            foreach ($Column as $i => $data) {
                 $id     = $data['id'];
-                $clid   = intval(ite($data, 'clid'));
                 $type   = $data['type'];
-                $sort   = $data['sort'];
+                $sort   = $i + 1;
 
-                        //--------------
-                        // build column
-                if (!$this->buildFormColumn($data, $Tpl, $rootBlock)) {
+                //--------------
+                // build column
+                if (!Tpl::buildAdminFormColumn($data, $Tpl, $rootBlock)) {
                     continue;
                 }
 
-                        //------
-                        // sort
-                for ($i = 1; $i <= $cnt; $i++) {
-                    $_vars  = [
-                        'value' => $i,
-                        'label' => $i,
-                    ];
-                    if ($sort == $i) {
-                        $_vars['selected']   = config('attr_selected');
-                    }
-                    $Tpl->add(['sort:loop', $rootBlock], $_vars);
-                }
-
                 $Tpl->add(['column:loop', $rootBlock], [
-                    'uniqid'    => $id,
-                    'clid'      => $clid,
-                    'cltype'    => $type,
-                    'clname'    => ite($aryTypeLabel, $type),
+                    'unit_id' => $id,
+                    'unit_type' => $type,
+                    'unit_name' => ite($aryTypeLabel, $type),
+                    'unit_sort' => $sort,
                 ]);
             }
         } else {

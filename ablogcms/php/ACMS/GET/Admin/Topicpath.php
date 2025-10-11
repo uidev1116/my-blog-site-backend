@@ -43,9 +43,9 @@ class ACMS_GET_Admin_Topicpath extends ACMS_GET_Admin
         $SQL->addWhereBw('blog_right', $fromRight, $toRight);
         $SQL->setOrder('blog_left');
         $q  = $SQL->get(dsn());
-        $DB->query($q, 'fetch');
+        $statement = $DB->query($q, 'exec');
         $i  = 0;
-        while ($row = $DB->fetch($q)) {
+        while ($row = $DB->next($statement)) {
             $bid    = intval($row['blog_id']);
             if (!empty($i)) {
                 $Tpl->add('glue');
@@ -158,9 +158,17 @@ class ACMS_GET_Admin_Topicpath extends ACMS_GET_Admin
                 }
             }
             $aryAdmin[] = ADMIN;
+        } elseif ('form2-edit' === ADMIN) {
+            $aryAdmin[] = 'entry_index';
+            $aryAdmin[] = ADMIN;
         } elseif ('import' == substr(ADMIN, 0, strlen('import'))) {
             if ('import_index' != ADMIN) {
                 $aryAdmin[] = 'import_index';
+            }
+            $aryAdmin[] = ADMIN;
+        } elseif ('export' == substr(ADMIN, 0, strlen('export'))) {
+            if ('export_index' != ADMIN) {
+                $aryAdmin[] = 'export_index';
             }
             $aryAdmin[] = ADMIN;
         } elseif (ADMIN !== 'top') {

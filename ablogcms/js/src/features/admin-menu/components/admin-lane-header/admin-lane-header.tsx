@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import { Component } from 'react';
 import { AdminCardLaneType } from '../../types';
+import VisuallyHidden from '../../../../components/visually-hidden';
 
 const RemoveBtn = styled.button`
   position: absolute;
@@ -130,7 +131,7 @@ export default class AdminLaneHeader extends Component<AdminLaneHeaderProps, Adm
                 }
               }}
             />
-            <span className="acms-admin-hide-visually">{ACMS.i18n('admin_menu.lane_title')}</span>
+            <VisuallyHidden>{ACMS.i18n('admin_menu.lane_title')}</VisuallyHidden>
           </label>
         )}
         {index === 0 && (

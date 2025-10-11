@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V2_Entry_ArchiveList</title>
+    <link rel="stylesheet" href="src/highlight/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="src/snippets.css" />
+    <script src="src/highlight/highlight.min.js"></script>
+    <script src="src/highlight/javascript.min.js"></script>
+    <script src="src/highlight/twig.min.js"></script>
+    <script src="src/snippets.js"></script>
+  </head>
+  <body>
+    <h1>V2_Entry_ArchiveList</h1>
+    <pre class="acms-admin-customfield-maker"><code class="language-twig">
+&#123;% set entryArchiveList = module(&#039;V2_Entry_ArchiveList&#039;, null, &#123; bid: null, cid: null, limit: null, keyword: null, tag: [], field: null &#125;) %&#125;
+
+&lt;section class=&quot;acms-margin-bottom-medium&quot;&gt;
+  &#123;&#123; include(&#039;/admin/module/setting.twig&#039;, &#123; moduleInfo: entryArchiveList.moduleInfo &#125;) &#125;&#125;
+  &lt;ul class=&quot;acms-list-group&quot;&gt;
+    &#123;% for archive in entryArchiveList.items %&#125;
+      &lt;li&gt;
+        &lt;a href=&quot;&#123;&#123; archive.url &#125;&#125;&quot; class=&quot;acms-list-group-item&quot;&gt;
+          &#123;&#123; archive.date|date(&#039;Y年m月&#039;) &#125;&#125;
+          &#123;% if archive.amount %&#125;
+            &lt;span class=&quot;acms-badge acms-float-right&quot;&gt;&#123;&#123; archive.amount &#125;&#125;&lt;/span&gt;
+          &#123;% endif %&#125;
+        &lt;/a&gt;
+      &lt;/li&gt;
+    &#123;% endfor %&#125;
+  &lt;/ul&gt;
+&lt;/section&gt;
+    </code></pre>
+  </body>
+</html>

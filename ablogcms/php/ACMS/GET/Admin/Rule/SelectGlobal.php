@@ -4,15 +4,21 @@ class ACMS_GET_Admin_Rule_SelectGlobal extends ACMS_GET_Admin
 {
     function get()
     {
-        if (
-            1
-            && strpos(ADMIN, 'module_') === false
-            && strpos(ADMIN, 'config_') === false
-            && strpos(TPL, 'ajax/module') === false
-        ) {
-            return '';
+        if (roleAvailableUser()) {
+            if (!roleAuthorization('rule_edit', BID)) {
+                die403();
+            }
+        } else {
+            if (!sessionWithAdministration()) {
+                die403();
+            }
         }
-        if (strpos(ADMIN, 'config_set_') !== false) {
+        if (
+            (is_string(ADMIN) && strpos(ADMIN, 'module_') === false) && // @phpstan-ignore-line
+            (is_string(ADMIN) && strpos(ADMIN, 'config_') === false) && // @phpstan-ignore-line
+            (is_string(ADMIN) && strpos(ADMIN, 'config_set_') === false) && // @phpstan-ignore-line
+            (is_string(TPL) && strpos(TPL, 'ajax/module') === false) // @phpstan-ignore-line
+        ) {
             return '';
         }
         $Tpl        = new Template($this->tpl, new ACMS_Corrector());

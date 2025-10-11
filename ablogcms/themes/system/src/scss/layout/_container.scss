@@ -1,0 +1,19 @@
+@use '../global/common' as global;
+
+/* ------------------------------
+ コンテナー
+------------------------------- */
+
+.acms-container {
+  --acms-container-width: #{global.$acms-container};
+  --acms-container-gutter-x: #{global.$grid-space};
+
+  width: 100%;
+  max-width: var(--acms-container-width);
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: calc(var(--acms-container-gutter-x) / 2);
+  padding-left: calc(var(--acms-container-gutter-x) / 2);
+
+  @include global.box-sizing(border-box);
+}

@@ -1,6 +1,6 @@
 <?php
 
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 
 class ACMS_POST_Import_Wordpress extends ACMS_POST_Import
 {
@@ -21,8 +21,10 @@ class ACMS_POST_Import_Wordpress extends ACMS_POST_Import
     {
         $this->httpFile->validateFormat(['text/xml', 'application/xml']);
         $path = $this->httpFile->getPath();
-        $data = Storage::get($path, dirname($path));
-        $data = Storage::removeIllegalCharacters($data); // 不正な文字コードを削除
+        $data = LocalStorage::get($path, dirname($path));
+        if ($data) {
+            $data = LocalStorage::removeIllegalCharacters($data); // 不正な文字コードを削除
+        }
         $this->validateXml($data);
 
         $xml = new XMLReader();
@@ -46,7 +48,7 @@ class ACMS_POST_Import_Wordpress extends ACMS_POST_Import
 
                 // 本文からサムネイル画像のパスを抜き出し
                 if (preg_match('/<\s*img(?:"[^"]*"|\'[^\']*\'|[^\'">])*\s+src\s*=\s*("[^"]+"|\'[^\']+\'|[^\'"\s>]+)(?:"[^"]*"|\'[^\']*\'|[^\'">])*>/ui', $content, $matches)) {
-                    if (isset($matches[1])) {
+                    if ($matches[1]) {
                         $fields[] = [
                             'key' => 'wp_thumbnail_url',
                             'value' => trim($matches[1], '"\''),

@@ -328,13 +328,14 @@ class ACMS_GET_Comment_Body extends ACMS_GET
         $SQL->setLimit($limit);
 
         $SQL->addOrder('comment_id', (($rev ? !$desc : $desc) ? 'DESC' : 'ASC'));
-        $q  = $SQL->get(dsn());
+        $q = $SQL->get(dsn());
+        $statement = $DB->query($q, 'exec');
 
-        if (!$DB->query($q, 'fetch')) {
+        if (!$statement) {
             return false;
         }
         $i  = 1;
-        while ($row = $DB->fetch($q)) {
+        while ($row = $DB->next($statement)) {
             $Tpl->add('div#front');
             $Tpl->add('div#rear');
 

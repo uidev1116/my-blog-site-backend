@@ -1,0 +1,23 @@
+<div id="js-navigation-edit" data-media="enable"></div>
+<script type="text/template" id="js-navigation-json">
+[<!-- BEGIN Config_Navigation --><!-- BEGIN navigation:loop -->
+{
+	"navigation_uri": "{uri}[jsonEscape|raw]",
+	"navigation_target": <!-- BEGIN_IF [{navigation_target:checked#_blank}/nem] -->true<!-- ELSE -->false<!-- END_IF -->,
+	"navigation_publish": <!-- BEGIN_IF [{navigation_publish:checked#on}/nem] -->true<!-- ELSE -->false<!-- END_IF -->,
+	"navigation_attr": "{attr}[jsonEscape|raw|allow_dangerous_tag]",
+	"navigation_a_attr": "{a_attr}[jsonEscape|raw|allow_dangerous_tag]",
+  "navigation_media": "{media}[jsonEscape]",
+  "navigation_media_type": "{media_type}[jsonEscape]",
+  "navigation_media_thumbnail": "{media_thumbnail}[resizeImg(360)|jsonEscape]",
+	"navigation_label": "{label}[jsonEscape|raw]",<!-- BEGIN parent:loop --><!-- BEGIN_IF [{selected}/nem] -->
+	"parent": {value},<!-- END_IF --><!-- END parent:loop -->
+	"hide": true
+}<!-- BEGIN glue -->,<!-- END glue --><!-- END navigation:loop -->
+<!-- END Config_Navigation -->]
+</script>
+<!-- BEGIN_MODULE Admin_Rule_Name -->
+<input type="hidden" name="rid" value="{rid}" /><!-- END_MODULE Admin_Rule_Name --><!-- BEGIN_MODULE Admin_Module_Name -->
+<input type="hidden" name="mid" value="{mid}" /><!-- END_MODULE Admin_Module_Name --><!-- BEGIN_MODULE Admin_Config_Set_Name -->
+<input type="hidden" name="setid" value="{setid}" /><!-- END_MODULE Admin_Config_Set_Name -->
+<style id="fix-style"></style>

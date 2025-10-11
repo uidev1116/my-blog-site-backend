@@ -5,10 +5,9 @@ namespace Acms\Services\Logger\Handler;
 use Monolog\Handler\AbstractProcessingHandler;
 use Acms\Services\Logger\Level;
 use Acms\Services\Facades\Mailer;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\Application;
 use Field;
-use DB;
-use SQL;
 use Tpl;
 use ACMS_Corrector;
 use ACMS_RAM;
@@ -41,7 +40,8 @@ class EmailHandler extends AbstractProcessingHandler
             $field->addField('formatted', $record['formatted']);
             $field->addField('datetime', date('Y-m-d H:i:s', $record['datetime']->format('U')));
             if (defined('RBID')) {
-                $field->addField('rootBlogName', trim(ACMS_RAM::blogName(RBID)));
+                $blogName = ACMS_RAM::blogName(RBID) ?? '';
+                $field->addField('rootBlogName', trim($blogName));
             } elseif (defined('DOMAIN')) {
                 $field->addField('rootBlogName', DOMAIN);
             }
@@ -104,35 +104,36 @@ class EmailHandler extends AbstractProcessingHandler
         try {
             $suppress = false;
             $amount = 1;
-            if (Storage::exists($lockFilePath)) {
-                $lastModified = Storage::lastModified($lockFilePath);
+            if (LocalStorage::exists($lockFilePath)) {
+                $lastModified = LocalStorage::lastModified($lockFilePath);
                 if (time() < ($lastModified + ($stopTime * 60))) {
                     // Stop notification
                     return false;
                 } else {
                     // Restart notification
-                    Storage::remove($lockFilePath);
+                    LocalStorage::remove($lockFilePath);
                 }
             }
-            if (Storage::exists($countFilePath)) {
-                $lastModified = Storage::lastModified($countFilePath);
+            if (LocalStorage::exists($countFilePath)) {
+                $lastModified = LocalStorage::lastModified($countFilePath);
                 if (time() < ($lastModified + ($timeRange * 60))) {
                     // Count up
-                    $num = Storage::get($countFilePath);
-                    $amount = intval($num) + 1;
-                    Storage::put($countFilePath, $amount);
+                    $num = LocalStorage::get($countFilePath);
+                    if ($amount = intval($num) + 1) {
+                        LocalStorage::put($countFilePath, (string) $amount);
+                    }
                 } else {
                     // Reset count
-                    Storage::put($countFilePath, 1);
+                    LocalStorage::put($countFilePath, '1');
                 }
             } else {
                 // Start count
-                Storage::put($countFilePath, 1);
+                LocalStorage::put($countFilePath, '1');
             }
             if ($amount > $limit) {
                 // Create flag to stop notification
                 $suppress = true;
-                Storage::put($lockFilePath, 'stop notification');
+                LocalStorage::put($lockFilePath, 'stop notification');
             }
             if ($suppress) {
                 // Notify that notifications are suspended
@@ -140,7 +141,8 @@ class EmailHandler extends AbstractProcessingHandler
                 $field = new Field();
                 $field->addField('datetime', date('Y-m-d H:i:s', time()));
                 if (defined('RBID')) {
-                    $field->addField('rootBlogName', trim(ACMS_RAM::blogName(RBID)));
+                    $blogName = ACMS_RAM::blogName(RBID) ?? '';
+                    $field->addField('rootBlogName', trim($blogName));
                 } elseif (defined('DOMAIN')) {
                     $field->addField('rootBlogName', DOMAIN);
                 }
@@ -164,7 +166,7 @@ class EmailHandler extends AbstractProcessingHandler
 
     protected function buildMailTxt($tplPath, $field)
     {
-        $tplTxt = Storage::get($tplPath);
+        $tplTxt = LocalStorage::get($tplPath);
         $tpl = (new \Acms\Services\View\Engine())->init($tplTxt, new ACMS_Corrector());
         $vars = Tpl::buildField($field, $tpl);
         $tpl->add(null, $vars);
@@ -182,15 +184,10 @@ class EmailHandler extends AbstractProcessingHandler
         if ($email = env('ALERT_EMAIL_TO', false)) {
             return $email;
         }
-        $sql = SQL::newSelect('user');
-        $sql->setSelect('user_mail');
-        $sql->addWhereOpr('user_status', 'open');
-        $sql->addWhereOpr('user_login_expire', date('Y-m-d', REQUEST_TIME), '>=');
-        $sql->addWhereOpr('user_auth', 'administrator');
-        $sql->setOrder('user_id', 'ASC');
-        $sql->setLimit(1);
+        $userService = Application::make('user');
+        $admin = $userService->getAdminUserWithMinId();
 
-        return DB::query($sql->get(dsn()), 'one');
+        return $admin['user_mail'] ?? false;
     }
 
     /**

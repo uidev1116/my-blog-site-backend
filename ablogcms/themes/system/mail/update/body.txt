@@ -1,0 +1,10 @@
+<!-- BEGIN_IF [{result}/eq/success] -->アップデートが完了しました<!-- ELSE_IF [{result}/eq/rollback] -->アップデートに失敗したため、ロールバックしました<!-- ELSE -->アップデートに失敗しました<!-- END_IF -->
+
+日時: %{Y}/%{m}/%{d} %{H}:%{i}:%{s}
+
+<!-- BEGIN_IF [{version}/nem] -->
+Ver. {version} に更新しました。<!-- END_IF -->
+
+{message}
+
+

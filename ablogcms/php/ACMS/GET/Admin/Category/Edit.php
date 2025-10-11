@@ -1,19 +1,28 @@
 <?php
 
+use Acms\Services\Facades\Category;
+use Acms\Services\Facades\Auth;
+
 class ACMS_GET_Admin_Category_Edit extends ACMS_GET_Admin_Edit
 {
     function auth()
     {
-        if (roleAvailableUser()) {
-            if (!roleAuthorization('category_edit', BID)) {
-                return false;
+        /** @var int|null $categoryId */
+        $categoryId = CID;
+        if (is_null($categoryId)) {
+            if (Category::canCreate(BID)) {
+                return true;
             }
-        } else {
-            if (!sessionWithCompilation()) {
-                return false;
-            }
+            die403();
         }
-        return true;
+        if (Category::canUpdate(BID)) {
+            return true;
+        }
+
+        if (Auth::checkShortcut(['cid' => $categoryId])) {
+            return true;
+        }
+        die403();
     }
 
     function edit(&$Tpl)

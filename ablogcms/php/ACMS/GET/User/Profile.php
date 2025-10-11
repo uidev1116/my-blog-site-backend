@@ -25,8 +25,8 @@ class ACMS_GET_User_Profile extends ACMS_GET
 
         if (config('user_profile_geolocation_on') === 'on') {
             $SQL->addLeftJoin('geo', 'geo_uid', 'user_id');
-            $SQL->addSelect('geo_geometry', 'longitude', null, POINT_X);
-            $SQL->addSelect('geo_geometry', 'latitude', null, POINT_Y);
+            $SQL->addSelect('geo_geometry', 'longitude', null, 'ST_X');
+            $SQL->addSelect('geo_geometry', 'latitude', null, 'ST_Y');
         }
 
         $SQL->setGroup('user_id');
@@ -42,7 +42,7 @@ class ACMS_GET_User_Profile extends ACMS_GET
                 'administrator', 'editor', 'contributor', 'subscriber'
             ] as $auth
         ) {
-            if ('on' == config('user_profile_' . $auth)) {
+            if ('on' === config('user_profile_' . $auth)) {
                 $aryAuth[] = $auth;
             }
         }
@@ -59,7 +59,8 @@ class ACMS_GET_User_Profile extends ACMS_GET
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());
         $this->buildModuleField($Tpl);
 
-        if (!($all = $DB->query($SQL->get(dsn()), 'all'))) {
+        $q = $SQL->get(dsn());
+        if (!($all = $DB->query($q, 'all'))) {
             $Tpl->add('notFound');
             return $Tpl->get();
         }

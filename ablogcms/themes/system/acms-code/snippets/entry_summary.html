@@ -18,10 +18,10 @@
     &lt;p&gt;ただいまページを準備しております。もうしばらくお待ちください。&lt;/p&gt;
     &lt;!-- END notFound --&gt;
 
-    &lt;div class=&quot;acms-grid&quot;&gt;
+    &lt;div class=&quot;acms-cssgrid acms-g-cols-1 acms-g-cols-md-3&quot;&gt;
       &lt;!-- BEGIN unit:loop --&gt;
       &lt;!-- BEGIN entry:loop --&gt;
-      &lt;div class=&quot;acms-col-md-4 js-autoheight-r&quot;&gt;
+      &lt;div&gt;
         &lt;!-- BEGIN_IF [{path}/nem] --&gt;
         &lt;img
           src=&quot;&#x0025;{ROOT_DIR}{path}[resizeImg({x}, {y})]&quot;
@@ -29,6 +29,8 @@
           class=&quot;acms-img-responsive&quot;
           width=&quot;{x}&quot;
           height=&quot;{y}&quot;
+          loading=&quot;lazy&quot;
+          decoding=&quot;async&quot;
         &gt;
         &lt;!-- ELSE --&gt;
         &lt;!-- BEGIN noimage --&gt;
@@ -38,6 +40,8 @@
           class=&quot;acms-img-responsive&quot;
           width=&quot;{noImgX}&quot;
           height=&quot;{noImgY}&quot;
+          loading=&quot;lazy&quot;
+          decoding=&quot;async&quot;
         &gt;
         &lt;!-- END noimage --&gt;
         &lt;!-- END_IF --&gt;

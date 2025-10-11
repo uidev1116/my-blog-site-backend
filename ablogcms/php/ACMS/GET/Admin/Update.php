@@ -2,7 +2,7 @@
 
 use Acms\Services\Update\Engine;
 use Acms\Services\Update\System\CheckForUpdate;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\Application;
 
 class ACMS_GET_Admin_Update extends ACMS_GET_Admin
 {
@@ -12,7 +12,7 @@ class ACMS_GET_Admin_Update extends ACMS_GET_Admin
     protected $checkUpdateService;
 
     /**
-     * @var Acms\Services\Update\Logger
+     * @var Acms\Services\Update\Contracts\LoggerInterface
      */
     protected $logger;
 
@@ -32,11 +32,14 @@ class ACMS_GET_Admin_Update extends ACMS_GET_Admin
     public function get()
     {
         if (!$this->validate()) {
-            return '';
+            die403();
         }
-        $this->checkUpdateService = App::make('update.check');
-        $this->logger = App::make('update.logger');
+        /** @var \Acms\Services\Update\LoggerFactory $loggerFactory */
+        $loggerFactory = Application::make('update.logger');
+
+        $this->logger = $loggerFactory->createLogger('web');
         $this->updateService = new Engine($this->logger);
+        $this->checkUpdateService = Application::make('update.check');
         $this->rootVars = [
             'finalCheckTime' => date('Y/m/d H:i:s', $this->checkUpdateService->getFinalCheckTime()),
         ];
@@ -50,6 +53,15 @@ class ACMS_GET_Admin_Update extends ACMS_GET_Admin
     protected function validate()
     {
         if ('update' <> ADMIN) {
+            return false;
+        }
+        if (RBID !== BID) { // @phpstan-ignore-line
+            return false;
+        }
+        if (SBID !== BID) { // @phpstan-ignore-line
+            return false;
+        }
+        if (!sessionWithAdministration()) {
             return false;
         }
         return true;
@@ -82,7 +94,9 @@ class ACMS_GET_Admin_Update extends ACMS_GET_Admin
      */
     protected function isUpdating()
     {
-        if (Storage::exists($this->logger->getDestinationPath())) {
+        /** @var \Acms\Services\Update\Lock $lockService */
+        $lockService = Application::make('update.lock');
+        if ($lockService->isProcessing()) {
             return true;
         }
         return false;
@@ -182,7 +196,8 @@ class ACMS_GET_Admin_Update extends ACMS_GET_Admin
                 }
             } else {
                 if (config('system_update_range') === 'minor') {
-                    $Tpl->add('latest:minor', []);
+                    $latestMinorVersion = $this->checkUpdateService->getLatestMinorVersion(VERSION);
+                    $Tpl->add('latest:minor', $latestMinorVersion);
                 } else {
                     $Tpl->add('latest:patch', []);
                 }

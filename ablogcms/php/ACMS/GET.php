@@ -8,24 +8,44 @@ class ACMS_GET
     public $tpl = '';
 
     /**
-     * @var int|string
+     * @var int
      */
     public $bid = null;
 
     /**
-     * @var string|int|null
+     * @var int[]
+     */
+    public $bids = [];
+
+    /**
+     * @var int|null
      */
     public $uid = null;
 
     /**
-     * @var string|int|null
+     * @var int[]
+     */
+    public $uids = [];
+
+    /**
+     * @var int|null
      */
     public $cid = null;
 
     /**
-     * @var string|int|null
+     * @var int[]
+     */
+    public $cids = [];
+
+    /**
+     * @var int|null
      */
     public $eid = null;
+
+    /**
+     * @var int[]
+     */
+    public $eids = [];
 
     /**
      * @var string
@@ -197,7 +217,7 @@ class ACMS_GET
         $this->Q->set('bid', $Arg->get('bid', $this->Q->get('bid')));
         foreach (
             [
-                'cid', 'eid', 'uid', 'keyword', 'tag', 'field', 'start', 'end', 'page', 'order'
+                'cid', 'eid', 'uid', 'keyword', 'tag', 'field', 'start', 'end', 'page', 'order',
             ] as $key
         ) {
             $isGlobal = ('global' == (!empty($scope[$key]) ? $scope[$key] : (!empty($this->_scope[$key]) ? $this->_scope[$key] : 'local')));
@@ -245,7 +265,20 @@ class ACMS_GET
             foreach ($aryMultiAcms as $k => $v) {
                 $isGlobal_ = ('global' == (!empty($scope[$k]) ? $scope[$k] : (!empty($this->_scope[$k]) ? $this->_scope[$k] : 'local')));
                 if (!$isGlobal_ || !$this->Q->get($k)) {
-                    $this->{$k} = $v; // @phpstan-ignore-line
+                    if (strpos($v, ',') !== false) {
+                        $numbers = array_map(function ($item) {
+                            $trimmed = trim($item); // 余分なスペースを削除
+                            return is_numeric($trimmed) ? (int) $trimmed : null; // 数値なら変換、そうでなければnull
+                        }, explode(',', $v));
+                        $numbers = array_filter($numbers, function ($number) {
+                            return $number !== null; // nullを除外
+                        });
+                        $this->Q->set($k, $numbers);
+                        $this->{"{$k}s"} = $this->Q->getArray($k); // @phpstan-ignore-line
+                        $this->{$k} = $numbers[0] ?? null; // @phpstan-ignore-line
+                    } else {
+                        $this->{$k} = (int) $v ?? null; // @phpstan-ignore-line
+                    }
                 }
             }
         }
@@ -269,8 +302,8 @@ class ACMS_GET
         $this->tag = join('/', $this->Q->getArray('tag'));
         $this->tags = $this->Q->getArray('tag');
         /** @var Field_Search $field */
-        $field =& $this->Q->getChild('field');
-        $this->Field =& $field;
+        $field = &$this->Q->getChild('field');
+        $this->Field = &$field;
         $this->field = $this->Field->serialize();
 
         //------
@@ -312,7 +345,7 @@ class ACMS_GET
         //----------------
         // module link
         $className = str_replace(['ACMS_GET_', 'ACMS_User_GET_'], '', get_class($this));
-        $config = 'config_' . strtolower(preg_replace('@(?<=[a-zA-Z0-9])([A-Z])@', '-$1', $className));
+        $config = 'config_' . strtolower((string) preg_replace('@(?<=[a-zA-Z0-9])([A-Z])@', '-$1', $className));
         $bid = !empty($this->mbid) ? $this->mbid : BID;
 
         $url = acmsLink([
@@ -346,9 +379,9 @@ class ACMS_GET
         // execute & hook
         if (HOOK_ENABLE) {
             $Hook = ACMS_Hook::singleton();
-            $Hook->call('beforeGetFire', [&$this->tpl, $this]);
+            $Hook->call('beforeGetFire', [ &$this->tpl, $this]);
             $rendered = $this->cache();
-            $Hook->call('afterGetFire', [&$rendered, $this]);
+            $Hook->call('afterGetFire', [ &$rendered, $this]);
         } else {
             $rendered = $this->cache();
         }
@@ -368,7 +401,7 @@ class ACMS_GET
             $cacheKey = md5($className . $this->identifier);
             $cacheItem = $cache->getItem($cacheKey);
             if ($cacheItem->isHit()) {
-                return $cacheItem->get();
+                return (string) $cacheItem->get();
             }
         }
         $rendered = $this->get();
@@ -458,7 +491,7 @@ class ACMS_GET
      * @deprecated
      * @param array &$vars
      * @param int $eid
-     * @param array $eagerLoadingData
+     * @param array<int<1, max>, \Acms\Services\Unit\UnitCollection> $eagerLoadingData
      *
      * @return void
      */
@@ -486,15 +519,16 @@ class ACMS_GET
      * 互換性のためpublic宣言
      * @deprecated
      * @param Template $Tpl
-     * @param int $pimageId
+     * @param string $pimageId
+     * @param int $entryId
      * @param array $config
-     * @param array $eagerLoadingData
+     * @param array{unit: array<string, \Acms\Services\Unit\Contracts\Model>, media: array<int, array<string, mixed>>, fieldMainImage?: array<int, array<string, mixed>>} $eagerLoadingData
      *
      * @return array
      */
-    public function buildImage(&$Tpl, $pimageId, $config, $eagerLoadingData)
+    public function buildImage(&$Tpl, $entryId, $pimageId, $config, $eagerLoadingData)
     {
-        return Tpl::buildImage($Tpl, $pimageId, $config, $eagerLoadingData);
+        return Tpl::buildImage($Tpl, $entryId, $pimageId, $config, $eagerLoadingData);
     }
 
     /**
@@ -504,12 +538,14 @@ class ACMS_GET
      * @param Template $Tpl
      * @param int[] $eids
      * @param string[]|string $block
+     * @param string $relatedBlock
+     * @param string|null $thumbnailField
      *
      * @return void
      */
-    public function buildRelatedEntries(&$Tpl, $eids = [], $block = [])
+    public function buildRelatedEntries(&$Tpl, $eids = [], $block = [], $relatedBlock = 'related:loop', $thumbnailField = '')
     {
-        Tpl::buildRelatedEntries($Tpl, $eids, $block, $this->start, $this->end);
+        Tpl::buildRelatedEntries($Tpl, $eids, $block, $this->start, $this->end, $relatedBlock, $thumbnailField);
     }
 
     /**
@@ -529,5 +565,36 @@ class ACMS_GET
     public function buildSummary(&$Tpl, $row, $count, $gluePoint, $config, $extraVars = [], $eagerLoadingData = [])
     {
         Tpl::buildSummary($Tpl, $row, $count, $gluePoint, $config, $extraVars, $this->page, $eagerLoadingData);
+    }
+
+    /**
+     * モジュールの基本パラメータを取得
+     *
+     * @param array $override
+     * @return array
+     */
+    protected function getBaseParams(array $override = []): array
+    {
+        $base = [
+            'bid' => $this->bid,
+            'bids' => $this->bids,
+            'eid' => $this->eid,
+            'eids' => $this->eids,
+            'cid' => $this->cid,
+            'cids' => $this->cids,
+            'uid' => $this->uid,
+            'uids' => $this->uids,
+            'field' => $this->Field,
+            'keyword' => $this->keyword,
+            'tag' => $this->tag,
+            'tags' => $this->tags,
+            'start' => $this->start,
+            'end' => $this->end,
+            'page' => $this->page,
+            'order' => $this->order,
+            'blogAxis' => $this->blogAxis(),
+            'categoryAxis' => $this->categoryAxis(),
+        ];
+        return array_merge($base, $override);
     }
 }

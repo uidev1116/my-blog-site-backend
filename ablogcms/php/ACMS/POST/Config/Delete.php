@@ -5,7 +5,7 @@ class ACMS_POST_Config_Delete extends ACMS_POST
     function post()
     {
         if (!sessionWithAdministration()) {
-            die();
+            die403();
         }
         if (!$rid = idval($this->Post->get('rid'))) {
             $rid = null;

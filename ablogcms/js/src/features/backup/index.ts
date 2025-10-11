@@ -1,5 +1,6 @@
-const check = (jsonFileName: string, element: HTMLElement, interval: NodeJS.Timeout) => {
-  const rand = Math.random().toString(36).slice(-16);
+import axiosLib from '../../lib/axios';
+
+const check = async (type: string, element: HTMLElement, interval: NodeJS.Timeout) => {
   const template = element.querySelector<HTMLScriptElement>('.js-processing-template')?.innerText;
   const box = element.querySelector<HTMLElement>('.js-processing-box');
   if (!box || !template) {
@@ -16,7 +17,14 @@ const check = (jsonFileName: string, element: HTMLElement, interval: NodeJS.Time
   }
   const progressMessage = progress.querySelector<HTMLSpanElement>('span');
 
-  $.getJSON(`${ACMS.Config.root}cache/${jsonFileName}?${rand}`, (json) => {
+  try {
+    const data = new FormData();
+    data.append('ACMS_POST_Logger_ProgressJson', 'exec');
+    data.append('type', type);
+    data.append('formToken', window.csrfToken);
+    const response = await axiosLib.post(ACMS.Config.root, data);
+    const json = response.data;
+
     const engine = window._.template(template);
     box.innerHTML = engine(json);
 
@@ -39,23 +47,25 @@ const check = (jsonFileName: string, element: HTMLElement, interval: NodeJS.Time
       }
     } else {
       progress.style.display = 'none';
+      clearInterval(interval);
     }
-  }).catch(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
     clearInterval(interval);
-  });
+  }
 };
 
 export default function dispatchBackup(context: Element | Document = document) {
   const databaseExport = context.querySelector<HTMLElement>('#js-database-export');
   if (databaseExport) {
     const interval = setInterval(() => {
-      check('db-export-process.json', databaseExport, interval);
+      check('backup_db', databaseExport, interval);
     }, 1000);
   }
   const archivesExport = context.querySelector<HTMLElement>('#js-archives-export');
   if (archivesExport) {
     const interval2 = setInterval(() => {
-      check('archives-export-process.json', archivesExport, interval2);
+      check('backup_archives', archivesExport, interval2);
     }, 1000);
   }
 }

@@ -42,7 +42,7 @@ abstract class Facade
     /**
      * get service instance
      *
-     * @return object
+     * @return mixed
      */
     public static function getInstance()
     {
@@ -76,11 +76,11 @@ abstract class Facade
         if (static::isCache()) {
             $class::$instance = $instance;
         }
-
         if (is_callable([$instance, $method])) {
-            return call_user_func_array([$instance, $method], $arguments);
+            /** @var callable $callback */
+            $callback = [$instance, $method];
+            return call_user_func_array($callback, $arguments);
         }
-
         throw new \BadMethodCallException("Method {$method} does not exist on " . get_class($instance));
     }
 }

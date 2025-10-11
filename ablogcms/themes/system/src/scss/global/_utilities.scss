@@ -1,0 +1,628 @@
+@use 'sass:map';
+@use './variables' as var;
+@use './functions' as func;
+
+/* ------------------------------
+ Utility API
+------------------------------ */
+
+/*
+ * Bootstrap Utility API を参考に実装
+ * https://getbootstrap.com/docs/5.3/utilities/api/
+ *
+ * Bootstrapのユーティリティ生成システムを参考に、
+ * Sassのmapを使用してユーティリティクラスを生成します。
+ *
+ * 基本構造:
+ * $utilities: (
+ *   "property-name": (
+ *     property: css-property,
+ *     class: class-prefix,
+ *     values: (
+ *       key: value
+ *     )
+ *   )
+ * )
+ */
+
+$utilities: () !default;
+$utilities: map.merge(
+  (
+    'align': (
+      property: vertical-align,
+      class: align,
+      values: baseline top middle bottom text-bottom text-top,
+    ),
+    'float': (
+      responsive: true,
+      property: float,
+      values: (
+        left: left,
+        right: right,
+        none: none,
+      ),
+    ),
+    'clear': (
+      property: clear,
+      values: (
+        left: left,
+        right: right,
+        both: both,
+      ),
+    ),
+    // Object Fit utilities
+    'object-fit':
+      (
+        responsive: true,
+        property: object-fit,
+        values: (
+          contain: contain,
+          cover: cover,
+          fill: fill,
+          scale: scale-down,
+          none: none,
+        ),
+      ),
+    // Opacity utilities
+    'opacity':
+      (
+        property: opacity,
+        values: (
+          0: 0,
+          25: 0.25,
+          50: 0.5,
+          75: 0.75,
+          100: 1,
+        ),
+      ),
+    'overflow': (
+      property: overflow,
+      values: auto hidden visible scroll,
+    ),
+    'overflow-x': (
+      property: overflow-x,
+      values: auto hidden visible scroll,
+    ),
+    'overflow-y': (
+      property: overflow-y,
+      values: auto hidden visible scroll,
+    ),
+    'display': (
+      responsive: true,
+      print: true,
+      property: display,
+      class: d,
+      values: inline inline-block block grid inline-grid table inline-table table-row table-row-group table-cell
+        table-caption table-header-group table-footer-group table-column table-column-group flow-root list-item flex
+        inline-flex contents none,
+    ),
+    'shadow': (
+      property: box-shadow,
+      class: shadow,
+      values: (
+        null: var(--acms-box-shadow, #{var.$acms-shadow-elevation-low}),
+        sm: var(--acms-box-shadow-sm, #{var.$acms-shadow-elevation-middle}),
+        lg: var(--acms-box-shadow-lg, #{var.$acms-shadow-elevation-high}),
+        none: none,
+      ),
+    ),
+    'position': (
+      property: position,
+      values: static relative absolute fixed sticky,
+    ),
+    'top': (
+      property: top,
+      values: var.$acms-position-values,
+    ),
+    'bottom': (
+      property: bottom,
+      values: var.$acms-position-values,
+    ),
+    'left': (
+      property: left,
+      class: left,
+      values: var.$acms-position-values,
+    ),
+    'right': (
+      property: right,
+      class: right,
+      values: var.$acms-position-values,
+    ),
+    // Sizing utilities
+    'width':
+      (
+        property: width,
+        class: w,
+        values: (
+          25: 25%,
+          50: 50%,
+          75: 75%,
+          100: 100%,
+          auto: auto,
+        ),
+      ),
+    'max-width': (
+      property: max-width,
+      class: mw,
+      values: (
+        100: 100%,
+      ),
+    ),
+    'viewport-width': (
+      property: width,
+      class: vw,
+      values: (
+        100: 100vw,
+      ),
+    ),
+    'min-viewport-width': (
+      property: min-width,
+      class: min-vw,
+      values: (
+        100: 100vw,
+      ),
+    ),
+    'height': (
+      property: height,
+      class: h,
+      values: (
+        25: 25%,
+        50: 50%,
+        75: 75%,
+        100: 100%,
+        auto: auto,
+      ),
+    ),
+    'max-height': (
+      property: max-height,
+      class: mh,
+      values: (
+        100: 100%,
+      ),
+    ),
+    'viewport-height': (
+      property: height,
+      class: vh,
+      values: (
+        100: 100vh,
+      ),
+    ),
+    'min-viewport-height': (
+      property: min-height,
+      class: min-vh,
+      values: (
+        100: 100vh,
+      ),
+    ),
+    // Flex utilities
+    'flex':
+      (
+        responsive: true,
+        property: flex,
+        values: (
+          fill: 1 1 auto,
+          fit: 1,
+          auto: auto,
+          initial: 0 auto,
+          none: none,
+        ),
+      ),
+    'flex-direction': (
+      responsive: true,
+      property: flex-direction,
+      class: flex,
+      values: row column row-reverse column-reverse,
+    ),
+    'flex-grow': (
+      responsive: true,
+      property: flex-grow,
+      class: flex,
+      values: (
+        grow-0: 0,
+        grow-1: 1,
+      ),
+    ),
+    'flex-shrink': (
+      responsive: true,
+      property: flex-shrink,
+      class: flex,
+      values: (
+        shrink-0: 0,
+        shrink-1: 1,
+      ),
+    ),
+    'flex-wrap': (
+      responsive: true,
+      property: flex-wrap,
+      class: flex,
+      values: wrap nowrap wrap-reverse,
+    ),
+    'justify-content': (
+      responsive: true,
+      property: justify-content,
+      values: (
+        start: flex-start,
+        end: flex-end,
+        center: center,
+        between: space-between,
+        around: space-around,
+        evenly: space-evenly,
+      ),
+    ),
+    'align-items': (
+      responsive: true,
+      property: align-items,
+      values: (
+        start: flex-start,
+        end: flex-end,
+        center: center,
+        baseline: baseline,
+        stretch: stretch,
+      ),
+    ),
+    'align-content': (
+      responsive: true,
+      property: align-content,
+      values: (
+        start: flex-start,
+        end: flex-end,
+        center: center,
+        between: space-between,
+        around: space-around,
+        stretch: stretch,
+      ),
+    ),
+    'align-self': (
+      responsive: true,
+      property: align-self,
+      values: (
+        auto: auto,
+        start: flex-start,
+        end: flex-end,
+        center: center,
+        baseline: baseline,
+        stretch: stretch,
+      ),
+    ),
+    'order': (
+      responsive: true,
+      property: order,
+      values: (
+        first: -1,
+        0: 0,
+        1: 1,
+        2: 2,
+        3: 3,
+        4: 4,
+        5: 5,
+        last: 6,
+      ),
+    ),
+    // Margin utilities
+    'margin':
+      (
+        responsive: true,
+        property: margin,
+        class: m,
+        values:
+          map.merge(
+            var.$acms-spacers,
+            (
+              auto: auto,
+            )
+          ),
+      ),
+    'margin-x': (
+      responsive: true,
+      property: margin-right margin-left,
+      class: mx,
+      values:
+        map.merge(
+          var.$acms-spacers,
+          (
+            auto: auto,
+          )
+        ),
+    ),
+    'margin-y': (
+      responsive: true,
+      property: margin-top margin-bottom,
+      class: my,
+      values:
+        map.merge(
+          var.$acms-spacers,
+          (
+            auto: auto,
+          )
+        ),
+    ),
+    'margin-top': (
+      responsive: true,
+      property: margin-top,
+      class: mt,
+      values:
+        map.merge(
+          var.$acms-spacers,
+          (
+            auto: auto,
+          )
+        ),
+    ),
+    'margin-end': (
+      responsive: true,
+      property: margin-right,
+      class: me,
+      values:
+        map.merge(
+          var.$acms-spacers,
+          (
+            auto: auto,
+          )
+        ),
+    ),
+    'margin-bottom': (
+      responsive: true,
+      property: margin-bottom,
+      class: mb,
+      values:
+        map.merge(
+          var.$acms-spacers,
+          (
+            auto: auto,
+          )
+        ),
+    ),
+    'margin-start': (
+      responsive: true,
+      property: margin-left,
+      class: ms,
+      values:
+        map.merge(
+          var.$acms-spacers,
+          (
+            auto: auto,
+          )
+        ),
+    ),
+    // Negative margin utilities
+    'negative-margin':
+      (
+        responsive: true,
+        property: margin,
+        class: m,
+        values: func.negativify-map(var.$acms-spacers),
+      ),
+    'negative-margin-x': (
+      responsive: true,
+      property: margin-right margin-left,
+      class: mx,
+      values: func.negativify-map(var.$acms-spacers),
+    ),
+    'negative-margin-y': (
+      responsive: true,
+      property: margin-top margin-bottom,
+      class: my,
+      values: func.negativify-map(var.$acms-spacers),
+    ),
+    'negative-margin-top': (
+      responsive: true,
+      property: margin-top,
+      class: mt,
+      values: func.negativify-map(var.$acms-spacers),
+    ),
+    'negative-margin-end': (
+      responsive: true,
+      property: margin-right,
+      class: me,
+      values: func.negativify-map(var.$acms-spacers),
+    ),
+    'negative-margin-bottom': (
+      responsive: true,
+      property: margin-bottom,
+      class: mb,
+      values: func.negativify-map(var.$acms-spacers),
+    ),
+    'negative-margin-start': (
+      responsive: true,
+      property: margin-left,
+      class: ms,
+      values: func.negativify-map(var.$acms-spacers),
+    ),
+    // Padding utilities
+    'padding':
+      (
+        responsive: true,
+        property: padding,
+        class: p,
+        values: var.$acms-spacers,
+      ),
+    'padding-x': (
+      responsive: true,
+      property: padding-right padding-left,
+      class: px,
+      values: var.$acms-spacers,
+    ),
+    'padding-y': (
+      responsive: true,
+      property: padding-top padding-bottom,
+      class: py,
+      values: var.$acms-spacers,
+    ),
+    'padding-top': (
+      responsive: true,
+      property: padding-top,
+      class: pt,
+      values: var.$acms-spacers,
+    ),
+    'padding-end': (
+      responsive: true,
+      property: padding-right,
+      class: pe,
+      values: var.$acms-spacers,
+    ),
+    'padding-bottom': (
+      responsive: true,
+      property: padding-bottom,
+      class: pb,
+      values: var.$acms-spacers,
+    ),
+    'padding-start': (
+      responsive: true,
+      property: padding-left,
+      class: ps,
+      values: var.$acms-spacers,
+    ),
+    // Gap utility
+    'gap':
+      (
+        responsive: true,
+        property: gap,
+        class: gap,
+        values: var.$acms-spacers,
+      ),
+    'row-gap': (
+      responsive: true,
+      property: row-gap,
+      class: row-gap,
+      values: var.$acms-spacers,
+    ),
+    'column-gap': (
+      responsive: true,
+      property: column-gap,
+      class: column-gap,
+      values: var.$acms-spacers,
+    ),
+    // Text
+    'font-family':
+      (
+        property: font-family,
+        class: font,
+        values: (
+          monospace: var(--acms-font-monospace, #{var.$acms-code-font-family}),
+        ),
+      ),
+    'font-size': (
+      property: font-size,
+      class: fs,
+      values: var.$acms-font-sizes,
+    ),
+    'font-style': (
+      property: font-style,
+      class: fst,
+      values: italic normal,
+    ),
+    'font-weight': (
+      property: font-weight,
+      class: fw,
+      values: (
+        lighter: lighter,
+        light: 300,
+        normal: 400,
+        medium: 500,
+        semibold: 600,
+        bold: 700,
+        bolder: bolder,
+      ),
+    ),
+    'line-height': (
+      property: line-height,
+      class: lh,
+      values: (
+        1: 1,
+        sm: 1.25,
+        base: 1.5,
+        lg: 2,
+      ),
+    ),
+    'text-align': (
+      responsive: true,
+      property: text-align,
+      class: text,
+      values: (
+        left: left,
+        right: right,
+        center: center,
+        justify: justify,
+      ),
+    ),
+    'text-decoration': (
+      property: text-decoration,
+      values: none underline line-through,
+    ),
+    'text-transform': (
+      property: text-transform,
+      class: text,
+      values: lowercase uppercase capitalize,
+    ),
+    'white-space': (
+      property: white-space,
+      class: text,
+      values: (
+        wrap: normal,
+        nowrap: nowrap,
+      ),
+    ),
+    'word-wrap': (
+      property: word-wrap word-break,
+      class: text,
+      values: (
+        break: break-word,
+      ),
+    ),
+    'color': (
+      property: color,
+      class: text,
+      values: (
+        'primary': var.$acms-color-info90,
+        'info': var.$acms-color-gray90,
+        'success': var.$acms-color-success90,
+        'warning': var.$acms-color-warning90,
+        'danger': var.$acms-color-danger70,
+        'black': var.$acms-color-black,
+        'white': var.$acms-color-white,
+        'reset': inherit,
+      ),
+    ),
+    'text-opacity': (
+      css-var: true,
+      class: text-opacity,
+      values: (
+        25: 0.25,
+        50: 0.5,
+        75: 0.75,
+        100: 1,
+      ),
+    ),
+    'user-select': (
+      property: user-select,
+      values: all auto none,
+    ),
+    'pointer-events': (
+      property: pointer-events,
+      class: pe,
+      values: none auto,
+    ),
+    'visibility': (
+      property: visibility,
+      class: null,
+      values: (
+        visible: visible,
+        hidden: hidden,
+      ),
+    ),
+    'z-index': (
+      property: z-index,
+      class: z,
+      values: (
+        n1: -1,
+        0: 0,
+        1: 1,
+        2: 2,
+        3: 3,
+        4: 4,
+        5: 5,
+      ),
+    ),
+  ),
+  $utilities
+);

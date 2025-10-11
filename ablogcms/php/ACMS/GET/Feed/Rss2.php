@@ -55,7 +55,9 @@ class ACMS_GET_Feed_Rss2 extends ACMS_GET_Entry
 
         ACMS_Filter::blogTree($SQL, $this->bid, $this->blogAxis());
         ACMS_Filter::blogStatus($SQL);
-        ACMS_Filter::categoryTree($SQL, $this->cid, $this->categoryAxis());
+        if ($this->cid) {
+            ACMS_Filter::categoryTree($SQL, $this->cid, $this->categoryAxis());
+        }
         ACMS_Filter::categoryStatus($SQL);
 
         // config（feed_output_disable）で指定されたブログを除外
@@ -89,11 +91,11 @@ class ACMS_GET_Feed_Rss2 extends ACMS_GET_Entry
         $SQL->setLimit(($from + $limit > $pageAmount) ? ($pageAmount - $from) : $limit, $from);
         ACMS_Filter::entryOrder($SQL, $order, $this->uid, $this->cid);
 
-        $q  = $SQL->get(dsn());
-        $DB->query($q, 'fetch');
+        $q = $SQL->get(dsn());
+        $statement = $DB->query($q, 'exec');
 
         $lastBuildDate  = '1000-01-01 00:00:00';
-        while ($row = $DB->fetch($q)) {
+        while ($row = $DB->next($statement)) {
             $bid        = $row['entry_blog_id'];
 
             $uid    = $row['entry_user_id'];
@@ -130,8 +132,9 @@ class ACMS_GET_Feed_Rss2 extends ACMS_GET_Entry
                 /** @var \Acms\Services\Unit\Rendering\Front $unitRenderingService */
                 $unitRenderingService = Application::make('unit-rendering-front');
 
-                if ($units = $unitRepository->loadUnits($eid, null, $summaryRange)) {
-                    $unitRenderingService->render($units, $Tpl, $eid);
+                $collection = $unitRepository->loadUnits($eid, null, $summaryRange);
+                if (count($collection) > 0) {
+                    $unitRenderingService->render($collection, $Tpl, $eid);
                     if (!empty($summaryRange)) {
                         $amount = $unitRepository->countUnitsTrait($eid);
                         if ($summaryRange < $amount) {

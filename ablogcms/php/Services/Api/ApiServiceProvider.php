@@ -16,7 +16,8 @@ class ApiServiceProvider extends ServiceProvider
      */
     public function register(Container $container)
     {
-        $container->bind('api-get', 'Acms\Services\Api\Engine');
+        $container->bind('api-v1-get', 'Acms\Services\Api\EngineV1');
+        $container->bind('api-v2-get', 'Acms\Services\Api\EngineV2');
     }
 
     /**

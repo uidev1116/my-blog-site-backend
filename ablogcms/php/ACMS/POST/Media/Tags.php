@@ -45,20 +45,29 @@ class ACMS_POST_Media_Tags extends ACMS_POST_Media
         $SQL->addWhereOpr('media_tag_media_id', $mid);
         DB::query($SQL->get(dsn()), 'exec');
 
-        $tags = preg_split('/,/', $tags, -1, PREG_SPLIT_NO_EMPTY);
-        $tags = array_merge($tags, $oldTags);
-        $tags = array_unique($tags);
+        if ($tags = preg_split('/,/', $tags, -1, PREG_SPLIT_NO_EMPTY)) {
+            $tags = array_merge($tags, $oldTags);
+            $tags = array_unique($tags);
+        }
+        if (!$tags) {
+            throw new \RuntimeException('タグが指定されていません');
+        }
+
+        $sql = SQL::newBulkInsert('media_tag');
         foreach ($tags as $sort => $tag) {
             if (isReserved($tag)) {
                 AcmsLogger::notice('「' . $tag . '」タグは、予約ワードのためメディアにタグをつけれませんでした');
                 continue;
             }
-            $SQL = SQL::newInsert('media_tag');
-            $SQL->addInsert('media_tag_name', $tag);
-            $SQL->addInsert('media_tag_sort', $sort + 1);
-            $SQL->addInsert('media_tag_media_id', $mid);
-            $SQL->addInsert('media_tag_blog_id', $bid);
-            DB::query($SQL->get(dsn()), 'exec');
+            $sql->addInsert([
+                'media_tag_name' => $tag,
+                'media_tag_sort' => $sort + 1,
+                'media_tag_media_id' => $mid,
+                'media_tag_blog_id' => $bid,
+            ]);
+        }
+        if ($sql->hasData()) {
+            DB::query($sql->get(dsn()), 'exec');
         }
         return true;
     }

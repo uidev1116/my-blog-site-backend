@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Category;
+
 class ACMS_POST_Category_Insert extends ACMS_POST_Category
 {
     function post()
@@ -21,12 +23,7 @@ class ACMS_POST_Category_Insert extends ACMS_POST_Category
         $Category->setMethod('theme_set_scope', 'in', ['local', 'global']);
         $Category->setMethod('editor_set_id', 'value', $this->checkConfigSetScope($Category->get('editor_set_id')));
         $Category->setMethod('editor_set_scope', 'in', ['local', 'global']);
-
-        if (roleAvailableUser()) {
-            $Category->setMethod('category', 'operable', roleAuthorization('category_create', BID) and IS_LICENSED);
-        } else {
-            $Category->setMethod('category', 'operable', sessionWithCompilation() and IS_LICENSED);
-        }
+        $Category->setMethod('category', 'operable', Category::canCreate(BID));
 
         if (sessionWithEnterpriseAdministration()) {
             $this->workflowData = $this->extractWorkflow();
@@ -46,7 +43,7 @@ class ACMS_POST_Category_Insert extends ACMS_POST_Category
             $DB     = DB::singleton(dsn());
             $SQL    = SQL::newSelect('category');
             $SQL->addWhereOpr('category_blog_id', BID);
-            $SQL->setOrder('category_right', true);
+            $SQL->setOrder('category_right', 'DESC');
             $SQL->setLimit(1);
             if ($row = $DB->query($SQL->get(dsn()), 'row')) {
                 $sort   = $row['category_sort'] + 1;

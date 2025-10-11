@@ -24,6 +24,7 @@ const initialState: MediaStateProps = {
     year: '',
     month: '',
     owner: false,
+    blogAxis: false,
   },
   formToken: '',
   label: '',

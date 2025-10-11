@@ -17,6 +17,7 @@ namespace Acms\Services\Facades;
  * @method static bool checkShortcut(array{bid?: int|null, cid?: int|null, rid?: int|null, mid?: int|null, scid?: int|null, setid?: int|null} $ids) ログインしているユーザーが特定の管理ページで権限があるかチェック
  * @method static array getAuthorizedBlog(int $uid) 指定したユーザーの権限があるブログリストを取得する
  * @method static bool roleAuthorization(string $action, int|null $bid, int|null $eid = 0, ?int $uid = null) 各ロールの権限があるかチェック
+ * @method static bool isControlBlog(int $bid) ログイン中のユーザーがそのブログにおいて権限があるか
  */
 class Auth extends Facade
 {

@@ -1,9 +1,18 @@
 <?php
 
+use Acms\Services\Logger\Deprecated;
+
+/**
+ * @deprecated カート機能は非推奨です。代替として、Shopping Cart 拡張アプリをご利用ください。
+ */
 class ACMS_POST_Shop2_Form_Submit extends ACMS_POST_Shop2
 {
     function post()
     {
+        Deprecated::once('Shop2_Form_Submit モジュール', [
+            'since' => '3.2.0',
+            'alternative' => ' Shopping Cart 拡張アプリ',
+        ]);
         $this->initVars();
         $DB = DB::singleton(dsn());
 
@@ -86,18 +95,20 @@ class ACMS_POST_Shop2_Form_Submit extends ACMS_POST_Shop2
             /**
              * build: item:loop
              */
-            $cartTpl    = findTemplate($this->cartTpl);
-            $Tpl        = new Template(setGlobalVars(Storage::get($cartTpl)), new ACMS_Corrector());
-            foreach ($TEMP as $item) {
-                /*
-                if ( config('shop_tax_calculate') != 'extax' ) {
-                    $item[$this->item_price] += $item[$this->item_price.'#tax'];
+            $cartBody = '';
+            if ($cartTpl = findTemplate($this->cartTpl)) {
+                $Tpl = new Template(setGlobalVars(LocalStorage::get($cartTpl)), new ACMS_Corrector());
+                foreach ($TEMP as $item) {
+                    /*
+                    if ( config('shop_tax_calculate') != 'extax' ) {
+                        $item[$this->item_price] += $item[$this->item_price.'#tax'];
+                    }
+                    */
+                    $Tpl->add('item:loop', $item);
                 }
-                */
-                $Tpl->add('item:loop', $item);
+                $Tpl->add(null);
+                $cartBody = $Tpl->get();
             }
-            $Tpl->add(null);
-            $cartBody   = $Tpl->get();
 
             /**
              * resultステップ用に，現在のカートの内容をポートレートに退避しておく

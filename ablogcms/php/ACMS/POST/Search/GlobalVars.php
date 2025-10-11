@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\LocalStorage;
+
 class ACMS_POST_Search_GlobalVars extends ACMS_POST
 {
     public $isCacheDelete = false;
@@ -10,7 +12,7 @@ class ACMS_POST_Search_GlobalVars extends ACMS_POST
             if (!sessionWithAdministration()) {
                 throw new \RuntimeException('Permission denied.');
             }
-            $tpl = Storage::get(SCRIPT_DIR . THEMES_DIR . 'system/acms-code/global-vars.json');
+            $tpl = LocalStorage::get(THEMES_DIR . 'system/acms-code/global-vars.json');
             if (empty($tpl)) {
                 throw new \RuntimeException('Failed to get template.');
             }
@@ -50,7 +52,7 @@ class ACMS_POST_Search_GlobalVars extends ACMS_POST
             $json = '{"title": "<!--T-->グローバル変数<!--/T-->","enTitle": "Global vars","items": []}';
         }
 
-        header('Content-Type: application/json; charset=utf-8');
+        Common::setSafeHeadersWithoutCache(200, 'application/json');
         echo($json);
         die();
     }

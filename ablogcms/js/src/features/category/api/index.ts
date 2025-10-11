@@ -5,7 +5,7 @@ import type { CategoryOption, CreatedCategoryDTO } from '../types';
 export interface FetchCategoryOptionsParams {
   keyword: string;
   narrowDown: boolean;
-  currentCid?: number;
+  currentCid?: number | null;
 }
 
 export async function fetchCategoryOptions(params: FetchCategoryOptionsParams): Promise<CategoryOption[]> {
@@ -17,7 +17,7 @@ export async function fetchCategoryOptions(params: FetchCategoryOptionsParams): 
       tpl: 'ajax/edit/category-assist.json',
       Query: {
         narrowDown: params.narrowDown ? 'true' : 'false',
-        ...(params.currentCid && { currentCid: params.currentCid }),
+        ...(params.currentCid && { currentCid: params.currentCid.toString() }),
       },
     },
     false

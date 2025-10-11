@@ -22,7 +22,11 @@ namespace Acms\Services\Facades;
  * @method static never loginRedirect(array $user, string|null $fieldRedirectUrl = null) ログイン後のリダイレクト
  * @method static string|null resizeUserIcon(string $squarePath) ユーザーアイコンをリサイズ
  * @method static void addExtraLoggedInCookie(int $uid) ログインしている場合、権限のCookieを追加
+ * @method static void updateSessionClientInfo(int $uid) 同時ログイン判定のための、クライアント情報を更新
  * @method static void removeExtraLoggedInCookie() ログインしている場合、権限のCookieを削除
+ * @method static bool isAuthRequiredPage() 現在のページが認証が必要なページかどうか判定
+ * @method static bool isLoggedIn() 現在のセッションがログイン状態かどうか判定
+ * @method static bool canMemberSignin() 会員サインイン機能が有効かどうか判定
  */
 class Login extends Facade
 {

@@ -1,5 +1,6 @@
 import classnames from 'classnames';
 import useSyntaxHighlight, { UseSyntaxHighlightOptions } from '../../hooks/use-syntax-highlight';
+import './atom-one-dark.css';
 
 interface SyntaxHighlightProps
   extends React.HTMLAttributes<HTMLPreElement>,
@@ -13,8 +14,11 @@ const SyntaxHighlight = ({ children, language: languageProp, options, ...props }
 
   return (
     <pre {...props}>
-      {/* eslint-disable-next-line react/no-danger */}
-      <code className={classnames(language, 'hljs')} dangerouslySetInnerHTML={{ __html: value }} />
+      <code
+        className={classnames(language, 'acms-admin-hljs')}
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: value.replace(/class="hljs-/g, 'class="acms-admin-hljs-') }}
+      />
     </pre>
   );
 };

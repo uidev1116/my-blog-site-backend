@@ -29,12 +29,19 @@
 <div class="js-acms_fix_marker acms_fix_bg">
   <div class="acms_fix_bg_index">
     <a href="%{HTTP_ROOT}bid/%{BID}/admin/schedule_index/" class="acms-admin-btn"><!--T-->一覧<!--/T--></a>
-    <input type="submit" name="ACMS_POST_Schedule_EditData" value="<!--T-->保存<!--/T-->" data-target="#scheduleEdit" class="js-external-form-btn acms-admin-btn acms-admin-btn-primary acms-admin-btn-save js-saving-splash" />
+    <button
+      type="submit"
+      name="ACMS_POST_Schedule_EditData"
+      form="scheduleEdit"
+      class="acms-admin-btn acms-admin-btn-primary acms-admin-btn-save js-saving-splash"
+    >
+      <!--T-->保存<!--/T-->
+    </button>
     <div class="acms-admin-float-right">
       <!-- BEGIN_MODULE Touch_SessionWithAdministration -->
       <a
         href="/bid/%{BID}/admin/shortcut_edit/?scid=%{scid}&admin=schedule_edit-data"
-        class="acms-admin-btn acms-admin-shortcut-btn">
+        class="acms-admin-btn">
         <i class="acms-admin-icon acms-admin-icon-shortcut"></i>
         <!--T-->ショートカットに追加<!--/T-->
       </a>
@@ -83,7 +90,7 @@
     <table class="{mode} adminTable acms-admin-table-admin-edit"><!-- BEGIN week:loop -->
       <tr class="week wr{weekRowNo}"><!-- BEGIN day:loop -->
         <th class="day w{weekNo}"><!-- BEGIN day:veil -->{day} ( {week} )<!-- END day:veil --></th>
-        <td class="acms-admin-padding-none">
+        <td class="acms-admin-p-0">
           <table>
             <!-- BEGIN plan -->
             <tr>

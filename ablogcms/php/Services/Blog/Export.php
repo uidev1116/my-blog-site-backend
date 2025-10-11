@@ -4,6 +4,7 @@ namespace Acms\Services\Blog;
 
 use SQL;
 use DB;
+use Acms\Services\Facades\BlockEditor;
 use Acms\Services\Contracts\Export as ExportBase;
 
 class Export extends ExportBase
@@ -99,8 +100,9 @@ class Export extends ExportBase
         $this->dumpYaml($fp, $mediaQueryList);
 
         $mediaPaths = [];
-        DB::query($mediaSelectQuery, 'fetch', false);
-        while ($row = DB::fetch($mediaSelectQuery)) {
+        $statement = DB::query($mediaSelectQuery, 'exec', false);
+
+        while ($row = DB::next($statement)) {
             if (intval($row['media_blog_id']) !== $bid) {
                 $mediaPaths[] = [
                     'type' => $row['media_type'],
@@ -185,7 +187,10 @@ class Export extends ExportBase
      */
     private function fixQueryColumn($SQL, $bid = 0)
     {
-        $columns = DB::query('SHOW COLUMNS FROM ' . $this->prefix . 'column', 'all');
+        $columns = DB::query([
+            'sql' => 'SHOW COLUMNS FROM ' . $this->prefix . 'column',
+            'params' => []
+        ], 'all');
         foreach ($columns as $column) {
             $SQL->addSelect($column['Field']);
         }
@@ -205,7 +210,10 @@ class Export extends ExportBase
      */
     private function fixQueryComment($SQL, $bid = 0)
     {
-        $columns = DB::query('SHOW COLUMNS FROM ' . $this->prefix . 'comment', 'all');
+        $columns = DB::query([
+            'sql' => 'SHOW COLUMNS FROM ' . $this->prefix . 'comment',
+            'params' => []
+        ], 'all');
         foreach ($columns as $column) {
             $SQL->addSelect($column['Field']);
         }
@@ -240,7 +248,10 @@ class Export extends ExportBase
      */
     private function fixQueryField($SQL, $bid = 0)
     {
-        $columns = DB::query('SHOW COLUMNS FROM ' . $this->prefix . 'field', 'all');
+        $columns = DB::query([
+            'sql' => 'SHOW COLUMNS FROM ' . $this->prefix . 'field',
+            'params' => [],
+        ], 'all');
         foreach ($columns as $column) {
             $SQL->addSelect($column['Field']);
         }
@@ -264,7 +275,10 @@ class Export extends ExportBase
      */
     private function fixQueryFulltext($SQL, $bid = 0)
     {
-        $columns = DB::query('SHOW COLUMNS FROM ' . $this->prefix . 'fulltext', 'all');
+        $columns = DB::query([
+            'sql' => 'SHOW COLUMNS FROM ' . $this->prefix . 'fulltext',
+            'params' => [],
+        ], 'all');
         foreach ($columns as $column) {
             $SQL->addSelect($column['Field']);
         }
@@ -285,6 +299,8 @@ class Export extends ExportBase
     private function fixQueryBlog($SQL, $bid = 0)
     {
         $SQL = SQL::newSelect('blog');
+        $SQL->addSelect('blog_id');
+        $SQL->addSelect('blog_parent');
         $SQL->addSelect('blog_config_set_id');
         $SQL->addSelect('blog_config_set_scope');
         $SQL->addSelect('blog_theme_set_id');
@@ -337,6 +353,11 @@ class Export extends ExportBase
             !is_null($record['column_field_1'])
         ) {
             $this->mediaIds[] = (int) $record['column_field_1'];
+        } elseif (
+            strncmp($record['column_type'], 'block-editor', 12) === 0 &&
+            !is_null($record['column_field_1'])
+        ) {
+            $this->mediaIds = array_merge($this->mediaIds, BlockEditor::extractMediaId($record['column_field_1']));
         }
     }
 
@@ -355,6 +376,11 @@ class Export extends ExportBase
             !is_null($record['field_value'])
         ) {
             $this->mediaIds[] = (int) $record['field_value'];
+        } elseif (
+            $record['field_type'] === 'block-editor' &&
+            !is_null($record['field_value'])
+        ) {
+            $this->mediaIds = array_merge($this->mediaIds, BlockEditor::extractMediaId($record['field_value']));
         }
     }
 }

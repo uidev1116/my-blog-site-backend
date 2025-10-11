@@ -6,32 +6,24 @@
 ------------------------------- */
 .acms-btn {
   @include global.button-shape(
+    $font-size: global.$acms-btn-font-size,
     $padding: (
-      math.div(global.$acms-form-height-sp - global.$acms-btn-font-size - 2px, 2),
+      math.div(global.$acms-form-height - global.$acms-btn-font-size - 2px, 2),
     )
-    global.$acms-btn-padding-x-sp
+    global.$acms-btn-padding-x
   );
   @include global.button-decoration(
     $border: 1px solid rgba(0, 0, 0, 0.2),
     $hover-bg-color: global.$acms-color-gray20,
     $hover-border-color: rgba(0, 0, 0, 0.3),
-    $text-color: global.$acms-btn-text-default-color,
+    $text-color: global.$acms-btn-default-color,
     $active-border-color: global.$acms-btn-active-border-color,
     $active-bg-color: global.$acms-color-gray40,
     $active-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3),
     $active-text-color: global.$acms-color-black,
-    $focus-border-color: global.$acms-btn-focus-border-color
+    $focus-border-color: global.$acms-btn-focus-border-color,
+    $focus-box-shadow: global.$acms-btn-focus-box-shadow
   );
-
-  @media (min-width: global.$breakpoint-md-min) {
-    @include global.button-shape(
-      $font-size: global.$acms-btn-font-size-desktop,
-      $padding: (
-        math.div(global.$acms-form-height - global.$acms-btn-font-size-desktop - 2px, 2),
-      )
-      global.$acms-btn-padding-x
-    );
-  }
 
   // ---------------
   // primary
@@ -40,11 +32,12 @@
     @include global.button-decoration(
       $bg-color: global.$acms-btn-primary-color-base,
       $hover-bg-color: global.$acms-btn-primary-color-darker,
-      $text-color: global.$acms-btn-text-color,
+      $text-color: global.$acms-btn-color,
       $hover-border-color: rgba(0, 0, 0, 0.3),
       $active-border-color: global.$acms-btn-primary-active-border,
       $active-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3),
-      $focus-border-color: global.$acms-btn-primary-focus-border-color
+      $focus-border-color: global.$acms-btn-primary-focus-border-color,
+      $focus-box-shadow: global.$acms-btn-focus-box-shadow
     );
   }
 
@@ -55,11 +48,12 @@
     @include global.button-decoration(
       $bg-color: global.$acms-btn-info-color-base,
       $hover-bg-color: global.$acms-btn-info-color-darker,
-      $text-color: global.$acms-btn-text-color,
+      $text-color: global.$acms-btn-color,
       $border-color: global.$acms-btn-info-border,
       $hover-border-color: rgba(0, 0, 0, 0.3),
       $active-border-color: rgba(0, 0, 0, 0.3),
-      $focus-border-color: global.$acms-btn-info-focus-border-color
+      $focus-border-color: global.$acms-btn-info-focus-border-color,
+      $focus-box-shadow: global.$acms-btn-focus-box-shadow
     );
   }
 
@@ -70,11 +64,12 @@
     @include global.button-decoration(
       $bg-color: global.$acms-btn-success-color-base,
       $hover-bg-color: global.$acms-btn-success-color-darker,
-      $text-color: global.$acms-btn-text-color,
+      $text-color: global.$acms-btn-color,
       $border-color: global.$acms-btn-success-border,
       $hover-border-color: rgba(0, 0, 0, 0.3),
       $active-border-color: rgba(0, 0, 0, 0.3),
-      $focus-border-color: global.$acms-btn-success-focus-border-color
+      $focus-border-color: global.$acms-btn-success-focus-border-color,
+      $focus-box-shadow: global.$acms-btn-focus-box-shadow
     );
   }
 
@@ -85,11 +80,12 @@
     @include global.button-decoration(
       $bg-color: global.$acms-btn-warning-color-base,
       $hover-bg-color: global.$acms-btn-warning-color-darker,
-      $text-color: global.$acms-btn-text-color,
+      $text-color: global.$acms-btn-color,
       $border-color: global.$acms-btn-warning-border,
       $hover-border-color: global.$acms-btn-warning-hover-border,
       $active-border-color: global.$acms-btn-warning-active-border,
-      $focus-border-color: global.$acms-btn-warning-focus-border-color
+      $focus-border-color: global.$acms-btn-warning-focus-border-color,
+      $focus-box-shadow: global.$acms-btn-focus-box-shadow
     );
   }
 
@@ -100,11 +96,12 @@
     @include global.button-decoration(
       $bg-color: global.$acms-btn-danger-color-base,
       $hover-bg-color: global.$acms-btn-danger-color-darker,
-      $text-color: global.$acms-btn-text-color,
+      $text-color: global.$acms-btn-color,
       $border-color: global.$acms-btn-danger-border,
       $hover-border-color: global.$acms-btn-danger-hover-border,
       $active-border-color: global.$acms-btn-danger-active-border,
-      $focus-border-color: global.$acms-btn-danger-focus-border-color
+      $focus-border-color: global.$acms-btn-danger-focus-border-color,
+      $focus-box-shadow: global.$acms-btn-focus-box-shadow
     );
   }
 
@@ -119,7 +116,6 @@
     text-decoration: underline;
     background: none;
     border-color: transparent !important;
-    border-radius: 0;
   }
 
   // hover
@@ -131,28 +127,66 @@
   &.acms-btn-link:active {
     box-shadow: none;
   }
+
+  // ---------------
+  // Text
+  // ---------------
+  &.acms-btn-text,
+  .acms-btn-text:hover,
+  .acms-btn-text:active,
+  .acms-btn-text:visited {
+    color: global.$acms-btn-text-color;
+    text-decoration: none;
+    background: none;
+    border-color: transparent !important;
+  }
+
+  // hover
+  &.acms-btn-text:hover {
+    background-color: global.$acms-btn-text-bg-color-hover;
+  }
+
+  // active
+  &.acms-btn-text:active {
+    box-shadow: none;
+  }
 }
 
 /* ---------------------------
    セレクトメニュー風ボタン
   --------------------------- */
 .acms-select-btn {
-  display: inline-block;
+  display: inline-flex !important;
+  gap: global.$acms-btn-column-gap;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
   cursor: pointer;
-  appearance: button;
+  appearance: auto;
 
   @include global.select(
     $border-radius: 3px,
     $background-color: global.$acms-form-select-bg-color,
-    $background-color-hover: global.$acms-form-select-bg-color
+    $background-color-hover: global.$acms-form-select-bg-color,
+    $font-size: global.$acms-btn-font-size,
+    $padding: (
+      math.div(global.$acms-form-height - global.$acms-btn-font-size - 2px, 2),
+    )
+    global.$acms-btn-padding-x,
+    $line-height: global.$acms-btn-line-height
   );
-}
-
-@media (min-width: global.$breakpoint-md-min) {
-  .acms-select-btn {
-    @include global.desktop-select;
-  }
+  @include global.button-decoration(
+    $border: 1px solid rgba(0, 0, 0, 0.2),
+    $hover-bg-color: global.$acms-color-gray20,
+    $hover-border-color: rgba(0, 0, 0, 0.3),
+    $text-color: global.$acms-btn-default-color,
+    $active-border-color: global.$acms-btn-active-border-color,
+    $active-bg-color: global.$acms-color-gray40,
+    $active-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3),
+    $active-text-color: global.$acms-color-black,
+    $focus-border-color: global.$acms-btn-focus-border-color,
+    $focus-box-shadow: global.$acms-btn-focus-box-shadow
+  );
 }
 
 /* ---------------------------
@@ -165,10 +199,11 @@
   cursor: pointer;
 
   @include global.button-shape(
+    $font-size: global.$acms-btn-font-size,
     $padding: (
-      math.div(global.$acms-form-height-sp - global.$acms-btn-font-size - 2px, 2),
+      math.div(global.$acms-form-height - global.$acms-btn-font-size - 2px, 2),
     )
-    global.$acms-btn-flat-padding-x-sp,
+    global.$acms-btn-flat-padding-x,
     $border-radius: global.$acms-btn-flat-border-radius
   );
   @include global.button-decoration(
@@ -185,16 +220,6 @@
     $focus-border-color: global.$acms-btn-focus-border-color,
     $focus-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2)
   );
-
-  @media (min-width: global.$breakpoint-md-min) {
-    @include global.button-shape(
-      $font-size: global.$acms-btn-font-size-desktop,
-      $padding: (
-        math.div(global.$acms-form-height - global.$acms-btn-font-size-desktop - 2px, 2),
-      )
-      global.$acms-btn-flat-padding-x
-    );
-  }
 }
 
 // primary
@@ -293,32 +318,24 @@
     --------------- */
   .acms-btn-admin {
     @include global.button-shape(
+      $font-size: global.$acms-btn-font-size,
       $padding: (
-        math.div(global.$acms-form-height-sp - global.$acms-btn-font-size - 2px, 2),
+        math.div(global.$acms-form-height - global.$acms-btn-font-size - 2px, 2),
       )
-      global.$acms-btn-padding-x-sp
+      global.$acms-btn-padding-x
     );
     @include global.button-decoration(
       $border: 1px solid rgba(0, 0, 0, 0.2),
       $hover-bg-color: global.$acms-color-gray20,
       $hover-border-color: rgba(0, 0, 0, 0.3),
-      $text-color: global.$acms-btn-text-default-color,
+      $text-color: global.$acms-btn-default-color,
       $active-border-color: global.$acms-btn-active-border-color,
       $active-bg-color: global.$acms-color-gray40,
       $active-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3),
       $active-text-color: global.$acms-color-black,
-      $focus-border-color: global.$acms-btn-focus-border-color
+      $focus-border-color: global.$acms-btn-focus-border-color,
+      $focus-box-shadow: global.$acms-btn-focus-box-shadow
     );
-
-    @media (min-width: global.$breakpoint-md-min) {
-      @include global.button-shape(
-        $font-size: global.$acms-btn-font-size-desktop,
-        $padding: (
-          math.div(global.$acms-form-height - global.$acms-btn-font-size-desktop - 2px, 2),
-        )
-        global.$acms-btn-padding-x
-      );
-    }
   }
 
   // ---------------
@@ -333,7 +350,8 @@
       $border-color: global.$acms-btn-primary-border,
       $hover-border-color: rgba(0, 0, 0, 0.2),
       $active-border-color: rgba(0, 0, 0, 0.2),
-      $focus-border-color: global.$acms-btn-focus-border-color
+      $focus-border-color: global.$acms-btn-focus-border-color,
+      $focus-box-shadow: global.$acms-btn-focus-box-shadow
     );
   }
 
@@ -349,7 +367,8 @@
       $border-color: global.$acms-btn-info-border,
       $hover-border-color: rgba(0, 0, 0, 0.2),
       $active-border-color: rgba(0, 0, 0, 0.2),
-      $focus-border-color: global.$acms-btn-focus-border-color
+      $focus-border-color: global.$acms-btn-focus-border-color,
+      $focus-box-shadow: global.$acms-btn-focus-box-shadow
     );
   }
 
@@ -365,7 +384,8 @@
       $border-color: rgba(0, 0, 0, 0.1),
       $hover-border-color: rgba(0, 0, 0, 0.2),
       $active-border-color: rgba(0, 0, 0, 0.2),
-      $focus-border-color: global.$acms-btn-focus-border-color
+      $focus-border-color: global.$acms-btn-focus-border-color,
+      $focus-box-shadow: global.$acms-btn-focus-box-shadow
     );
   }
 
@@ -393,19 +413,16 @@
 // ---------------
 // disabled
 .acms-btn-disabled,
-button[disabled],
-input[type='submit'][disabled],
-input[type='reset'][disabled],
-input[type='image'][disabled],
-input[type='button'][disabled],
-fieldset[disabled] .acms-btn {
+button:not(.acms-btn-v2):disabled,
+input[type='submit']:disabled,
+input[type='reset']:disabled,
+input[type='image']:disabled,
+input[type='button']:disabled,
+fieldset:disabled .acms-btn {
+  box-shadow: none;
   opacity: global.$acms-btn-disabled-opacity;
   filter: alpha(opacity=global.$acms-btn-disabled-opacity-ie);
   pointer-events: none;
-
-  &:not(.acms-btn-active) {
-    box-shadow: none;
-  }
 }
 
 // ブロックレベルのボタン
@@ -419,7 +436,6 @@ fieldset[disabled] .acms-btn {
 
 // インライン
 .acms-inline-btn {
-  display: inline-block;
   float: left;
   margin-right: 5px;
   margin-bottom: 10px;
@@ -427,52 +443,75 @@ fieldset[disabled] .acms-btn {
 
 // サイズ小
 .acms-btn-small {
-  padding: (math.div(global.$acms-form-height-small-sp - global.$acms-btn-small-font-size - 2px, 2))
+  padding: (math.div(global.$acms-form-height-small - global.$acms-btn-small-font-size - 2px, 2))
     global.$acms-btn-small-padding-x;
 
   @include global.font-size(global.$acms-btn-small-font-size);
-
-  @media screen and (min-width: global.$breakpoint-md-min) {
-    padding: (math.div(global.$acms-form-height-small - global.$acms-btn-small-font-size - 2px, 2))
-      global.$acms-btn-small-padding-x;
-  }
 }
 
 // サイズ大
 .acms-btn-large {
-  padding: (math.div(global.$acms-form-height-large-sp - global.$acms-btn-large-font-size - 2px, 2))
+  padding: (math.div(global.$acms-form-height-large - global.$acms-btn-large-font-size - 2px, 2))
     global.$acms-btn-large-padding-x;
   border-radius: global.$acms-btn-large-border-radius;
 
   @include global.font-size(global.$acms-btn-large-font-size);
-
-  @media screen and (min-width: global.$breakpoint-md-min) {
-    padding: (math.div(global.$acms-form-height-large - global.$acms-btn-large-font-size - 2px, 2))
-      global.$acms-btn-large-padding-x;
-  }
 }
 
 //アイコンボタン
 .acms-btn-icon {
-  padding: global.$acms-btn-icon-padding;
+  @include global.button-shape($padding: global.$acms-btn-icon-padding, $font-size: global.$acms-btn-icon-font-size);
+}
 
-  @include global.font-size(global.$acms-btn-icon-font-size);
+.acms-btn-icon-unstyled {
+  color: var(--acms-btn-material-icon-color, #{global.$acms-color-system-gray70});
+  font-size: var(--acms-btn-material-icon-font-size, 24px);
+  background: transparent;
+  border: 0;
+  appearance: none;
+
+  @include global.button-shape($padding: var(--acms-btn-material-icon-padding, 0), $font-size: null);
 }
 
 .acms-btn-draggable {
-  display: inline-block;
-  padding: global.$acms-btn-icon-padding;
+  --acms-btn-draggable-size: 24px;
+  --acms-btn-draggable-padding-x: 4px;
+  --acms-btn-draggable-padding-y: 4px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--acms-btn-draggable-padding-y) var(--acms-btn-draggable-padding-x);
+  color: inherit;
   background: none;
   border: none;
   cursor: grab;
   appearance: none;
+  touch-action: none;
 
-  @include global.font-size(global.$acms-btn-icon-font-size);
+  @include global.font-size(var(--acms-btn-draggable-size));
+}
+
+.acms-btn-draggable.acms-btn-draggable-small {
+  --acms-btn-draggable-size: 16px;
+}
+
+.acms-btn-draggable:disabled {
+  visibility: hidden;
+  cursor: default;
 }
 
 :where(.acms-btn-unstyled) {
   padding: 0;
-  background: 0;
+  background: transparent;
   border: 0;
   appearance: none;
+}
+
+// acms-icon のpaddingをリセット（flexboxのgapで制御する）
+.acms-btn .acms-icon,
+.acms-btn-admin .acms-icon,
+.acms-btn-flat .acms-icon,
+.acms-select-btn .acms-icon {
+  padding: 0;
 }

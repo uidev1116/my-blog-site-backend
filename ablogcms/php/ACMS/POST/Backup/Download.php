@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\PrivateStorage;
+
 class ACMS_POST_Backup_Download extends ACMS_POST_Backup_Base
 {
     /**
@@ -26,7 +28,7 @@ class ACMS_POST_Backup_Download extends ACMS_POST_Backup_Base
                 'type' => $type,
             ]);
 
-            Common::download($this->getPath($type, $fileName), $fileName);
+            Common::download($this->getPath($type, $fileName), $fileName, false, false, PrivateStorage::getInstance());
         } catch (\Exception $e) {
             AcmsLogger::warning('バックアップファイルのダウンロードに失敗しました', Common::exceptionArray($e));
             $this->addError($e->getMessage());

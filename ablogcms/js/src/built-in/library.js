@@ -1,11 +1,16 @@
 import punycode from 'punycode';
 import dayjs from 'dayjs';
 import lozad from 'lozad';
-import { Loader } from 'google-maps';
 import PrettyScroll from 'pretty-scroll';
 import { parse, serialize } from 'cookie';
 import ResizeImage from '../lib/resize-image/resize-image';
-import { setDropArea, getParameterByName, PerfectFormData, encodeUri, triggerEvent } from '../utils';
+import { setDropArea, getParameterByName, PerfectFormData, triggerEvent } from '../utils';
+import createAcmsPathHelper from '../lib/acmsPath/createAcmsPathHelper';
+import acmsLink from './lib/acmsLink';
+import createAcmsContextFromFormData from './lib/createAcmsContextFromFormData';
+import validator from './lib/validator';
+import deprecated from '../lib/deprecated';
+import tab from './lib/tab';
 
 export default () => {
   // Polyfill for jquery.cookie.js using npm's cookie package
@@ -49,6 +54,7 @@ export default () => {
   ACMS.Library.ResizeImage = (elm) => {
     const resizeImage = new ResizeImage(elm);
     resizeImage.resize();
+    return resizeImage;
   };
 
   ACMS.Library.geolocation = (successCallable, errorCallable) => {
@@ -79,20 +85,18 @@ export default () => {
 
   ACMS.Library.Dayjs = (input, format) => dayjs(input).format(format);
 
-  ACMS.Library.SmartPhoto = (context) => {
+  ACMS.Library.SmartPhoto = async (elements) => {
     import(/* webpackChunkName: "smartphoto-css" */ 'smartphoto/css/smartphoto.min.css');
-    import(/* webpackChunkName: "smartphoto" */ 'smartphoto').then(({ default: SmartPhoto }) => {
-      new SmartPhoto(context, ACMS.Config.SmartPhotoConfig); // eslint-disable-line no-new
-    });
+    const { default: SmartPhoto } = await import(/* webpackChunkName: "smartphoto" */ 'smartphoto');
+    return new SmartPhoto(elements, ACMS.Config.SmartPhotoConfig); // eslint-disable-line no-new
   };
 
   //-------------
   // modalVideo
-  ACMS.Library.modalVideo = (context) => {
+  ACMS.Library.modalVideo = async (elements) => {
     import(/* webpackChunkName: "modal-video-css" */ 'modal-video/css/modal-video.min.css');
-    import(/* webpackChunkName: "modal-video" */ 'modal-video').then(({ default: ModalVideo }) => {
-      new ModalVideo(context, ACMS.Config.modalVideoConfig); // eslint-disable-line no-new
-    });
+    const { default: ModalVideo } = await import(/* webpackChunkName: "modal-video" */ 'modal-video');
+    return new ModalVideo(elements, ACMS.Config.modalVideoConfig); // eslint-disable-line no-new
   };
 
   ACMS.Library.decodeEntities = (text) => {
@@ -228,28 +232,12 @@ export default () => {
     ACMS.Library.scrollTo(setting.x, setting.y, setting.m, setting.k, setting.offset, setting.callback);
   };
 
-  //------------
-  // dl2object
-  ACMS.Library.dl2object = function (dl) {
-    const ret = {};
-    $('dt', dl).each(function () {
-      const $dt = $(this);
-      const $dd = $dt.next();
-      if ($dt.text() === '') {
-        return false;
-      }
-      if ($dd[0].tagName.toUpperCase() !== 'DD') {
-        return false;
-      }
-      ret[$.trim($dt.text().replace('&', '%26'))] = $.trim($dd.text().replace('&', '%26'));
-    });
-
-    return ret;
-  };
-
   //-------------
   // switchStyle
   ACMS.Library.switchStyle = function (styleName, $link) {
+    ACMS.Library.deprecated(ACMS.i18n('deprecated.feature.switch_style.name'), {
+      since: '3.2.0',
+    });
     $link.each(function () {
       this.disabled = true;
       if (styleName === this.title) {
@@ -257,44 +245,6 @@ export default () => {
         $.cookie('styleName', styleName, { path: '/' });
       }
     });
-  };
-
-  //-----------------
-  // googleLoadProxy
-  ACMS.Library.googleLoadProcessing = false;
-  ACMS.Library.googleLoadCompleted = false;
-  ACMS.Library.googleLoadProxy = function (api, ver, params) {
-    const { callback } = params;
-    const options = params.options || {};
-    const _load = () => {
-      const loader = new Loader(ACMS.Config.googleApiKey, options);
-      loader.load().then((google) => {
-        window.google = google;
-        ACMS.Library.googleLoadProcessing = false;
-        ACMS.Library.googleLoadCompleted = true;
-        if ($.isFunction(callback)) {
-          callback();
-        }
-      });
-    };
-    // apiが既に読み込まれていれば即時実行
-    if (ACMS.Library.googleLoadCompleted) {
-      if ($.isFunction(callback)) {
-        callback();
-      }
-      return;
-    }
-    if (ACMS.Library.googleLoadProcessing) {
-      const timer = setInterval(() => {
-        if (!ACMS.Library.googleLoadProcessing) {
-          clearInterval(timer);
-          ACMS.Library.googleLoadProxy(api, ver, params);
-        }
-      }, 50);
-    } else {
-      ACMS.Library.googleLoadProcessing = true;
-      _load();
-    }
   };
 
   //-------------
@@ -332,107 +282,42 @@ export default () => {
   ACMS.Library.getParameterByName = getParameterByName;
 
   //----------------------
-  // google code prettify
-  ACMS.Library.googleCodePrettifyPost = () => {
-    $('pre').addClass(ACMS.Config.googleCodePrettifyClass);
-    if (!$('pre').hasClass('acms-admin-customfield-maker')) {
-      if (typeof prettyPrint === 'function') {
-        prettyPrint();
-      } else {
-        ACMS.Library.googleCodePrettify();
-      }
+  // Syntax Highlighter
+  ACMS.Library.highlight = async (context) => {
+    const preElements = context.querySelectorAll(ACMS.Config.highlightMark);
+    if (preElements.length === 0) {
+      return;
     }
+    const highlight = (await import(/* webpackChunkName: "lib-highlightjs" */ './lib/highlight')).default;
+    highlight(
+      context,
+      ACMS.Config.highlightMark,
+      ACMS.Config.highlightConfig.languages,
+      ACMS.Config.highlightConfig.theme,
+      ACMS.Config.root
+    );
   };
 
-  //----------
-  // acmsLink
-  ACMS.Library.acmsLink = function (Uri, inherit) {
-    const { Config } = ACMS;
-    function empty(value) {
-      return typeof value === 'undefined' || value === null;
-    }
+  const { acmsPath, parseAcmsPath } = createAcmsPathHelper(ACMS.Config.segments);
+  /**
+   * parseAcmsPath
+   */
+  ACMS.Library.parseAcmsPath = parseAcmsPath;
 
-    //-----------------
-    // inherit context
-    if (inherit) {
-      if (empty(Uri.cid)) {
-        Uri.cid = Config.cid;
-      }
-      if (empty(Uri.eid)) {
-        Uri.eid = Config.eid;
-      }
-      if (empty(Uri.admin)) {
-        Uri.admin = Config.admin;
-      }
-      if (empty(Uri.keyword)) {
-        Uri.keyword = Config.keyword;
-      }
-    }
+  /**
+   * acmsPath
+   */
+  ACMS.Library.acmsPath = acmsPath;
 
-    let url = Config.scriptRoot;
-    url += Uri.bid ? `bid/${encodeUri(Uri.bid)}` : `bid/${encodeUri(Config.bid)}`;
-    if (Uri.date) {
-      url += `/${Uri.date}`;
-    }
-    if (Uri.cid) {
-      url += `/cid/${encodeUri(Uri.cid)}`;
-    }
-    if (Uri.eid) {
-      url += `/eid/${encodeUri(Uri.eid)}`;
-    }
-    if (Uri.utid) {
-      url += `/utid/${encodeUri(Uri.utid)}`;
-    }
-    if (Uri.admin) {
-      url += `/admin/${encodeUri(Uri.admin)}`;
-    }
-    if (Uri.order) {
-      url += `/order/${encodeUri(Uri.order)}`;
-    }
-    if (Uri.keyword) {
-      url += `/keyword/${encodeUri(Uri.keyword)}`;
-    }
-    if (Uri.page) {
-      url += `/page/${encodeUri(Uri.page)}`;
-    }
-    if (Uri.limit) {
-      url += `/limit/${encodeUri(Uri.limit)}`;
-    }
-    if (Uri.tag) {
-      url += `/tag/${Uri.tag.split('/').map(encodeUri).join('/')}`;
-    }
-    if (Uri.tpl) {
-      url += `/tpl/${Uri.tpl.split('/').map(encodeUri).join('/')}`;
-    }
-    if (Uri.tpl && /^ajax\//.test(Uri.tpl)) {
-      if (Uri.Query) {
-        Uri.Query.v = Date.now();
-      } else {
-        Uri.Query = { v: Date.now() };
-      }
-    }
-    url += '/';
-    if (Uri.Query) {
-      const query = [];
-      $.each(Uri.Query, function (key) {
-        let pair = '';
-        pair += encodeUri(key);
-        if (this !== true) {
-          pair += `=${encodeUri(this)}`;
-        }
-        query.push(pair);
-      });
-      if (query.length) {
-        url += `?${query.join('&')}`;
-      }
-    }
+  /**
+   * acmsLink
+   */
+  ACMS.Library.acmsLink = acmsLink;
 
-    return url;
-  };
-
-  ACMS.Library.exFeature = function () {
-    return ACMS.Config.experimentalFeature === true || $.cookie('acms_ex') === 'on';
-  };
+  /**
+   * createAcmsContextFromFormData
+   */
+  ACMS.Library.createAcmsContextFromFormData = createAcmsContextFromFormData;
 
   ACMS.Library.queryToObj = function (str) {
     str = str || location.search;
@@ -447,56 +332,21 @@ export default () => {
     return result;
   };
 
-  /**
-   *
-   * @param {String} name
-   * @param {Object} [options]
-   */
-  ACMS.Library.toggleNotify = function (name, options) {
-    if (options) {
-      options = {};
-    }
-
-    const ident = `js-notify-${name}`;
-    const message = options.message || '';
-    const preCallback = options.preCallback || false;
-    const postCallback = options.postCallback || false;
-    const style = options.style || false;
-    let $notify = $(`#${ident}`);
-
-    if (!$notify.length) {
-      $notify = $($.parseHTML(`<div id="${ident}" class="js-notify">${message}</div>`));
-      $notify.appendTo('body');
-    }
-
-    // スタイルの上書き
-    if (style) {
-      $notify.css(style);
-    }
-
-    if ($notify.css('display') === 'none') {
-      if (preCallback) {
-        preCallback($notify);
-      }
-      $notify.fadeIn(300, () => {
-        if (postCallback) {
-          postCallback($notify);
-        }
-      });
-    } else {
-      if (preCallback) {
-        preCallback($notify);
-      }
-      $notify.fadeOut(200, () => {
-        $notify.hide();
-        if (postCallback) {
-          postCallback($notify);
-        }
-      });
-    }
-  };
-
   ACMS.Library.triggerEvent = triggerEvent;
 
   ACMS.Library.setDropArea = setDropArea;
+
+  ACMS.Library.fileiconPath = function (extension) {
+    return `${ACMS.Config.fileiconDir}${extension}.svg`;
+  };
+
+  ACMS.Library.validator = validator;
+
+  ACMS.Library.isDebugMode = function () {
+    return ACMS.Config.isDebugMode === '1';
+  };
+
+  ACMS.Library.deprecated = deprecated;
+
+  ACMS.Library.tab = tab;
 };

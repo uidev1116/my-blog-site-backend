@@ -1,23 +1,33 @@
 <!-- BEGIN_MODULE Touch_GeolocationEntryFunction -->
 <div id="geometry" class="js-entry-geo-edit clearfix">
   <table class="entryFormTable acms-admin-table-entry">
-    <tr>
-      <th style="vertical-align: top;">位置情報</th>
-      <td>
-        <div class="acms-admin-form-group">
-          <!-- BEGIN_IF [{geo_lat}/nem/_and_/{geo_lng}/nem/] -->
-          <input class="js-geo_input acms-admin-btn" type="button" data-type="delete" />
-          <!-- ELSE -->
-          <input class="js-geo_input acms-admin-btn" type="button" data-type="add" />
-          <!-- END_IF -->
-        </div>
-        <!-- BEGIN_IF [<!-- BEGIN_MODULE Config -->{geolocation_map_type}<!-- END_MODULE Config -->/eq/gmap] -->
-        @include("/admin/map/_google-map-picker.html")
-        <!-- ELSE -->
-        @include("/admin/map/_open-street-map-picker.html")
-        <!-- END_IF -->
-      </td>
-    </tr>
+    <tbody>
+      <tr>
+        <th style="vertical-align: top; padding-top: 12px !important;">位置情報</th>
+        <td>
+          <div class="acms-admin-vstack acms-admin-align-items-stretch">
+            <div>
+              <!-- BEGIN_IF [{geo_lat}/nem/_and_/{geo_lng}/nem/] -->
+              <button class="js-geo-button acms-admin-btn" type="button" data-type="delete" data-target="#geo-form">
+                <!--T-->位置情報を削除<!--/T-->
+              </button>
+              <!-- ELSE -->
+              <button class="js-geo-button acms-admin-btn" type="button" data-type="add" data-target="#geo-form">
+                <!--T-->位置情報を追加<!--/T-->
+              </button>
+              <!-- END_IF -->
+            </div>
+            <div id="geo-form" style="display: none;">
+              <!-- BEGIN_IF [<!-- BEGIN_MODULE Config -->{geolocation_map_type}<!-- END_MODULE Config -->/eq/gmap] -->
+                @include("/admin/map/_google-map-picker.html")
+                <!-- ELSE -->
+                @include("/admin/map/_open-street-map-picker.html")
+              <!-- END_IF -->
+            </div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
   </table>
 </div>
 <!-- END_MODULE Touch_GeolocationEntryFunction -->

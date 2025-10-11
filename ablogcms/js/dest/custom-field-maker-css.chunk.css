@@ -1,6 +1,186 @@
+.customFieldContainer {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 64px;
+  max-width: 960px;
+}
+
+.customFieldContainer h2 {
+  color: #333;
+  margin: 0;
+  font-size: 20px;
+  margin-bottom: 1em;
+}
+
+/* ジェネレーター：全体
+-------------------------------------- */
+.customFieldFunction {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 24px;
+  background: #fff;
+}
+
+/* ジェネレーター：フィールドグループ、ユニットグループ
+-------------------------------------- */
+.customFieldGeneratorGroup {
+  display: grid;
+  row-gap: 24px;
+  -moz-column-gap: 24px;
+       column-gap: 24px;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-areas:
+    "areaTitle  areaVal ."
+    "areaButton .       .";
+}
+.customFieldGeneratorGroup.-openGroup {
+  grid-template-areas: "areaTitle  areaVal .";
+}
+.customFieldGeneratorGroup dd {
+  margin: 0;
+}
+.customFieldGeneratorGroupTitle {
+  -ms-grid-row: 1;
+  -ms-grid-column: 1;
+  grid-area: areaTitle;
+}
+.customFieldGeneratorGroup.-openGroup > .customFieldGeneratorGroupTitle {
+  -ms-grid-row: 1;
+  -ms-grid-column: 1;
+}
+.customFieldGeneratorBasic > .customFieldGeneratorGroupTitle {
+  -ms-grid-row: 1;
+  -ms-grid-column: 3;
+}
+.customFieldGeneratorGroupVal {
+  -ms-grid-row: 1;
+  -ms-grid-column: 3;
+  grid-area: areaVal;
+}
+.customFieldGeneratorGroup.-openGroup > .customFieldGeneratorGroupVal {
+  -ms-grid-row: 1;
+  -ms-grid-column: 2;
+}
+.customFieldGeneratorGroupButton {
+  -ms-grid-row: 3;
+  -ms-grid-column: 1;
+  grid-area: areaButton;
+}
+
+/* ジェネレーター：ベーシック
+-------------------------------------- */
+.customFieldGeneratorBasic {
+  display: grid;
+  row-gap: 24px;
+  -moz-column-gap: 24px;
+       column-gap: 24px;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-areas:
+    "areaInput   areaTitle       areaField"
+    "areaPlaceholder areaTooltip areaTooltip";
+}
+.customFieldGeneratorBasic label,
+.customFieldGeneratorBasic dt,
+.customFieldGeneratorGroup label,
+.customFieldGeneratorGroup dt {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding-bottom: 8px;
+}
+.customFieldGeneratorBasicInput {
+  -ms-grid-row: 1;
+  -ms-grid-column: 1;
+  grid-area: areaInput;
+}
+.customFieldGeneratorBasicTitle {
+  -ms-grid-row: 1;
+  -ms-grid-column: 1;
+  grid-area: areaTitle;
+}
+.customFieldGeneratorGroup.-openGroup > .customFieldGeneratorBasicTitle {
+  -ms-grid-row: 1;
+  -ms-grid-column: 1;
+}
+.customFieldGeneratorBasic > .customFieldGeneratorBasicTitle {
+  -ms-grid-row: 1;
+  -ms-grid-column: 3;
+}
+.customFieldGeneratorBasicField {
+  -ms-grid-row: 1;
+  -ms-grid-column: 5;
+  grid-area: areaField;
+}
+.customFieldGeneratorBasicTooltip {
+  -ms-grid-row: 3;
+  -ms-grid-column: 3;
+  -ms-grid-column-span: 3;
+  grid-area: areaTooltip;
+}
+.customFieldGeneratorBasicPlaceholder {
+  -ms-grid-row: 3;
+  -ms-grid-column: 1;
+  grid-area: areaPlaceholder;
+}
+
+/* ジェネレーター：バリデーター
+-------------------------------------- */
+.customFieldValidatorLabel {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.customFieldValidatorToggle {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-right: 2px solid #333;
+  border-bottom: 2px solid #333;
+  transition: transform;
+  transform: rotateZ(45deg);
+  transform-origin: center center;
+}
+
+/* アコーディオン
+-------------------------------------- */
+.customFieldAccordionContent {
+  display: grid;
+  transition: 0.3s;
+  transition-property: grid-template-rows;
+}
+.customFieldAccordionContent[aria-hidden=true] {
+  grid-template-rows: 0fr;
+}
+
+.customFieldAccordionContent[aria-hidden=false] {
+  grid-template-rows: 1fr;
+}
+.customFieldAccordionContent__inner {
+  overflow: hidden;
+}
+
+/* ナビゲーター：コード操作
+-------------------------------------- */
+.customFieldNavigatorCode {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 20px;
+}
+.customFieldNavigatorCodeButtonList {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ボタン
+-------------------------------------- */
 .customFieldCopied {
   position: absolute;
-  bottom: -40px;
+  bottom: -52px;
   left: -30px;
   background-color: rgba(0, 0, 0, .5);
   font-size: 10px;
@@ -15,13 +195,9 @@
 
 .hljs {
   border-radius: 5px;
-}
-
-.customFieldFunction {
-  margin-bottom: 20px;
-  padding: 20px 9px 10px;
-  border: 1px solid #e8e8e8;
-  background: #fff;
+  padding: 20px;
+  /* background-color: #F0F0F0 !important; */
+  min-height: 19.391px;
 }
 
 .customFieldCopied:after {
@@ -63,23 +239,29 @@
 }
 
 .customFieldValidatorArea {
+  display: grid;
+  gap: 16px;
+  grid-template-colmuns: repeat(1, minmax(0, 1fr));
+  margin-top: 8px;
   background-color: #F7F7F7;
-  border: 1px solid #cccccc;
-  padding: 10px;
+  padding: 20px;
 }
 
 .customFieldValidatorArea .acms-admin-icon-tooltip {
   margin-left: 10px;
 }
 
+.customFieldBold {
+  margin-bottom: 10px;
+}
 .customFieldBold .acms-admin-icon-tooltip {
   margin-left: 10px;
 }
 
 .customFieldOptionTable {
   width: auto !important;
-  border-top: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
+  /* border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc; */
 }
 
 .customFieldOptionTable th,
@@ -103,7 +285,7 @@
 }
 
 .customFieldOptionTable tr {
-  border-bottom: 1px solid #cccccc;
+  /* border-bottom: 1px solid #cccccc; */
 }
 
 .customFieldOptionTable th:first-child,
@@ -311,15 +493,6 @@
   line-height: 27px;
 }
 
-.customFieldTooltip {
-  font-weight: normal;
-  white-space: normal;
-  word-wrap: break-word;
-  padding-left: 10px !important;
-  padding-right: 10px !important;
-  font-size: 12px;
-}
-
 .customFieldFileContainer {
   padding-top: 10px;
 }
@@ -343,53 +516,6 @@
 .customFieldMakeBtn {
   padding-right: 70px;
   padding-left: 70px;
-}
-
-.customFieldTabs {
-	margin: 0;
-	padding: 0;
-}
-.customFieldTabs:before,
-.customFieldTabs:after {
-	content: " ";
-	display: table;
-}
-.customFieldTabs:after {
-	clear: both;
-}
-.customFieldTabs li {
-	list-style: none;
-	float: left;
-	margin-right: 2px;
-}
-.customFieldTabs a {
-    position: relative;
-    display: block;
-    padding: 10px 8px;
-    color: #404040;
-    font-weight: 500;
-    font-size: 14px;
-    line-height: 1;
-	outline: none;
-	text-decoration: none;
-}
-.customFieldTabs a:hover {
-	color: #666;
-	background: #F2F2F4;
-}
-.customFieldTabs a.customFieldTabActive {
-    color: #014cc5;
-    border-bottom: 3px solid #014cc5;
-    background: #f2f2f4
-}
-.customFieldTabs a.customFieldTabActive:before {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -1px;
-    width: 100%;
-    height: 1px;
-    background: #f2f2f4
 }
 
 .customFieldDirectionBtnGroup {
@@ -430,5 +556,9 @@
   width: 18px;
   height: auto;
   vertical-align: middle;
+}
+
+.customFIeldmakerHeilighter {
+  margin: 0;
 }
 

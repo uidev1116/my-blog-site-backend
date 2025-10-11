@@ -47,6 +47,7 @@ class Engine
         // 有効期限チェック
         if (isset($_SESSION['lifetime']) && $_SESSION['lifetime'] < REQUEST_TIME) {
             $this->destroy(); // 有効期限切れ
+            $this->start(); // セッション再スタート
         } else {
             $this->storage = isset($_SESSION[$this->storageName]) ? acmsUnserialize($_SESSION[$this->storageName]) : []; // セッション変数から，前回の状態を取得
         }
@@ -79,7 +80,9 @@ class Engine
      */
     public function regenerate()
     {
-        session_regenerate_id(true);
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
+        }
     }
 
     /**
@@ -148,18 +151,14 @@ class Engine
     protected function start()
     {
         session_name($this->sessionName);
-        if (version_compare(PHP_VERSION, '7.3.0', '>=')) {
-            session_set_cookie_params([
-                'lifetime' => $this->lifetime,
-                'path' => $this->path,
-                'domain' => $this->domain,
-                'secure' => $this->secure,
-                'httponly' => $this->httpOnly,
-                'samesite' => $this->sameSite,
-            ]);
-        } else {
-            session_set_cookie_params($this->lifetime, $this->path, $this->domain, $this->secure, $this->httpOnly);
-        }
+        session_set_cookie_params([
+            'lifetime' => $this->lifetime,
+            'path' => $this->path,
+            'domain' => $this->domain,
+            'secure' => $this->secure,
+            'httponly' => $this->httpOnly,
+            'samesite' => $this->sameSite,
+        ]);
         session_cache_limiter(null); // HTTPヘッダーは独自で設定する
         session_start();
     }
@@ -171,18 +170,14 @@ class Engine
     {
         $_SESSION = [];
         $params = session_get_cookie_params();
-        if (version_compare(PHP_VERSION, '7.3.0', '>=')) {
-            setcookie(session_name(), '', [
-                'expires' => time() - 42000,
-                'path' => $params["path"],
-                'domain' =>  $params["domain"],
-                'secure' => $params["secure"],
-                'httponly' => $params["httponly"],
-                'samesite' => $params["samesite"],
-            ]);
-        } else {
-            setcookie(session_name(), '', time() - 42000, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
-        }
+        setcookie(session_name(), '', [
+            'expires' => time() - 42000,
+            'path' => $params["path"],
+            'domain' =>  $params["domain"],
+            'secure' => $params["secure"],
+            'httponly' => $params["httponly"],
+            'samesite' => $params["samesite"],
+        ]);
         session_destroy();
     }
 
@@ -199,26 +194,14 @@ class Engine
             $_SESSION['lifetime'] = $expires;
         }
         $params = session_get_cookie_params();
-        if (version_compare(PHP_VERSION, '7.3.0', '>=')) {
-            setcookie($this->sessionName, $_COOKIE[$this->sessionName], [
-                'expires' => $expires,
-                'path' => $params['path'],
-                'domain' =>  $params['domain'],
-                'secure' => $params['secure'],
-                'httponly' => $params['httponly'],
-                'samesite' => $params['samesite'],
-            ]);
-        } else {
-            setcookie(
-                $this->sessionName,
-                $_COOKIE[$this->sessionName],
-                $expires,
-                $params["path"],
-                $params["domain"],
-                $params["secure"],
-                $params["httponly"]
-            );
-        }
+        setcookie($this->sessionName, $_COOKIE[$this->sessionName], [
+            'expires' => $expires,
+            'path' => $params['path'],
+            'domain' =>  $params['domain'],
+            'secure' => $params['secure'],
+            'httponly' => $params['httponly'],
+            'samesite' => $params['samesite'],
+        ]);
     }
 
     /**
@@ -227,17 +210,6 @@ class Engine
     protected function useDatabase()
     {
         $handler = new DatabaseHandler();
-        if (
-            session_set_save_handler(
-                [$handler, 'open'],
-                [$handler, 'close'],
-                [$handler, 'read'],
-                [$handler, 'write'],
-                [$handler, 'destroy'],
-                [$handler, 'gc']
-            )
-        ) {
-            register_shutdown_function('session_write_close');
-        }
+        session_set_save_handler($handler, true);
     }
 }

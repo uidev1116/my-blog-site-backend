@@ -50,7 +50,7 @@
   }
 }
 
-@media screen and (min-width: global.$breakpoint-md-min) {
+@include global.media-breakpoint-up(md) {
   .acms-config-code {
     width: 140px;
 

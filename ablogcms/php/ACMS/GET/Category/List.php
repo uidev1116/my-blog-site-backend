@@ -1,5 +1,8 @@
 <?php
 
+use Acms\Modules\Get\Helpers\Category\CategoryHelper;
+use Acms\Services\Facades\Database;
+
 /**
  * Todo: array_serachの第3引数をtrueにする（型チェックのため）
  */
@@ -10,87 +13,79 @@ class ACMS_GET_Category_List extends ACMS_GET
         'bid'   => 'descendant-or-self',
     ];
 
-    protected function getAncestorsMap($Map, $root, &$i = 0)
-    {
-        foreach ($Map as $c => $p) {
-            if (!isset($Map[$p]) && $p !== $root) {
-                $Front      = [];
-                $Back       = [];
-                $Tmp[$p]    = ACMS_RAM::categoryParent($p);
+    /**
+     * @var array{
+     *  fieldSearch: string,
+     *  amount: string,
+     *  amountZero: string,
+     *  order: string,
+     *  level: int,
+     *  field: string,
+     *  parent_loop_class: string,
+     *  loop_class: string,
+     *  geolocation: string,
+     * }
+     */
+    protected $config;
 
-                $j = 0;
-                foreach ($Map as $c_ => $p_) {
-                    if ($j < $i) {
-                        $Front[$c_] = $p_;
-                    }
-                    $j++;
-                }
-                $j = 0;
-                foreach ($Map as $c_ => $p_) {
-                    if ($j >= $i) {
-                        $Back[$c_] = $p_;
-                    }
-                    $j++;
-                }
-                $Map = $Front + $this->getAncestorsMap($Tmp, $root, $k) + $Back;
-                $i   += $k;
-            }
-            $i++;
-        }
-        return $Map;
+    /**
+     * @var \Acms\Modules\Get\Helpers\Category\CategoryHelper
+     */
+    protected $categoryHelper;
+
+    /**
+     * @return array{
+     *  fieldSearch: string,
+     *  amount: string,
+     *  amountZero: string,
+     *  order: string,
+     *  level: int,
+     *  field: string,
+     *  parent_loop_class: string,
+     *  loop_class: string,
+     *  geolocation: string,
+     * }
+     */
+    protected function initVars()
+    {
+        return [
+            'fieldSearch' => config('category_list_field_search'),
+            'amount' => config('category_list_amount'),
+            'amountZero' => config('category_list_amount_zero'),
+            'order' => config('category_list_order'),
+            'level' => (int)config('category_list_level'),
+            'field' => config('category_list_field'),
+            'parent_loop_class' => config('category_list_parent_loop_class'),
+            'loop_class' => config('category_list_loop_class'),
+            'geolocation' => config('category_list_geolocation_on'),
+        ];
     }
 
+    /**
+     * @inheritDoc
+     */
     public function get()
     {
+        $this->setConfig();
         $categoryIds = [];
+        $this->categoryHelper = new CategoryHelper($this->getBaseParams([]));
 
-        $DB     = DB::singleton(dsn());
-        $SQL    = SQL::newSelect('category');
-        $SQL->addSelect('category_id');
-        $SQL->addSelect('category_code');
-        $SQL->addSelect('category_name');
-        $SQL->addSelect('category_parent');
-        $SQL->addSelect('category_left');
-        $SQL->addSelect('category_indexing');
-        $SQL->addLeftJoin('entry', 'entry_category_id', 'category_id');
-        $SQL->addLeftJoin('blog', 'blog_id', 'category_blog_id');
-
-        ACMS_Filter::blogTree($SQL, $this->bid, 'ancestor-or-self');
-        ACMS_Filter::categoryTree($SQL, $this->cid, $this->categoryAxis());
-        ACMS_Filter::categoryStatus($SQL);
-        if (!empty($this->keyword)) {
-            ACMS_Filter::categoryKeyword($SQL, $this->keyword);
-        }
-        if (!empty($this->Field)) {
-            if (config('category_list_field_search') == 'entry') {
-                ACMS_Filter::entryField($SQL, $this->Field);
-            } else {
-                ACMS_Filter::categoryField($SQL, $this->Field);
-            }
-        }
-        if (empty($this->cid) && $this->categoryAxis() === 'self') {
-            $SQL->addWhereOpr('category_parent', 0);
-        }
-        $Where  = SQL::newWhere();
-        $Where->addWhereOpr('category_blog_id', $this->bid, '=', 'OR');
-        $Where->addWhereOpr('category_scope', 'global', '=', 'OR');
-        $SQL->addWhere($Where);
-
-        $Where  = SQL::newWhere();
-        ACMS_Filter::entrySession($Where);
-        ACMS_Filter::entrySpan($Where, $this->start, $this->end);
-        $Where->addWhereOpr('entry_blog_id', $this->bid);
-
-        $Case   = SQL::newCase();
-        $Case->add($Where, 1);
-        $Case->setElse('NULL');
-        $SQL->addSelect($Case, 'category_entry_amount', null, 'count');
-        $SQL->setGroup('category_id');
-
-        if (!($all = $DB->query($SQL->get(dsn()), 'all'))) {
+        $searchType = in_array($this->config['fieldSearch'], ['entry', 'category'], true) ? $this->config['fieldSearch'] : 'category';
+        $categoryQuery = $this->categoryHelper->buildCategoryListQuery(
+            $this->bid,
+            $this->cid,
+            $this->categoryAxis(),
+            $this->keyword,
+            $this->Field,
+            $this->start,
+            $this->end,
+            $searchType,
+            true
+        );
+        $all = Database::query($categoryQuery->get(dsn()), 'all');
+        if (count($all) === 0) {
             return '';
         }
-
         $All = [];
         //-------------
         // restructure
@@ -100,7 +95,7 @@ class ACMS_GET_Category_List extends ACMS_GET
             foreach ($row as $key => $val) {
                 $All[$key][$cid] = $val;
             }
-            $All['all_amount'][$cid]    = intval($All['category_entry_amount'][$cid]);
+            $All['all_amount'][$cid] = intval($All['category_entry_amount'][$cid]);
         }
         $All['all_amount'][0] = 0;
 
@@ -120,7 +115,7 @@ class ACMS_GET_Category_List extends ACMS_GET
         //---------------
         // eager loading
         $eagerLoadingCategoryFields = false;
-        if (config('category_list_field') === 'on') {
+        if ($this->config['field'] === 'on') {
             $eagerLoadingCategoryFields = eagerLoadField($categoryIds, 'cid');
         }
 
@@ -148,7 +143,7 @@ class ACMS_GET_Category_List extends ACMS_GET
 
         //-----------------------------
         // amount zero ( swap parent )
-        if ('on' <> config('category_list_amount_zero')) {
+        if ($this->config['amountZero'] !== 'on') {
             while (!!($cid = array_search(0, $All['all_amount'], true))) {
                 // @phpstan-ignore-next-line
                 while (!!($_cid = intval(array_search($cid, $All['category_parent'])))) {
@@ -163,7 +158,7 @@ class ACMS_GET_Category_List extends ACMS_GET
 
         //-------
         // order
-        $s      = explode('-', config('category_list_order'));
+        $s      = explode('-', $this->config['order']);
         $order  = isset($s[0]) ? $s[0] : 'id';
         $isDesc = isset($s[1]) ? ('desc' == $s[1]) : false;
         switch ($order) {
@@ -190,7 +185,7 @@ class ACMS_GET_Category_List extends ACMS_GET
 
         //-------
         // stack
-        $root   = ACMS_RAM::categoryParent($this->cid) ? intval(ACMS_RAM::categoryParent($this->cid)) : 0;
+        $root = $this->cid ? ACMS_RAM::categoryParent($this->cid) : 0;
         $stack  = [$root];
 
         //-------------------------
@@ -210,8 +205,8 @@ class ACMS_GET_Category_List extends ACMS_GET
 
         //-------
         // level
-        $level  = intval(config('category_list_level'));
-        if (empty($level)) {
+        $level  = $this->config['level'];
+        if ($level === 0) {
             $level = 1000;
         }
         $level--;
@@ -244,7 +239,6 @@ class ACMS_GET_Category_List extends ACMS_GET
                 $depth  = count($stack) + 1;
 
                 if (isset($All['category_id'][$cid])) {
-                    $domain = blogDomain($this->bid);
                     $url    = acmsLink([
                         'bid'   => $this->bid,
                         'cid'   => $cid,
@@ -258,17 +252,17 @@ class ACMS_GET_Category_List extends ACMS_GET
                         'singleAmount'  => $All['category_entry_amount'][$cid],
                         'level'     => $depth,
                         'url'       => $url,
-                        'category:loop.class' => config('category_list_loop_class'),
+                        'category:loop.class' => $this->config['loop_class'],
                     ];
 
-                    if (config('category_list_geolocation_on') === 'on') {
+                    if ($this->config['geolocation'] === 'on') {
                         $Geo = loadGeometry('cid', $cid, null, $this->bid);
                         if ($Geo) {
                             $vars   += $this->buildField($Geo, $Tpl, null, 'geometry');
                         }
                     }
 
-                    if ('on' <> config('category_list_amount')) {
+                    if ($this->config['amount'] !== 'on') {
                         unset($vars['amount']);
                     }
                     if (CID == $cid) {
@@ -324,6 +318,61 @@ class ACMS_GET_Category_List extends ACMS_GET
             }
         }
 
+        $rootVars = $this->getRootVars();
+        $Tpl->add(null, $rootVars);
+
         return $Tpl->get();
+    }
+
+    protected function getAncestorsMap($Map, $root, &$i = 0)
+    {
+        foreach ($Map as $c => $p) {
+            if (!isset($Map[$p]) && $p !== $root) {
+                $Front      = [];
+                $Back       = [];
+                $Tmp[$p]    = ACMS_RAM::categoryParent($p);
+
+                $j = 0;
+                foreach ($Map as $c_ => $p_) {
+                    if ($j < $i) {
+                        $Front[$c_] = $p_;
+                    }
+                    $j++;
+                }
+                $j = 0;
+                foreach ($Map as $c_ => $p_) {
+                    if ($j >= $i) {
+                        $Back[$c_] = $p_;
+                    }
+                    $j++;
+                }
+                $Map = $Front + $this->getAncestorsMap($Tmp, $root, $k) + $Back;
+                $i   += $k;
+            }
+            $i++;
+        }
+        return $Map;
+    }
+
+    /**
+     * コンフィグのセット
+     *
+     * @return void
+     */
+    protected function setConfig(): void
+    {
+        $this->config = $this->initVars();
+    }
+
+    /**
+     * ルート変数を取得
+     *
+     * @return array<string, mixed>
+     */
+    public function getRootVars(): array
+    {
+        return [
+            'parent.loop.class' => $this->config['parent_loop_class'],
+        ];
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Config;
+
 class ACMS_GET_Admin_Config_Set_Index extends ACMS_GET_Admin
 {
     /**
@@ -25,15 +27,15 @@ class ACMS_GET_Admin_Config_Set_Index extends ACMS_GET_Admin
     function get()
     {
         if (!$this->validate()) {
+            if (ADMIN === 'config_set_index') {
+                die403();
+            }
             return '';
         }
 
         $Tpl = new Template($this->tpl, new ACMS_Corrector());
         $DB = DB::singleton(dsn());
 
-        if (!$this->Post->isNull()) {
-            $Tpl->add('refresh');
-        }
         $SQL = $this->buildQuery();
         if (!$all = $DB->query($SQL->get(dsn()), 'all')) {
             $Tpl->add('notFound');
@@ -45,7 +47,7 @@ class ACMS_GET_Admin_Config_Set_Index extends ACMS_GET_Admin
 
     protected function validate()
     {
-        if (!sessionWithContribution()) {
+        if (!Config::canViewIndex(BID)) {
             return false;
         }
         return true;

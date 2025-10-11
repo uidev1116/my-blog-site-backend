@@ -1,9 +1,18 @@
 <?php
 
+use Acms\Services\Logger\Deprecated;
+
+/**
+ * @deprecated カート機能は非推奨です。代替として、Shopping Cart 拡張アプリをご利用ください。
+ */
 class ACMS_POST_Shop2_Form_Checkout extends ACMS_POST_Shop2
 {
     function post()
     {
+        Deprecated::once('Shop2_Form_Checkout モジュール', [
+            'since' => '3.2.0',
+            'alternative' => ' Shopping Cart 拡張アプリ',
+        ]);
         $this->initVars();
 
         if (!$this->inventoryCheck()) {

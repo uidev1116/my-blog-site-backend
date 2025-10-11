@@ -18,7 +18,11 @@ class ACMS_POST_Config_PartImport extends ACMS_POST_Config_Import
         $rid = $this->Get->get('rid') ?: null;
         $setid = $this->Get->get('setid') ?: null;
         try {
-            $yaml = Config::yamlLoad($_FILES['file']['tmp_name']);
+            $path = $_FILES['file']['tmp_name'];
+            if (is_uploaded_file($path) === false) {
+                throw new \RuntimeException('無効なファイルです。');
+            }
+            $yaml = Config::yamlLoad($path);
             $config = new Field();
             foreach ($yaml as $key => $val) {
                 $config->addField($key, $val);

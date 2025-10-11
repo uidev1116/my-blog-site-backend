@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TwigとHTMLのハイライト</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% verbatim %}
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const src = document.querySelector('.js-src-snippets');
+        const dest = document.querySelector('.js-dest-snippets');
+        const form = document.querySelector('.js-escape');
+        const copyButton = document.querySelector('.js-copy');
+
+        form.addEventListener('submit', event => {
+          event.preventDefault();
+
+          dest.value = src.value
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;')
+            .replace(/\{%/g, '&#123;%')
+            .replace(/%\}/g, '%&#125;')
+            .replace(/\{\{/g, '&#123;&#123;')
+            .replace(/\}\}/g, '&#125;&#125;')
+            .replace(/\{#/g, '&#123;#')
+            .replace(/#\}/g, '#&#125;')
+            .replace(/\{/g, '&#123;')
+            .replace(/\}/g, '&#125;');
+        });
+        copyButton.addEventListener('click', event => {
+            // テキストを選択
+            dest.select();
+            dest.setSelectionRange(0, 99999); // モバイル端末対応
+            // クリップボードにコピー
+            try {
+                const successful = document.execCommand("copy");
+                if (successful) {
+                    alert("コピーしました: " + dest.value);
+                } else {
+                    alert("コピーに失敗しました。");
+                }
+            } catch (err) {
+                alert("エラーが発生しました: " + err);
+            }
+        });
+      });
+    </script>
+    {% endverbatim %}
+  </head>
+  <body>
+    <form class="js-escape max-w-3xl mx-auto">
+      <h1 class="text-2xl font-bold mb-5 mt-3">スニペット（Twig・HTML）のHTMLエンティティ化</h1>
+
+      <label for="src" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">ソース</label>
+      <textarea id="src" rows="10" class="js-src-snippets block mb-2 p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="エスケープしたいスニペットを貼り付けてください..."></textarea>
+      <button type="submit" class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-10 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">HTMLエンティティ化</button>
+
+      <label for="dest" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">エスケープ後</label>
+      <textarea id="dest" rows="20" class="js-dest-snippets block mb-2 p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="エスケープされたスニペットがここに出力されます..."></textarea>
+      <button type="button" class="js-copy text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-10 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">コピー</button>
+    </form>
+  </body>
+</html>

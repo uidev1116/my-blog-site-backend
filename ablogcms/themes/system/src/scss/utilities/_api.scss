@@ -1,0 +1,38 @@
+@use 'sass:map';
+@use 'sass:meta';
+@use '../global/variables' as var;
+@use '../mixins/utilities' as utilities;
+@use '../mixins/breakpoints' as breakpoints;
+@use '../global/utilities' as *;
+
+@layer acms.utilities {
+  // 各ブレークポイントをループ
+  // これにより、ブレイクポイントごとにユーティリティを生成でき、ブレイクポイントの大きいクラスが後に生成される。
+  // そのため、ブレイクポイントの大きいクラスでスタイルを上書きできる。
+  @each $breakpoint in map.keys(var.$grid-breakpoints) {
+    // 必要に応じてメディアクエリを生成
+    @include breakpoints.media-breakpoint-up($breakpoint) {
+      $infix: breakpoints.breakpoint-infix($breakpoint, var.$grid-breakpoints);
+
+      // 各ユーティリティプロパティをループ
+      @each $key, $utility in $utilities {
+        // ユーティリティは`false`で無効化できるため、まずユーティリティがマップかどうかを確認
+        // レスポンシブメディアクエリが有効か、ベースメディアクエリの場合のみ続行
+        @if meta.type-of($utility) == 'map' and (map.get($utility, responsive) or $infix == '') {
+          @include utilities.generate-utility($utility, $infix);
+        }
+      }
+    }
+  }
+
+  // 印刷用ユーティリティ
+  @media print {
+    @each $key, $utility in $utilities {
+      // ユーティリティは`false`で無効化できるため、まずユーティリティがマップかどうかを確認
+      // 次に、ユーティリティが印刷スタイルを必要とするかを確認
+      @if meta.type-of($utility) == 'map' and map.get($utility, print) == true {
+        @include utilities.generate-utility($utility, '-print');
+      }
+    }
+  }
+}

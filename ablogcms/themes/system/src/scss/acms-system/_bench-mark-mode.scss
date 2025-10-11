@@ -3,7 +3,7 @@
 // ------------------------------
 // ベンチマーク
 // ------------------------------
-@media screen and (min-width: global.$breakpoint-md-min) {
+@include global.media-breakpoint-up(md) {
   .acms-benchmark-container {
     padding: 0 20px 0 245px;
     padding: 0 calc(30px + constant(safe-area-inset-right)) 0 20px;

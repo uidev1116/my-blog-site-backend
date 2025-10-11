@@ -1,0 +1,19 @@
+// Variables
+@use 'variables';
+
+// Base
+@use 'block-editor';
+@use 'placeholder';
+
+// Components (UI parts)
+@use 'button';
+@use 'surface';
+@use 'toolbar';
+@use 'icon';
+@use 'text-menu';
+@use 'content-item-menu';
+@use 'id-editor';
+@use 'media';
+@use 'link-editor';
+@use 'popover-form';
+@use 'color-picker';

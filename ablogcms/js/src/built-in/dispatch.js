@@ -3,25 +3,30 @@ import { FocusedImage } from 'image-focus';
 import ScrollHint from 'scroll-hint';
 import axiosLib from '../lib/axios';
 import lazyLoad from '../lib/lazy-load';
-import tooltip from '../lib/tooltip';
-import ResizeImage from '../lib/resize-image/resize-image';
-import { findAncestor, addClass, removeClass } from '../lib/dom';
+import dispatchScrollAnimation from '../dispatch/dispatch-scroll-animation';
+import { addClass, removeClass } from '../lib/dom';
 import { contrastColor, rgb2hex } from '../utils';
 
+/**
+ * 組み込みJS の dispatch 関数
+ * @param {Element | Document} context コンテキスト
+ * @returns {void}
+ */
 export default (context) => {
-  //--------
-  // resize
-  $(ACMS.Config.resizeImageTargetMarkCF, context).each(function () {
-    if (!this.closest('.item-template')) {
-      const resizeImg = new ResizeImage(this);
-      resizeImg.resize();
+  //----------
+  // htmx
+  (async () => {
+    const existsHtmx = context.querySelector(ACMS.Config.htmxMark);
+    if (existsHtmx) {
+      const { default: dispatchHtmx } = await import(/* webpackChunkName: "htmx" */ '../dispatch/dispatch-htmx');
+      dispatchHtmx(context instanceof Document ? context.body : context, ACMS.Config.htmxConfig);
     }
-  });
+  })();
 
   //------------------------
   // 会員限定記事の表示・非表示
-  (async () => {
-    const membersOnlyEntryDom = document.querySelector(ACMS.Config.membersOnlyEntryMark);
+  (async (context) => {
+    const membersOnlyEntryDom = context.querySelector(ACMS.Config.membersOnlyEntryMark);
 
     if (!membersOnlyEntryDom) {
       return;
@@ -39,7 +44,7 @@ export default (context) => {
     if (isLogin) {
       // ログイン中
       const eid = membersOnlyEntryDom.getAttribute('data-eid');
-      const page = membersOnlyEntryDom.getAttribute('data-page');
+      const page = parseInt(membersOnlyEntryDom.getAttribute('data-page'), 10) || 1;
 
       let query = [];
       const s = location.href.split('?');
@@ -69,15 +74,15 @@ export default (context) => {
       // ログアウト中
       membersOnlyEntryDom.style.display = display;
     }
-  })();
+  })(context);
 
   //----------------------------
   // ログイン状態による表示・非表示
-  (async () => {
-    const loginHiddenDoms = document.querySelectorAll(ACMS.Config.loginHiddenMark); // ログイン状態の時、非表示にする
-    const loginShowDoms = document.querySelectorAll(ACMS.Config.loginShowMark); // ログイン状態の時、表示する
-    const logoutHiddenDoms = document.querySelectorAll(ACMS.Config.logoutHiddenMark); // ログアウト状態の時、非表示にする
-    const logoutShowDoms = document.querySelectorAll(ACMS.Config.logoutShowMark); // ログアウト状態の時、表示する
+  (async (context) => {
+    const loginHiddenDoms = context.querySelectorAll(ACMS.Config.loginHiddenMark); // ログイン状態の時、非表示にする
+    const loginShowDoms = context.querySelectorAll(ACMS.Config.loginShowMark); // ログイン状態の時、表示する
+    const logoutHiddenDoms = context.querySelectorAll(ACMS.Config.logoutHiddenMark); // ログアウト状態の時、非表示にする
+    const logoutShowDoms = context.querySelectorAll(ACMS.Config.logoutShowMark); // ログアウト状態の時、表示する
 
     if (
       (!loginHiddenDoms || loginHiddenDoms.length === 0) &&
@@ -120,20 +125,28 @@ export default (context) => {
         elm.style.display = display;
       }
     });
-  })();
+  })(context);
 
   //-------------
   // scroll hint
-  const TableUnitScrollHint = '.js-table-unit-scroll-hint';
-  if (document.querySelector(ACMS.Config.scrollHintMark) || document.querySelector(TableUnitScrollHint)) {
-    import(/* webpackChunkName: "scroll-hint-css" */ 'scroll-hint/css/scroll-hint.css').then(() => {
-      // build in js
-      new ScrollHint(ACMS.Config.scrollHintMark, ACMS.Config.scrollHintConfig); // eslint-disable-line no-new
+  (async (context) => {
+    const tableUnitScrollHintMark = '.js-table-unit-scroll-hint';
+    const tables = context.querySelectorAll(ACMS.Config.scrollHintMark);
+    const tableUnits = context.querySelectorAll(tableUnitScrollHintMark);
+    if (tableUnits.length > 0 || tables.length > 0) {
+      import(/* webpackChunkName: "scroll-hint-css" */ 'scroll-hint/css/scroll-hint.css').then(() => {
+        // build in js
+        new ScrollHint(tables, ACMS.Config.scrollHintConfig); // eslint-disable-line no-new
 
-      // table unit
-      new ScrollHint(TableUnitScrollHint, { ...ACMS.Config.scrollHintConfig, applyToParents: true }); // eslint-disable-line no-new
-    });
-  }
+        // table unit
+        new ScrollHint(tableUnits, { ...ACMS.Config.scrollHintConfig, applyToParents: true }); // eslint-disable-line no-new
+      });
+    }
+  })(context);
+
+  //--------------------
+  // scroll animation
+  dispatchScrollAnimation(context, ACMS.Config.scrollAnimationMark, ACMS.Config.scrollAnimationConfig);
 
   //------------
   // lazy load
@@ -162,7 +175,7 @@ export default (context) => {
 
   //--------------
   // focus image
-  [].forEach.call(document.querySelectorAll('.js-focused-image'), (image) => {
+  [].forEach.call(context.querySelectorAll('.js-focused-image'), (image) => {
     image.style.visibility = 'visible';
     new FocusedImage(image); // eslint-disable-line no-new
   });
@@ -247,9 +260,11 @@ export default (context) => {
     ACMS.Config.openStreetMapMark,
     (elm) => elm.getAttribute('data-lazy') === 'true',
     (item) => {
-      import(/* webpackChunkName: "open-street-map" */ '../lib/open-street-map').then(({ default: openStreetMap }) => {
-        openStreetMap(item);
-      });
+      import(/* webpackChunkName: "open-street-map" */ '../lib/open-street-map/open-street-map').then(
+        ({ default: openStreetMap }) => {
+          openStreetMap(item);
+        }
+      );
     }
   );
 
@@ -257,23 +272,27 @@ export default (context) => {
   // Google Maps
   lazyLoad(
     ACMS.Config.s2dReadyMark,
-    (elm) => elm.getAttribute('data-lazy') === 'true',
-    (item) => {
-      ACMS.Library.googleLoadProxy('maps', '3', {
-        callback: () => {
-          ACMS.Dispatch._static2dynamic(item);
-        },
-        options: {
-          region: ACMS.Config.s2dRegion,
-        },
-      });
+    (element) => element.getAttribute('data-lazy') === 'true',
+    (element) => {
+      import(/* webpackChunkName: "google-maps" */ '../lib/google-maps/google-maps').then(
+        ({ default: setupGoogleMaps }) => {
+          setupGoogleMaps(element);
+        }
+      );
     }
   );
   lazyLoad(
     ACMS.Config.s2dMark,
-    (elm) => elm.getAttribute('data-lazy') === 'true',
-    (item) => {
-      ACMS.Dispatch.static2dynamic(item);
+    (element) => element.getAttribute('data-lazy') === 'true',
+    (element) => {
+      const handleClick = () => {
+        import(/* webpackChunkName: "google-maps" */ '../lib/google-maps/google-maps').then(
+          ({ default: setupGoogleMaps }) => {
+            setupGoogleMaps(element);
+          }
+        );
+      };
+      element.addEventListener('click', handleClick);
     }
   );
 
@@ -281,55 +300,15 @@ export default (context) => {
   // StreetView
   lazyLoad(
     ACMS.Config.streetViewMark,
-    (elm) => elm.getAttribute('data-lazy') === 'true',
-    (item) => {
-      import(/* webpackChunkName: "open-street-map" */ '../lib/street-view').then(({ default: streetView }) => {
-        streetView(item, ACMS.Config.googleApiKey);
-      });
+    (element) => element.getAttribute('data-lazy') === 'true',
+    (element) => {
+      import(/* webpackChunkName: "open-street-map" */ '../lib/google-maps/street-view').then(
+        ({ default: streetView }) => {
+          streetView(element);
+        }
+      );
     }
   );
-
-  //---------
-  // tooltip
-  $('.js-acms-tooltip', context).click(function () {
-    tooltip(this);
-    return false;
-  });
-
-  const tooltips = document.querySelectorAll('.js-acms-tooltip-hover');
-
-  [].forEach.call(tooltips, (item) => {
-    let interval;
-
-    if (findAncestor(item, '#js-edit_inplace-box')) {
-      return;
-    }
-
-    item.addEventListener('mouseenter', () => {
-      tooltip(item, true);
-      interval = setInterval(() => {
-        if (!document.body.contains(item)) {
-          $('.js-tooltip').remove();
-          clearInterval(interval);
-        }
-      }, 300);
-    });
-
-    item.addEventListener('mouseleave', (e) => {
-      clearInterval(interval);
-      if ($(e.relatedTarget).hasClass('js-tooltip')) {
-        const leaveFunc = (evt) => {
-          if (evt.relatedTarget !== item) {
-            evt.relatedTarget.removeEventListener('mouseleave', leaveFunc);
-            tooltip(item, false);
-          }
-        };
-        e.relatedTarget.addEventListener('mouseleave', leaveFunc);
-      } else {
-        tooltip(item, false);
-      }
-    });
-  });
 
   //---------
   // preview
@@ -344,7 +323,11 @@ export default (context) => {
     window.parent.postMessage({ task: 'preview', url: location.href }, '*');
   }
 
-  $(ACMS.Config.externalFormSubmitButton).each((index, button) => {
+  $(ACMS.Config.externalFormSubmitButton, context).each((index, button) => {
+    ACMS.Library.deprecated(ACMS.i18n('deprecated.feature.external_form_submit_button.name'), {
+      since: '3.2.0',
+      alternative: ACMS.i18n('deprecated.feature.external_form_submit_button.alternative'),
+    });
     $(button).click((e) => {
       e.preventDefault();
       const target = $(button).data('target');
@@ -356,18 +339,6 @@ export default (context) => {
         $(target).append(`<input type="hidden" name="${name}" value="true" />`);
       }
       $(target).submit();
-    });
-  });
-
-  $(ACMS.Config.blankSubmitBtn).each((index, button) => {
-    const form = findAncestor(button, 'form');
-    $(button).click(() => {
-      $(form).attr('target', '_blank');
-    });
-    $(form).submit(() => {
-      setTimeout(() => {
-        $(form).removeAttr('target');
-      }, 100);
     });
   });
 
@@ -409,138 +380,94 @@ export default (context) => {
       }
     },
   };
-  ACMS.Dispatch.wysiwyg.dispatch(document);
-  ACMS.addListener('acmsAddCustomFieldGroup', (e) => {
-    ACMS.Dispatch.wysiwyg.dispatch(e.target);
-  });
-  ACMS.addListener('acmsAddUnit', (e) => {
-    ACMS.Dispatch.wysiwyg.dispatch(e.target);
-  });
-
-  //-------------------
-  // flatpicker
-  const dispatchFlatPicker = async (ctx) => {
-    const flatPickerTarget = ctx.querySelectorAll(ACMS.Config.flatDatePicker);
-    if (flatPickerTarget && flatPickerTarget.length) {
-      const { default: flatPicker } = await import(/* webpackChunkName: "flatpickr" */ 'flatpickr');
-      import(/* webpackChunkName: "flatpickr-css" */ 'flatpickr/dist/flatpickr.min.css');
-      const options = {
-        ...ACMS.Config.flatDatePickerConfig,
-      };
-      if (/^ja/.test(ACMS.i18n.lng)) {
-        const lang = await import(/* webpackChunkName: "flatpickr-ja" */ 'flatpickr/dist/l10n/ja');
-        options.locale = lang.Japanese;
-      }
-      [].forEach.call(flatPickerTarget, (item) => {
-        if ($(item).hasClass('done')) {
-          return;
-        }
-        options.defaultDate = item.value;
-        const picker = flatPicker(item, options);
-        item.setAttribute('autocomplete', 'off');
-        item.addEventListener('change', (e) => {
-          picker.jumpToDate(e.target.value);
-          picker.setDate(e.target.value);
-        });
-        $(item).addClass('done');
-      });
-    }
-
-    //-------------------
-    // timepicker
-    const flatTimePickerTarget = document.querySelectorAll(ACMS.Config.flatTimePicker);
-    if (flatTimePickerTarget && flatTimePickerTarget.length) {
-      const { default: flatPicker } = await import(/* webpackChunkName: "flatpickr" */ 'flatpickr');
-      await import(/* webpackChunkName: "flatpickr-css" */ 'flatpickr/dist/flatpickr.min.css');
-      [].forEach.call(flatTimePickerTarget, (item) => {
-        if ($(item).hasClass('done')) {
-          return;
-        }
-        const picker = flatPicker(item, {
-          ...ACMS.Config.flatTimePickerConfig,
-          defaultDate: item.value,
-        });
-        item.setAttribute('autocomplete', 'off');
-        item.addEventListener('change', (e) => {
-          picker.jumpToDate(e.target.value);
-          picker.setDate(e.target.value);
-        });
-        $(item).addClass('done');
-      });
-    }
-  };
-
-  dispatchFlatPicker(document);
-  ACMS.addListener('acmsAddCustomFieldGroup', (e) => {
-    dispatchFlatPicker(e.target);
-  });
-  ACMS.addListener('acmsAddUnit', (e) => {
-    dispatchFlatPicker(e.target);
+  ACMS.Dispatch.wysiwyg.dispatch(context);
+  ACMS.addListener('acmsAddCustomFieldGroup', (event) => {
+    ACMS.Dispatch.wysiwyg.dispatch(event.target);
   });
 
   //-------------------
   // contrast color
-  const contrastColorTarget = document.querySelectorAll(ACMS.Config.contrastColorTarget);
-  if (contrastColorTarget && contrastColorTarget.length) {
-    [].forEach.call(contrastColorTarget, (item) => {
-      const black = item.getAttribute('data-black-color') || '#000000';
-      const white = item.getAttribute('data-white-color') || '#ffffff';
-      let bgColor = item.getAttribute('data-bg-color');
-      if (!bgColor) {
-        const style = window.getComputedStyle(item);
-        if (style) {
-          bgColor = rgb2hex(style.backgroundColor);
+  ((context) => {
+    const contrastColorTarget = context.querySelectorAll(ACMS.Config.contrastColorTarget);
+    if (contrastColorTarget && contrastColorTarget.length) {
+      [].forEach.call(contrastColorTarget, (item) => {
+        const black = item.getAttribute('data-black-color') || '#000000';
+        const white = item.getAttribute('data-white-color') || '#ffffff';
+        let bgColor = item.getAttribute('data-bg-color');
+        if (!bgColor) {
+          const style = window.getComputedStyle(item);
+          if (style) {
+            bgColor = rgb2hex(style.backgroundColor);
+          }
         }
-      }
-      if (bgColor) {
-        item.style.color = contrastColor(bgColor, black, white);
-      }
-    });
-  }
+        if (bgColor) {
+          item.style.color = contrastColor(bgColor, black, white);
+        }
+      });
+    }
+  })(context);
 
   /**
    * Password strength checker
    */
-  const passwordStrength = document.querySelectorAll(ACMS.Config.passwordStrengthMark);
-  if (passwordStrength.length > 0) {
-    import(/* webpackChunkName: "zxcvbn" */ '../lib/zxcvbn').then(({ default: zxcvbn }) => {
-      [].forEach.call(passwordStrength, (item) => {
-        zxcvbn(item);
+  ((context) => {
+    const passwordStrength = context.querySelectorAll(ACMS.Config.passwordStrengthMark);
+    if (passwordStrength.length > 0) {
+      import(/* webpackChunkName: "zxcvbn" */ '../lib/zxcvbn').then(({ default: zxcvbn }) => {
+        [].forEach.call(passwordStrength, (item) => {
+          zxcvbn(item);
+        });
       });
-    });
-  }
-
+    }
+  })(context);
   //-------------------
   // document-outliner
-  const outlineTarget = document.querySelectorAll(ACMS.Config.documentOutlinerMark);
-  if (outlineTarget && outlineTarget.length) {
-    [].forEach.call(outlineTarget, (item) => {
-      requestAnimationFrame(() => {
-        const target = item.getAttribute('data-target');
-        if (!target || !document.querySelector(target)) {
-          return;
-        }
-        const outline = new DocumentOutliner(item);
-        const overrideConfig = {};
-        Object.keys(ACMS.Config.documentOutlinerConfig).forEach((key) => {
-          let value = item.getAttribute(`data-${key}`);
-          if (value) {
-            if (isNaN(value) === false) {
-              value = parseInt(value, 10);
-            }
-            if (value === 'true' || value === 'false') {
-              value = value === 'true';
-            }
-            overrideConfig[key] = value;
+  ((context) => {
+    const outlineTarget = context.querySelectorAll(ACMS.Config.documentOutlinerMark);
+    if (outlineTarget && outlineTarget.length) {
+      [].forEach.call(outlineTarget, (item) => {
+        requestAnimationFrame(() => {
+          const target = item.getAttribute('data-target');
+          if (!target || !document.querySelector(target)) {
+            return;
           }
-        });
-        const config = { ...ACMS.Config.documentOutlinerConfig, ...overrideConfig };
+          const outline = new DocumentOutliner(item);
+          const overrideConfig = {};
+          Object.keys(ACMS.Config.documentOutlinerConfig).forEach((key) => {
+            let value = item.getAttribute(`data-${key}`);
+            if (value) {
+              if (isNaN(value) === false) {
+                value = parseInt(value, 10);
+              }
+              if (value === 'true' || value === 'false') {
+                value = value === 'true';
+              }
+              overrideConfig[key] = value;
+            }
+          });
+          const config = { ...ACMS.Config.documentOutlinerConfig, ...overrideConfig };
 
-        outline.makeList(target, config);
-        [].forEach.call(document.querySelectorAll(ACMS.Config.scrollToMark), (anchor) => {
-          ACMS.Dispatch.scrollto(anchor);
+          outline.makeList(target, config);
+          [].forEach.call(context.querySelectorAll(ACMS.Config.scrollToMark), (anchor) => {
+            ACMS.Dispatch.scrollto(anchor);
+          });
         });
       });
+    }
+  })(context);
+
+  //-----------
+  // validator
+  ACMS.Dispatch.validator = async function (form, options = {}) {
+    const validator = await ACMS.Library.validator(form, {
+      ...ACMS.Config.validatorOptions,
+      // 互換性のために追加
+      resultClassName: ACMS.Config.validatorResultClass || ACMS.Config.validatorOptions.resultClassName,
+      okClassName: ACMS.Config.validatorOkClass || ACMS.Config.validatorOptions.okClassName,
+      ngClassName: ACMS.Config.validatorNgClass || ACMS.Config.validatorOptions.ngClassName,
+      ...(ACMS.Config.admin ? { shouldValidateOnSubmit: true } : {}),
+      ...options,
     });
-  }
+    return validator;
+  };
 };

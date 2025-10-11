@@ -2,6 +2,14 @@
 
 class ACMS_GET_Admin_Blog_Edit extends ACMS_GET_Admin_Edit
 {
+    public function auth()
+    {
+        if (!sessionWithAdministration() && !Auth::checkShortcut(['bid' => BID])) {
+            die403();
+        }
+        return true;
+    }
+
     function edit(&$Tpl)
     {
         $Blog =& $this->Post->getChild('blog');

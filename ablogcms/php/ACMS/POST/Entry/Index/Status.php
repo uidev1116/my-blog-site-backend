@@ -2,15 +2,9 @@
 
 class ACMS_POST_Entry_Index_Status extends ACMS_POST
 {
-    function post()
+    public function post()
     {
-        if (config('approval_contributor_edit_auth') !== 'on' && enableApproval(BID, CID)) {
-            $this->Post->setMethod('entry', 'operative', sessionWithApprovalAdministrator(BID, CID));
-        } elseif (roleAvailableUser()) {
-            $this->Post->setMethod('entry', 'operative', roleAuthorization('entry_edit', BID));
-        } else {
-            $this->Post->setMethod('entry', 'operative', sessionWithContribution());
-        }
+        $this->Post->setMethod('entry', 'operative', Entry::canBulkStatusChange(BID, CID));
         $this->Post->setMethod('checks', 'required');
         $this->Post->setMethod('status', 'required');
         $this->Post->setMethod('status', 'in', ['open', 'close', 'draft']);

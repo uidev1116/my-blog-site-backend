@@ -1,8 +1,5 @@
 @charset "utf-8";
 
-// 条件設定
-$admin: true;
-
 // Base
 @forward 'global/system-variables';
 @forward 'global/variables' with (
@@ -11,66 +8,105 @@ $admin: true;
 @forward 'global/variables-fonts';
 @forward 'global/functions';
 @forward 'global/mixins';
+@forward 'global/utilities';
+
+// Root
+@use 'root';
+
+// Deprecated CSS
+@use 'deprecated';
+
+// Layout
+@use 'layout';
 
 // Core CSS
-@import 'grid';
-@import 'button';
-@import 'type';
-@import 'code';
-@import 'form';
-@import 'table';
-@import 'title';
-@import 'list-group';
-@import 'label';
-@import 'badge';
-@import 'panel';
-@import 'placeholder';
-@import 'toast';
-
-// ユニット
-@import 'unit';
+@use 'button';
+@use 'button-v2';
+@use 'type';
+@use 'code';
+@use 'form';
+@use 'table';
+@use 'title';
+@use 'list-group';
+@use 'label';
+@use 'badge';
+@use 'panel';
+@use 'placeholder';
+@use 'toast';
 
 // Components
-@import 'alert';
-@import 'announce';
-@import 'dialog';
-@import 'dropdown';
-@import 'icon-fonts';
-@import 'loading';
-@import 'navbar';
-@import 'offcanvas';
-@import 'pager';
-@import 'password-strength-meter';
-@import 'progress-bar';
-@import 'sidebar';
-@import 'summary';
-@import 'tabs';
-@import 'tab-select';
-@import 'thumbnails';
-@import 'timeline';
-@import 'tooltip';
-@import 'topicpath';
+@use 'alert';
+@use 'button-group';
+@use 'announce';
+@use 'drawer';
+@use 'dialog';
+@use 'dropdown';
+@use 'icon-fonts';
+@use 'loading';
+@use 'material-symbols';
+@use 'navbar';
+@use 'notification-bar';
+@use 'notify';
+@use 'offcanvas';
+@use 'pager';
+@use 'password-strength-meter';
+@use 'popover';
+@use 'progress-bar';
+@use 'sidebar';
+@use 'spinner';
+@use 'summary';
+@use 'tabs';
+@use 'tab-select';
+@use 'thumbnails';
+@use 'timeline';
+@use 'tooltip';
+@use 'topicpath';
 
 // Animation
-@import 'animation';
+@use 'animation';
 
 // Admin Page
-@import 'admin/admin-menu';
-@import 'admin/banner-edit';
-@import 'admin/edit-page';
-@import 'admin/media';
-@import 'admin/nestable';
-@import 'admin/jquery_ui';
-@import 'admin/rich-select';
-@import 'admin/editor';
-@import 'admin/logger';
-@import 'admin/timemachine';
-@import 'admin/preview';
-@import 'admin/device-mode-modal';
-@import 'admin/related-entry';
+@use 'admin/a-table';
+@use 'admin/admin-box';
+@use 'admin/admin-menu';
+@use 'admin/banner-edit';
+@use 'admin/benchmark';
+@use 'admin/block-editor/index';
+@use 'admin/dataview';
+@use 'admin/device-mode-modal';
+@use 'admin/drop-zone';
+@use 'admin/edit-page';
+@use 'admin/editor';
+@use 'admin/entry-lock';
+@use 'admin/filter';
+@use 'admin/group-unit';
+@use 'admin/inplace';
+@use 'admin/jquery_ui';
+@use 'admin/layout-module';
+@use 'admin/lite-editor';
+@use 'admin/logger';
+@use 'admin/media';
+@use 'admin/module-setting';
+@use 'admin/nestable';
+@use 'admin/preview';
+@use 'admin/related-entry';
+@use 'admin/revision';
+@use 'admin/rich-select';
+@use 'admin/seo';
+@use 'admin/shortcut';
+@use 'admin/sort-context-select';
+@use 'admin/splash';
+@use 'admin/timemachine';
+@use 'admin/trumbowyg';
+@use 'admin/unit';
+@use 'admin/unit-config-editor';
+@use 'admin/user';
 
 // Build In JS
-@import 'buildin-js';
+@use 'buildin-js';
 
-// Utility Classes
-@import 'utilities';
+// Helpers
+@use 'helpers';
+
+// Utilities
+@use 'utilities/api';

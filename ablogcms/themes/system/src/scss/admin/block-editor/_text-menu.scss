@@ -1,0 +1,11 @@
+// ---------------
+// テキストメニュー
+// ---------------
+
+.acms-block-editor-text-menu {
+  z-index: 100018;
+
+  .acms-block-editor-text-menu-color-picker {
+    padding: var(--acms-block-editor-spacing-1);
+  }
+}

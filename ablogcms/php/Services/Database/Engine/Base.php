@@ -3,6 +3,7 @@
 namespace Acms\Services\Database\Engine;
 
 use ACMS_Hook;
+use PDOStatement;
 
 abstract class Base
 {
@@ -25,6 +26,11 @@ abstract class Base
      * @var bool
      */
     protected $debug;
+
+    /**
+     * @var boolean
+     */
+    protected $isBenchmarkMode = false;
 
     /**
      * @var int
@@ -74,11 +80,26 @@ abstract class Base
      * 'one'    => 最初の行の最初のfieldを返す<br>
      * 'seq'    => insert,update,deleteされた件数を返す(int)
      *
-     * @param string $sql
+     * @param array{
+     *  sql: string,
+     *  params: list<mixed>|array<string, mixed>,
+     * } $sql
      * @param string $mode
      * @return mixed
      */
     abstract public function query($sql, $mode = 'row');
+
+    /**
+     * リソースを指定して1行ずつfetchされた値を返す
+     * $statement = Database::query($sql->get(dsn()), 'exec');
+     * while ($row = $DB->next($statement)) {
+     *     $Config->addField($row['config_key'], $row['config_value']);
+     * }
+     *
+     * @param PDOStatement|false $statement
+     * @return array|false
+     */
+    abstract public function next(PDOStatement|false $statement);
 
     /**
      * sql文を指定して1行ずつfetchされた値を返す
@@ -87,7 +108,12 @@ abstract class Base
      *     $Config->addField($row['config_key'], $row['config_value']);<br>
      * }
      *
-     * @param string $sql
+     * @deprecated パフォーマンスの問題で非推奨
+     * @param array{
+     *  sql: string,
+     *  params: list<mixed>|array<string, mixed>,
+     * } | null $sql
+     * @param bool $reset
      * @return mixed
      */
     abstract public function fetch($sql = null, $reset = false);
@@ -95,7 +121,10 @@ abstract class Base
     /**
      * query()の結果を返す
      *
-     * @param string $sql
+     * @param array{
+     *   sql: string,
+     *   params: list<mixed>|array<string, mixed>,
+     * } $sql
      * @param mixed $response
      * @return mixed
      */
@@ -104,7 +133,10 @@ abstract class Base
     /**
      * insert,update,deleteされた件数を返す
      *
-     * @param string $sql
+     * @param array{
+     *   sql: string,
+     *   params: list<mixed>|array<string, mixed>,
+     * } $sql
      * @param mixed $response
      * @return int
      */
@@ -113,7 +145,10 @@ abstract class Base
     /**
      * すべての行を連想配列で返す
      *
-     * @param string $sql
+     * @param array{
+     *   sql: string,
+     *   params: list<mixed>|array<string, mixed>,
+     * } $sql
      * @param mixed $response
      * @return array
      */
@@ -122,7 +157,10 @@ abstract class Base
     /**
      * 最初の行を配列で返す
      *
-     * @param string $sql
+     * @param array{
+     *   sql: string,
+     *   params: list<mixed>|array<string, mixed>,
+     * } $sql
      * @param mixed $response
      * @return array
      */
@@ -131,7 +169,10 @@ abstract class Base
     /**
      * 最初の行の最初のcolumnの値を返す
      *
-     * @param string $sql
+     * @param array{
+     *   sql: string,
+     *   params: list<mixed>|array<string, mixed>,
+     * } $sql
      * @param mixed $response
      * @return string
      */
@@ -140,7 +181,10 @@ abstract class Base
     /**
      * 最初の行の連想配列を返す
      *
-     * @param string $sql
+     * @param array{
+     *   sql: string,
+     *   params: list<mixed>|array<string, mixed>,
+     * } $sql
      * @param mixed $response
      * @return array
      */
@@ -172,7 +216,10 @@ abstract class Base
     /**
      * クエリ書き換え用Hook
      *
-     * @param string $sql
+     * @param array{
+     *  sql: string,
+     *  params: list<mixed>|array<string, mixed>,
+     * } $sql
      */
     public function hook(&$sql)
     {
@@ -311,14 +358,23 @@ abstract class Base
     }
 
     /**
-     * @param string $sql
+     * @param array{
+     *  sql: string,
+     *  params: list<mixed>|array<string, mixed>,
+     * } | null $sql
      * @return bool
      */
-    public function isFetched($sql = null)
+    public function isFetched($sql = null): bool
     {
+        if ($sql === null) {
+            return false;
+        }
         $this->hook($sql);
-        $id = !empty($sql) ? sha1($sql) : '';
-
+        $encoded = json_encode($sql, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($encoded === false) {
+            throw new \RuntimeException('Failed to encode SQL to JSON');
+        }
+        $id = hash('sha256', $encoded, false);
         return isset($this->fetch[$id]);
     }
 
@@ -369,20 +425,31 @@ abstract class Base
      */
     public function optimizeTable()
     {
-        $this->query('OPTIMIZE TABLE `' . DB_PREFIX . 'cache`', 'exec');
+        $this->query([
+            'sql' => 'OPTIMIZE TABLE `' . DB_PREFIX . 'cache`',
+            'params' => [],
+        ], 'exec');
     }
 
     /**
      * fetchキャッシュを生成する
      *
-     * @param string $sql
+     * @param array{
+     *  sql: string,
+     *  params: list<mixed>|array<string, mixed>,
+     * } $sql
      * @param mixed $response
      * @return bool
      */
-    protected function fetchMode($sql, $response)
+    protected function fetchMode(array $sql, $response): bool
     {
         $this->hook($sql);
-        $this->fetch[sha1($sql)] = &$response;
+        $encoded = json_encode($sql, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($encoded === false) {
+            throw new \RuntimeException('Failed to encode SQL to JSON');
+        }
+        $id = hash('sha256', $encoded, false);
+        $this->fetch[$id] = &$response;
 
         return true;
     }
@@ -390,7 +457,10 @@ abstract class Base
     /**
      * 存在しないモードで実行された場合、rowモードを実行する
      *
-     * @param string $sql
+     * @param array{
+     *   sql: string,
+     *   params: list<mixed>|array<string, mixed>,
+     * } $sql
      * @param mixed $response
      * @return array
      */
@@ -425,23 +495,27 @@ abstract class Base
     /**
      * sav processing time
      *
-     * @param string $sql
+     * @param array{
+     *  sql: string,
+     *  params: list<mixed>|array<string, mixed>,
+     * } $sql
      * @param float $time
      * @return void
      */
     protected function saveProcessingTime($sql, $time)
     {
-        if (empty($this->dsn['debug'])) {
+        if (!$this->isBenchmarkMode) {
             return;
         }
         $this->hook($sql);
+        $query = \SQL::dumpSQL($sql);
         if (isBenchMarkMode() && $time > DB_SLOW_QUERY_TIME) {
             global $bench_slow_query;
             $bench_slow_query[] = [
                 'time' => $time,
-                'query' => nl2br($sql),
+                'query' => nl2br($query),
             ];
         }
-        self::time($sql, $time);
+        self::time($query, $time);
     }
 }

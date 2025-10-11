@@ -3,28 +3,59 @@
 namespace Acms\Services\Unit\Models;
 
 use Acms\Services\Unit\Contracts\Model;
+use Acms\Traits\Unit\UnitMultiLangTrait;
 use Template;
 
+/**
+ * @extends \Acms\Services\Unit\Contracts\Model<array<string, mixed>>
+ */
 class NewPage extends Model
 {
+    use UnitMultiLangTrait;
+
+    /**
+     * ユニットの独自データ
+     * @var array<string, mixed>
+     */
+    private $attributes = [];
+
     /**
      * ユニットタイプを取得
      *
-     * @return string
+     * @inheritDoc
      */
-    public function getUnitType(): string
+    public static function getUnitType(): string
     {
         return 'break';
     }
 
     /**
-     * ユニットが画像タイプか取得
+     * ユニットラベルを取得
      *
-     * @return bool
+     * @inheritDoc
      */
-    public function getIsImageUnit(): bool
+    public static function getUnitLabel(): string
     {
-        return false;
+        return gettext('改ページ');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAttributes()
+    {
+        return [
+            'break_label' => $this->getField1(),
+            ...$this->attributes,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setAttributes($attributes): void
+    {
+        $this->attributes = $attributes;
     }
 
     /**
@@ -40,17 +71,15 @@ class NewPage extends Model
     }
 
     /**
-     * POSTデータからユニット独自データを抽出
-     *
-     * @param array $post
-     * @param bool $removeOld
-     * @param bool $isDirectEdit
-     * @return void
+     * @inheritDoc
      */
-    public function extract(array $post, bool $removeOld = true, bool $isDirectEdit = false): void
+    public function extract(array $request): void
     {
-        $id = $this->getTempId();
-        $this->setField1($this->implodeUnitData($post["break_label_{$id}"] ?? ''));
+        $id = $this->getId();
+        if (is_null($id)) {
+            throw new \LogicException('Unit ID must be set before calling extract');
+        }
+        $this->setField1($this->implodeUnitDataTrait($request["break_label_{$id}"] ?? ''));
     }
 
     /**
@@ -118,11 +147,7 @@ class NewPage extends Model
         if (empty($label)) {
             return;
         }
-        $this->formatMultiLangUnitData($label, $vars, 'label');
-        $vars['attr'] = $this->getAttr();
-        $vars['class'] = $this->getAttr(); // legacy
-        $vars['align'] = $this->getAlign();
-
+        $this->formatMultiLangUnitDataTrait($label, $vars, 'label');
         $tpl->add(array_merge(['unit#' . $this->getType()], $rootBlock), $vars);
     }
 
@@ -136,9 +161,9 @@ class NewPage extends Model
      */
     public function renderEdit(Template $tpl, array $vars, array $rootBlock): void
     {
-        $this->formatMultiLangUnitData($this->getField1(), $vars, 'label');
+        $this->formatMultiLangUnitDataTrait($this->getField1(), $vars, 'label');
 
-        $tpl->add(array_merge([$this->getUnitType()], $rootBlock), $vars);
+        $tpl->add(array_merge([$this::getUnitType()], $rootBlock), $vars);
     }
 
     /**

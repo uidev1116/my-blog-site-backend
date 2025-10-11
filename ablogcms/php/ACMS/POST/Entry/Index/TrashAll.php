@@ -5,14 +5,7 @@ class ACMS_POST_Entry_Index_TrashAll extends ACMS_POST_Trash
     function post()
     {
         $this->Post->reset(true);
-
-        if (enableApproval(BID, CID)) {
-            $this->Post->setMethod('entry', 'operative', sessionWithApprovalAdministrator(BID, CID));
-        } elseif (roleAvailableUser()) {
-            $this->Post->setMethod('entry', 'operative', roleAuthorization('admin_etc', BID));
-        } else {
-            $this->Post->setMethod('entry', 'operative', sessionWithAdministration(BID));
-        }
+        $this->Post->setMethod('entry', 'operative', Entry::canDeleteAllFromTrash(BID, CID));
         $this->Post->validate(new ACMS_Validator());
 
         if ($this->Post->isValidAll()) {

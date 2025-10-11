@@ -1,3 +1,5 @@
+import axiosLib from '../../lib/axios';
+
 export default function dispatchSystemUpdate(context: Element | Document = document) {
   const systemUpdate = context.querySelector<HTMLElement>('#js-systemUpdate');
   const submitForm = context.querySelector<HTMLFormElement>('.js-system-update-submit');
@@ -22,9 +24,15 @@ export default function dispatchSystemUpdate(context: Element | Document = docum
     const progressMessage = progress.querySelector('span');
     let interval: NodeJS.Timeout;
 
-    const check = () => {
-      const rand = Math.random().toString(36).slice(-16);
-      $.getJSON(`${ACMS.Config.root}cache/update-process.json?${rand}`, (json) => {
+    const check = async () => {
+      try {
+        const data = new FormData();
+        data.append('ACMS_POST_Logger_ProgressJson', 'exec');
+        data.append('type', 'update');
+        data.append('formToken', window.csrfToken);
+        const response = await axiosLib.post(ACMS.Config.root, data);
+        const json = response.data;
+
         const engine = window._.template(template);
         box.innerHTML = engine(json);
 
@@ -47,12 +55,13 @@ export default function dispatchSystemUpdate(context: Element | Document = docum
           }
         } else {
           progress.style.display = 'none';
+          clearInterval(interval);
         }
-      }).catch(() => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (e) {
         clearInterval(interval);
-      });
+      }
     };
-
     interval = setInterval(() => {
       check();
     }, 1000);

@@ -21,6 +21,7 @@ class ACMS_POST_Module_Insert extends ACMS_POST_Module
         $Module = $this->extract('module');
 
         $Module->setMethod('name', 'required');
+        $Module->setMethod('name', 'safeName');
         $Module->setMethod('module', 'invalidLicense', IS_LICENSED);
         $Module->setMethod('identifier', 'double', [$Module->get('scope') ?: 'local']);
         $Module->setMethod('label', 'required');
@@ -43,6 +44,7 @@ class ACMS_POST_Module_Insert extends ACMS_POST_Module
 
         if ($this->Post->isValidAll()) {
             $DB = DB::singleton(dsn());
+            /** @var int $mid */
             $mid = $DB->query(SQL::nextval('module_id', dsn()), 'seq');
             $start = $Module->get('start_date') ? ($Module->get('start_date') . ' ' . $Module->get('start_time')) : null;
             $end = $Module->get('end_date') ? ($Module->get('end_date') . ' ' . $Module->get('end_time')) : null;
@@ -82,6 +84,8 @@ class ACMS_POST_Module_Insert extends ACMS_POST_Module
             $SQL->addInsert('module_custom_field', $Module->get('custom_field', 1));
             $SQL->addInsert('module_layout_use', $Module->get('layout_use', 1));
             $SQL->addInsert('module_api_use', $Module->get('api_use', 'off'));
+            $SQL->addInsert('module_created_datetime', date('Y-m-d H:i:s', REQUEST_TIME));
+            $SQL->addInsert('module_updated_datetime', date('Y-m-d H:i:s', REQUEST_TIME));
 
             $DB->query($SQL->get(dsn()), 'exec');
 
@@ -104,6 +108,7 @@ class ACMS_POST_Module_Insert extends ACMS_POST_Module
                 'module' => $Module->_aryField,
             ]);
 
+            /** @phpstan-ignore argument.type */
             $this->redirect(acmsLink([
                 'bid'   => BID,
                 $key    => $val,

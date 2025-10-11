@@ -1,54 +1,37 @@
 <?php
 
+use Acms\Modules\Get\Helpers\FieldValueHelper;
+use Acms\Services\Facades\Template as TemplateHelper;
+
 class ACMS_GET_Field_ValueList extends ACMS_GET
 {
     public $_scope = [
-        'bid'   => 'global',
+        'bid' => 'global',
         'field' => 'global',
     ];
 
     public $_axis = [
-        'bid'   => 'self',
+        'bid' => 'self',
     ];
 
     function get()
     {
-        $Tpl    = new Template($this->tpl, new ACMS_Corrector());
-        $this->buildModuleField($Tpl);
+        $tpl = new Template($this->tpl, new ACMS_Corrector());
+        TemplateHelper::buildModuleField($tpl, $this->mid, $this->showField);
 
-        $DB = DB::singleton(dsn());
-        $SQL = SQL::newSelect('field');
-        $SQL->addSelect('field_value');
-        $SQL->addLeftJoin('blog', 'blog_id', 'field_blog_id');
+        $limit = (int) config('field_value-list_limit', 100);
+        $order = strtoupper(config('field_value-list_order', 'ASC')) === 'ASC' ? 'ASC' : 'DESC';
+        $fieldValueHelper = new FieldValueHelper($this->getBaseParams([]));
+        $items = $fieldValueHelper->getFieldValueData($limit, $order);
 
-        ACMS_Filter::blogTree($SQL, $this->bid, $this->blogAxis());
-        ACMS_Filter::blogStatus($SQL);
-        ACMS_Filter::fieldList($SQL, $this->Field);
-
-        $SQL->setLimit(config('field_value-list_limit'));
-        $SQL->setGroup('field_value');
-        $SQL->setOrder('field_value', strtoupper(config('field_value-list_order')));
-
-        $q  = $SQL->get(dsn());
-
-        if ($DB->query($q, 'fetch') and ($row = $DB->fetch($q))) {
-            $i      = 0;
-            $j      = $DB->affected_rows();
-            do {
-                $i++;
-
-                $value = $row['field_value'];
-
-                //------
-                // glue
-                if ($i !== $j) {
-                    $Tpl->add('glue');
-                }
-
-                $Tpl->add('value:loop', ['value' => $value]);
-            } while (!!($row = $DB->fetch($q)));
+        $lastIndex = count($items) - 1;
+        foreach ($items as $index => $value) {
+            // 最後の要素でない場合のみ 'glue' を追加
+            if ($index !== $lastIndex) {
+                $tpl->add(['glue', 'value:loop']);
+            }
+            $tpl->add('value:loop', ['value' => $value]);
         }
-
-        return $Tpl->get();
+        return $tpl->get();
     }
 }

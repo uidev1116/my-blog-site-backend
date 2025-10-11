@@ -1,0 +1,31 @@
+@use '../global/common' as global;
+
+/* ------------------------------
+ ベーススタイル
+------------------------------ */
+
+:where(.#{global.$entry-class}) {
+  // グリッドのカラム間余白を設定
+  .acms-cssgrid {
+    --acms-gap: var(--unit-gap-x);
+  }
+
+  // スタックの余白を設定
+  .acms-stack,
+  .acms-vstack,
+  .acms-hstack {
+    --acms-stack-spacing: var(--unit-gap-x);
+  }
+}
+
+// ユニット全体のレイアウト
+:where(.#{global.$entry-class}) {
+  /* コンテンツの初めの要素には上余白をつけない */
+  & > *:first-child,
+  & > *:first-child.column-block-editor > *:first-child, // ブロックエディター内
+  & > *:first-child.js-edit_inplace > *:first-child, //ダイレクト編集時
+  & > *:first-child.js-edit_inplace-hovering + .js-edit_inplace > *:first-child //ダイレクト編集時にホバー
+  {
+    margin-block-start: 0;
+  }
+}

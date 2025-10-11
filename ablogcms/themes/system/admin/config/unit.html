@@ -5,39 +5,51 @@
 
 <!-- BEGIN_MODULE Admin_Config -->
 <!-- BEGIN_IF [{notice_mess}/nem/] -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
   <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
-  <button class="js-acms-alert-close acms-admin-alert-icon-after">×</button
-  ><!--T-->ユニット設定を保存しました<!--/T-->
-</p>
+  <button
+    type="button"
+    aria-label="アラートを閉じる"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+  >
+    ×
+  </button>
+  <!--T-->ユニット設定を保存しました<!--/T-->
+</div>
 <!-- END_IF -->
+
+<form id="config-index-form" action="" method="post">
+  <input type="hidden" name="bid" value="%{BID}" />
+  <input type="hidden" name="admin" value="config_editor" />
+  <!-- BEGIN_IF [%{setid}/nem/] -->
+  <input type="hidden" name="setid" value="%{setid}" />
+  <input type="hidden" name="query[]" value="setid" />
+  <!-- END_IF -->
+  <!-- BEGIN_IF [%{rid}/nem/] -->
+  <input type="hidden" name="rid" value="%{rid}" />
+  <input type="hidden" name="query[]" value="rid" />
+  <!-- END_IF -->
+  <input type="hidden" name="ACMS_POST_2GET" value="on" />
+</form>
 
 <form action="" method="post" class="acms-admin-form">
   <div class="js-acms_fix_marker acms_fix_bg">
     <div class="acms_fix_bg_index acms-admin-form-group">
-      <div class="js-fake-form" data-method="post">
-        <input type="hidden" name="bid" value="%{BID}" />
-        <input type="hidden" name="admin" value="config_editor" />
-        <!-- BEGIN_IF [%{setid}/nem/] -->
-        <input type="hidden" name="setid" value="%{setid}" />
-        <input type="hidden" name="query[]" value="setid" />
-        <!-- END_IF -->
-        <!-- BEGIN_IF [%{rid}/nem/] -->
-        <input type="hidden" name="rid" value="%{rid}" />
-        <input type="hidden" name="query[]" value="rid" />
-        <!-- END_IF -->
-        <input type="hidden" name="ACMS_POST_2GET" value="on" />
-        <button type="button" class="js-submit acms-admin-btn-admin acms-admin-inline-btn">
-          <!--T-->一覧<!--/T-->
-        </button>
-      </div>
+      <button
+        type="submit"
+        form="config-index-form"
+        class="acms-admin-btn-admin acms-admin-inline-btn"
+      >
+        <!--T-->一覧<!--/T-->
+      </button>
 
-      <input
+      <button
         type="submit"
         name="ACMS_POST_Config"
-        value="<!--T-->保存<!--/T-->"
         class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-btn-admin-save js-saving-splash"
-      />
+      >
+        <!--T-->保存<!--/T-->
+      </button>
       @include("/admin/config/action.html")
 
       <!-- BEGIN_MODULE Touch_SessionWithAdministration -->
@@ -47,12 +59,13 @@
           class="acms-admin-btn-admin"
           ><!--T-->インポート<!--/T--></a
         >
-        <input
+        <button
           type="submit"
           name="ACMS_POST_Config_PartExport"
           class="acms-admin-btn-admin"
-          value="<!--T-->エクスポート<!--/T-->"
-        />
+        >
+          <!--T-->エクスポート<!--/T-->
+        </button>
         <a href="{shortcutUrl}" class="acms-admin-btn-admin"
           ><i class="acms-admin-icon acms-admin-icon-shortcut"></i
           ><!--T-->ショートカットに追加<!--/T--></a
@@ -64,36 +77,15 @@
 
   <!-- BEGIN Config_Column -->
   <!-- BEGIN mode:loop -->
-  <div class="acms-admin-unitbox">
-    <div class="panel-heading clearfix">
-      <h2 class="acms-admin-unitbox-title">
-        <span class="acms-admin-label"><!--T-->{mode}<!--/T--></span>
-      </h2>
-    </div>
-    <div class="panel-body column-definition-wrapper ui-sortable">
-      <div class="columnVeil acms-admin-margin-top-mini acms-admin-margin-bottom-small">
-        <!-- BEGIN add_type:loop -->
-        <a class="{modePrefix.type}-{type}" href="#">
-          <button class="acms-admin-btn-admin acms-admin-margin-bottom-mini"><!--T-->{label}<!--/T--></button>
-        </a>
-        <!-- END add_type:loop -->
-      </div>
-      <hr class="clearHidden" />
-      <!-- BEGIN loop -->
-      @include("/admin/config/column-definition.html")<!-- END loop -->
-      <input type="hidden" name="config[]" value="{modePrefix}type" />
-      <input type="hidden" name="config[]" value="{modePrefix}align" />
-      <input type="hidden" name="config[]" value="{modePrefix}group" />
-      <input type="hidden" name="config[]" value="{modePrefix}class" />
-      <input type="hidden" name="config[]" value="{modePrefix}size" />
-      <input type="hidden" name="config[]" value="{modePrefix}edit" />
-      <input type="hidden" name="config[]" value="{modePrefix}field_1" />
-      <input type="hidden" name="config[]" value="{modePrefix}field_2" />
-      <input type="hidden" name="config[]" value="{modePrefix}field_3" />
-      <input type="hidden" name="config[]" value="{modePrefix}field_4" />
-      <input type="hidden" name="config[]" value="{modePrefix}field_5" />
-    </div>
-  </div>
+  <div
+    id="js-unit-config-editor"
+    data-id="{id}"
+    data-label="{label}"
+    data-default-value="{json}[escvars]"
+    <!-- BEGIN_MODULE Admin_Unit_ConfigEditorSettings -->
+    data-settings="{json}[escvars]"
+    <!-- END_MODULE Admin_Unit_ConfigEditorSettings -->
+  ></div>
   <!-- END mode:loop -->
   <!-- END Config_Column -->
 

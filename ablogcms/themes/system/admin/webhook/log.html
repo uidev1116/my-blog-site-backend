@@ -68,13 +68,11 @@
       <td class="acms-admin-table-nowrap">{event}</td>
       <td class="acms-admin-table-nowrap">{time}</td>
       <td>
-        <a href="#" class="detail-{key}-fade-head acms-admin-btn"><!--T-->詳細<!--/T--></a>
+        <a href="#webhook-log-{key}" class="js-admin-fader acms-admin-btn"><!--T-->詳細<!--/T--></a>
       </td>
     </tr>
-    <tr class="detail-{key}-fade-body" style="display: none;">
+    <tr id="webhook-log-{key}" style="display: none;">
       <td colspan="6">
-        <a href="#" class="detail-{key}-fade-head"><!--T-->閉じる<!--/T--></a>
-
         <h4>Request Header</h4>
 <pre><code>{req_header}</code></pre>
 

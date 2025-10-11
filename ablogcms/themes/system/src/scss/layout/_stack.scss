@@ -1,0 +1,20 @@
+@use '../global/common' as global;
+
+/* ------------------------------
+  スタック
+------------------------------- */
+
+.acms-stack,
+.acms-vstack {
+  display: flex;
+  flex-flow: column nowrap;
+  gap: var(--acms-stack-spacing, 0.5rem);
+  align-items: center;
+}
+
+.acms-hstack {
+  display: flex;
+  flex-flow: row nowrap;
+  gap: var(--acms-stack-spacing, 0.5rem);
+  align-items: center;
+}

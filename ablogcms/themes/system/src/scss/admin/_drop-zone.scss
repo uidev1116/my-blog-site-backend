@@ -1,0 +1,69 @@
+@use '../global/common' as global;
+
+// ---------------
+// ドロップゾーン
+// ---------------
+
+.acms-drop-zone {
+  width: 100%;
+  height: 100%;
+}
+
+.acms-drop-zone .acms-drop-box {
+  display: block;
+  height: 100%;
+  background-color: global.$acms-color-white !important;
+  border: 1px dashed global.$acms-color-info80;
+  transition: background-color 0.3s;
+
+  &.drag-n-drop-hover {
+    color: global.$acms-color-black;
+    background-color: global.$acms-color-info10 !important;
+  }
+}
+
+.acms-drop-zone .acms-drop-zone-inside {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  margin: auto;
+  padding: 30px;
+  text-align: center;
+  border: 3px dashed transparent;
+}
+
+.acms-drop-zone .acms-drop-zone-text {
+  color: global.$acms-color-system-gray60;
+  transition: color 0.3s;
+
+  @include global.font-size(12);
+}
+
+.acms-drop-zone .acms-drop-box.drag-n-drop-hover .acms-drop-zone-text {
+  color: global.$acms-color-black;
+}
+
+.acms-drop-zone .acms-drop-zone-file-selector-btn {
+  width: 120px;
+  margin: 10px 0;
+  color: global.$acms-color-black;
+  font-weight: bold;
+  line-height: 30px;
+  text-align: center;
+  background-color: global.$acms-color-gray10;
+  border: none;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 10%);
+  transition: background-color 0.3s;
+  appearance: none;
+
+  &:hover {
+    background-color: global.$acms-color-gray40;
+  }
+}
+
+.acms-drop-zone .acms-drop-box.drag-n-drop-hover {
+  .acms-drop-zone-file-selector-btn {
+    background-color: global.$acms-color-gray40;
+  }
+}

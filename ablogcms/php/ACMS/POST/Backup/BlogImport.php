@@ -1,7 +1,8 @@
 <?php
 
-use Acms\Services\Facades\Storage;
-use Symfony\Component\Finder\Finder;
+use Acms\Services\Facades\Common;
+use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\PrivateStorage;
 
 /**
  * Class ACMS_POST_Backup_BlogImport
@@ -31,8 +32,10 @@ class ACMS_POST_Backup_BlogImport extends ACMS_POST_Backup_Base
             $import = App::make('blog.import');
 
             $this->decompress();
-            $this->deleteArchives();
-            $this->copyArchives();
+            if (Common::isLocalPrivateStorage()) {
+                $this->deleteArchives();
+                $this->copyArchives();
+            }
 
             $yaml = $this->getYaml();
             $yaml = $this->fixYaml($yaml);
@@ -51,11 +54,13 @@ class ACMS_POST_Backup_BlogImport extends ACMS_POST_Backup_Base
             }
         } catch (\Exception $e) {
             $this->addError($e->getMessage());
-            $this->deleteArchives();
+            if (Common::isLocalPrivateStorage()) {
+                $this->deleteArchives();
+            }
         }
         DB::setThrowException(false);
 
-        Storage::removeDirectory($this->tmpDir);
+        LocalStorage::removeDirectory($this->tmpDir);
 
         return $this->Post;
     }
@@ -69,10 +74,10 @@ class ACMS_POST_Backup_BlogImport extends ACMS_POST_Backup_Base
     {
         $yamlPath = $this->tmpDir . 'acms_blog_data/data.yaml';
         try {
-            return Storage::get($yamlPath, dirname($yamlPath));
+            return LocalStorage::get($yamlPath, dirname($yamlPath));
         } catch (\Exception $e) {
             $yamlPath = $this->tmpDir . 'data.yaml';
-            return Storage::get($yamlPath, dirname($yamlPath));
+            return LocalStorage::get($yamlPath, dirname($yamlPath));
         }
         throw new \RuntimeException('File does not exist.');
     }
@@ -100,11 +105,18 @@ class ACMS_POST_Backup_BlogImport extends ACMS_POST_Backup_Base
         if (!$file) {
             return false;
         }
-        if (!Storage::isFile($this->backupBlogDir . $file)) {
+        $path = LocalStorage::validateDirectoryTraversal($this->backupBlogDir, $file);
+        if (!PrivateStorage::isFile($path)) {
             return false;
         }
-        Storage::makeDirectory($this->tmpDir);
-        Storage::unzip($this->backupBlogDir . $file, $this->tmpDir);
+        if (!Common::isLocalPrivateStorage()) {
+            LocalStorage::makeDirectory($this->backupBlogDir);
+            if ($content = PrivateStorage::get($this->backupBlogDir . $file)) {
+                LocalStorage::put($this->backupBlogDir . $file, $content);
+            }
+        }
+        LocalStorage::makeDirectory($this->tmpDir);
+        LocalStorage::unzip($this->backupBlogDir . $file, $this->tmpDir);
 
         return true;
     }
@@ -118,8 +130,8 @@ class ACMS_POST_Backup_BlogImport extends ACMS_POST_Backup_Base
     {
         foreach ([ARCHIVES_DIR, MEDIA_LIBRARY_DIR, MEDIA_STORAGE_DIR] as $baseDir) {
             $target = SCRIPT_DIR . $baseDir . sprintf("%03d", BID) . '/';
-            if (Storage::isDirectory($target)) {
-                Storage::removeDirectory($target);
+            if (LocalStorage::isDirectory($target)) {
+                LocalStorage::removeDirectory($target);
             }
         }
     }
@@ -139,17 +151,17 @@ class ACMS_POST_Backup_BlogImport extends ACMS_POST_Backup_Base
         foreach ($list as $from => $to) {
             $exists = false;
             $from = $this->tmpDir . 'acms_blog_data/' . $from . '001/';
-            if (Storage::exists($from)) {
+            if (LocalStorage::exists($from)) {
                 $exists = true;
             } else {
                 $from = $this->tmpDir . $from . '001/';
-                if (Storage::exists($from)) {
+                if (LocalStorage::exists($from)) {
                     $exists = true;
                 }
             }
             if ($exists) {
                 $to = SCRIPT_DIR . $to . sprintf("%03d", BID) . '/';
-                Storage::copyDirectory($from, $to);
+                LocalStorage::copyDirectory($from, $to);
             }
         }
     }

@@ -4,9 +4,9 @@ class ACMS_POST_Schedule_EditLabel extends ACMS_POST
 {
     function post()
     {
-        $scid   = $this->Get->get('scid');
+        $scid = (int) $this->Get->get('scid', 0);
         $Config = $this->extract('schedule');
-        $Config->setMethod('schedule', 'operative', sessionWithScheduleAdministration());
+        $Config->setMethod('schedule', 'operative', sessionWithScheduleAdministration(BID, $scid));
         $Config->validate(new ACMS_Validator());
 
         if (!$Config->isValid()) {
@@ -65,16 +65,19 @@ class ACMS_POST_Schedule_EditLabel extends ACMS_POST
         $Config->delete('schedule_label@' . $scid);
 
         $results = [];
+        $sql = SQL::newBulkInsert('config');
         foreach ($fds as $label => $num) {
-            $SQL    = SQL::newInsert('config');
-            $SQL->addInsert('config_key', 'schedule_label@' . $scid);
-            $SQL->addInsert('config_value', $label);
-            $SQL->addInsert('config_sort', $cnt++);
-            $SQL->addInsert('config_blog_id', BID);
-            $DB->query($SQL->get(dsn()), 'exec');
+            $sql->addInsert([
+                'config_key' => 'schedule_label@' . $scid,
+                'config_value' => $label,
+                'config_sort' => $cnt++,
+                'config_blog_id' => BID,
+            ]);
             $Config->add('schedule_label@' . $scid, $label);
-
             $results[] = $label;
+        }
+        if ($sql->hasData()) {
+            $DB->query($sql->get(dsn()), 'exec');
         }
         Config::forgetCache(BID);
         $this->Post->set('edit', 'update');

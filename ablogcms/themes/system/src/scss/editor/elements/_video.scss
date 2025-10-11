@@ -1,0 +1,17 @@
+@use 'sass:math';
+@use '../../global/common' as global;
+
+/* ------------------------------
+ 動画ユニット
+------------------------------ */
+.column-youtube,
+.column-video {
+  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+}
+
+:where(.column-iframe iframe) {
+  display: block; /* Descender space 対策 */
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9; /* デフォルトのアスペクト比 */
+}

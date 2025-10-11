@@ -1,0 +1,23 @@
+@use '../global/common' as global;
+
+/* ------------------------------
+ グリッドシステム
+------------------------------- */
+
+:root {
+  /// JavaScriptからブレイクポイントが参照できるようにCSS変数を定義
+  @each $name, $value in global.$grid-breakpoints {
+    --acms-breakpoint-#{$name}: #{$value};
+  }
+}
+
+.acms-cssgrid {
+  display: grid;
+  grid-template-rows: repeat(var(--acms-rows, 1), 1fr);
+  grid-template-columns: repeat(var(--acms-columns, #{global.$acms-columns}), 1fr);
+  gap: var(--acms-gap, #{global.$grid-space});
+
+  @include global.make-cssgrid;
+}
+
+@include global.make-cssgrid-columns;

@@ -3,6 +3,8 @@ import './lib/polyfill';
 import i18next from 'i18next';
 import HttpApi from 'i18next-http-backend';
 
+import qs from 'qs';
+
 import AcmsSyncLoader from './lib/sync-loader';
 import loadList from './built-in/load-list';
 import library from './built-in/library';
@@ -20,15 +22,11 @@ const loc = window.location;
 
 // parse query
 const elm = doc.getElementById('acms-js');
-const query = {};
+let query = {};
 if (elm) {
   const s = elm.src.split('?');
   if (s.length > 1) {
-    const Query = parseQuery(s[1]);
-    let key;
-    for (key in Query) {
-      query[key] = Query[key];
-    }
+    query = qs.parse(s[1]);
   }
 }
 query.searchEngineKeyword = '';
@@ -139,14 +137,25 @@ loader
   })
   .load(() => {
     $(() => {
-      // デフォルトで、jQueryのAjaxリクエストにCSRFトークンを付与
-      if (window.csrfToken) {
-        $.ajaxSetup({
-          headers: {
-            'X-Csrf-Token': window.csrfToken,
-          },
-        });
-      }
+      $.ajaxSetup({
+        beforeSend(xhr, settings) {
+          try {
+            // リクエスト先のURLを解析
+            const requestUrl = new URL(settings.url, window.location.href);
+
+            // 現在のページのドメインと同じ場合だけヘッダーを追加
+            if (requestUrl.origin === window.location.origin) {
+              if (window.csrfToken) {
+                // デフォルトで、jQueryのAjaxリクエストにCSRFトークンを付与
+                xhr.setRequestHeader('X-Csrf-Token', window.csrfToken);
+              }
+            }
+          } catch (e) {
+            // URLの解析に失敗した場合は何もしない
+            console.warn('Invalid URL in ajaxSetup:', settings.url); // eslint-disable-line no-console
+          }
+        },
+      });
 
       jQuery.expr.filters.text = function (elem) {
         let attr;

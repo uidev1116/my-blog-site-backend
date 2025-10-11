@@ -7,13 +7,13 @@ class ACMS_POST_Blog_Index_Parent extends ACMS_POST_Blog
         $DB = DB::singleton(dsn());
 
         if (!sessionWithAdministration()) {
-            die();
+            die403();
         }
         if (!$toPid = idval($this->Post->get('parent'))) {
-            die();
+            die500();
         }
         if (!isBlogAncestor($toPid, SBID, true)) {
-            die('operation is not permitted.');
+            die500();
         }
         if (!empty($_POST['checks']) and is_array($_POST['checks'])) {
             $aryBid = [];

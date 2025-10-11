@@ -103,7 +103,7 @@ class ACMS_POST_Approval_Comment extends ACMS_POST_Approval
                 'bid' => BID,
                 'cid' => CID,
                 'eid' => $eid,
-                'tpl' => 'ajax/revision-preview.html',
+                'tpl' => 'ajax/revision/preview.html',
                 'query' => ['rvid' => $rvid],
             ], false));
 

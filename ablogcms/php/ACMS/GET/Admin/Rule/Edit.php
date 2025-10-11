@@ -6,11 +6,11 @@ class ACMS_GET_Admin_Rule_Edit extends ACMS_GET_Admin_Edit
     {
         if (roleAvailableUser()) {
             if (!roleAuthorization('rule_edit', BID)) {
-                return false;
+                die403();
             }
         } else {
             if (!sessionWithAdministration()) {
-                return false;
+                die403();
             }
         }
         return true;

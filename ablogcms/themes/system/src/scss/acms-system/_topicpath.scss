@@ -85,13 +85,9 @@
       background: rgb(255 255 255 / 50%);
     }
   }
-
-  [class*='acms-icon'] {
-    margin: 0 5px 0 0;
-  }
 }
 
-@media screen and (min-width: global.$breakpoint-md-min) {
+@include global.media-breakpoint-up(md) {
   .acms-system-view-site {
     display: inline-block;
   }
@@ -100,7 +96,7 @@
 // ------------------------------
 // トピックパス
 // ------------------------------
-@media (max-width: global.$breakpoint-md-max) {
+@include global.media-breakpoint-down(md) {
   .acms-topicpath {
     // 右寄せしない
     &.acms-float-right {

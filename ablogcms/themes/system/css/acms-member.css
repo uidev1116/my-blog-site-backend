@@ -8,7 +8,18 @@
  *
  */
 
-/* stylelint-disable value-keyword-case */
+/**
+ * グリッドシステム（非推奨）
+ */
+/**
+ * グリッドシステム（非推奨）
+ */
+/**
+ * グリッドシステム（非推奨）
+ */
+/* ------------------------------
+  Popover
+------------------------------- */
 /* ------------------------------
  会員ページ ベース
 ------------------------------- */
@@ -329,17 +340,6 @@
   background-color: rgba(255, 255, 255, 0.45);
 }
 
-/* Facebookログインボタン */
-/* Facebookによるログイン機能は、将来廃止予定になります。 */
-.acms-member-sns-btn-facebook, .acms-member-sns-btn-facebook:hover, .acms-member-sns-btn-facebook:focus, .acms-member-sns-btn-facebook:active {
-  color: #fff;
-  background-color: #1877f2;
-  border-color: #1877f2;
-}
-.acms-member-sns-btn-facebook .acms-member-sns-btn-text {
-  border-color: rgba(255, 255, 255, 0.35);
-}
-
 /* ------------------------------
  会員ページ 会員情報テーブル
 ------------------------------- */
@@ -368,19 +368,19 @@
   text-align: left;
 }
 .acms-member-inputs th {
-  font-size: 14px;
+  font-size: 14;
 }
 @media print {
   .acms-member-inputs th {
-    font-size: 14px;
+    font-size: 14;
   }
 }
 .acms-member-inputs td {
-  font-size: 16px;
+  font-size: 16;
 }
 @media print {
   .acms-member-inputs td {
-    font-size: 16px;
+    font-size: 16;
   }
 }
 
@@ -398,11 +398,11 @@
   vertical-align: middle;
 }
 .acms-member-inputs-col th {
-  font-size: 14px;
+  font-size: 14;
 }
 @media print {
   .acms-member-inputs-col th {
-    font-size: 14px;
+    font-size: 14;
   }
 }
 .acms-member-inputs-col td {
@@ -410,11 +410,11 @@
   vertical-align: middle;
 }
 .acms-member-inputs-col td {
-  font-size: 16px;
+  font-size: 16;
 }
 @media print {
   .acms-member-inputs-col td {
-    font-size: 16px;
+    font-size: 16;
   }
 }
 
@@ -446,19 +446,19 @@
   text-align: left;
 }
 .acms-member-confirm th {
-  font-size: 14px;
+  font-size: 14;
 }
 @media print {
   .acms-member-confirm th {
-    font-size: 14px;
+    font-size: 14;
   }
 }
 .acms-member-confirm td {
-  font-size: 16px;
+  font-size: 16;
 }
 @media print {
   .acms-member-confirm td {
-    font-size: 16px;
+    font-size: 16;
   }
 }
 
@@ -466,15 +466,11 @@
 .acms-member-geo {
   font-size: 0;
   line-height: 0;
-  /* 位置情報フォーム */
   /* 位置情報キーワード検索入力欄 */
   /* 位置情報キーワード検索ボタン */
   /* 地図がはみ出さないよう調整 */
   /* 緯度・軽度・ズーム入力欄ラベル */
   /* 緯度・軽度・ズーム入力欄 */
-}
-.acms-member-geo .js-geo_form {
-  margin-top: 10px;
 }
 .acms-member-geo input[type=text].js-editable_map-search_text,
 .acms-member-geo input[type=text].js-osm-search {

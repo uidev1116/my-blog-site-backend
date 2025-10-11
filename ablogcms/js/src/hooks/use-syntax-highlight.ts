@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import hljs, { HighlightOptions, HighlightResult } from 'highlight.js';
+import type hljs from 'highlight.js';
+import type { HighlightOptions, HighlightResult } from 'highlight.js';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface UseSyntaxHighlightOptions extends HighlightOptions {}
@@ -10,15 +11,26 @@ export default function useSyntaxHighlight(code: string, options: UseSyntaxHighl
     value: '',
     illegal: false,
   });
+  const [hljsInstance, setHljsInstance] = useState<typeof hljs | null>(null);
 
   useEffect(() => {
-    const newResult = hljs.highlight(code, options);
-    // 結果が変更されていない場合は状態を更新しない
-    // これをしないと、無限ループになる
-    if (result === null || newResult.value !== result.value) {
-      setResult(newResult);
+    const loadHljs = async () => {
+      const { default: hljs } = await import(/* webpackChunkName: "highlightjs" */ 'highlight.js');
+      setHljsInstance(hljs);
+    };
+    loadHljs();
+  }, []);
+
+  useEffect(() => {
+    if (hljsInstance) {
+      const newResult = hljsInstance.highlight(code, options);
+      // 結果が変更されていない場合は状態を更新しない
+      // これをしないと、無限ループになる
+      if (result === null || newResult.value !== result.value) {
+        setResult(newResult);
+      }
     }
-  }, [options, code, result]);
+  }, [hljsInstance, options, code, result]);
 
   return result;
 }

@@ -7,7 +7,9 @@ use SQL;
 use ACMS_Filter;
 use Acms\Services\Facades\Auth;
 use Acms\Services\Facades\Common;
+use Acms\Services\Facades\PrivateStorage;
 use Acms\Services\Facades\Session;
+use Acms\Services\Facades\Storage;
 
 class Download
 {
@@ -50,9 +52,20 @@ class Download
         $extension = strtolower($this->media['extension']);
 
         if (in_array($extension, configArray('media_inline_download_extension'), true)) {
-            Common::download($path, $filename, $extension, false);
+            Common::download($path, $filename, $extension, false, PrivateStorage::getInstance());
         }
-        Common::download($path, $filename, false, false);
+        Common::download($path, $filename, false, false, PrivateStorage::getInstance());
+    }
+
+    /**
+     * 該当のメディアが存在するか確認
+     *
+     * @return boolean
+     */
+    public function exists(): bool
+    {
+        $path = MEDIA_STORAGE_DIR . $this->media['path'];
+        return Storage::exists($path);
     }
 
     /**
@@ -100,7 +113,10 @@ class Download
             return true;
         }
         $entryIds = $this->findEntriesUseMedia();
-        if (empty($entryIds)) {
+        if (count($entryIds) === 0) {
+            if (config('media_disallow_download_if_unused') === 'on') {
+                return false;
+            }
             return true;
         }
         $sql = SQL::newSelect('entry');
@@ -174,7 +190,7 @@ class Download
         $sql = SQL::newSelect('field');
         $sql->addSelect('field_eid');
         $sql->addWhereOpr('field_eid', null, '<>');
-        $sql->addWhereOpr('field_key', '%@media', 'LIKE');
+        $sql->addWhereOpr('field_type', 'media');
         $sql->addWhereOpr('field_value', $this->mid);
 
         return DB::query($sql->get(dsn()), 'list') ?: [];
@@ -187,26 +203,19 @@ class Download
      */
     protected function findCustomUnitsUseMedia()
     {
-        $entryIds = [];
-        $db = DB::singleton(dsn());
-        $sql = SQL::newSelect('column');
-        $sql->addSelect('column_entry_id');
-        $sql->addSelect('column_field_6');
-        $sql->addWhereOpr('column_type', 'custom%', 'LIKE');
-        $q = $sql->get(dsn());
-        $db->query($q, 'fetch');
-
-        while ($unit = $db->fetch($q)) {
-            $field = acmsDangerUnserialize($unit['column_field_6']);
-            if (empty($field)) {
-                continue;
-            }
-            foreach ($field->listFields() as $fd) {
-                if (strpos($fd, '@media') !== false && in_array(strval($this->mid), $field->getArray($fd), true)) {
-                    $entryIds[] = intval($unit['column_entry_id']);
-                }
-            }
+        $sql = SQL::newSelect('field');
+        $sql->addSelect('field_unit_id');
+        $sql->addWhereOpr('field_unit_id', null, '<>');
+        $sql->addWhereOpr('field_type', 'media');
+        $sql->addWhereOpr('field_value', $this->mid);
+        if ($unitIds = DB::query($sql->get(dsn()), 'list')) {
+            $sql = SQL::newSelect('column');
+            $sql->addSelect('column_entry_id');
+            $sql->addWhereIn('column_id', $unitIds);
+            $sql->addWhereOpr('column_type', 'custom%', 'LIKE');
+            $list = DB::query($sql->get(dsn()), 'list');
+            return $list ? $list : [];
         }
-        return $entryIds;
+        return [];
     }
 }

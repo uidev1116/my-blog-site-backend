@@ -46,7 +46,7 @@
             <label for="filter-start" class="acms-admin-filter-item-name"
               ><!--T-->期間<!--/T--></label
             >
-            <div class="acms-admin-filter-item-content">
+            <div class="acms-admin-d-inline-flex acms-admin-align-items-center">
               <input
                 type="text"
                 name="start"
@@ -71,13 +71,11 @@
               class="acms-admin-filter-item-name acms-admin-show-sp"
               ><!--T-->表示数<!--/T--></label
             >
-            <div class="acms-admin-filter-item-content">
-              <select name="limit" id="filter-limit" class="js-select2">
-                <!-- BEGIN limit:loop -->
-                <option value="{limit}" {selected}>{limit}</option>
-                <!-- END limit:loop -->
-              </select>
-            </div>
+            <select name="limit" id="filter-limit" class="js-select2">
+              <!-- BEGIN limit:loop -->
+              <option value="{limit}" {selected}>{limit}</option>
+              <!-- END limit:loop -->
+            </select>
           </div>
         </div>
       </div>
@@ -191,20 +189,23 @@
       <input type="hidden" name="admin" value="audit_log" />
     </div>
   </div>
-  <div class="clearfix js-acms_fix_marker">
-    <div
-      class="acms-admin-margin-bottom-mini acms-admin-inline-block acms-admin-float-right"
-    >
+</form>
+
+<div class="clearfix js-acms_fix_marker">
+  <div
+    class="acms-admin-inline-block acms-admin-float-right"
+  >
+    <form action="" method="post">
       <button
         type="submit"
         name="ACMS_POST_Logger_Download"
-        class="js-submit acms-admin-btn acms-admin-btn-primary acms-admin-float-right"
+        class="acms-admin-btn acms-admin-btn-primary"
       >
         <!--T-->このページをJSON形式でダウンロード<!--/T-->
       </button>
-    </div>
+    </form>
   </div>
-</form>
+</div>
 
 <div>
   <!-- BEGIN notFound -->
@@ -286,44 +287,8 @@
     </table>
   </div>
 
-  <div class="acms-admin-grid">
-    <div class="acms-admin-col-md-12">
-      <div class="acms-admin-itemsAmount-container">
-        <p>
-          {itemsFrom}<!--T-->件<!--/T-->
-          - {itemsTo}<!--T-->件<!--/T-->
-          /
-          <!--T-->全<!--/T-->{itemsAmount}<!--T-->件<!--/T-->
-        </p>
-      </div>
-    </div>
-    <div class="acms-admin-col-md-12">
-      <!-- BEGIN pager:veil -->
-      <div class="acms-admin-pager-container">
-        <ul class="acms-admin-pager">
-          <!-- BEGIN backLink -->
-          <li class="prev">
-            <a href="{url}">&laquo;&nbsp;<!--T-->前へ<!--/T--></a>
-          </li>
-          <!-- END backLink --><!-- BEGIN page:loop -->
-          <li {pageCurAttr}[raw]>
-            <span
-              ><!-- BEGIN link#front --><a href="{url}"
-                ><!-- END link#front -->{page}<!-- BEGIN link#rear --></a
-              ><!-- END link#rear --></span
-            >
-          </li>
-          <!-- END page:loop --><!-- BEGIN lastPage:veil -->
-          <li class="last"><a href="{lastPageUrl}">...{lastPage}</a></li>
-          <!-- END lastPage:veil --><!-- BEGIN forwardLink -->
-          <li class="next">
-            <a href="{url}"><!--T-->次へ<!--/T-->&nbsp;&raquo;</a>
-          </li>
-          <!-- END forwardLink -->
-        </ul>
-      </div>
-      <!-- END pager:veil -->
-    </div>
+  <div class="acms-admin-cssgrid acms-admin-mt-5">
+    @include("/admin/include/pagination.html")
   </div>
   <!-- END index:veil -->
 </div>

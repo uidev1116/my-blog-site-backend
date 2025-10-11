@@ -61,7 +61,7 @@ class Import
     {
         if (!$this->checkAuth()) {
             AcmsLogger::info('権限がないため、コンフィグのインポートに失敗しました');
-            die();
+            die403();
         }
         $this->yaml = $yaml;
         $this->bid = $bid;
@@ -212,7 +212,7 @@ class Import
         foreach ($all as $row) {
             $SQL = SQL::newUpdate('column');
             $SQL->addUpdate('column_field_1', $this->getNewModuleId($row['column_field_1']));
-            $SQL->addWhereOpr('column_id', $row['column_id']);
+            $SQL->addWhereOpr('column_id', (string)$row['column_id']);
             DB::query($SQL->get(dsn()), 'exec');
         }
 
@@ -222,7 +222,7 @@ class Import
         foreach ($all as $row) {
             $SQL = SQL::newUpdate('column_rev');
             $SQL->addUpdate('column_field_1', $this->getNewModuleId($row['column_field_1']));
-            $SQL->addWhereOpr('column_id', $row['column_id']);
+            $SQL->addWhereOpr('column_id', (string)$row['column_id']);
             $SQL->addWhereOpr('column_rev_id', $row['column_rev_id']);
             DB::query($SQL->get(dsn()), 'exec');
         }
@@ -356,8 +356,11 @@ class Import
             $SQL = SQL::newInsert($table);
             $id = 0;
             foreach ($record as $field => $value) {
-                if (is_callable([$this, $table . 'Fix'])) {
-                    $value = call_user_func_array([$this, $table . 'Fix'], [$field, $value]);
+                $method = $table . 'Fix';
+                if (is_callable([$this, $method])) {
+                    /** @var callable $callback */
+                    $callback = [$this, $method];
+                    $value = call_user_func_array($callback, [$field, $value]);
                 }
                 if ($value !== false) {
                     $SQL->addInsert($field, $value);

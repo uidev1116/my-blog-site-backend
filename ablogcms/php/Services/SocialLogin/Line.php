@@ -35,7 +35,7 @@ class Line
     protected $loginUrlParam;
 
     /**
-     * Facebook constructor.
+     * Line constructor.
      * @param string $appId
      * @param string $appSecret
      */

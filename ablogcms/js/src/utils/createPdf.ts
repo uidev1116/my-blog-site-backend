@@ -1,4 +1,4 @@
-export default function createPdf(file: File | Blob, width = 0, page = 1): Promise<string> {
+export default function createPdf(file: File | Blob, page = 1): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -8,7 +8,7 @@ export default function createPdf(file: File | Blob, width = 0, page = 1): Promi
         }
         const pdf2Image = new Pdf2Image(new Uint8Array(event.target?.result as ArrayBuffer));
         pdf2Image
-          .getPageImage(page, width)
+          .getPageImage(page)
           .then((image) => {
             resolve(image as string);
           })

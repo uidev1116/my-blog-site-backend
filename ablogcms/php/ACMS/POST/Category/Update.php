@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Category;
+
 class ACMS_POST_Category_Update extends ACMS_POST_Category
 {
     protected function isScopeShared()
@@ -192,27 +194,13 @@ class ACMS_POST_Category_Update extends ACMS_POST_Category
      */
     protected function isOperable(): bool
     {
-        if (empty(CID)) {
+        /** @var int<1, max>|null $categoryId */
+        $categoryId = CID;
+        if (is_null($categoryId)) {
             return false;
         }
 
-        if (IS_LICENSED === false) {
-            return false;
-        }
-
-        if (roleAvailableUser()) {
-            if (roleAuthorization('category_edit', BID)) {
-                return true;
-            }
-
-            if ($this->shortcutAuthorization()) {
-                return true;
-            }
-
-            return false;
-        }
-
-        if (sessionWithCompilation()) {
+        if (Category::canUpdate(BID)) {
             return true;
         }
 

@@ -94,61 +94,59 @@
           {description}
         </td>
         <td class="acms-admin-table-nowrap">
-          <div class="acms-admin-btn-group acms-admin-btn-group-entry admin-entry-dropdown-toggle" style="width: 120px">
-            <div class="js-acms-dropdown-toggle">
-              <!-- BEGIN mine -->
-              <a class="acms-admin-btn-admin" href="{configUrl}"><!--T-->コンフィグ<!--/T--></a>
-              <!-- END mine -->
-              <!-- BEGIN notMinePermit-->
-              <a class="acms-admin-btn-admin" href="{configUrl}"><!--T-->コンフィグ<!--/T--></a>
-              <!-- END notMinePermit -->
-              <!-- BEGIN mine -->
-              <button type="button" class="acms-admin-btn-admin js-acms-dropdown-btn">
-                <span class="acms-admin-arrow-bottom"></span>
-              </button>
-              <ul class="js-acms-dropdown-menu" role="menu">
-                <li><a href="{itemUrl}&edit=update"><!--T-->変更<!--/T--></a></li>
-                <li class="acms-admin-divider"></li>
-                <li>
-                  <button
-                    form="duplicateForm{configSetId}"
-                    type="submit"
-                    onclick="return confirm('<!--T-->コンフィグを複製してコンフィグセットを作成します。よろしいですか？<!--/T-->');"
-                  >
-                    複製
-                  </button>
-                  <form id="duplicateForm{configSetId}" action="" method="post" enctype="multipart/form-data">
-                    <input type="hidden" name="config_set_id" value="{configSetId}"/>
-                    <input type="hidden" name="ACMS_POST_Config_Set_Duplicate" value="on" />
-                  </form>
-                </li>
-              </ul>
-              <!-- END mine -->
-              <!-- BEGIN notMinePermit -->
-              <button type="button" class="acms-admin-btn-admin js-acms-dropdown-btn">
-                <span class="acms-admin-arrow-bottom"></span>
-              </button>
-              <ul class="js-acms-dropdown-menu" role="menu">
-                <li><a href="{itemUrl}&edit=update"><!--T-->変更<!--/T--></a></li>
-                <li>
-                  <button
-                    form="duplicateForm{configSetId}"
-                    type="submit"
-                    onclick="return confirm('<!--T-->コンフィグを複製してコンフィグセットを作成します。よろしいですか？<!--/T-->');"
-                  >
-                    複製
-                  </button>
-                  <form id="duplicateForm{configSetId}" action="" method="post" enctype="multipart/form-data">
-                    <input type="hidden" name="config_set_id" value="{configSetId}"/>
-                    <input type="hidden" name="ACMS_POST_Config_Set_Duplicate" value="on" />
-                  </form>
-                </li>
-              </ul>
-              <!-- END notMinePermit -->
-              <!-- BEGIN notMine -->
-              <!--T-->親ブログに所属<!--/T-->
-              <!-- END notMine -->
-            </div>
+          <div class="js-acms-dropdown-toggle acms-admin-btn-group">
+            <!-- BEGIN mine -->
+            <a class="acms-admin-btn-admin" href="{configUrl}"><!--T-->コンフィグ<!--/T--></a>
+            <!-- END mine -->
+            <!-- BEGIN notMinePermit-->
+            <a class="acms-admin-btn-admin" href="{configUrl}"><!--T-->コンフィグ<!--/T--></a>
+            <!-- END notMinePermit -->
+            <!-- BEGIN mine -->
+            <button type="button" class="acms-admin-btn-admin js-acms-dropdown-btn">
+              <span class="acms-admin-arrow-bottom"></span>
+            </button>
+            <ul class="js-acms-dropdown-menu" role="menu">
+              <li><a href="{itemUrl}&edit=update"><!--T-->変更<!--/T--></a></li>
+              <li class="acms-admin-divider"></li>
+              <li>
+                <button
+                  form="duplicateForm{configSetId}"
+                  type="submit"
+                  onclick="return confirm('<!--T-->コンフィグを複製してコンフィグセットを作成します。よろしいですか？<!--/T-->');"
+                >
+                  複製
+                </button>
+                <form id="duplicateForm{configSetId}" action="" method="post" enctype="multipart/form-data" style="display: none;">
+                  <input type="hidden" name="config_set_id" value="{configSetId}"/>
+                  <input type="hidden" name="ACMS_POST_Config_Set_Duplicate" value="on" />
+                </form>
+              </li>
+            </ul>
+            <!-- END mine -->
+            <!-- BEGIN notMinePermit -->
+            <button type="button" class="acms-admin-btn-admin js-acms-dropdown-btn">
+              <span class="acms-admin-arrow-bottom"></span>
+            </button>
+            <ul class="js-acms-dropdown-menu" role="menu">
+              <li><a href="{itemUrl}&edit=update"><!--T-->変更<!--/T--></a></li>
+              <li>
+                <button
+                  form="duplicateForm{configSetId}"
+                  type="submit"
+                  onclick="return confirm('<!--T-->コンフィグを複製してコンフィグセットを作成します。よろしいですか？<!--/T-->');"
+                >
+                  複製
+                </button>
+                <form id="duplicateForm{configSetId}" action="" method="post" enctype="multipart/form-data" style="display: none;">
+                  <input type="hidden" name="config_set_id" value="{configSetId}"/>
+                  <input type="hidden" name="ACMS_POST_Config_Set_Duplicate" value="on" />
+                </form>
+              </li>
+            </ul>
+            <!-- END notMinePermit -->
+            <!-- BEGIN notMine -->
+            <!--T-->親ブログに所属<!--/T-->
+            <!-- END notMine -->
           </div>
         </td>
       </tr>

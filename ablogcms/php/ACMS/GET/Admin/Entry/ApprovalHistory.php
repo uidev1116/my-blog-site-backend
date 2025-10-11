@@ -1,19 +1,16 @@
 <?php
 
-class ACMS_GET_Admin_Entry_ApprovalHistory extends ACMS_GET_Admin_Entry
+class ACMS_GET_Admin_Entry_ApprovalHistory extends ACMS_GET_Admin
 {
-    function get()
+    public function get()
     {
-        if ('entry_approval-history' <> ADMIN) {
-            return '';
-        }
-        if (!enableApproval()) {
+        if ('entry_approval-history' !== ADMIN) {
             return '';
         }
         if (!EID) {
             return '';
         }
-        if (!sessionWithApprovalAdministrator()) {
+        if (!Entry::canViewApprovalHistory(EID)) {
             return '';
         }
 
@@ -68,9 +65,9 @@ class ACMS_GET_Admin_Entry_ApprovalHistory extends ACMS_GET_Admin_Entry
         $SQL->setOrder('approval_datetime', $order);
 
         $q  = $SQL->get(dsn());
-        $DB->query($q, 'fetch');
+        $statement = $DB->query($q, 'exec');
 
-        while ($row = $DB->fetch($q)) {
+        while ($row = $DB->next($statement)) {
             $_vars  = [];
             $rvid   = $row['approval_revision_id'];
             $type   = $row['approval_type'];
@@ -99,7 +96,7 @@ class ACMS_GET_Admin_Entry_ApprovalHistory extends ACMS_GET_Admin_Entry
                 'revisionUrl'       => acmsLink([
                     'bid'   => BID,
                     'eid'   => EID,
-                    'tpl'   => 'ajax/revision-preview.html',
+                    'tpl'   => 'ajax/revision/preview.html',
                     'query' => [
                         'rvid'  => $rvid,
                         'trash' => 'show',

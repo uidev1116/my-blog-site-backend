@@ -7,8 +7,9 @@ use SQL;
 use ACMS_Filter;
 use Acms\Services\Facades\Image;
 use Acms\Services\Facades\Common;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\PublicStorage;
 use Acms\Services\Facades\Preview;
+use Acms\Services\Facades\Auth;
 
 class Helper
 {
@@ -23,7 +24,15 @@ class Helper
         'Admin_Entry_Autocomplete',
         'Tag_Cloud',
         'Tag_Filter',
+        'V2_Entry_Summary',
+        'V2_Entry_Body',
+        'V2_Entry_TagRelational',
+        'V2_Entry_GeoList',
+        'V2_Tag_Filter',
+        'V2_Tag_Cloud',
     ];
+
+    private const MODULE_NAME_PATTERN = '/[^A-Za-z0-9_-]/'; // モジュールIDの名前に許可された文字
 
     /**
      * 重複チェック
@@ -129,17 +138,19 @@ class Helper
         foreach ($base as $key => $val) {
             $SQL->addInsert($key, $val);
         }
+        $SQL->addInsert('module_created_datetime', date('Y-m-d H:i:s', REQUEST_TIME));
+        $SQL->addInsert('module_updated_datetime', date('Y-m-d H:i:s', REQUEST_TIME));
         $DB->query($SQL->get(dsn()), 'exec');
 
         //-------
         // config
+        $sql = SQL::newBulkInsert('config');
         foreach ($config as $row) {
-            $row['config_module_id']    = $new;
-            $SQL    = SQL::newInsert('config');
-            foreach ($row as $key => $val) {
-                $SQL->addInsert($key, $val);
-            }
-            $DB->query($SQL->get(dsn()), 'exec');
+            $row['config_module_id'] = $new;
+            $sql->addInsert($row);
+        }
+        if ($sql->hasData()) {
+            $DB->query($sql->get(dsn()), 'exec');
         }
 
         //-------
@@ -157,15 +168,15 @@ class Helper
             }
             $set = false;
             foreach ($Field->getArray($fd, true) as $i => $path) {
-                if (!Storage::isFile(ARCHIVES_DIR . $path)) {
+                if (!PublicStorage::isFile(ARCHIVES_DIR . $path)) {
                     continue;
                 }
                 $info       = pathinfo($path);
                 $dirname    = empty($info['dirname']) ? '' : $info['dirname'] . '/';
-                Storage::makeDirectory(ARCHIVES_DIR . $dirname);
+                PublicStorage::makeDirectory(ARCHIVES_DIR . $dirname);
                 $ext        = empty($info['extension']) ? '' : '.' . $info['extension'];
                 $newPath    = $dirname . uniqueString() . $ext;
-                Storage::copy(ARCHIVES_DIR . $path, ARCHIVES_DIR . $newPath);
+                PublicStorage::copy(ARCHIVES_DIR . $path, ARCHIVES_DIR . $newPath);
                 if (!$set) {
                     $Field->delete($fd);
                     $set = true;
@@ -391,6 +402,21 @@ class Helper
     }
 
     /**
+     * 現在ログイン中のユーザーがショートカット機能で許可されたモジュールの更新を許可されているかどうか
+     *
+     * @param int $mid
+     * @param int|null $rid
+     * @return bool
+     */
+    public function canUpdateWithShortcut(int $mid, ?int $rid = null): bool
+    {
+        return Auth::checkShortcut([
+            'mid' => $mid,
+            'rid' => $rid,
+        ]);
+    }
+
+    /**
      * 現在ログイン中のユーザーがモジュールの作成を許可されているかどうか
      *
      * @param int $blogId
@@ -463,5 +489,30 @@ class Helper
             return true;
         }
         return false;
+    }
+
+    /**
+     * モジュール名が安全な文字列かどうか
+     *
+     * @param string $name
+     * @return boolean
+     */
+    public function isSafeModuleName(string $name): bool
+    {
+        // 長さチェック（1〜100文字）
+        if (strlen($name) === 0 || strlen($name) > 100) {
+            return false;
+        }
+        // 危険な文字列チェック
+        if (strpos($name, '..') !== false) {
+            return false; // パストラバーサル
+        }
+        if (preg_match('/[\/\\\\]/', $name)) {
+            return false;  // 「/」や「\」を含む
+        }
+        if (preg_match(self::MODULE_NAME_PATTERN, $name)) {
+            return false; // 許可文字以外を含む
+        }
+        return true;
     }
 }

@@ -40,16 +40,6 @@ class SocialLoginServiceProvider extends ServiceProvider
                 $config->get('twitter_sns_login_consumer_secret')
             );
         });
-
-        $container->singleton('facebook-login', function () {
-            $config = Config::loadBlogConfigSet(BID);
-            return new Facebook(
-                $config->get('facebook_app_id'),
-                $config->get('facebook_app_secret'),
-                'v3.2',
-                'facebook'
-            );
-        });
     }
 
     /**

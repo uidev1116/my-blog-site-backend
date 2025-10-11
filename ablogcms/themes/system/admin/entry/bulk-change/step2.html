@@ -31,7 +31,7 @@
       </thead>
       <tr>
         <td>
-          <div class="acms-admin-form-checkbox acms-admin-margin-none">
+          <div class="acms-admin-form-checkbox acms-admin-m-0">
             <input type="checkbox" id="input-checkbox-entry_status" name="action_entry[]" value="entry_status" {action_entry:checked#entry_status}/>
             <label for="input-checkbox-entry_status"><i class="acms-admin-ico-checkbox"></i>
               <!--T-->ステータスの変更<!--/T-->
@@ -49,7 +49,7 @@
       </tr>
       <tr>
         <td>
-          <div class="acms-admin-form-checkbox acms-admin-margin-none">
+          <div class="acms-admin-form-checkbox acms-admin-m-0">
             <input type="checkbox" id="input-checkbox-entry_category_id" name="action_entry[]" value="entry_category_id" {action_entry:checked#entry_category_id}/>
             <label for="input-checkbox-entry_category_id"><i class="acms-admin-ico-checkbox"></i>
               <!--T-->カテゴリーの変更<!--/T-->
@@ -68,7 +68,7 @@
       </tr>
       <tr>
         <td>
-          <div class="acms-admin-form-checkbox acms-admin-margin-none">
+          <div class="acms-admin-form-checkbox acms-admin-m-0">
             <input type="checkbox" id="input-checkbox-entry_sub_category" name="action_entry[]" value="entry_sub_category_id" {action_entry:checked#entry_sub_category_id}/>
             <label for="input-checkbox-entry_sub_category"><i class="acms-admin-ico-checkbox"></i>
               <!--T-->サブカテゴリーの変更<!--/T-->
@@ -88,7 +88,7 @@
       </tr>
       <tr>
         <td>
-          <div class="acms-admin-form-checkbox acms-admin-margin-none">
+          <div class="acms-admin-form-checkbox acms-admin-m-0">
             <input type="checkbox" id="input-checkbox-entry_tag" name="action_entry[]" value="entry_tag" {action_entry:checked#entry_tag}/>
             <label for="input-checkbox-entry_tag"><i class="acms-admin-ico-checkbox"></i>
               <!--T-->タグの変更<!--/T-->
@@ -106,7 +106,7 @@
       </tr>
       <tr>
         <td>
-          <div class="acms-admin-form-checkbox acms-admin-margin-none">
+          <div class="acms-admin-form-checkbox acms-admin-m-0">
             <input type="checkbox" id="input-checkbox-entry_datetime" name="action_entry[]" value="entry_datetime" {action_entry:checked#entry_datetime}/>
             <label for="input-checkbox-entry_datetime"><i class="acms-admin-ico-checkbox"></i>
               <!--T-->日時の変更<!--/t-->
@@ -114,19 +114,21 @@
           </div>
         </td>
         <td>
-          <div class="acms-admin-form-action acms-admin-form-width-mini acms-admin-float-left acms-admin-margin-right-mini">
-            <input type="text" name="entry_date" value="{entry_date}" size="15" id="entry_date" class="js-datepicker2">
-            <a href="#" class="updateDate acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md" rel="entry_date" aria-describedby="entry-label-date">
-              <i class="acms-admin-icon-schedule" aria-hidden="true"></i>
-              <span role="tooltip" id="entry-label-date" class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center"><!--T-->現在の日付に合わせる<!--T--></span>
-            </a>
-          </div>
-          <div class="acms-admin-form-action acms-admin-form-width-mini">
-            <input type="text" name="entry_time" value="{entry_time}" size="12" id="entry_time" class="js-timepicker acms-admin-form-width-full">
-            <a href="#" class="updateTime acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md" rel="entry_time" aria-describedby="entry-label-time">
-              <i class="acms-admin-icon-time" aria-hidden="true"></i>
-              <span role="tooltip" id="entry-label-time" class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center"><!--T-->現在の時刻に合わせる<!--/T--></span>
-            </a>
+          <div class="acms-admin-hstack">
+            <div class="acms-admin-form-width-mini">
+            @include("/admin/include/forms/date-field.html", {
+              "name": "entry_date",
+              "id": "entry_date",
+              "value": "{entry_date}"
+            })
+            </div>
+            <div class="acms-admin-form-width-mini">
+            @include("/admin/include/forms/time-field.html", {
+              "name": "entry_time",
+              "id": "entry_time",
+              "value": "{entry_time}"
+            })
+            </div>
           </div>
           <input type="hidden" name="entry[]" value="entry_date">
           <input type="hidden" name="entry[]" value="entry_time">
@@ -134,7 +136,7 @@
       </tr>
       <tr>
         <td>
-          <div class="acms-admin-form-checkbox acms-admin-margin-none">
+          <div class="acms-admin-form-checkbox acms-admin-m-0">
             <input type="checkbox" id="input-checkbox-entry_start_datetime" name="action_entry[]" value="entry_start_datetime" {action_entry:checked#entry_start_datetime}/>
             <label for="input-checkbox-entry_start_datetime"><i class="acms-admin-ico-checkbox"></i>
               <!--T-->公開日時の変更<!--/T-->
@@ -142,19 +144,21 @@
           </div>
         </td>
         <td>
-          <div class="acms-admin-form-action acms-admin-form-width-mini acms-admin-float-left acms-admin-margin-right-mini">
-            <input type="text" name="entry_start_date" value="{entry_start_date}" size="15" id="entry_start_date" class="js-datepicker2">
-            <a href="#" class="updateDate acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md" rel="entry_start_date" aria-describedby="entry-label-start-date">
-              <i class="acms-admin-icon-schedule" aria-hidden="true"></i>
-              <span role="tooltip" id="entry-label-start-date" class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center"><!--T-->現在の日付に合わせる<!--/T--></span>
-            </a>
-          </div>
-          <div class="acms-admin-form-action acms-admin-form-width-mini">
-            <input type="text" name="entry_start_time" value="{entry_start_time}" size="12" id="entry_start_time" class="js-timepicker acms-admin-form-width-full">
-            <a href="#" class="updateTime acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md" rel="entry_start_time" aria-describedby="entry-label-start-time">
-              <i class="acms-admin-icon-time" aria-hidden="true"></i>
-              <span role="tooltip" id="entry-label-start-time" class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center"><!--T-->現在の時刻に合わせる<!--/T--></span>
-            </a>
+          <div class="acms-admin-hstack">
+            <div class="acms-admin-form-width-mini">
+            @include("/admin/include/forms/date-field.html", {
+              "name": "entry_start_date",
+              "id": "entry_start_date",
+              "value": "{entry_start_date}"
+            })
+            </div>
+            <div class="acms-admin-form-width-mini">
+            @include("/admin/include/forms/time-field.html", {
+              "name": "entry_start_time",
+              "id": "entry_start_time",
+              "value": "{entry_start_time}"
+            })
+            </div>
           </div>
           <input type="hidden" name="entry[]" value="entry_start_date">
           <input type="hidden" name="entry[]" value="entry_start_time">
@@ -162,7 +166,7 @@
       </tr>
       <tr>
         <td>
-          <div class="acms-admin-form-checkbox acms-admin-margin-none">
+          <div class="acms-admin-form-checkbox acms-admin-m-0">
             <input type="checkbox" id="input-checkbox-entry_end_datetime" name="action_entry[]" value="entry_end_datetime" {action_entry:checked#entry_end_datetime}/>
             <label for="input-checkbox-entry_end_datetime"><i class="acms-admin-ico-checkbox"></i>
               <!--T-->掲載期限の変更<!--/T-->
@@ -170,19 +174,21 @@
           </div>
         </td>
         <td>
-          <div class="acms-admin-form-action acms-admin-form-width-mini acms-admin-float-left acms-admin-margin-right-mini">
-            <input type="text" name="entry_end_date" value="{entry_end_date}" size="15" id="entry_end_date" class="js-datepicker2">
-            <a href="#" class="updateDate acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md" rel="entry_end_date" aria-describedby="entry-label-end-date">
-              <i class="acms-admin-icon-schedule" aria-hidden="true"></i>
-              <span role="tooltip" id="entry-label-end-date" class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center"><!--T-->現在の日付に合わせる<!--/T--></span>
-            </a>
-          </div>
-          <div class="acms-admin-form-action acms-admin-form-width-mini">
-            <input type="text" name="entry_end_time" value="{entry_end_time}" size="12" id="entry_end_time" class="js-timepicker acms-admin-form-width-full">
-            <a href="#" class="updateTime acms-admin-form-side acms-admin-tooltip-simple acms-admin-tooltip-simple-arrow-right-md" rel="entry_end_time" aria-describedby="entry-label-end-time">
-              <i class="acms-admin-icon-time" aria-hidden="true"></i>
-              <span role="tooltip" id="entry-label-end-time" class="acms-admin-tooltip top acms-admin-tooltip-simple-content acms-admin-text-center"><!--T-->現在の時刻に合わせる<!--/T--></span>
-            </a>
+          <div class="acms-admin-hstack">
+            <div class="acms-admin-form-width-mini">
+            @include("/admin/include/forms/date-field.html", {
+              "name": "entry_end_date",
+              "id": "entry_end_date",
+              "value": "{entry_end_date}"
+            })
+            </div>
+            <div class="acms-admin-form-width-mini">
+            @include("/admin/include/forms/time-field.html", {
+              "name": "entry_end_time",
+              "id": "entry_end_time",
+              "value": "{entry_end_time}"
+            })
+            </div>
           </div>
           <input type="hidden" name="entry[]" value="entry_end_date">
           <input type="hidden" name="entry[]" value="entry_end_time">
@@ -190,7 +196,7 @@
       </tr>
       <tr>
         <td>
-          <div class="acms-admin-form-checkbox acms-admin-margin-none">
+          <div class="acms-admin-form-checkbox acms-admin-m-0">
             <input type="checkbox" id="input-checkbox-entry_indexing" name="action_entry[]" value="entry_indexing" {action_entry:checked#entry_indexing}/>
             <label for="input-checkbox-entry_indexing"><i class="acms-admin-ico-checkbox"></i>
               <!--T-->インデキシングの変更<!--/T-->
@@ -198,7 +204,7 @@
           </div>
         </td>
         <td>
-          <div class="acms-admin-form-checkbox acms-admin-margin-none">
+          <div class="acms-admin-form-checkbox acms-admin-m-0">
             <input type="hidden" name="entry_indexing" value="off">
             <input type="checkbox" id="input-checkbox-entry_indexing_value" name="entry_indexing" value="on" {entry_indexing:checked#on}/>
             <label for="input-checkbox-entry_indexing_value"><i class="acms-admin-ico-checkbox"></i><!--T-->一覧に表示する<!--/T--></label>
@@ -208,7 +214,7 @@
       </tr>
       <tr>
         <td>
-          <div class="acms-admin-form-checkbox acms-admin-margin-none">
+          <div class="acms-admin-form-checkbox acms-admin-m-0">
             <input type="checkbox" id="input-checkbox-entry_link" name="action_entry[]" value="entry_link" {action_entry:checked#entry_link}/>
             <label for="input-checkbox-entry_link"><i class="acms-admin-ico-checkbox"></i>
               <!--T-->リンクURLの変更<!--/T-->
@@ -222,7 +228,7 @@
       </tr>
       <tr>
         <td>
-          <div class="acms-admin-form-checkbox acms-admin-margin-none">
+          <div class="acms-admin-form-checkbox acms-admin-m-0">
             <input type="checkbox" id="input-checkbox-entry_user_id" name="action_entry[]" value="entry_user_id" {action_entry:checked#entry_user_id}/>
             <label for="input-checkbox-entry_user_id"><i class="acms-admin-ico-checkbox"></i>
               <!--T-->所有者の変更<!--/T-->
@@ -242,7 +248,7 @@
       <!-- BEGIN changeField:loop -->
       <tr>
         <td>
-          <div class="acms-admin-form-checkbox acms-admin-margin-none">
+          <div class="acms-admin-form-checkbox acms-admin-m-0">
             <input type="checkbox" id="input-checkbox-{key}" name="action_field[]" value="{key}" \{action_field:checked#{key}\}/>
             <label for="input-checkbox-{key}"><i class="acms-admin-ico-checkbox"></i>
               {label}

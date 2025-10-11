@@ -1,0 +1,63 @@
+@use 'sass:string';
+@use 'sass:meta';
+@use '../global/variables' as var;
+
+// ユニット共通スタイル指定用
+@mixin editor-style(
+  // スタイル適用対象CSSセレクター（例: "h1", "p", ".title"など）
+  $selectors,
+  // スタイル適用基本範囲クラス指定
+  $entry-class: var.$entry-class,
+  // スタイル適用除外範囲クラス指定
+  $exclude-classes: ('not-editor-style')
+) {
+  @each $selector in $selectors {
+    // --- 除外セレクター文字列を組み立てる ---
+    $exclude-selector: '';
+
+    @each $exclude-class in $exclude-classes {
+      $exclude-selector: '#{$exclude-selector}[class~=#{$exclude-class}], [class~=#{$exclude-class}] *, ';
+    }
+
+    // 末尾のカンマと空白を削除
+    $exclude-selector: string.slice($exclude-selector, 1, string.length($exclude-selector) - 2);
+
+    // --- 閲覧画面（ユーザーが見る通常の画面）でのスタイル適用部分 ---
+    // ・親要素に「$entry-class」クラスがあること
+    // ・さらに「$exclude-classes」クラスやその子要素ではない要素にだけ適用
+    .#{$entry-class} #{$selector}:not(:where(#{$exclude-selector})) {
+      @if meta.content-exists() {
+        @content; // 呼び出し元で書かれるスタイルの中身がここに入ります
+      }
+    }
+  }
+}
+
+// -----------------------------------------
+// editor-style ミックスインの呼び出し例
+// -----------------------------------------
+
+// // ◆ 1. セレクター1つだけの場合
+// @include editor-style("h2") {
+//   color: red;
+// }
+
+// // ◆ 2. 複数セレクターをまとめて指定する場合
+// @include editor-style(("h2", "h3")) {
+//   color: red;
+// }
+
+// // ◆ 3. 除外クラスを追加したい場合
+// @include editor-style(
+//   ("p"),
+//   $exclude-classes: ("not-editor-style", "not-article-editor-style")
+// ) {
+//   color: red;
+// }
+
+// // ◆ 4. スタイル適用基本範囲を変更したい場合
+// @include editor-style(
+//   ("p"),
+//   $entry-class: "article-body") {
+//   color: red;
+// }

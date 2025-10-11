@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V2_Field_Search</title>
+    <link rel="stylesheet" href="src/highlight/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="src/snippets.css" />
+    <script src="src/highlight/highlight.min.js"></script>
+    <script src="src/highlight/javascript.min.js"></script>
+    <script src="src/highlight/twig.min.js"></script>
+    <script src="src/snippets.js"></script>
+  </head>
+  <body>
+    <h1>V2_Field_Search</h1>
+    <pre class="acms-admin-customfield-maker"><code class="language-twig">
+&#123;% set fieldSearch = module(&#039;V2_Field_Search&#039;) %&#125;
+
+&lt;!-- テキストフィールド例 --&gt;
+&lt;input type=&quot;text&quot; name=&quot;hoge&quot; value=&quot;&#123;&#123; fieldSearch.fields.hoge.value &#125;&#125;&quot; /&gt;
+
+&lt;!-- チェックボックス例 --&gt;
+&lt;input type=&quot;checkbox&quot; name=&quot;hoge&quot; value=&quot;1&quot; &#123;&#123; fieldSearch.fields.hoge.value|checked(1) &#125;&#125; /&gt;
+&lt;input type=&quot;checkbox&quot; name=&quot;hoge&quot; value=&quot;2&quot; &#123;&#123; fieldSearch.fields.hoge.value|checked(2) &#125;&#125; /&gt;
+&lt;input type=&quot;checkbox&quot; name=&quot;hoge&quot; value=&quot;3&quot; &#123;&#123; fieldSearch.fields.hoge.value|checked(3) &#125;&#125; /&gt;
+
+&lt;!-- セレクトボックス例 --&gt;
+&lt;select name=&quot;hoge&quot;&gt;
+  &lt;option value=&quot;aaa&quot; &#123;&#123; fieldSearch.fields.hoge.value|selected(&#039;aaa&#039;) &#125;&#125;&gt;
+    aaa
+  &lt;/option&gt;
+  &lt;option value=&quot;bbb&quot; &#123;&#123; fieldSearch.fields.hoge.value|selected(&#039;bbb&#039;) &#125;&#125;&gt;
+    bbb
+  &lt;/option&gt;
+  &lt;option value=&quot;ccc&quot; &#123;&#123; fieldSearch.fields.hoge.value|selected(&#039;ccc&#039;) &#125;&#125;&gt;
+    ccc
+  &lt;/option&gt;
+&lt;/select&gt;
+    </code></pre>
+  </body>
+</html>

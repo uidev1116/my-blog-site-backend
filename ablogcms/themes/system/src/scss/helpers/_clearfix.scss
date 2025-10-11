@@ -1,0 +1,21 @@
+@use '../mixins/clearfix' as mixins;
+
+// ---------------
+// フロート解除
+// ---------------
+
+.clearfix,
+.acms-clearfix {
+  @include mixins.clearfix;
+}
+
+// フロート解除(不可視)(予備)
+.clearHidden,
+.acms-clear-hidden {
+  display: block;
+  clear: both;
+  height: 0;
+  margin: 0;
+  border: none;
+  visibility: hidden;
+}

@@ -1,5 +1,9 @@
 <?php
 
+use Acms\Services\Facades\Media;
+use Acms\Services\Facades\Common;
+use Acms\Services\Facades\Logger as AcmsLogger;
+
 class ACMS_POST_Media_Index_Delete extends ACMS_POST
 {
     function post()

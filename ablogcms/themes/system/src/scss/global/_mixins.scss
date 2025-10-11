@@ -1,6 +1,8 @@
 @forward '../mixins/animation';
+@forward '../mixins/backdrop';
 @forward '../mixins/border-radius';
 @forward '../mixins/box-sizing';
+@forward '../mixins/breakpoints';
 @forward '../mixins/buttons';
 @forward '../mixins/clearfix';
 @forward '../mixins/font-size';
@@ -10,11 +12,15 @@
 @forward '../mixins/hyphens';
 @forward '../mixins/opacity';
 @forward '../mixins/placeholder';
+@forward '../mixins/popover';
+@forward '../mixins/editor-style';
 @forward '../mixins/resizable';
 @forward '../mixins/select';
+@forward '../mixins/stretch';
 @forward '../mixins/table-scroll';
 @forward '../mixins/transform';
 @forward '../mixins/transform-rotate';
 @forward '../mixins/transition';
 @forward '../mixins/typography';
 @forward '../mixins/user-select';
+@forward '../mixins/utilities';

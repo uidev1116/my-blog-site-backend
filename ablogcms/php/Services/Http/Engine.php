@@ -3,6 +3,7 @@
 namespace Acms\Services\Http;
 
 use AcmsLogger;
+use CurlHandle;
 
 class Engine
 {
@@ -17,7 +18,7 @@ class Engine
     protected $responseBody;
 
     /**
-     * @var resource
+     * @var CurlHandle
      */
     protected $curl;
 
@@ -173,10 +174,10 @@ class Engine
     /**
      * cURLプロキシを設定する
      *
-     * @param resource $ch
+     * @param CurlHandle $ch
      * @return void
      */
-    public function setCurlProxy($ch): void
+    public function setCurlProxy(CurlHandle $ch): void
     {
         $proxy_port = defined('PROXY_PORT') ? PROXY_PORT : '';
         $proxy_ip = defined('PROXY_IP') ? PROXY_IP : '';

@@ -1,0 +1,78 @@
+@use '../../global/common' as global;
+
+/* ------------------------------
+ - リンクボタン
+ - ブロックエディターのファイル（ボタン型）
+------------------------------ */
+
+/* 上下余白 */
+:where(.#{global.$entry-class}) .node-linkButton,
+.link-button-block,
+:where(.#{global.$entry-class}) .node-fileBlock:has(.acms-admin-block-editor-file-link),
+.media-file-block[data-display-type='button'] {
+  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+}
+
+/* リンク */
+.acms-admin-block-editor-link-button-link,
+.link-button-block-link,
+.acms-admin-block-editor-file-link,
+.media-file-block[data-display-type='button'] a {
+  display: inline-flex;
+  gap: 0.5rem;
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 0.625rem 1.5rem;
+  background-color: global.$acms-color-system-gray80;
+  border-radius: calc(1px / 0); /* infinity */
+  place-items: center;
+
+  &,
+  &:link,
+  &:visited {
+    color: global.$acms-color-white;
+  }
+}
+
+/* リンク動作スタイル（閲覧画面のみ） */
+.#{global.$entry-class} .link-button-block-link, /* テキストリンクスタイル上書きのため詳細度高め */
+.media-file-block[data-display-type='button'] a {
+  text-decoration: none;
+
+  @media (hover: hover) {
+    transition: background-color 0.2s ease;
+
+    &:where(:any-link):hover {
+      color: global.$acms-color-white; /* テキストリンクスタイル上書き用スタイル */
+      background-color: global.$acms-color-system-gray90;
+    }
+  }
+}
+
+/* ブロックエディターのファイル（ボタン型）のアイコン */
+.acms-admin-block-editor-file-link,
+.media-file-block[data-display-type='button'] {
+  img {
+    width: auto;
+    height: 1lh;
+  }
+}
+
+/* - リンクボタンのタイポグラフィ設定
+   - ブロックエディターのファイル（ボタン型）のキャプション */
+.acms-admin-block-editor-link-button-link,
+.link-button-block-link,
+.acms-admin-block-editor-file-link .caption,
+.media-file-block[data-display-type='button'] .caption {
+  font-weight: bold;
+  line-height: 1.4;
+
+  @include global.font-size(14);
+}
+
+/* ブロックエディターのファイル（ボタン型）のキャプション */
+.acms-admin-block-editor-file-link .caption,
+.media-file-block[data-display-type='button'] .caption {
+  margin: 0; /* リセット */
+  color: currentcolor;
+}

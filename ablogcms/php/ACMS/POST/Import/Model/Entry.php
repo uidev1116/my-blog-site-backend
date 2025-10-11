@@ -2,6 +2,8 @@
 
 class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
 {
+    use \Acms\Traits\Unit\UnitModelTrait;
+
     protected $entry;
     protected $units;
     protected $fields;
@@ -54,7 +56,6 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
             switch ($key) {
                 case 'entry_id':
                 case 'entry_summary_range':
-                case 'entry_primary_image':
                 case 'entry_category_id':
                 case 'entry_user_id':
                     if (!is_numeric($value)) {
@@ -207,12 +208,16 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         $SQL->addWhereOpr('entry_sub_category_eid', $eid);
         $DB->query($SQL->get(dsn()), 'exec');
 
+        $sql = SQL::newBulkInsert('entry_sub_category');
         foreach ($this->subCategories as $cid) {
-            $SQL = SQL::newInsert('entry_sub_category');
-            $SQL->addInsert('entry_sub_category_eid', $eid);
-            $SQL->addInsert('entry_sub_category_id', $cid);
-            $SQL->addInsert('entry_sub_category_blog_id', $this->importBid);
-            $DB->query($SQL->get(dsn()), 'exec');
+            $sql->addInsert([
+                'entry_sub_category_eid' => $eid,
+                'entry_sub_category_id' => $cid,
+                'entry_sub_category_blog_id' => $this->importBid,
+            ]);
+        }
+        if ($sql->hasData()) {
+            $DB->query($sql->get(dsn()), 'exec');
         }
     }
 
@@ -225,13 +230,18 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         $SQL = SQL::newDelete('tag');
         $SQL->addWhereOpr('tag_entry_id', $eid);
         $DB->query($SQL->get(dsn()), 'exec');
+
+        $sql = SQL::newBulkInsert('tag');
         foreach ($this->tags as $sort => $tag) {
-            $SQL = SQL::newInsert('tag');
-            $SQL->addInsert('tag_name', $tag);
-            $SQL->addInsert('tag_sort', $sort + 1);
-            $SQL->addInsert('tag_entry_id', $eid);
-            $SQL->addInsert('tag_blog_id', $this->importBid);
-            $DB->query($SQL->get(dsn()), 'exec');
+            $sql->addInsert([
+                'tag_name' => $tag,
+                'tag_sort' => $sort + 1,
+                'tag_entry_id' => $eid,
+                'tag_blog_id' => $this->importBid,
+            ]);
+        }
+        if ($sql->hasData()) {
+            $DB->query($sql->get(dsn()), 'exec');
         }
     }
 
@@ -255,71 +265,59 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
 
     function _insertUnit()
     {
-        $DB = DB::singleton(dsn());
-
         if (!empty($this->units)) {
+            $sql = SQL::newBulkInsert('column');
             foreach ($this->units as $cval) {
-                $SQL    = SQL::newInsert('column');
-                foreach ($cval as $key => $val) {
-                    if ($key === 'column_id') {
-                        $val = intval($DB->query(SQL::nextval('column_id', dsn()), 'seq'));
-                    }
-                    $SQL->addInsert($key, $val);
-                }
-                $DB->query($SQL->get(dsn()), 'exec');
+                $cval['column_id'] = $this->generateNewIdTrait();
+                $sql->addInsert($cval);
+            }
+            if ($sql->hasData()) {
+                DB::query($sql->get(dsn()), 'exec');
             }
         }
     }
 
     function _updateUnit()
     {
-        $DB = DB::singleton(dsn());
         $eid = $this->csvId;
 
         if (!empty($this->units)) {
-            $SQL    = SQL::newDelete('column');
+            $SQL = SQL::newDelete('column');
             $SQL->addWhereOpr('column_entry_id', $eid);
             $SQL->addWhereOpr('column_type', 'text');
-            $DB->query($SQL->get(dsn()), 'exec');
+            DB::query($SQL->get(dsn()), 'exec');
 
+            $sql = SQL::newBulkInsert('column');
             foreach ($this->units as $cval) {
-                $SQL    = SQL::newInsert('column');
-                foreach ($cval as $key => $val) {
-                    if ($key === 'column_id') {
-                        $val = intval($DB->query(SQL::nextval('column_id', dsn()), 'seq'));
-                    }
-                    if ($key === 'column_entry_id') {
-                        continue;
-                    }
-                    $SQL->addInsert($key, $val);
-                }
-                $SQL->addInsert('column_entry_id', $eid);
-                $DB->query($SQL->get(dsn()), 'exec');
+                $cval['column_id'] = $this->generateNewIdTrait();
+                $cval['column_entry_id'] = $eid;
+                $sql->addInsert($cval);
+            }
+            if ($sql->hasData()) {
+                DB::query($sql->get(dsn()), 'exec');
             }
         }
     }
 
     function _insertField()
     {
-        $DB = DB::singleton(dsn());
         $eid = $this->nextId;
 
         if (!empty($this->fields)) {
             Common::deleteField('eid', $eid);
 
+            $sql = SQL::newBulkInsert('field');
             foreach ($this->fields as $fval) {
-                $SQL    = SQL::newInsert('field');
-                foreach ($fval as $key => $val) {
-                    $SQL->addInsert($key, $val);
-                }
-                $DB->query($SQL->get(dsn()), 'exec');
+                $sql->addInsert($fval);
+            }
+            if ($sql->hasData()) {
+                DB::query($sql->get(dsn()), 'exec');
             }
         }
     }
 
     function _updateField()
     {
-        $DB = DB::singleton(dsn());
         $eid = $this->csvId;
 
         if (!empty($this->fields)) {
@@ -334,17 +332,17 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
                 }
             }
             $SQL->addWhereIn('field_key', $fkey);
-            $DB->query($SQL->get(dsn()), 'exec');
+            DB::query($SQL->get(dsn()), 'exec');
             Common::deleteFieldCache('eid', $eid);
 
+            $sql = SQL::newBulkInsert('field');
             foreach ($this->fields as $fval) {
-                $SQL    = SQL::newInsert('field');
-                foreach ($fval as $key => $val) {
-                    $SQL->addInsert($key, $val);
-                }
-                $SQL->addInsert('field_eid', $eid);
-                $SQL->addInsert('field_blog_id', ACMS_RAM::entryBlog($eid));
-                $DB->query($SQL->get(dsn()), 'exec');
+                $fval['field_eid'] = $eid;
+                $fval['field_blog_id'] = ACMS_RAM::entryBlog($eid);
+                $sql->addInsert($fval);
+            }
+            if ($sql->hasData()) {
+                DB::query($sql->get(dsn()), 'exec');
             }
         }
     }
@@ -484,34 +482,43 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
             $sort   = intval(preg_replace('@\[|\]@', '', $matchs[0]));
             $type    = preg_replace('@\[\d+\]$@', '', $type);
         }
-
-        $tokens = preg_split('@(#|\.)@', $type, -1, PREG_SPLIT_DELIM_CAPTURE);
-        $unit['column_field_2'] = array_shift($tokens);
-
-        $id = '';
-        $class  = '';
-        while ($mark = array_shift($tokens)) {
-            if (!$val = array_shift($tokens)) {
-                continue;
+        if ($type === null) {
+            return;
+        }
+        if ($type === 'block-editor') {
+            $unit['column_type'] = 'block-editor';
+            $unit['column_align'] = '';
+            $unit['column_field_2'] = '';
+        } else {
+            $tokens = preg_split('@(#|\.)@', $type, -1, PREG_SPLIT_DELIM_CAPTURE);
+            if ($tokens === false) {
+                return;
             }
-            if ('#' == $mark) {
-                $id = $val;
-            } else {
-                $class  = $val;
+            $unit['column_field_2'] = array_shift($tokens);
+            $id = '';
+            $class  = '';
+            while ($mark = array_shift($tokens)) {
+                if (!$val = array_shift($tokens)) {
+                    continue;
+                }
+                if ('#' == $mark) {
+                    $id = $val;
+                } else {
+                    $class  = $val;
+                }
+            }
+
+            $attr   = '';
+            if (!empty($id)) {
+                $attr .= ' id="' . $id . '"';
+            }
+            if (!empty($class)) {
+                $attr .= ' class="' . $class . '"';
+            }
+            if (!empty($attr)) {
+                $unit['column_attr'] = $attr;
             }
         }
-
-        $attr   = '';
-        if (!empty($id)) {
-            $attr .= ' id="' . $id . '"';
-        }
-        if (!empty($class)) {
-            $attr .= ' class="' . $class . '"';
-        }
-        if (!empty($attr)) {
-            $unit['column_attr'] = $attr;
-        }
-
         $unit['column_sort']      = $sort;
         $unit['column_field_1']   = $value;
 
@@ -564,7 +571,7 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
     function unitBase()
     {
         return [
-            'column_id'         => 0,
+            'column_id'         => $this->generateNewIdTrait(),
             'column_sort'       => 0,
             'column_align'      => 'auto',
             'column_type'       => 'text',

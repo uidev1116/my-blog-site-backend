@@ -53,8 +53,9 @@ function* fetchMediaList({ config = {} }: ReturnType<typeof setMediaConfig>) {
         ext: setting.fileext,
         year: setting.year,
         month: setting.month,
-        owner: setting.owner,
-        cache: new Date().getTime(),
+        owner: setting.owner ? 'true' : 'false',
+        blogAxis: setting.blogAxis ? 'true' : 'false',
+        cache: new Date().getTime().toString(),
       },
     },
     false

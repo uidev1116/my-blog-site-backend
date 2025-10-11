@@ -49,7 +49,7 @@ trait VeryfyCode
         $sql = SQL::newInsert('token');
         $sql->addInsert('token_key', $key);
         $sql->addInsert('token_type', $type);
-        $sql->addInsert('token_value', $code);
+        $sql->addInsert('token_value', hash('sha256', $code));
         $sql->addInsert('token_expire', date('Y-m-d H:i:s', REQUEST_TIME + $lifetime));
         DB::query($sql->get(dsn()), 'exec');
     }
@@ -68,16 +68,18 @@ trait VeryfyCode
             return false;
         }
         $sql = SQL::newSelect('token');
-        $sql->setSelect('token_value');
         $sql->addWhereOpr('token_key', $key);
         $sql->addWhereOpr('token_type', $type);
-        $sql->addWhereOpr('token_value', $code);
+        $sql->addWhereOpr('token_value', hash('sha256', $code));
         $sql->addWhereOpr('token_expire', date('Y-m-d H:i:s', REQUEST_TIME), '>');
-        $t = DB::query($sql->get(dsn()), 'one');
-        if (empty($t)) {
+        $t = DB::query($sql->get(dsn()), 'row');
+        if (!isset($t['token_value'])) {
             return false;
         }
-        return $t === $code;
+        if (hash_equals((string) $t['token_value'], hash('sha256', $code))) {
+            return true;
+        }
+        return false;
     }
 
     /**

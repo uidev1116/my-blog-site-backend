@@ -10,7 +10,7 @@ class ACMS_POST_Download extends ACMS_POST
     /**
      * @var bool
      */
-    protected $isCSRF = false;
+    protected $isCSRF = true;
 
     function post()
     {
@@ -24,7 +24,7 @@ class ACMS_POST_Download extends ACMS_POST
             $phpSession->writeClose(); // セッションをクローズ（デッドロック対応）
             $headerAry[] = 'Cookie: ' . SESSION_NAME . '=' . ACMS_SID;
         }
-        $url = acmsLink($Q, true, true);
+        $url = acmsLink($Q, true, true, false, true);
 
         try {
             $contents = '';
@@ -45,19 +45,25 @@ class ACMS_POST_Download extends ACMS_POST
             ) {
                 $contents = mb_convert_encoding($contents, 'UTF-8', $match[1]);
             }
-            if ($toCharset = $this->Post->get('charset')) {
+            $toCharset = $this->Post->get('charset');
+            if ($contents && $toCharset && $toCharset !== 'UTF-8') {
                 $contents = mb_convert_encoding($contents, $toCharset, 'UTF-8');
             }
-            header('Content-Length: ' . strlen($contents));
+            if ($contents) {
+                header('Content-Length: ' . strlen($contents));
+            }
             if (strpos(UA, 'MSIE')) {
                 header('Content-Type: text/download');
             } else {
                 header('Content-Disposition: attachment');
                 header('Content-Type: application/octet-stream');
             }
-            die($contents);
+            ob_clean();
+            flush();
+            echo $contents;
+            exit;
         } catch (\Exception $e) {
-            AcmsLogger::warning('ダウンロードに失敗しました', Common::exceptionArray($e, ['url' => $url]));
+            AcmsLogger::warning('ダウンロードに失敗しました', Common::exceptionArray($e));
             echo $e->getMessage();
             return $this->Post;
         }

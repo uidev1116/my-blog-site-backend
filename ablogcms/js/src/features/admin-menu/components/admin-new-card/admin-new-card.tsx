@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import { Component } from 'react';
 import IconPicker from '../../../../components/icon-picker/icon-picker';
+import HStack from '../../../../components/stack/h-stack';
 
 interface AdminMenuCardState {
   title: string;
@@ -118,7 +119,10 @@ export default class AdminNewCard extends Component<AdminNewCardProps, AdminMenu
                 />
               </div>
             </AdminCardRow>
-            <div className="clearfix">
+            <HStack justify="end">
+              <button type="button" className="acms-admin-btn acms-admin-btn-text" onClick={onCancel}>
+                {ACMS.i18n('admin_menu.cancel')}
+              </button>
               <button
                 type="button"
                 className="acms-admin-btn acms-admin-btn-success react-trello-card-add-btn"
@@ -126,14 +130,7 @@ export default class AdminNewCard extends Component<AdminNewCardProps, AdminMenu
               >
                 {ACMS.i18n('admin_menu.add')}
               </button>
-              <button
-                type="button"
-                className="acms-admin-btn acms-admin-btn-link react-trello-card-cancel-btn"
-                onClick={onCancel}
-              >
-                {ACMS.i18n('admin_menu.cancel')}
-              </button>
-            </div>
+            </HStack>
           </AdminCardInner>
         </div>
       </AdminCard>

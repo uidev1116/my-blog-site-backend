@@ -5,7 +5,7 @@ class ACMS_POST_Fix_CommentAlign extends ACMS_POST
     function post()
     {
         if (!sessionWithAdministration()) {
-            die('error');
+            die403();
         }
         @set_time_limit(0);
         $DB     = DB::singleton(dsn());
@@ -14,8 +14,10 @@ class ACMS_POST_Fix_CommentAlign extends ACMS_POST
         $SQL->addWhereOpr('comment_blog_id', BID);
         $SQL->setOrder('eid');
         $entryQ = $SQL->get(dsn());
-        if ($DB->query($entryQ, 'fetch')) {
-            while (!!($entryRow = $DB->fetch($entryQ))) {
+        $entryStmt = $DB->query($entryQ, 'exec');
+
+        if ($entryStmt) {
+            while (!!($entryRow = $DB->next($entryStmt))) {
                 $eid    = intval($entryRow['eid']);
 
                 $SQL    = SQL::newSelect('comment');
@@ -23,16 +25,17 @@ class ACMS_POST_Fix_CommentAlign extends ACMS_POST
                 $SQL->addWhereOpr('comment_entry_id', $eid);
                 $SQL->addWhereOpr('comment_blog_id', BID);
                 $SQL->setOrder('pid');
-                $parentQ    = $SQL->get(dsn());
-                $aryPid     = [];
+                $parentQ = $SQL->get(dsn());
+                $parentStmt = $DB->query($parentQ, 'exec');
+                $aryPid = [];
 
-                if ($DB->query($parentQ, 'fetch')) {
-                    while (!!($parentRow = $DB->fetch($parentQ))) {
-                                        $pid        = intval($parentRow['pid']);
+                if ($parentStmt) {
+                    while (!!($parentRow = $DB->next($parentStmt))) {
+                        $pid = intval($parentRow['pid']);
 
-                                        //-----
-                                        // pos
-                                        $pos    = 0;
+                        //-----
+                        // pos
+                        $pos = 0;
                         if (!empty($pid)) {
                             $SQL    = SQL::newSelect('comment');
                             $SQL->setSelect('comment_right');
@@ -87,7 +90,7 @@ class ACMS_POST_Fix_CommentAlign extends ACMS_POST
         }
 
         AcmsLogger::info('コメントの親子構造を修復しました');
-
+        Common::setSafeHeadersWithoutCache(200, 'text/plain');
         die('finish');
     }
 }

@@ -206,7 +206,13 @@
       "title": "<!--T-->インポート<!--/T-->",
       "subtitle": "import",
       "url": "{url}"
-    },<!-- END import#index --><!-- BEGIN static_export#index -->
+    },<!-- END import#index --><!-- BEGIN export#index -->
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->エクスポート<!--/T-->",
+      "subtitle": "export",
+      "url": "{url}"
+    },<!-- END export#index --><!-- BEGIN static_export#index -->
     {
       "bid": "%{BID}",
       "title": "<!--T-->静的書き出し<!--/T-->",

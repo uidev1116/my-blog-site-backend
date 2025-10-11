@@ -20,9 +20,15 @@ class ACMS_POST_Media_Update extends ACMS_POST_Media
             if (empty($mid) || !Media::canEdit($mid)) {
                 $Media->setMethod('media', 'operable', false);
             }
+            $Media->setMethod('field_3', 'maxlength', 150);
             $Media->validate(new ACMS_Validator_Media());
             if (!$this->Post->isValidAll()) {
-                throw new \RuntimeException('メディアが指定されていない、または権限がありません');
+                if (!$Media->isValid('media', 'operable')) {
+                    throw new \RuntimeException('メディアが指定されていない、または権限がありません');
+                }
+                if (!$Media->isValid('field_3', 'maxlength')) {
+                    throw new \RuntimeException('代替テキストは150文字以内で入力してください');
+                }
             }
             $tags = $Media->get('media_label');
             $oldData = Media::getMedia($mid);
@@ -55,7 +61,7 @@ class ACMS_POST_Media_Update extends ACMS_POST_Media
                 $data = $oldData;
 
                 $filename = $Media->get('file_name');
-                if ($filename !== '' && $filename !== $oldData['file_name']) {
+                if ($filename !== '' && $filename !== $oldData['name']) {
                     // ファイルアップロードを行う場合は、アップロード時にファイル名を指定しているため、
                     // ファイル名の変更はファイルアップロードを行わない場合のみ行う
                     $data = Media::rename($data, $filename);
@@ -67,6 +73,7 @@ class ACMS_POST_Media_Update extends ACMS_POST_Media
                 $res = Media::uploadPdfThumbnail('media_pdf_thumbnail');
                 if (isset($res['path'])) {
                     $data['thumbnail'] = $res['path'];
+                    $data['size'] = $res['size'];
                 }
             }
             $data['update_date'] = date('Y-m-d H:i:s', REQUEST_TIME);

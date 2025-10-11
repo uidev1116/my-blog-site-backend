@@ -3,31 +3,159 @@
 namespace Acms\Services\Unit\Models;
 
 use Acms\Services\Unit\Contracts\Model;
-use Acms\Traits\Unit\UnitTemplateTrait;
+use Acms\Services\Unit\Contracts\AlignableUnitInterface;
+use Acms\Traits\Unit\AlignableUnitTrait;
+use Acms\Services\Unit\Contracts\AnkerUnitInterface;
+use Acms\Traits\Unit\AnkerUnitTrait;
+use Acms\Traits\Unit\SizeableUnitTrait;
+use Acms\Services\Unit\Contracts\SizeableUnitInterface;
 use Template;
 
-class Map extends Model
+/**
+ * @phpstan-type MapAttributes array{msg: string, lat: float, lng: float, zoom: int, size: string, view_pitch: float, view_zoom: float, view_heading: float, view_activate: bool}
+ * @extends \Acms\Services\Unit\Contracts\Model<MapAttributes>
+ */
+class Map extends Model implements AlignableUnitInterface, AnkerUnitInterface, SizeableUnitInterface
 {
-    use UnitTemplateTrait;
+    use AlignableUnitTrait;
+    use AnkerUnitTrait;
+    use SizeableUnitTrait;
+
+    /**
+     * ユニットの独自データ
+     * @var MapAttributes
+     */
+    private $attributes = [
+        'msg' => '',
+        'lat' => 35.185574,
+        'lng' => 136.899066,
+        'zoom' => 10,
+        'size' => '',
+        'view_pitch' => 0,
+        'view_zoom' => 0,
+        'view_heading' => 0,
+        'view_activate' => false,
+    ];
 
     /**
      * ユニットタイプを取得
      *
-     * @return string
+     * @inheritDoc
      */
-    public function getUnitType(): string
+    public static function getUnitType(): string
     {
         return 'map';
     }
 
     /**
-     * ユニットが画像タイプか取得
+     * ユニットラベルを取得
      *
-     * @return bool
+     * @inheritDoc
      */
-    public function getIsImageUnit(): bool
+    public static function getUnitLabel(): string
     {
-        return false;
+        return gettext('Googleマップ');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAttributes()
+    {
+        return [
+            ...$this->attributes,
+            'msg' => $this->getMessage(),
+            'lat' => $this->getLat(),
+            'lng' => $this->getLng(),
+            'zoom' => $this->getZoom(),
+            'size' => $this->getSize(),
+            'view_pitch' => $this->getViewPitch(),
+            'view_zoom' => $this->getViewZoom(),
+            'view_heading' => $this->getViewHeading(),
+            'view_activate' => $this->getViewActivate(),
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setAttributes($attributes): void
+    {
+        $this->attributes = $attributes;
+    }
+
+    /**
+     * 緯度を取得
+     *
+     * @return float
+     */
+    private function getLat(): float
+    {
+        return (float)$this->getField2();
+    }
+
+    /**
+     * 緯度をセット
+     *
+     * @param float $lat
+     * @return void
+     */
+    private function setLat(float $lat): void
+    {
+        $this->setField2((string)$lat);
+    }
+
+    /**
+     * 経度を取得
+     *
+     * @return float
+     */
+    private function getLng(): float
+    {
+        return (float)$this->getField3();
+    }
+
+    /**
+     * 経度をセット
+     *
+     * @param float $lng
+     * @return void
+     */
+    private function setLng(float $lng): void
+    {
+        $this->setField3((string)$lng);
+    }
+
+    /**
+     * ズームレベルを取得
+     *
+     * @return int
+     */
+    private function getZoom(): int
+    {
+        return (int)$this->getField4();
+    }
+
+    /**
+     * ズームレベルをセット
+     *
+     * @param int $zoom
+     * @return void
+     */
+    private function setZoom(int $zoom): void
+    {
+        $this->setField4((string)$zoom);
+    }
+
+    /**
+     * メッセージをセット
+     *
+     * @param string $message
+     * @return void
+     */
+    private function setMessage(string $message): void
+    {
+        $this->setField1($message);
     }
 
     /**
@@ -35,7 +163,7 @@ class Map extends Model
      *
      * @return string
      */
-    public function getMessage(): string
+    private function getMessage(): string
     {
         return str_replace([
             '"', '<', '>', '&'
@@ -45,46 +173,77 @@ class Map extends Model
     }
 
     /**
-     * ストリートビューのピッチを取得
+     * 吹き出しテキストを取得
      *
      * @return string
      */
-    public function getViewPitch(): string
+    private function getMessageRaw(): string
     {
-        return explode(',', $this->getField7())[0] ?? '';
+        return $this->getField1();
+    }
+
+    /**
+     * ストリートビューのピッチを取得
+     *
+     * @return float
+     */
+    private function getViewPitch(): float
+    {
+        return (float)(explode(',', $this->getField7())[0] ?? 0);
     }
 
     /**
      * ストリートビューのズームを取得
      *
-     * @return string
+     * @return float
      */
-    public function getViewZoom(): string
+    private function getViewZoom(): float
     {
-        return explode(',', $this->getField7())[1] ?? '';
+        return (float)(explode(',', $this->getField7())[1] ?? 0);
     }
 
     /**
      * ストリートビューのヘディングを取得
      *
-     * @return string
+     * @return float
      */
-    public function getViewHeading(): string
+    private function getViewHeading(): float
     {
-        return explode(',', $this->getField7())[2] ?? '';
+        return (float)(explode(',', $this->getField7())[2] ?? 0);
     }
 
     /**
      * ストリートビューの情報をセット
      *
-     * @param string $pitch
-     * @param string $zoom
-     * @param string $heading
+     * @param float $pitch
+     * @param float $zoom
+     * @param float $heading
      * @return void
      */
-    public function setView(string $pitch, string $zoom, string $heading): void
+    private function setView(float $pitch, float $zoom, float $heading): void
     {
         $this->setField7("{$pitch},{$zoom},{$heading}");
+    }
+
+    /**
+     * ストリートビューの情報をセット
+     *
+     * @param bool $value
+     * @return void
+     */
+    private function setViewActivate(bool $value): void
+    {
+        $this->setField6($value ? 'true' : 'false');
+    }
+
+    /**
+     * ストリートビューのアクティブフラグを取得
+     *
+     * @return bool
+     */
+    private function getViewActivate(): bool
+    {
+        return $this->getField6() === 'true';
     }
 
     /**
@@ -96,36 +255,33 @@ class Map extends Model
      */
     public function setDefault(string $configKeyPrefix, int $configIndex): void
     {
-        $this->setField1(config("{$configKeyPrefix}field_1", '', $configIndex));
-        $this->setField2(config("{$configKeyPrefix}field_2", '35.185574', $configIndex));
-        $this->setField3(config("{$configKeyPrefix}field_3", '136.899066', $configIndex));
-        $this->setField4(config("{$configKeyPrefix}field_4", '10', $configIndex));
-        $this->setField6(config("{$configKeyPrefix}field_6", '', $configIndex));
-        $this->setField7(config("{$configKeyPrefix}field_7", '', $configIndex));
+        $this->setMessage(config("{$configKeyPrefix}field_1", '', $configIndex));
+        $this->setLat((float)config("{$configKeyPrefix}field_2", '35.185574', $configIndex));
+        $this->setLng((float)config("{$configKeyPrefix}field_3", '136.899066', $configIndex));
+        $this->setZoom((int)config("{$configKeyPrefix}field_4", '10', $configIndex));
     }
 
     /**
-     * POSTデータからユニット独自データを抽出
-     *
-     * @param array $post
-     * @param bool $removeOld
-     * @param bool $isDirectEdit
-     * @return void
+     * @inheritDoc
      */
-    public function extract(array $post, bool $removeOld = true, bool $isDirectEdit = false): void
+    public function extract(array $request): void
     {
-        $id = $this->getTempId();
-        $this->setField1($post["map_msg_{$id}"] ?? '');
-        $this->setField2($post["map_lat_{$id}"] ?? '');
-        $this->setField3($post["map_lng_{$id}"] ?? '');
-        $this->setField4($post["map_zoom_{$id}"] ?? '');
-        $this->setField6($post["map_view_activate_{$id}"] ?? '');
+        $id = $this->getId();
+        if (is_null($id)) {
+            throw new \LogicException('Unit ID must be set before calling extract');
+        }
+        $this->setMessage($request["map_msg_{$id}"] ?? '');
+        $this->setLat((float)($request["map_lat_{$id}"] ?? 0));
+        $this->setLng((float)($request["map_lng_{$id}"] ?? 0));
+        $this->setZoom((int)($request["map_zoom_{$id}"] ?? 0));
+        $viewActivate = ($request["map_view_activate_{$id}"] ?? '') === 'true';
+        $this->setViewActivate($viewActivate);
         $this->setView(
-            $post["map_view_pitch_{$id}"] ?? '',
-            $post["map_view_zoom_{$id}"] ?? '',
-            $post["map_view_heading_{$id}"] ?? ''
+            (float)($request["map_view_pitch_{$id}"] ?? 0),
+            (float)($request["map_view_zoom_{$id}"] ?? 0),
+            (float)($request["map_view_heading_{$id}"] ?? 0)
         );
-        [$size, $displaySize] = $this->extractUnitSizeTrait($post["map_size_{$id}"] ?? '');
+        [$size, $displaySize] = $this->extractUnitSizeTrait($request["map_size_{$id}"] ?? '', $this::getUnitType());
         $this->setSize($size);
         $this->setField5($displaySize);
     }
@@ -138,10 +294,10 @@ class Map extends Model
     public function canSave(): bool
     {
         if (
-            empty($this->getField1()) &&
-            empty($this->getField2()) &&
-            empty($this->getField3()) &&
-            empty($this->getField4())
+            $this->getMessage() === '' &&
+            $this->getLat() === 0.0 &&
+            $this->getLng() === 0.0 &&
+            $this->getZoom() === 0
         ) {
             return false;
         }
@@ -196,12 +352,13 @@ class Map extends Model
      */
     public function render(Template $tpl, array $vars, array $rootBlock): void
     {
-        if (empty($this->getField2())) {
+        if ($this->getLat() === 0.0) {
             return;
         }
         $vars += $this->formatData();
+        $vars['align'] = $this->getAlign()->value;
+        $vars['anker'] = $this->getAnker();
         $vars = $this->displaySizeStyleTrait($this->getField5(), $vars);
-        $vars['attr'] = $this->getAttr();
 
         $tpl->add(array_merge(['unit#' . $this->getType()], $rootBlock), $vars);
     }
@@ -216,17 +373,24 @@ class Map extends Model
      */
     public function renderEdit(Template $tpl, array $vars, array $rootBlock): void
     {
-        $size = $this->getSize();
-        $this->renderSizeSelectTrait($this->getUnitType(), $this->getUnitType(), $size, $tpl, $rootBlock);
-        $vars += $this->formatData();
-        $vars['view_activate:checked#true'] = ($vars['view_activate'] ?? '') === 'true' ? ' checked' : '';
-        $tpl->add(array_merge([$this->getUnitType()], $rootBlock), $vars);
     }
 
     /**
      * レガシーなユニットデータを返却（互換性のため）
      *
-     * @return array
+     * @return array{
+     *  lat: float,
+     *  lng: float,
+     *  zoom: int,
+     *  msg: string,
+     *  msgRaw: string,
+     *  x: string,
+     *  y: string,
+     *  view_pitch: float,
+     *  view_zoom: float,
+     *  view_heading: float,
+     *  view_activate: bool,
+     * }
      */
     protected function getLegacy(): array
     {
@@ -236,24 +400,35 @@ class Map extends Model
     /**
      * データを整形
      *
-     * @return array
+     * @return array{
+     *  lat: float,
+     *  lng: float,
+     *  zoom: int,
+     *  msg: string,
+     *  msgRaw: string,
+     *  x: string,
+     *  y: string,
+     *  view_pitch: float,
+     *  view_zoom: float,
+     *  view_heading: float,
+     *  view_activate: bool,
+     * }
      */
     protected function formatData(): array
     {
         list($x, $y) = array_pad(explode('x', $this->getSize()), 2, '');
         return [
-            'lat' => $this->getField2(),
-            'lng' => $this->getField3(),
-            'zoom' => $this->getField4(),
+            'lat' => $this->getLat(),
+            'lng' => $this->getLng(),
+            'zoom' => $this->getZoom(),
             'msg' => $this->getMessage(),
-            'msgRaw' => $this->getField1(),
+            'msgRaw' => $this->getMessageRaw(),
             'x' => $x,
             'y' => $y,
-            'align' => $this->getAlign(),
             'view_pitch' => $this->getViewPitch(),
             'view_zoom' => $this->getViewZoom(),
             'view_heading' => $this->getViewHeading(),
-            'view_activate' => $this->getField6(),
+            'view_activate' => $this->getViewActivate(),
         ];
     }
 }

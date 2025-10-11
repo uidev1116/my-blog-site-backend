@@ -24,7 +24,7 @@ class ACMS_POST_Alias extends ACMS_POST
             $SQL->addSelect('blog_code');
             ACMS_Filter::blogTree($SQL, BID, 'descendant');
             $SQL->addGroup('blog_code');
-            $SQL->addHaving('count(*)>1');
+            $SQL->addHaving(SQL::newOpr('*', 1, '>', null, 'COUNT'));
             if ($DB->query($SQL->get(dsn()), 'one')) {
                 return false;
             }

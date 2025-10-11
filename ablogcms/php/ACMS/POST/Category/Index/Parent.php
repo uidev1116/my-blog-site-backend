@@ -6,7 +6,7 @@ class ACMS_POST_Category_Index_Parent extends ACMS_POST_Category
     {
         if (!sessionWithCompilation()) {
             AcmsLogger::warning('権限がないため、指定されたカテゴリーの親カテゴリー変更に失敗しました');
-            die();
+            die403();
         }
         $toPid = idval($this->Post->get('parent'));
         if (!empty($_POST['checks']) and is_array($_POST['checks'])) {

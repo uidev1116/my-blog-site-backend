@@ -3,7 +3,7 @@
 namespace Acms\Services\StaticExport\Generator;
 
 use Acms\Services\StaticExport\Contracts\Generator;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 use Acms\Services\StaticExport\Entities\Page;
 use React\Promise\PromiseInterface;
 use React\Promise\Promise;
@@ -69,8 +69,8 @@ class TopGenerator extends Generator
     {
         $destPath = $this->destination->getDestinationPath() . $this->destination->getBlogCode() . $path;
         try {
-            Storage::makeDirectory(dirname($destPath));
-            Storage::put($destPath, $data);
+            LocalStorage::makeDirectory(dirname($destPath));
+            LocalStorage::put($destPath, $data);
         } catch (\Exception $e) {
             $this->logger->error('データの書き込みに失敗しました。', $destPath);
         }

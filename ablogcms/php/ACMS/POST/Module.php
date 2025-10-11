@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Module;
+
 class ACMS_POST_Module extends ACMS_POST
 {
     function fix(&$Module)
@@ -98,5 +100,16 @@ class ACMS_Validator_Module extends ACMS_Validator
             or $val == strval(intval($val))
             or $val <> setGlobalVars($val)
         ) ? true : false;
+    }
+
+    function safeName($val)
+    {
+        if ($val === '' || $val === null) {
+            return true;
+        }
+        if (!is_string($val)) {
+            return false;
+        }
+        return Module::isSafeModuleName($val);
     }
 }

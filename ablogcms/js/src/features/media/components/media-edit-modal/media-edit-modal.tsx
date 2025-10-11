@@ -16,6 +16,7 @@ import { ExtendedFile } from '../../../../lib/read-files';
 import { calcHeightFromRatio, calcVhToPx, calcWidthFromRatio } from '../../../../utils';
 import { FocalPoint } from '../../types';
 import { coordinatesToTransform, focalPointToCoordinates } from '../../utils';
+import HStack from '../../../../components/stack/h-stack';
 
 /**
  * 画像の最大高を指定
@@ -907,21 +908,23 @@ export default class MediaEditModal extends Component<MediaEditModalProps, Media
           </div>
         </StyledModal.Body>
         <StyledModal.Footer>
-          {original && (
-            <button
-              type="button"
-              className="acms-admin-btn acms-admin-btn-link"
-              onClick={this.useOriginalImg.bind(this)}
-            >
-              {ACMS.i18n('media.initialize')}
+          <HStack display="inline-flex">
+            {original && (
+              <button
+                type="button"
+                className="acms-admin-btn acms-admin-btn-text"
+                onClick={this.useOriginalImg.bind(this)}
+              >
+                {ACMS.i18n('media.initialize')}
+              </button>
+            )}
+            <button type="button" className="acms-admin-btn" onClick={this.onCancel.bind(this)}>
+              {ACMS.i18n('media.cancel')}
             </button>
-          )}
-          <button type="button" className="acms-admin-btn" onClick={this.onCancel.bind(this)}>
-            {ACMS.i18n('media.cancel')}
-          </button>
-          <button type="button" className="acms-admin-btn acms-admin-btn-info" onClick={this.onCrop.bind(this)}>
-            {ACMS.i18n('media.apply')}
-          </button>
+            <button type="button" className="acms-admin-btn acms-admin-btn-info" onClick={this.onCrop.bind(this)}>
+              {ACMS.i18n('media.apply')}
+            </button>
+          </HStack>
         </StyledModal.Footer>
       </StyledModal>
     );

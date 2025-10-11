@@ -3,6 +3,7 @@
 namespace Acms\Services\Logger\Handler;
 
 use Acms\Services\Facades\Database as DB;
+use Acms\Services\Facades\Application;
 use Monolog\Handler\AbstractProcessingHandler;
 use Session;
 use SQL;
@@ -75,9 +76,11 @@ class DatabaseHandler extends AbstractProcessingHandler
                 if ($altUserId) {
                     $sql->addInsert('audit_log_session_alt_uid', $altUserId);
                 }
-                if (intval($record['level']) >= 400) {
+                if (intval($record['level']) >= 250) {
+                    $filter = Application::make('acms-logger-filter');
+                    $data = $filter->getSafeArray($_POST);
                     $sql->addInsert('audit_log_req_header', limitedJsonEncode(getallheaders()));
-                    $sql->addInsert('audit_log_req_body', limitedJsonEncode($_POST));
+                    $sql->addInsert('audit_log_req_body', limitedJsonEncode($data));
                 }
                 DB::query($sql->get(dsn()), 'exec', true, false);
             }

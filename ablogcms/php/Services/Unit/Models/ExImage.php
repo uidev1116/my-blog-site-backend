@@ -3,32 +3,74 @@
 namespace Acms\Services\Unit\Models;
 
 use Acms\Services\Unit\Contracts\Model;
-use Acms\Traits\Unit\UnitTemplateTrait;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Unit\Contracts\AlignableUnitInterface;
+use Acms\Services\Unit\Contracts\AnkerUnitInterface;
+use Acms\Traits\Unit\AlignableUnitTrait;
+use Acms\Traits\Unit\AnkerUnitTrait;
+use Acms\Traits\Unit\SizeableUnitTrait;
+use Acms\Services\Unit\Contracts\SizeableUnitInterface;
+use Acms\Services\Facades\LocalStorage;
+use Acms\Traits\Unit\UnitMultiLangTrait;
 use Template;
 
-class ExImage extends Model
+/**
+ * @extends \Acms\Services\Unit\Contracts\Model<array<string, mixed>>
+ */
+class ExImage extends Model implements AlignableUnitInterface, AnkerUnitInterface, SizeableUnitInterface
 {
-    use UnitTemplateTrait;
+    use AlignableUnitTrait;
+    use AnkerUnitTrait;
+    use SizeableUnitTrait;
+    use UnitMultiLangTrait;
+
+    /**
+     * ユニットの独自データ
+     * @var array<string, mixed>
+     */
+    private $attributes = [];
 
     /**
      * ユニットタイプを取得
      *
      * @return string
      */
-    public function getUnitType(): string
+    public static function getUnitType(): string
     {
         return 'eximage';
     }
 
     /**
-     * ユニットが画像タイプか取得
+     * ユニットラベルを取得
      *
-     * @return bool
+     * @return string
      */
-    public function getIsImageUnit(): bool
+    public static function getUnitLabel(): string
     {
-        return false;
+        return gettext('画像URL');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAttributes()
+    {
+        return [
+            'eximage_caption' => $this->getField1(),
+            'eximage_normal' => $this->getField2(),
+            'eximage_large' => $this->getField3(),
+            'eximage_link' => $this->getField4(),
+            'eximage_alt' => $this->getField5(),
+            'eximage_size' => $this->getSize(),
+            ...$this->attributes,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setAttributes($attributes): void
+    {
+        $this->attributes = $attributes;
     }
 
     /**
@@ -48,19 +90,17 @@ class ExImage extends Model
     }
 
     /**
-     * POSTデータからユニット独自データを抽出
-     *
-     * @param array $post
-     * @param bool $removeOld
-     * @param bool $isDirectEdit
-     * @return void
+     * @inheritDoc
      */
-    public function extract(array $post, bool $removeOld = true, bool $isDirectEdit = false): void
+    public function extract(array $request): void
     {
-        $id = $this->getTempId();
-        $size = $_POST["eximage_size_{$id}"] ?? '';
-        $normal = $_POST["eximage_normal_{$id}"] ?? '';
-        $large = $_POST["eximage_large_{$id}"] ?? '';
+        $id = $this->getId();
+        if (is_null($id)) {
+            throw new \LogicException('Unit ID must be set before calling extract');
+        }
+        $size = $request["eximage_size_{$id}"] ?? '';
+        $normal = $request["eximage_normal_{$id}"] ?? '';
+        $large = $request["eximage_large_{$id}"] ?? '';
         $displaySize = '';
 
         if (strpos($size, ':') !== false) {
@@ -74,8 +114,8 @@ class ExImage extends Model
         if ('http://' != substr($largePath, 0, 7) && 'https://' != substr($largePath, 0, 8)) {
             $largePath = rtrim(DOCUMENT_ROOT, '/') . $largePath;
         }
-        if ($xy = Storage::getImageSize($normalPath)) {
-            if (!empty($size) && ($size < max($xy[0], $xy[1]))) {
+        if ($xy = LocalStorage::getImageSize($normalPath)) {
+            if ($size !== '' && ($size < max($xy[0], $xy[1]))) {
                 if ($xy[0] > $xy[1]) {
                     $x = $size;
                     $y = intval(floor(($size / $xy[0]) * $xy[1]));
@@ -87,29 +127,25 @@ class ExImage extends Model
                 [$x, $y] = $xy;
             }
             $size = "{$x}x{$y}";
-            if (!Storage::getImageSize($largePath)) {
+            if (!LocalStorage::getImageSize($largePath)) {
                 $large = '';
             }
         } else {
             $normal = '';
         }
-        if (!empty($displaySize)) {
+        if ($displaySize !== '') {
             $size = "{$size}:{$displaySize}";
         }
-        $normal = $this->implodeUnitData($normal);
-        $large = $this->implodeUnitData($large);
+        $normal = $this->implodeUnitDataTrait($normal);
+        $large = $this->implodeUnitDataTrait($large);
 
-        if ($isDirectEdit && strlen($normal) === 0) {
-            $normal = config('action_direct_def_eximage');
-            $size = config('action_direct_def_eximage_size');
-        }
-        $this->setField1($this->implodeUnitData($_POST["eximage_caption_{$id}"] ?? ''));
+        $this->setField1($this->implodeUnitDataTrait($request["eximage_caption_{$id}"] ?? ''));
         $this->setField2($normal);
         $this->setField3($large);
-        $this->setField4($this->implodeUnitData($_POST["eximage_link_{$id}"] ?? ''));
-        $this->setField5($this->implodeUnitData($_POST["eximage_alt_{$id}"] ?? ''));
+        $this->setField4($this->implodeUnitDataTrait($request["eximage_link_{$id}"] ?? ''));
+        $this->setField5($this->implodeUnitDataTrait($request["eximage_alt_{$id}"] ?? ''));
 
-        [$size, $displaySize] = $this->extractUnitSizeTrait($size);
+        [$size, $displaySize] = $this->extractUnitSizeTrait($size, $this::getUnitType());
         $this->setSize($size);
         $this->setField6($displaySize);
     }
@@ -121,7 +157,7 @@ class ExImage extends Model
      */
     public function canSave(): bool
     {
-        if (empty($this->getField2())) {
+        if ($this->getField2() === '') {
             return false;
         }
         return true;
@@ -175,26 +211,26 @@ class ExImage extends Model
      */
     public function render(Template $tpl, array $vars, array $rootBlock): void
     {
-        if (empty($this->getField2())) {
+        if ($this->getField2() === '') {
             return;
         }
         [$x, $y] = array_pad(explode('x', $this->getSize()), 2, '');
-        $normalAry = $this->explodeUnitData($this->getField2());
-        $linkAry = $this->explodeUnitData($this->getField4());
-        $largeAry = $this->explodeUnitData($this->getField3());
+        $normalAry = $this->explodeUnitDataTrait($this->getField2());
+        $linkAry = $this->explodeUnitDataTrait($this->getField4());
+        $largeAry = $this->explodeUnitDataTrait($this->getField3());
         foreach ($normalAry as $i => $normal) {
-            $j = empty($i) ? '' : $i + 1;
+            $j = $i === 0 ? '' : $i + 1;
             $eid = $this->getEntryId();
             $link_ = $linkAry[$i] ?? '';
             $large_ = $largeAry[$i] ?? '';
-            $url = !empty($link_) ? $link_ : (!empty($large_) ? $large_ : null);
+            $url = $link_ !== '' ? $link_ : ($large_ !== '' ? $large_ : null);
 
-            if (!empty($url)) {
+            if ($url !== null) {
                 $linkVars = [
                     "url{$j}" => $url,
                     "link_eid{$j}" => $eid,
                 ];
-                if (empty($link_)) {
+                if ($link_ === '') {
                     $linkVars["viewer{$j}"] = str_replace('{unit_eid}', strval($eid), config('entry_body_image_viewer'));
                 }
                 $tpl->add(array_merge(["link{$j}#front", 'unit#' . $this->getType()], $rootBlock), $linkVars);
@@ -211,15 +247,14 @@ class ExImage extends Model
         ];
         $vars = $this->displaySizeStyleTrait($this->getField6(), $vars);
         $vars['caption'] = $this->getField1();
-        $vars['align'] = $this->getAlign();
-        $vars['attr'] = $this->getAttr();
-
-        $this->formatMultiLangUnitData($vars['normal'], $vars, 'normal');
-        $this->formatMultiLangUnitData($x, $vars, 'x');
-        $this->formatMultiLangUnitData($y, $vars, 'y');
-        $this->formatMultiLangUnitData($vars['alt'], $vars, 'alt');
-        $this->formatMultiLangUnitData($vars['large'], $vars, 'large');
-        $this->formatMultiLangUnitData($vars['caption'], $vars, 'caption');
+        $vars['align'] = $this->getAlign()->value;
+        $vars['anker'] = $this->getAnker();
+        $this->formatMultiLangUnitDataTrait($vars['normal'], $vars, 'normal');
+        $this->formatMultiLangUnitDataTrait($x, $vars, 'x');
+        $this->formatMultiLangUnitDataTrait($y, $vars, 'y');
+        $this->formatMultiLangUnitDataTrait($vars['alt'], $vars, 'alt');
+        $this->formatMultiLangUnitDataTrait($vars['large'], $vars, 'large');
+        $this->formatMultiLangUnitDataTrait($vars['caption'], $vars, 'caption');
 
         $tpl->add(array_merge(['unit#' . $this->getType()], $rootBlock), $vars);
     }
@@ -239,12 +274,12 @@ class ExImage extends Model
             [$x, $y] = array_pad(explode('x', $size), 2, 0);
             $size = max((int) $x, (int) $y);
         }
-        $matched = $this->renderSizeSelectTrait($this->getUnitType(), $this->getUnitType(), (string) $size, $tpl, $rootBlock);
+        $matched = $this->renderSizeSelectTrait(static::getUnitType(), static::getUnitType(), (string) $size, $tpl, $rootBlock);
         $vars += [
             'caption' => $this->getField1(),
             'large' => $this->getField3(),
             'link' => $this->getField4(),
-            'alt' => $this->getAttr(),
+            'alt' => $this->getField5(),
         ];
         if ($normal = $this->getField2()) {
             $vars['normal'] = $normal;
@@ -252,13 +287,13 @@ class ExImage extends Model
         if (!$matched) {
             $vars['size:selected#none'] = config('attr_selected');
         }
-        $this->formatMultiLangUnitData($this->getField1(), $vars, 'caption');
-        $this->formatMultiLangUnitData($this->getField2(), $vars, 'normal');
-        $this->formatMultiLangUnitData($this->getField3(), $vars, 'large');
-        $this->formatMultiLangUnitData($this->getField4(), $vars, 'link');
-        $this->formatMultiLangUnitData($this->getField5(), $vars, 'alt');
+        $this->formatMultiLangUnitDataTrait($this->getField1(), $vars, 'caption');
+        $this->formatMultiLangUnitDataTrait($this->getField2(), $vars, 'normal');
+        $this->formatMultiLangUnitDataTrait($this->getField3(), $vars, 'large');
+        $this->formatMultiLangUnitDataTrait($this->getField4(), $vars, 'link');
+        $this->formatMultiLangUnitDataTrait($this->getField5(), $vars, 'alt');
 
-        $tpl->add(array_merge([$this->getUnitType()], $rootBlock), $vars);
+        $tpl->add(array_merge([static::getUnitType()], $rootBlock), $vars);
     }
 
     /**

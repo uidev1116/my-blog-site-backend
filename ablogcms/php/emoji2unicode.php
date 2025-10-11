@@ -76,8 +76,11 @@ function fixEncodingEmojiAssoc(&$val, $key, $career)
         ) {
             $val    = urldecode($val);
         }
-        $_val   = mb_convert_encoding($val, 'UTF-8', 'SJIS-win');
-        $val    = ($val === mb_convert_encoding($_val, 'SJIS-win', 'UTF-8')) ?
+        $_val = mb_convert_encoding($val, 'UTF-8', 'SJIS-win');
+        if ($_val === false) {
+            return false;
+        }
+        $val = ($val === mb_convert_encoding($_val, 'SJIS-win', 'UTF-8')) ?
             emoji2unicode($_val, $career, 'SJIS-win') : emoji2unicode($val, $career, 'UTF-8');
     }
     return true;

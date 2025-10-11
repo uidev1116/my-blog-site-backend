@@ -79,7 +79,7 @@ class ACMS_POST_Logger_Info extends ACMS_POST
             $data['switchUserName'] = ACMS_RAM::userName($altUid);
             $data['switchUserMail'] = ACMS_RAM::userMail($altUid);
         }
-        if (intval($log['audit_log_level']) >= 400) {
+        if (intval($log['audit_log_level']) >= 250) {
             $data['reqHeader'] = json_decode($log['audit_log_req_header']);
             $data['reqBody'] = json_decode($log['audit_log_req_body']);
         }

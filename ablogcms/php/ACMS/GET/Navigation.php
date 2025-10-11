@@ -1,5 +1,9 @@
 <?php
 
+use Acms\Services\Facades\Http;
+use Acms\Services\Facades\Logger;
+use Acms\Services\Facades\Common;
+
 class ACMS_GET_Navigation extends ACMS_GET
 {
     public $parentNavi = [];
@@ -29,7 +33,7 @@ class ACMS_GET_Navigation extends ACMS_GET
                     'uri'       => config('navigation_uri', null, $i),
                     'target'    => config('navigation_target', null, $i),
                     'attr'      => config('navigation_attr', null, $i),
-                    'a_attr'      => config('navigation_a_attr', null, $i),
+                    'a_attr'    => config('navigation_a_attr', null, $i),
                     'end'       => [],
                 ];
             } else {
@@ -118,30 +122,28 @@ class ACMS_GET_Navigation extends ACMS_GET
                 $Tpl->add(['link#rear', 'navigation:loop']);
             }
 
-            if (preg_match('@^(https|http|acms)://@', $label, $match)) {
+            $scheme = parse_url($label, PHP_URL_SCHEME);
+            if ($scheme === 'acms') {
                 if (!preg_match('@^ablogcms@', UA)) { // against double load
-                    $location   = null;
-                    if ('acms' == $match[1]) {
-                        $Q  = parseAcmsPath(preg_replace('@^acms://@', '', $label));
-                        $location   = acmsLink($Q, false);
-                    } else {
-                        $location   = $label;
-                    }
-
+                    $Q = parseAcmsPath(preg_replace('@^acms://@', '', $label));
+                    $url = acmsLink($Q, false);
                     $label = '';
                     try {
-                        $req = \Http::init($location, 'GET');
+                        if ($url === '' || $url === false) {
+                            throw new RuntimeException('URL is empty');
+                        }
+                        $req = Http::init($url, 'GET');
                         $req->setRequestHeaders([
                             'User-Agent: ' . 'ablogcms/' . VERSION,
                             'Accept-Language: ' . HTTP_ACCEPT_LANGUAGE,
                         ]);
                         $response = $req->send();
-                        if (strpos(\Http::getResponseHeader('http_code'), '200') === false) {
-                            throw new \RuntimeException(\Http::getResponseHeader('http_code'));
+                        if (strpos(Http::getResponseHeader('http_code'), '200') === false) {
+                            throw new RuntimeException(Http::getResponseHeader('http_code'));
                         }
                         $label = $response->getResponseBody();
-                    } catch (\Exception $e) {
-                        \AcmsLogger::warning('ナビゲーションモジュール: HTTPインクルードできませんでした', \Common::exceptionArray($e, ['url' => $location]));
+                    } catch (Exception $e) {
+                        Logger::warning('ナビゲーションモジュール: HTTPインクルードできませんでした', Common::exceptionArray($e, ['url' => $url]));
                     }
                 } else {
                     $label  = '';

@@ -1,4 +1,7 @@
+@use 'sass:color';
 @use 'sass:math';
+@use 'sass:map';
+@use 'sass:list';
 
 // 目次
 // ------------------------------
@@ -30,10 +33,24 @@ $admin: false !default;
 // ------------------------------
 
 // 管理画面内、エントリー編集画面、モーダル内で使用されます
-$acms-admin-font-family: -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, 'Helvetica Neue', arial,
+$acms-admin-font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', roboto, 'Helvetica Neue', arial,
   'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
   'Segoe UI Symbol' !default;
 $acms-code-font-family: 'Menlo', 'Monaco', 'Courier New', monospace !default;
+$acms-h1-font-size: 30px !default;
+$acms-h2-font-size: 24px !default;
+$acms-h3-font-size: 18px !default;
+$acms-h4-font-size: 16px !default;
+$acms-h5-font-size: 14px !default;
+$acms-h6-font-size: 12px !default;
+$acms-font-sizes: (
+  1: $acms-h1-font-size,
+  2: $acms-h2-font-size,
+  3: $acms-h3-font-size,
+  4: $acms-h4-font-size,
+  5: $acms-h5-font-size,
+  6: $acms-h6-font-size,
+) !default;
 
 // ------------------------------
 //  カラー
@@ -117,6 +134,11 @@ $acms-color-caution-bg: $acms-color-danger20;
 
 // リンク
 $acms-color-link-text: #006dd9;
+$acms-color-link-text-hover: #8ebef7;
+$acms-color-link-text-active: #8ebef7;
+
+// 検索時のハイライト
+$hightlight-colors: #ff6, #a0ffff, #9f9, #f99, #f6f, #800 !default;
 
 // ------------------------------
 //  ファイルのパス
@@ -139,78 +161,71 @@ $acms-container: 980px !default;
 // グリッドシステムの合計のカラム数
 $acms-columns: 12 !default;
 
-// 各カラムの幅
-//$acms-col-1        : math.div(1, $acms-columns) !default;
-//$acms-col-2        : math.div(1, $acms-columns) !default;
-//$acms-col-3        : percentage(3 / $acms-columns) !default;
-//$acms-col-4        : percentage(4 / $acms-columns) !default;
-//$acms-col-5        : percentage(5 / $acms-columns) !default;
-//$acms-col-6        : percentage(6 / $acms-columns) !default;
-//$acms-col-7        : percentage(7 / $acms-columns) !default;
-//$acms-col-8        : percentage(8 / $acms-columns) !default;
-//$acms-col-9        : percentage(9 / $acms-columns) !default;
-//$acms-col-10       : percentage(10 / $acms-columns) !default;
-//$acms-col-11       : percentage(11 / $acms-columns) !default;
-//$acms-col-12       : percentage(12 / $acms-columns) !default;
-
-// ※合計のカラム数を増やしたら、各カラムの幅も増やしてください。
-
-// 例）13カラムにしたい場合
-// $acms-columns: 13 !default;
-
-// $acms-col-1: percentage(1 / $acms-columns) !default;
-// ...
-// $acms-col-13: percentage(13 / $acms-columns) !default;
-
 //  グリッドシステム　間隔
 //===============================
 
-// ** a-blog cmsのグリッドシステムの仕組み
-//acms.cssのグリッドシステムでは、各カラムにpadding左右10pxつけ、
-//はみ出した左右10pxを、左右をmargin-10px（ネガティブマージンと呼ばれます）
-//を設定したコンテナーを全体に適応し、相殺することで成立しています。
-
-$grid-space: 20px !default; //左右10px空ける
-// $negative-grid-space:        -10px !default; //左右-10pxする
-
-//モバイルのとき
-$mobile-grid: 100% !default; //幅を100%にする
-$mobile-grid-space: 0 !default; //10px空いていたのを0にする
-// $mobile-negative-grid-space: 0 !default; //-10pxしていたのを0にする
+$grid-space: 1.25rem !default;
 
 // ------------------------------
 //  Media Queries
 // ------------------------------
-
-// max-widthの値も用意していますが、基本的にはmin-widthの値を使っています。
-// よりコードの記述がシンプルになる場合はmax-widthを使います。
 
 //min-width指定
 $breakpoint-sm-min: 480px !default;
 $breakpoint-md-min: 768px !default;
 $breakpoint-lg-min: 1024px !default;
 $breakpoint-xl-min: 1440px !default;
+$grid-breakpoints: (
+  xs: 0,
+  sm: $breakpoint-sm-min,
+  md: $breakpoint-md-min,
+  lg: $breakpoint-lg-min,
+  xl: $breakpoint-xl-min,
+) !default;
 
-//max-width指定
-$breakpoint-sm-max: ($breakpoint-sm-min - 0.02) !default; //479.98px
-$breakpoint-md-max: ($breakpoint-md-min - 0.02) !default; //767.98px
-$breakpoint-lg-max: ($breakpoint-lg-min - 0.02) !default; //1023.98px
-$breakpoint-xl-max: ($breakpoint-xl-min - 0.02) !default; //1439.98px
+// Ascending
+// Used to evaluate Sass maps like our grid breakpoints.
+@mixin _assert-ascending($map, $map-name) {
+  $prev-key: null;
+  $prev-num: null;
+
+  @each $key, $num in $map {
+    @if not $prev-num or math.unit($num) == '%' or math.unit($prev-num) == '%' {
+      // Do nothing
+    } @else if not math.compatible($prev-num, $num) {
+      @warn "Potentially invalid value for #{$map-name}: This map must be in ascending order, but key '#{$key}' has value #{$num} whose unit makes it incomparable to #{$prev-num}, the value of the previous key '#{$prev-key}' !";
+    } @else if $prev-num >= $num {
+      @warn "Invalid value for #{$map-name}: This map must be in ascending order, but key '#{$key}' has value #{$num} which isn't greater than #{$prev-num}, the value of the previous key '#{$prev-key}' !";
+    }
+
+    $prev-key: $key;
+    $prev-num: $num;
+  }
+}
+
+// Starts at zero
+// Used to ensure the min-width of the lowest breakpoint starts at 0.
+@mixin _assert-starts-at-zero($map, $map-name: '$grid-breakpoints') {
+  @if list.length($map) > 0 {
+    $values: map.values($map);
+    $first-value: list.nth($values, 1);
+
+    @if $first-value != 0 {
+      @warn "First breakpoint in #{$map-name} must start at 0, but starts at #{$first-value}.";
+    }
+  }
+}
+
+@include _assert-ascending($grid-breakpoints, '$grid-breakpoints');
+@include _assert-starts-at-zero($grid-breakpoints, '$grid-breakpoints');
 
 // ------------------------------
 //  エントリー内スタイル
 // ------------------------------
-//  ユニットグループ
-//===============================
+/// この値を変更するときは、js/config.js のblockEditorConfig.editorProps.editorProps.attributes.classも変更すること
 $entry-class: acms-entry !default;
-$grid-column-name: 'acms-col-' !default;
-$text-unit-tags: 'h2', 'h3', 'h4', 'h5', 'h6', 'dl', 'p' !default;
-$unit-type: 'image', 'file', 'map', 'yolp', 'street-view', 'youtube', 'video', 'eximage', 'media', 'quote', 'module' !default;
-$align: 'left', 'right', 'center', 'auto' !default;
-$unit-gutter: $grid-space !default;
-$unit-margin-bottom: $unit-gutter !default;
-$unit-margin-bottom-no-caption: math.div($unit-gutter, 2) !default;
-$hightlight-colors: #ff6, #a0ffff, #9f9, #f99, #f6f, #800 !default;
+$unit-types: 'image', 'file', 'map', 'street-view', 'youtube', 'video', 'eximage', 'media', 'embed', 'module' !default;
+$alignments: 'left', 'right', 'center' !default;
 
 // ------------------------------
 //  ボタン
@@ -225,8 +240,8 @@ $acms-btn-focus-box-shadow: 0 0 0 2px rgb(19 122 243 / 40%) !default;
 $acms-btn-admin-background: $acms-color-white !default;
 
 // 文字カラー
-$acms-btn-text-default-color: $acms-color-black !default;
-$acms-btn-text-color: $acms-color-white !default;
+$acms-btn-default-color: $acms-color-black !default;
+$acms-btn-color: $acms-color-white !default;
 
 // 基準カラー
 $acms-btn-primary: $acms-color-info70 !default;
@@ -243,9 +258,9 @@ $acms-btn-admin-danger: $acms-color-danger60 !default;
 
 $acms-btn-padding-y: 8px !default; //上下padding
 $acms-btn-padding-x: 8px !default; //左右padding
-$acms-btn-padding-x-sp: 10px !default; //左右padding
-$acms-btn-font-size: 14 !default;
-$acms-btn-font-size-desktop: 12 !default;
+$acms-btn-font-size: 12 !default;
+$acms-btn-column-gap: 0.5rem !default;
+$acms-btn-line-height: 1 !default;
 
 //ボタンサイズ：Small
 $acms-btn-small-padding-y: 4px !default; //上下padding
@@ -265,172 +280,170 @@ $acms-btn-icon-font-size: 18 !default;
 // ** primary
 // デフォルト
 $acms-btn-primary-color-base: $acms-btn-primary !default;
-$acms-btn-primary-color-darker: darken($acms-btn-primary, 8%) !default;
-$acms-btn-primary-start-color: lighten($acms-btn-primary, 8%) !default; //グラデーションの始まり
+$acms-btn-primary-color-darker: color.adjust($acms-btn-primary, $lightness: -8%) !default;
+$acms-btn-primary-start-color: color.adjust($acms-btn-primary, $lightness: 8%) !default; //グラデーションの始まり
 $acms-btn-primary-end-color: $acms-btn-primary !default; //グラデーションの終わり
 $acms-btn-primary-border: $acms-btn-primary !default;
 
 // hover
-$acms-btn-primary-hover-border: darken($acms-btn-primary, 17%) !default;
+$acms-btn-primary-hover-border: color.adjust($acms-btn-primary, $lightness: -17%) !default;
 
 // active
 $acms-btn-primary-active-bg: $acms-btn-primary !default;
-$acms-btn-primary-active-border: darken($acms-btn-primary, 17%) !default;
+$acms-btn-primary-active-border: color.adjust($acms-btn-primary, $lightness: -17%) !default;
 
 // focus
-$acms-btn-primary-focus-border-color: darken($acms-btn-primary, 17%) !default;
+$acms-btn-primary-focus-border-color: color.adjust($acms-btn-primary, $lightness: -17%) !default;
 
 // ** info
 // デフォルト
 $acms-btn-info-color-base: $acms-btn-info !default;
-$acms-btn-info-color-darker: darken($acms-btn-info, 8%) !default;
-$acms-btn-info-start-color: lighten($acms-btn-info, 8%) !default;
+$acms-btn-info-color-darker: color.adjust($acms-btn-info, $lightness: -8%) !default;
+$acms-btn-info-start-color: color.adjust($acms-btn-info, $lightness: 8%) !default;
 $acms-btn-info-end-color: $acms-btn-info !default;
 $acms-btn-info-border: $acms-btn-info !default;
 
 // hover
-$acms-btn-info-hover-start-color: lighten($acms-btn-info, 12%) !default;
-$acms-btn-info-hover-end-color: lighten($acms-btn-info, 2%) !default;
-$acms-btn-info-hover-border: darken($acms-btn-info, 17%) !default;
+$acms-btn-info-hover-start-color: color.adjust($acms-btn-info, $lightness: 12%) !default;
+$acms-btn-info-hover-end-color: color.adjust($acms-btn-info, $lightness: 2%) !default;
+$acms-btn-info-hover-border: color.adjust($acms-btn-info, $lightness: -17%) !default;
 
 // active
 $acms-btn-info-active-bg: $acms-btn-info !default;
-$acms-btn-info-active-border: darken($acms-btn-info, 17%) !default;
-$acms-btn-info-active-inset: darken($acms-btn-info, 17%) !default;
+$acms-btn-info-active-border: color.adjust($acms-btn-info, $lightness: -17%) !default;
+$acms-btn-info-active-inset: color.adjust($acms-btn-info, $lightness: -17%) !default;
 
 // focus
-$acms-btn-info-focus-border-color: darken($acms-btn-info, 17%) !default;
+$acms-btn-info-focus-border-color: color.adjust($acms-btn-info, $lightness: -17%) !default;
 
 // ** success
 // デフォルト
 $acms-btn-success-color-base: $acms-btn-success !default;
-$acms-btn-success-color-darker: darken($acms-btn-success, 5%) !default;
-$acms-btn-success-start-color: lighten($acms-btn-success, 8%) !default;
+$acms-btn-success-color-darker: color.adjust($acms-btn-success, $lightness: -5%) !default;
+$acms-btn-success-start-color: color.adjust($acms-btn-success, $lightness: 8%) !default;
 $acms-btn-success-end-color: $acms-btn-success !default;
 $acms-btn-success-border: $acms-btn-success !default;
 
 // hover
-$acms-btn-success-hover-start-color: lighten($acms-btn-success, 12%) !default;
-$acms-btn-success-hover-end-color: lighten($acms-btn-success, 2%) !default;
-$acms-btn-success-hover-border: darken($acms-btn-success, 17%) !default;
+$acms-btn-success-hover-start-color: color.adjust($acms-btn-success, $lightness: 12%) !default;
+$acms-btn-success-hover-end-color: color.adjust($acms-btn-success, $lightness: 2%) !default;
+$acms-btn-success-hover-border: color.adjust($acms-btn-success, $lightness: -17%) !default;
 
 // active
 $acms-btn-success-active-bg: $acms-btn-success !default;
-$acms-btn-success-active-border: darken($acms-btn-success, 17%) !default;
-$acms-btn-success-active-inset: darken($acms-btn-success, 17%) !default;
+$acms-btn-success-active-border: color.adjust($acms-btn-success, $lightness: -17%) !default;
+$acms-btn-success-active-inset: color.adjust($acms-btn-success, $lightness: -17%) !default;
 
 // focus
-$acms-btn-success-focus-border-color: darken($acms-btn-success, 17%) !default;
+$acms-btn-success-focus-border-color: color.adjust($acms-btn-success, $lightness: -17%) !default;
 
 // ** warning
 // デフォルト
 $acms-btn-warning-color-base: $acms-btn-warning !default;
-$acms-btn-warning-color-darker: darken($acms-btn-warning, 8%) !default;
-$acms-btn-warning-start-color: lighten($acms-btn-warning, 8%) !default;
+$acms-btn-warning-color-darker: color.adjust($acms-btn-warning, $lightness: -8%) !default;
+$acms-btn-warning-start-color: color.adjust($acms-btn-warning, $lightness: 8%) !default;
 $acms-btn-warning-end-color: $acms-btn-warning !default;
 $acms-btn-warning-border: $acms-btn-warning !default;
 
 // hover
-$acms-btn-warning-hover-start-color: lighten($acms-btn-warning, 12%) !default;
-$acms-btn-warning-hover-end-color: lighten($acms-btn-warning, 2%) !default;
-$acms-btn-warning-hover-border: darken($acms-btn-warning, 17%) !default;
+$acms-btn-warning-hover-start-color: color.adjust($acms-btn-warning, $lightness: 12%) !default;
+$acms-btn-warning-hover-end-color: color.adjust($acms-btn-warning, $lightness: 2%) !default;
+$acms-btn-warning-hover-border: color.adjust($acms-btn-warning, $lightness: -17%) !default;
 
 // active
 $acms-btn-warning-active-bg: $acms-btn-warning !default;
-$acms-btn-warning-active-border: darken($acms-btn-warning, 17%) !default;
-$acms-btn-warning-active-inset: darken($acms-btn-warning, 17%) !default;
+$acms-btn-warning-active-border: color.adjust($acms-btn-warning, $lightness: -17%) !default;
+$acms-btn-warning-active-inset: color.adjust($acms-btn-warning, $lightness: -17%) !default;
 
 // focus
-$acms-btn-warning-focus-border-color: darken($acms-btn-warning, 17%) !default;
+$acms-btn-warning-focus-border-color: color.adjust($acms-btn-warning, $lightness: -17%) !default;
 
 // ** danger
 // デフォルト
 $acms-btn-danger-color-base: $acms-btn-danger !default;
-$acms-btn-danger-color-darker: darken($acms-btn-danger, 5%) !default;
-$acms-btn-danger-start-color: lighten($acms-btn-danger, 8%) !default;
+$acms-btn-danger-color-darker: color.adjust($acms-btn-danger, $lightness: -5%) !default;
+$acms-btn-danger-start-color: color.adjust($acms-btn-danger, $lightness: 8%) !default;
 $acms-btn-danger-end-color: $acms-btn-danger !default;
 $acms-btn-danger-border: $acms-btn-danger !default;
 
 // hover
-$acms-btn-danger-hover-start-color: lighten($acms-btn-danger, 12%) !default;
-$acms-btn-danger-hover-end-color: lighten($acms-btn-danger, 2%) !default;
-$acms-btn-danger-hover-border: darken($acms-btn-danger, 17%) !default;
+$acms-btn-danger-hover-start-color: color.adjust($acms-btn-danger, $lightness: 12%) !default;
+$acms-btn-danger-hover-end-color: color.adjust($acms-btn-danger, $lightness: 2%) !default;
+$acms-btn-danger-hover-border: color.adjust($acms-btn-danger, $lightness: -17%) !default;
 
 // active
 $acms-btn-danger-active-bg: $acms-btn-danger !default;
-$acms-btn-danger-active-border: darken($acms-btn-danger, 17%) !default;
-$acms-btn-danger-active-inset: darken($acms-btn-danger, 17%) !default;
+$acms-btn-danger-active-border: color.adjust($acms-btn-danger, $lightness: -17%) !default;
+$acms-btn-danger-active-inset: color.adjust($acms-btn-danger, $lightness: -17%) !default;
 
 // focus
-$acms-btn-danger-focus-border-color: darken($acms-btn-danger, 17%) !default;
+$acms-btn-danger-focus-border-color: color.adjust($acms-btn-danger, $lightness: -17%) !default;
 
 // フラットボタン
 //===============================
 
 $acms-btn-flat-padding-y: 14px !default; //上下左右padding
 $acms-btn-flat-padding-x: 8px !default; //左右padding
-$acms-btn-flat-padding-x-sp: 20px !default; //左右padding
 $acms-btn-flat-border-radius: 4px !default;
-$acms-btn-flat-font-size: 16 !default;
-$acms-btn-flat-font-size-desktop: 13 !default;
+$acms-btn-flat-font-size: 12 !default;
 $acms-btn-flat-text-default-color: #666 !default; //デフォルトのボタンの文字カラー
 $acms-btn-flat-text-color: $acms-color-white !default; //カラーボタンのボタンの文字カラー
 
 // ** primary
 // デフォルト
-$acms-btn-flat-primary-color: lighten($acms-btn-primary, 8%) !default; // 背景色
+$acms-btn-flat-primary-color: color.adjust($acms-btn-primary, $lightness: 8%) !default; // 背景色
 $acms-btn-flat-primary-border: 1px solid $acms-btn-primary !default; // 周りの線の色
 // hover
-$acms-btn-flat-primary-hover-color: lighten($acms-btn-primary, 12%) !default;
-$acms-btn-flat-primary-hover-border: 1px solid darken($acms-btn-primary, 17%) !default;
+$acms-btn-flat-primary-hover-color: color.adjust($acms-btn-primary, $lightness: 12%) !default;
+$acms-btn-flat-primary-hover-border: 1px solid color.adjust($acms-btn-primary, $lightness: -17%) !default;
 
 // active
 $acms-btn-flat-primary-active-bg: $acms-btn-primary !default;
 
 // ** info
 // デフォルト
-$acms-btn-flat-info-color: lighten($acms-btn-info, 8%) !default;
+$acms-btn-flat-info-color: color.adjust($acms-btn-info, $lightness: 8%) !default;
 $acms-btn-flat-info-border: 1px solid $acms-btn-info !default;
 
 // hover
-$acms-btn-flat-info-hover-color: lighten($acms-btn-info, 12%) !default;
-$acms-btn-flat-info-hover-border: 1px solid darken($acms-btn-info, 17%) !default;
+$acms-btn-flat-info-hover-color: color.adjust($acms-btn-info, $lightness: 12%) !default;
+$acms-btn-flat-info-hover-border: 1px solid color.adjust($acms-btn-info, $lightness: -17%) !default;
 
 // active
 $acms-btn-flat-info-active-bg: $acms-btn-info !default;
 
 // ** success
 // デフォルト
-$acms-btn-flat-success-color: lighten($acms-btn-success, 8%) !default;
+$acms-btn-flat-success-color: color.adjust($acms-btn-success, $lightness: 8%) !default;
 $acms-btn-flat-success-border: 1px solid $acms-btn-success !default;
 
 // hover
-$acms-btn-flat-success-hover-color: lighten($acms-btn-success, 12%) !default;
-$acms-btn-flat-success-hover-border: 1px solid darken($acms-btn-success, 17%) !default;
+$acms-btn-flat-success-hover-color: color.adjust($acms-btn-success, $lightness: 12%) !default;
+$acms-btn-flat-success-hover-border: 1px solid color.adjust($acms-btn-success, $lightness: -17%) !default;
 
 // active
 $acms-btn-flat-success-active-bg: $acms-btn-success !default;
 
 // ** warning
 // デフォルト
-$acms-btn-flat-warning-color: lighten($acms-btn-warning, 8%) !default;
+$acms-btn-flat-warning-color: color.adjust($acms-btn-warning, $lightness: 8%) !default;
 $acms-btn-flat-warning-border: 1px solid $acms-btn-warning !default;
 
 // hover
-$acms-btn-flat-warning-hover-color: lighten($acms-btn-warning, 12%) !default;
-$acms-btn-flat-warning-hover-border: 1px solid darken($acms-btn-warning, 17%) !default;
+$acms-btn-flat-warning-hover-color: color.adjust($acms-btn-warning, $lightness: 12%) !default;
+$acms-btn-flat-warning-hover-border: 1px solid color.adjust($acms-btn-warning, $lightness: -17%) !default;
 
 // active
 $acms-btn-flat-warning-active-bg: $acms-btn-warning !default;
 
 // ** danger
 // デフォルト
-$acms-btn-flat-danger-color: lighten($acms-btn-danger, 8%) !default;
+$acms-btn-flat-danger-color: color.adjust($acms-btn-danger, $lightness: 8%) !default;
 $acms-btn-flat-danger-border: 1px solid $acms-btn-danger !default;
 
 // hover
-$acms-btn-flat-danger-hover-color: lighten($acms-btn-danger, 12%) !default;
-$acms-btn-flat-danger-hover-border: 1px solid darken($acms-btn-danger, 17%) !default;
+$acms-btn-flat-danger-hover-color: color.adjust($acms-btn-danger, $lightness: 12%) !default;
+$acms-btn-flat-danger-hover-border: 1px solid color.adjust($acms-btn-danger, $lightness: -17%) !default;
 
 // active
 $acms-btn-flat-danger-active-bg: $acms-btn-danger !default;
@@ -439,6 +452,11 @@ $acms-btn-flat-danger-active-bg: $acms-btn-danger !default;
 //===============================
 $acms-btn-link-color: #428bca !default;
 $acms-btn-link-color-hover: #2e67a5 !default;
+
+// テキストボタン
+//===============================
+$acms-btn-text-color: $acms-color-black !default;
+$acms-btn-text-bg-color-hover: $acms-color-gray20 !default;
 
 // disabledボタン
 //===============================
@@ -639,12 +657,19 @@ $acms-icon-danger-color: $acms-color-danger70 !default;
 // デフォルト
 //===============================
 // .acms-table
-$acms-table-border: 1px solid $acms-color-gray50 !default;
+$acms-table-border-color: $acms-color-gray50 !default;
+$acms-table-border-width: 1px !default;
+$acms-table-border-style: solid !default;
+$acms-table-border: $acms-table-border-width $acms-table-border-style $acms-table-border-color !default;
 $acms-table-cell-padding: 10px !default;
 
 // ** 見出しありテーブル
 // .acms-table-heading
-$acms-table-heading-border: 1px solid $acms-color-gray60 !default;
+$acms-table-heading-border-color: $acms-color-gray60 !default;
+$acms-table-heading-border-width: 1px !default;
+$acms-table-heading-border-style: solid !default;
+$acms-table-heading-border: $acms-table-heading-border-width $acms-table-heading-border-style
+  $acms-table-heading-border-color !default;
 
 // .acms-table-heading th
 $acms-table-heading-th-bg: $acms-color-gray30 !default;
@@ -652,7 +677,11 @@ $acms-table-heading-th-text-color: $acms-color-gray90 !default;
 
 // ** ボーダーテーブル
 //.acms-table-bordered
-$acms-table-bordered-border: 1px solid $acms-color-gray50 !default;
+$acms-table-bordered-border-color: $acms-color-gray50 !default;
+$acms-table-bordered-border-width: 1px !default;
+$acms-table-bordered-border-style: solid !default;
+$acms-table-bordered-border: $acms-table-bordered-border-width $acms-table-bordered-border-style
+  $acms-table-bordered-border-color !default;
 
 // ** ストライプテーブル
 // .acms-table-striped
@@ -672,7 +701,10 @@ $acms-table-sortable-bg: $acms-color-white !default;
 //===============================
 // ** デフォルト
 // .acms-table-admin
-$acms-table-admin-border: 1px solid $acms-color-gray50 !default;
+$acms-table-admin-border-color: $acms-color-gray50 !default;
+$acms-table-admin-border-width: 1px !default;
+$acms-table-admin-border-style: solid !default;
+$acms-table-admin-border: $acms-table-admin-border-width $acms-table-admin-border-style $acms-table-admin-border-color !default;
 $acms-table-admin-cell: 8px 5px !default; //th,tdのpaddingの感覚
 $acms-table-admin-td-bg: $acms-color-white !default;
 
@@ -689,13 +721,13 @@ $acms-admin-mini-table-border: $acms-table-admin-border !default;
 // ** 編集画面用テーブル
 // .acms-table-admin-edit
 $acms-table-admin-edit-border: $acms-table-admin-border !default;
-$acms-table-admin-edit-bg: $acms-color-white !default;
+$acms-table-admin-edit-bg: transparent !default;
 $acms-table-admin-edit-th-width: 250px !default;
 
 // ** 編集画面用 ボーダーありテーブル
 // .acms-table-admin-edit-bordered
 $acms-table-admin-edit-bordered-border: $acms-table-admin-border !default;
-$acms-table-admin-edit-bordered-bg: $acms-color-white !default;
+$acms-table-admin-edit-bordered-bg: transparent !default;
 $acms-table-admin-edit-bordered-th-width: $acms-table-admin-edit-th-width !default;
 
 // カラー
@@ -716,9 +748,10 @@ $acms-table-danger-bg: $acms-color-danger10 !default;
 // フォーム
 // ------------------------------
 // デフォルト
-$acms-form-border: 1px solid rgb(0 0 0 / 20%) !default;
+$acms-form-border-width: 1px !default;
+$acms-form-border: $acms-form-border-width solid rgb(0 0 0 / 20%) !default;
 $acms-form-border-radius: 3px !default;
-$acms-form-box-shadow: 0 1px 1px rgb(0 0 0 / 10%) inset !default;
+$acms-form-box-shadow: 0 1px 1px 0 rgb(0 0 0 / 10%) inset !default;
 $acms-form-hover-border-color: rgb(0 0 0 / 30%) !default;
 $acms-form-active-border-color: rgb(0 0 0 / 30%) !default;
 $acms-form-focus-border-color: #137af3 !default;
@@ -726,22 +759,30 @@ $acms-form-focus-box-shadow: 0 0 0 2px rgb(19 122 243 / 40%) !default;
 $acms-form-height-small: 22px !default;
 $acms-form-height: 26px !default;
 $acms-form-height-large: 38px !default;
-$acms-form-height-small-sp: 26px !default;
-$acms-form-height-sp: 32px !default;
-$acms-form-height-large-sp: 44px !default;
 $acms-form-padding-x: 4px !default;
-$acms-form-padding-x-sp: 8px !default;
+$acms-form-padding-y: 4px !default;
+$acms-form-font-size-sm: 12 !default;
+$acms-form-font-size-md: 14 !default;
+$acms-form-font-size-lg: 16 !default;
+$acms-form-line-height: 1 !default;
 
 // select
-$acms-form-select-border: 1px solid rgb(0 0 0 / 20%) !default;
-$acms-form-select-padding: 6px 30px 6px 10px !default;
-$acms-form-select-font-size: 16 !default;
-$acms-form-select-font-size-desktop: 12 !default;
+$acms-form-select-border-width: 1px !default;
+$acms-form-select-border: $acms-form-select-border-width solid rgb(0 0 0 / 20%) !default;
+$acms-form-select-border-radius: 3px !default;
+$acms-form-select-padding-right: 30px !default;
+$acms-form-select-padding: 5px $acms-form-select-padding-right 4px 8px !default;
+$acms-form-select-font-size: 12 !default;
 $acms-form-select-border-hover: 1px solid $acms-form-hover-border-color !default;
-$acms-form-select-bg-color: $acms-color-gray10 !default;
+$acms-form-select-bg-color: $acms-color-white !default;
+$acms-form-select-hover-bg-color: $acms-color-gray20 !default;
+$acms-form-select-text-color: $acms-color-black !default;
+$acms-form-select-line-height: 1.15 !default; // 1だとディセンタの存在する文字列で文字が切れることがあるので1.15に設定
+$acms-form-select-text-align: left !default;
 
 // multiple
 $acms-form-multiple-bg-color: $acms-color-white !default;
+$acms-form-multiple-hover-bg-color: $acms-color-gray20 !default;
 
 // disabled
 $acms-form-disabled-border-color: $acms-color-gray50 !default;
@@ -762,6 +803,13 @@ $acms-form-error-text-color: $acms-color-danger70 !default;
 $acms-text-error-color: $acms-color-danger70 !default;
 $acms-text-helper-color: $acms-color-gray90 !default;
 $acms-input-images-path: '#{$acms-path-marker}ico_input.png' !default;
+
+// ラベル
+$acms-form-label-margin-bottom: 0.5rem !default;
+$acms-form-label-font-size: null !default;
+$acms-form-label-font-style: null !default;
+$acms-form-label-font-weight: null !default;
+$acms-form-label-color: null !default;
 
 // ------------------------------
 // アラート
@@ -984,3 +1032,61 @@ $acms-animation-delay-reverse-first: 0.45s !default;
 
 $acms-admin-title-textcolor: $acms-color-gray90 !default;
 $acms-admin-title2-textcolor: $acms-color-gray90 !default;
+
+// ------------------------------
+//  Elevation
+// ------------------------------
+$acms-shadow-elevation-color: rgb(51 51 51 / 20%) !default;
+$acms-shadow-elevation-length-low: 0 1px 4px 0 !default;
+$acms-shadow-elevation-length-middle: 0 2px 8px 0 !default;
+$acms-shadow-elevation-length-high: 0 3px 12px 0 !default;
+$acms-shadow-elevation-low: $acms-shadow-elevation-length-low $acms-shadow-elevation-color !default;
+$acms-shadow-elevation-middle: $acms-shadow-elevation-length-middle $acms-shadow-elevation-color !default;
+$acms-shadow-elevation-high: $acms-shadow-elevation-length-high $acms-shadow-elevation-color !default;
+
+// Spacing
+//
+// Control the default styling of most elements by modifying these
+// variables. Mostly focused on spacing.
+// You can add more entries to the $spacers map, should you need more variation.
+
+$acms-spacer: 0.25rem !default;
+$acms-spacers: (
+  0: 0,
+  1: $acms-spacer * 1,
+  2: $acms-spacer * 2,
+  3: $acms-spacer * 3,
+  4: $acms-spacer * 4,
+  5: $acms-spacer * 5,
+  6: $acms-spacer * 6,
+  7: $acms-spacer * 7,
+  8: $acms-spacer * 8,
+  9: $acms-spacer * 9,
+  10: $acms-spacer * 10,
+  11: $acms-spacer * 11,
+  12: $acms-spacer * 12,
+  13: $acms-spacer * 13,
+  14: $acms-spacer * 14,
+  15: $acms-spacer * 15,
+  16: $acms-spacer * 16,
+  17: $acms-spacer * 17,
+  18: $acms-spacer * 18,
+  19: $acms-spacer * 19,
+  20: $acms-spacer * 20,
+) !default;
+
+// Position
+//
+// Define the edge positioning anchors of the position utilities.
+
+$acms-position-values: (
+  0: 0,
+  25: 25%,
+  50: 50%,
+  75: 75%,
+  100: 100%,
+) !default;
+
+// Stretch
+$acms-stretch-pseudo-element: after !default;
+$acms-stretch-z-index: 1 !default;

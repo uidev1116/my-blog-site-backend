@@ -1,5 +1,9 @@
 <?php
 
+use Acms\Services\Facades\Common;
+use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\Http;
+
 class ACMS_POST_Publish_Apply extends ACMS_POST_Publish
 {
     public $pointer = null;
@@ -72,14 +76,35 @@ class ACMS_POST_Publish_Apply extends ACMS_POST_Publish
                 continue;
             }
             $fullpath = $basePath . $theme . $path;
+
+            // html, json, xml 拡張子以外はNG
+            $extesion = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+            if (!in_array($extesion, ['html', 'json', 'xml', 'csv'], true)) {
+                $this->addError("拡張子は「html, json, xml, csv」のみ許可されています");
+                continue;
+            }
+            // ディレクトリトラバーサル攻撃対策
+            if (
+                !Storage::validateDirectoryTraversalPath(THEMES_DIR . $theme, THEMES_DIR, false) ||
+                !Storage::validateDirectoryTraversalPath($fullpath, THEMES_DIR . $theme, false)
+            ) {
+                $errorLog[] = [
+                    'url' => $uri,
+                    'path' => $path,
+                    'message' => '不正なパス指定です',
+                ];
+                continue;
+            }
+            // 書き込み権限確認
             if (!$this->isExists($fullpath)) {
                 $errorLog[] = [
                     'url' => $uri,
-                    'path' => $fullpath,
+                    'path' => $path,
                     'message' => '書き込み権限がありません',
                 ];
                 continue;
             }
+            // リクエスト
             try {
                 $req = Http::init($uri, 'GET');
                 $ua = 'publish_ablogcms/' . VERSION;
@@ -92,7 +117,7 @@ class ACMS_POST_Publish_Apply extends ACMS_POST_Publish
                 ]);
                 $response = $req->send();
                 if (strpos(Http::getResponseHeader('http_code'), '200') === false) {
-                    throw new \RuntimeException(Http::getResponseHeader('http_code'));
+                    throw new RuntimeException(Http::getResponseHeader('http_code'));
                 }
                 $body = $response->getResponseBody();
 
@@ -102,20 +127,19 @@ class ACMS_POST_Publish_Apply extends ACMS_POST_Publish
 
                     $successLog[] = [
                         'url' => $uri,
-                        'path' => $fullpath,
+                        'path' => $path,
                     ];
                 } else {
-                    $this->addError('failed to put content in ' . $fullpath);
                     $errorLog[] = [
                         'url' => $uri,
-                        'path' => $fullpath,
+                        'path' => $path,
+                        'message' => '書き込みに失敗しました',
                     ];
                 }
             } catch (Exception $e) {
-                $this->addError($e->getMessage());
                 $errorLog[] = [
                     'url' => $uri,
-                    'path' => $fullpath,
+                    'path' => $path,
                     'message' => $e->getMessage(),
                 ];
             }
@@ -124,6 +148,9 @@ class ACMS_POST_Publish_Apply extends ACMS_POST_Publish
             $this->addMessage(gettext('書き出しに成功しました'));
             AcmsLogger::info('テンプレートの書き出しに成功しました', $successLog);
         } else {
+            foreach ($errorLog as $error) {
+                $this->addError($error['message'] . ' (url=' . $error['url'] . ' path=' . $error['path'] . ')');
+            }
             AcmsLogger::warning('テンプレート書き出しに失敗しました', $errorLog);
         }
         return $this->Post;
@@ -132,35 +159,52 @@ class ACMS_POST_Publish_Apply extends ACMS_POST_Publish
     function validateUri(&$uri)
     {
         $uri = setGlobalVars($uri);
-        if (preg_match('@^(https|http|acms)://@', $uri, $match)) {
-            if ('acms' == $match[1]) {
-                $Q = parseAcmsPath(preg_replace('@^acms://@', '', $uri));
-                $uri = acmsLink($Q, false);
-            }
+        if (Common::isSafeUrl($uri)) {
             return true;
-        } else {
-            $this->addError('invalid url in ' . $uri);
+        }
+        $parsed = parse_url($uri);
+        if ($parsed === false) {
+            $this->addError("不正なURLです。URLの形式が不正です。");
             return false;
         }
+        if (!in_array($parsed['scheme'] ?? '', ['http', 'https'], true)) {
+            $this->addError("不正なURLです。URLの形式が不正です。");
+            return false;
+        }
+        $whiteList = [];
+        $whiteListStr = env('TEMPLATE_EXPORT_WHITE_LIST', '');
+        if ($whiteListStr) {
+            $whiteList = explode(',', $whiteListStr);
+            $whiteList = array_map(function ($item) {
+                return trim($item);
+            }, $whiteList);
+        }
+        if ($host = parse_url($uri, PHP_URL_HOST)) {
+            if (in_array($host, $whiteList, true)) {
+                return true;
+            }
+        }
+        $this->addError("不正なURLです。自ホスト以外のホストを指定する場合は「.env」の「TEMPLATE_EXPORT_WHITE_LIST」を指定ください。（{$uri}）");
+        return false;
     }
 
     function isWritable($path)
     {
-        if (Storage::isWritable($path)) {
+        if (LocalStorage::isWritable($path)) {
             return true;
         } else {
-            $this->addError('failed to write in ' . $path);
+            $this->addError("不正なパスです");
             return false;
         }
     }
 
     function isExists($path)
     {
-        if (Storage::exists($path)) {
+        if (LocalStorage::exists($path)) {
             if ($this->isWritable($path)) {
                 return true;
             } else {
-                $this->addError('no such file in ' . $path);
+                $this->addError("書き込み権限がありません");
                 return false;
             }
         } else {

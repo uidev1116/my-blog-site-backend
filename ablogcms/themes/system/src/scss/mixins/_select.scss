@@ -6,16 +6,24 @@
 // ------------------------------
 
 @mixin select(
-  $border-radius: 3px,
+  $border-radius: var.$acms-form-select-border-radius,
   $background-color: var.$acms-form-select-bg-color,
-  $background-color-hover: #fff,
-  $text-align: left
+  $background-color-hover: var.$acms-form-select-hover-bg-color,
+  $text-align: var.$acms-form-select-text-align,
+  $font-size: var.$acms-form-select-font-size,
+  $text-color: var.$acms-form-select-text-color,
+  $active-text-color: $text-color,
+  $hover-text-color: $text-color,
+  $padding: var.$acms-form-select-padding,
+  $line-height: var.$acms-form-select-line-height
 ) {
   position: relative;
   display: inline-block;
-  min-height: var.$acms-form-height-sp;
-  padding: var.$acms-form-select-padding;
-  line-height: 1;
+  min-height: var.$acms-form-height;
+  padding: $padding;
+  padding-right: var.$acms-form-select-padding-right;
+  color: $text-color;
+  line-height: $line-height;
   text-align: $text-align;
   text-decoration: none;
   vertical-align: middle;
@@ -26,25 +34,14 @@
   background-repeat: no-repeat;
   border: var.$acms-form-select-border;
   border-radius: $border-radius;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
   appearance: none;
 
-  @include fontSize.font-size(var.$acms-form-select-font-size);
+  @include fontSize.font-size($font-size);
 
   &:hover {
+    color: $hover-text-color;
+    background-color: $background-color-hover;
     border: var.$acms-form-select-border-hover;
-  }
-}
-
-@mixin desktop-select() {
-  min-height: var.$acms-form-height;
-  padding: 5px 30px 4px 8px;
-
-  @include fontSize.font-size(var.$acms-form-select-font-size-desktop);
-}
-
-@mixin desktop-select-for-ie() {
-  @media all and (-ms-high-contrast: none) {
-    padding-right: 30px;
   }
 }

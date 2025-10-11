@@ -16,12 +16,13 @@ class ACMS_GET_Admin extends ACMS_GET
         }
         $SQL->addOrder('blog_id');
 
-        list($order, $asc)  = preg_split('/-/', $order);
-        $order              = 'blog_' . $order;
+        list($order, $asc) = preg_split('/-/', $order);
+        $order = 'blog_' . $order;
 
-        $q      = $SQL->get(dsn());
+        $q = $SQL->get(dsn());
+        $statement = $DB->query($q, 'exec');
         $root   = 0;
-        if (!!$DB->query($q, 'fetch') and !!($row = $DB->fetch($q))) {
+        if ($statement && ($row = $DB->next($statement))) {
             $all    = [];
             $amount = [];
             $parent = [];
@@ -38,7 +39,7 @@ class ACMS_GET_Admin extends ACMS_GET
                     $amount[$pid]  = 0;
                 }
                 $amount[$pid]   += 1;
-            } while (!!($row = $DB->fetch($q)));
+            } while ($row = $DB->next($statement));
 
             foreach ($all as $i => $v) {
                 $sort = [];
@@ -59,7 +60,11 @@ class ACMS_GET_Admin extends ACMS_GET
             $marks  = configArray('indent_marks');
             $query  = QUERY ? '?' . QUERY : '';
             $query  = preg_replace('/\_bid=(\d+)/', 'prev-bid=$1', $query);
+            $i = 0;
             while ($row = array_shift($stack)) {
+                if ($i > 0) {
+                    $Tpl->add(['glue', $loopblock]);
+                }
                 $bid    = intval($row['blog_id']);
                 $blocks = [];
                 if (isset($parent[$bid]) && isset($parent[$parent[$bid]])) {
@@ -97,14 +102,22 @@ class ACMS_GET_Admin extends ACMS_GET
                     }
                     unset($all[$bid]);
                 }
+                $i++;
             }
         }
 
         return [];
     }
 
-    function buildUserSelect(&$Tpl, $bid = BID, $selectedUid = null, $loopblock = 'loop', $aryAuth = [], $isGlobal = false, $order = 'sort-asc')
-    {
+    function buildUserSelect(
+        &$Tpl,
+        $bid = BID,
+        $selectedUid = null,
+        $loopblock = 'loop',
+        $aryAuth = [],
+        $isGlobal = false,
+        $order = 'sort-asc'
+    ) {
         $DB     = DB::singleton(dsn());
         $SQL    = SQL::newSelect('user');
         $SQL->addSelect('user_id');
@@ -125,7 +138,10 @@ class ACMS_GET_Admin extends ACMS_GET
         $SQL->addOrder('user_blog_id');
         ACMS_Filter::userOrder($SQL, $order);
 
-        foreach ($DB->query($SQL->get(dsn()), 'all') as $row) {
+        foreach ($DB->query($SQL->get(dsn()), 'all') as $i => $row) {
+            if ($i > 0) {
+                $Tpl->add(['glue', $loopblock]);
+            }
             $uid    = intval($row['user_id']);
             $vars   = [
                 'value' => $uid,
@@ -143,7 +159,7 @@ class ACMS_GET_Admin extends ACMS_GET
     /**
      * @param Template $Tpl
      * @param array|bool|int|null|resource $bid
-     * @param null $selectedCid
+     * @param int|null $selectedCid
      * @param string|array $loopblock
      * @param bool $isGlobal
      * @param string $order
@@ -189,7 +205,8 @@ class ACMS_GET_Admin extends ACMS_GET
         ACMS_Filter::categoryOrder($SQL, $order);
 
         $q  = $SQL->get(dsn());
-        if (!!$DB->query($q, 'fetch') and !!($row = $DB->fetch($q))) {
+        $statement = $DB->query($q, 'exec');
+        if ($statement && ($row = $DB->next($statement))) {
             $all    = [];
             $amount = [];
             $parent = [];
@@ -207,7 +224,7 @@ class ACMS_GET_Admin extends ACMS_GET
                     $amount[$pid]  = 0;
                 }
                 $amount[$pid]   += 1;
-            } while (!!($row = $DB->fetch($q)));
+            } while (!!($row = $DB->next($statement)));
 
             $stack  = $all[0];
             unset($all[0]);

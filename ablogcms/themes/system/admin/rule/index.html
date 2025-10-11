@@ -9,19 +9,10 @@
 
 <!-- BEGIN_MODULE Admin_Rule_Index -->
 
-<!-- BEGIN refresh -->
-<div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
-  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
-  <button
-    type="button"
-    class="js-acms-alert-close acms-admin-alert-icon-after"
-    aria-label="アラートを閉じる"
-  >
-    ×
-  </button>
-  <!--T-->ルールの一覧を更新しました。<!--/T-->
-</div>
-<!-- END refresh -->
+@include("/admin/include/action-result.html", {
+  "successMessage": "<!--T-->ルール一覧を更新しました。<!--/T-->",
+  "errorMessage": "<!--T-->ルール一覧の更新に失敗しました。<!--/T-->"
+})
 
 <!-- BEGIN index#notFound -->
 <div class="acms-admin-announce">
@@ -78,10 +69,10 @@
       <thead class="acms-admin-table-heading">
         <tr>
           <th class="acms-admin-table-nowrapacms-admin-th-checkbox">
-            <div class="acms-admin-form-checkbox acms-admin-margin-none">
+            <div class="acms-admin-form-checkbox acms-admin-m-0">
               <input type="checkbox" id="checkAll" />
               <label for="checkAll">
-                <i class="acms-admin-ico-checkbox acms-admin-margin-none"></i>
+                <i class="acms-admin-ico-checkbox acms-admin-m-0"></i>
                 <span class="acms-admin-hide-visually">
                   <!--T-->すべてのルールを選択する<!--/T-->
                 </span>
@@ -99,9 +90,9 @@
         <!-- BEGIN rule:loop -->
         <tr>
           <td class="acms-admin-table-nowrap">
-            <div class="acms-admin-form-checkbox acms-admin-margin-none">
+            <div class="acms-admin-form-checkbox acms-admin-m-0">
               <input type="checkbox" name="checks[]" value="{rid}"{disabled} id="input-checkbox-rule{rid}" />
-              <label for="input-checkbox-rule{rid}"><i class="acms-admin-ico-checkbox acms-admin-margin-none"></i><span class="acms-admin-hide-visually"><!--T-->ルール名「{name}」を選択する<!--/T--></span></label>
+              <label for="input-checkbox-rule{rid}"><i class="acms-admin-ico-checkbox acms-admin-m-0"></i><span class="acms-admin-hide-visually"><!--T-->ルール名「{name}」を選択する<!--/T--></span></label>
             </div>
           </td>
           <td>

@@ -3,6 +3,7 @@
 namespace Acms\Services\Entry;
 
 use Acms\Services\Facades\Application;
+use Acms\Services\Facades\BlockEditor;
 use Acms\Services\Facades\Database as DB;
 use Acms\Services\Contracts\Export as ExportBase;
 use SQL;
@@ -23,6 +24,11 @@ class Export extends ExportBase
      * @var int[]
      */
     protected $targetEntryIds = [];
+
+    /**
+     * @var non-empty-string[]
+     */
+    protected $targetUnitIds = [];
 
     /**
      * @var int[]
@@ -89,9 +95,12 @@ class Export extends ExportBase
 
         foreach ($this->tables as $table) {
             $sql = SQL::newSelect($table);
+
             $method = 'getQuery' . ucfirst($table);
             if (is_callable([$this, $method])) {
-                $sql = call_user_func_array([$this, $method], [$sql]);
+                /** @var callable $callback */
+                $callback = [$this, $method];
+                $sql = call_user_func_array($callback, [$sql]);
             }
             $q = $sql->get(dsn());
             $queryList[$table] = $q;
@@ -126,9 +135,9 @@ class Export extends ExportBase
         $sql->addWhereIn('entry_id', $this->targetEntryIds);
         $sql->addWhereOpr('entry_status', 'trash', '<>');
         $q = $sql->get(dsn());
-        DB::query($q, 'fetch');
+        $statement = DB::query($q, 'exec');
 
-        while ($row = DB::fetch($q)) {
+        while ($row = DB::next($statement)) {
             $cid = intval($row['entry_category_id']);
             if ($cid > 0 && !in_array($cid, $this->targetCategoryIds, true)) {
                 $this->targetCategoryIds[] = $cid;
@@ -141,17 +150,26 @@ class Export extends ExportBase
     {
         $sql->addWhereIn('column_entry_id', $this->targetEntryIds);
         $q = $sql->get(dsn());
-        DB::query($q, 'fetch');
+        $statement = DB::query($q, 'exec');
 
         $unitRepository = Application::make('unit-repository');
         assert($unitRepository instanceof \Acms\Services\Unit\Repository);
 
-        while ($row = DB::fetch($q)) {
+        while ($row = DB::next($statement)) {
             $unitModel = $unitRepository->loadModel($row);
             if ($unitModel instanceof \Acms\Services\Unit\Contracts\ExportEntry) {
                 $this->archivesFiles = array_merge($this->archivesFiles, $unitModel->exportArchivesFiles());
                 $this->targetMediaIds = array_merge($this->targetMediaIds, $unitModel->exportMediaIds());
-                $this->targetModuleIds = array_merge($this->targetModuleIds, $unitModel->exportModuleIds());
+                $moduleId = $unitModel->exportModuleId();
+                if ($moduleId !== null) {
+                    $this->targetModuleIds[] = $moduleId;
+                }
+            }
+            if ($unitModel instanceof \Acms\Services\Unit\Models\Custom) {
+                $id = $unitModel->getId();
+                if ($id !== null) {
+                    $this->targetUnitIds[] = $id;
+                }
             }
         }
         return $sql;
@@ -159,11 +177,14 @@ class Export extends ExportBase
 
     protected function getQueryField($sql)
     {
-        $sql->addWhereIn('field_eid', $this->targetEntryIds);
+        $where = SQL::newWhere();
+        $where->addWhereIn('field_eid', $this->targetEntryIds, 'OR');
+        $where->addWhereIn('field_unit_id', $this->targetUnitIds, 'OR');
+        $sql->setWhere($where);
         $q = $sql->get(dsn());
-        DB::query($q, 'fetch');
+        $statement = DB::query($q, 'exec');
 
-        while ($row = DB::fetch($q)) {
+        while ($row = DB::next($statement)) {
             $fd = $row['field_key'];
             // image or file
             if (
@@ -182,6 +203,10 @@ class Export extends ExportBase
                     $this->targetMediaIds[] = $mediaId;
                 }
             }
+            // block-editor
+            if ($row['field_type'] === 'block-editor' && $row['field_value']) {
+                $this->targetMediaIds = array_merge($this->targetMediaIds, BlockEditor::extractMediaId($row['field_value']));
+            }
         }
         return $sql;
     }
@@ -197,9 +222,9 @@ class Export extends ExportBase
     {
         $sql->addWhereIn('entry_sub_category_eid', $this->targetEntryIds);
         $q = $sql->get(dsn());
-        DB::query($q, 'fetch');
+        $statement = DB::query($q, 'exec');
 
-        while ($row = DB::fetch($q)) {
+        while ($row = DB::next($statement)) {
             $cid = intval($row['entry_sub_category_id']);
             if ($cid > 0 && !in_array($cid, $this->targetCategoryIds, true)) {
                 $this->targetCategoryIds[] = $cid;
@@ -219,9 +244,9 @@ class Export extends ExportBase
     {
         $sql->addWhereIn('media_id', $this->targetMediaIds);
         $q = $sql->get(dsn());
-        DB::query($q, 'fetch');
+        $statement = DB::query($q, 'exec');
 
-        while ($row = DB::fetch($q)) {
+        while ($row = DB::next($statement)) {
             $type = $row['media_type'];
             $path = $row['media_path'];
             $thumbnail = $row['media_thumbnail'];

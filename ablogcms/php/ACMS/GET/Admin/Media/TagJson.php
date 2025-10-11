@@ -7,7 +7,11 @@ class ACMS_GET_Admin_Media_TagJson extends ACMS_GET_Admin_Media_ListJson
 {
     public function get()
     {
-        $sql = $this->buildSql();
+        if (!sessionWithContribution()) {
+            die403();
+        }
+        $params = $this->createParams();
+        $sql = $this->buildSql($params);
         $tag = Media::getMediaTagList($sql);
         Common::responseJson($tag);
     }

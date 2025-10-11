@@ -5,9 +5,8 @@ class ACMS_POST_I18n_DownloadPot extends ACMS_POST
     function post()
     {
         if (!sessionWithAdministration()) {
-            die();
+            die403();
         }
-
         try {
             $pot = 'lang/messages.pot';
             if (xi18n(null, $pot)) {

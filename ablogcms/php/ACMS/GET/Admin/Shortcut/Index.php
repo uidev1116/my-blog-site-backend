@@ -23,7 +23,7 @@ class ACMS_GET_Admin_Shortcut_Index extends ACMS_GET_Admin
         $this->ShortcutService = Application::make('shortcut.helper');
 
         if (!sessionWithAdministration()) {
-            return '';
+            die403();
         }
 
         $Tpl = new Template($this->tpl, new ACMS_Corrector());

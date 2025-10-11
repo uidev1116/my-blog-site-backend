@@ -28,8 +28,7 @@ class ACMS_GET_Form2_Unit extends ACMS_GET
     {
         foreach ($Unit as $data) {
             $type   = $data['type'];
-            $sort   = $data['sort'];
-            $utid   = $data['clid'];
+            $utid   = $data['id'];
 
             $vars   = [
                 'label'     => $data['label'],

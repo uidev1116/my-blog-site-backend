@@ -1,0 +1,103 @@
+// ---------------
+// ツールバー
+// ---------------
+
+.acms-block-editor-toolbar {
+  display: inline-flex;
+  flex-direction: row;
+  gap: var(--acms-block-editor-spacing-0-5);
+  align-items: center;
+  height: 100%;
+  padding: var(--acms-block-editor-spacing-1);
+  color: #000;
+  line-height: 1;
+}
+
+// Divider
+.acms-block-editor-toolbar-divider {
+  background-color: var(--acms-block-editor-gray-400);
+
+  &.acms-block-editor-toolbar-divider-horizontal {
+    width: 100%;
+    min-width: 1.5rem;
+    height: 1px;
+    margin: var(--acms-block-editor-spacing-1) 0;
+
+    &:first-child {
+      margin-top: 0;
+    }
+
+    &:last-child {
+      margin-top: 0;
+    }
+  }
+
+  &:not(.acms-block-editor-toolbar-divider-horizontal) {
+    width: 1px;
+    height: 14px;
+    margin: 0 var(--acms-block-editor-spacing-1);
+
+    &:first-child {
+      margin-left: 0;
+    }
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+}
+
+// Button
+.acms-block-editor-toolbar-button {
+  gap: var(--acms-block-editor-spacing-1);
+  width: auto;
+  min-width: 2rem;
+  padding: 0 var(--acms-block-editor-spacing-2);
+}
+
+// Arrow
+.acms-block-editor-toolbar-arrow {
+  position: absolute;
+  display: grid;
+  height: 100%;
+  color: var(--acms-block-editor-neutral-900);
+  font-size: var(--acms-block-editor-font-size-base);
+  background: white;
+  border: none;
+  transition: background-color 0.2s ease;
+  appearance: none;
+  place-items: center;
+
+  &:hover,
+  &:active {
+    background-color: var(--acms-block-editor-neutral-100);
+  }
+
+  &:focus,
+  &:focus-visible,
+  &:focus-within {
+    outline: none;
+    box-shadow: var(--acms-block-editor-shadow-focus);
+  }
+}
+
+.acms-block-editor-toolbar-scrollable {
+  box-sizing: border-box;
+  max-width: calc(100% - 2px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.acms-block-editor-toolbar-arrow-left {
+  inset: 0 auto 0 0;
+  padding: 0 var(--acms-block-editor-spacing-1-5) 0 var(--acms-block-editor-spacing-1);
+  border-right: 1px solid var(--acms-block-editor-gray-400);
+  border-radius: var(--acms-block-editor-border-radius-md) 0 0 var(--acms-block-editor-border-radius-md);
+}
+
+.acms-block-editor-toolbar-arrow-right {
+  inset: 0 2px 0 auto;
+  padding: 0 var(--acms-block-editor-spacing-1) 0 var(--acms-block-editor-spacing-1-5);
+  border-left: 1px solid var(--acms-block-editor-gray-400);
+  border-radius: 0 var(--acms-block-editor-border-radius-md) var(--acms-block-editor-border-radius-md) 0;
+}

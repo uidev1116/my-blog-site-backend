@@ -28,7 +28,9 @@ class ACMS_GET_Calendar_Year extends ACMS_GET
         ACMS_Filter::blogTree($SQL, $this->bid, $this->blogAxis());
         ACMS_Filter::blogStatus($SQL);
         $SQL->addLeftJoin('category', 'category_id', 'entry_category_id');
-        ACMS_Filter::categoryTree($SQL, $this->cid, $this->categoryAxis());
+        if ($this->cid) {
+            ACMS_Filter::categoryTree($SQL, $this->cid, $this->categoryAxis());
+        }
         ACMS_Filter::categoryStatus($SQL);
         ACMS_Filter::entrySession($SQL);
         ACMS_Filter::entrySpan($SQL, $ym . '-01 00:00:00', $ym . '-31 23:59:59');
@@ -74,7 +76,7 @@ class ACMS_GET_Calendar_Year extends ACMS_GET
                     'w'     => $curW,
                     'url'   => acmsLink([
                         'bid'   => $this->bid,
-                        'cid'   => $this->cid,
+                        'cid'   => is_int($this->cid) ? $this->cid : null,
                         'date'  => [
                             intval($y), intval($m), intval($day)
                         ],
@@ -108,7 +110,7 @@ class ACMS_GET_Calendar_Year extends ACMS_GET
         return empty($exists) ? false : true;
     }
 
-    function get()
+    public function get()
     {
         $DB     = DB::singleton(dsn());
 
@@ -129,7 +131,7 @@ class ACMS_GET_Calendar_Year extends ACMS_GET
                 'monthDate' => $y . '-' . sprintf('%02d-01', $mo + 1),
                 'monthUrl'  => acmsLink([
                     'bid'   => $this->bid,
-                    'cid'   => $this->cid,
+                    'cid'   => is_int($this->cid) ? $this->cid : null,
                     'date'  => date("Y/m", strtotime($y . '-' . sprintf('%02d-01', $mo + 1))),
                 ]),
             ]);
@@ -140,8 +142,6 @@ class ACMS_GET_Calendar_Year extends ACMS_GET
         if (12 % $unit !== 0) {
             $Tpl->add('unit:loop');
         }
-        $prevtime   = mktime(0, 0, 0, intval($m), 1, intval($y) - 1);
-        $nexttime   = mktime(0, 0, 0, intval($m), 1, intval($y) + 1);
 
         $vars   = ['year' => $y];
 
@@ -153,18 +153,20 @@ class ACMS_GET_Calendar_Year extends ACMS_GET
         ACMS_Filter::blogTree($SQL, $this->bid, $this->blogAxis());
         ACMS_Filter::blogStatus($SQL);
         $SQL->addLeftJoin('category', 'category_id', 'entry_category_id');
-        ACMS_Filter::categoryTree($SQL, $this->cid, $this->categoryAxis());
+        if ($this->cid) {
+            ACMS_Filter::categoryTree($SQL, $this->cid, $this->categoryAxis());
+        }
         ACMS_Filter::categoryStatus($SQL);
         ACMS_Filter::entrySession($SQL);
 
-        $Recently   = clone $SQL;
+        $Recently = clone $SQL;
         $Recently->addOrder('entry_datetime', 'DESC');
         $recentryValue = $DB->query($Recently->get(dsn()), 'one');
         if (intval($recentryValue) < intval(date('Y', requestTime()))) {
             $recentryValue = intval(date('Y', requestTime()));
         }
 
-        $Past       = clone $SQL;
+        $Past = clone $SQL;
         $Past->addOrder('entry_datetime', 'ASC');
         $pastValue  = $DB->query($Past->get(dsn()), 'one');
         if (!$pastValue) {
@@ -178,7 +180,7 @@ class ACMS_GET_Calendar_Year extends ACMS_GET
                 'pYear'  => intval($y) - 1,
                 'url'   => acmsLink([
                     'bid'   => $this->bid,
-                    'cid'   => $this->cid,
+                    'cid'   => is_int($this->cid) ? $this->cid : null,
                     'tpl'   => TPL,
                     'date' => [intval($y) - 1],
                 ]),
@@ -192,7 +194,7 @@ class ACMS_GET_Calendar_Year extends ACMS_GET
                 'nYear'  => intval($y) + 1,
                 'url'   => acmsLink([
                     'bid'   => $this->bid,
-                    'cid'   => $this->cid,
+                    'cid'   => is_int($this->cid) ? $this->cid : null,
                     'tpl'   => TPL,
                     'date' => [intval($y) + 1],
                 ]),

@@ -55,7 +55,7 @@ class Twitter
 
         // Store credentials in the session, we'll need them later
         $session = Session::handle();
-        $session->set('twitter_temporary_credentials', acmsSerialize($temporaryCredentials));
+        $session->set('twitter_temporary_credentials', $temporaryCredentials);
         $session->save();
 
         // Second part of OAuth 1.0 authentication is to redirect the
@@ -95,7 +95,7 @@ class Twitter
         $session = Session::handle();
 
         // Retrieve the temporary credentials we saved before
-        $temporaryCredentials = acmsUnserialize($session->get('twitter_temporary_credentials'));
+        $temporaryCredentials = $session->get('twitter_temporary_credentials');
 
         // We will now retrieve token credentials from the server
         $tokenCredentials = $this->server->getTokenCredentials($temporaryCredentials, $oauthToken, $oauthVerifier);

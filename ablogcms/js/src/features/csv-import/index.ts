@@ -5,6 +5,6 @@ export default function dispatchCsvImport(context: Element | Document = document
   if (!element) {
     return;
   }
-  const json = element.getAttribute('data-json') || '';
-  backgroundProcess('#js-background-csv-import', json, 1000);
+  const type = element.getAttribute('data-type') || '';
+  backgroundProcess('#js-background-csv-import', type, 1000);
 }

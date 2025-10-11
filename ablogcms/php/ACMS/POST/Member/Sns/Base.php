@@ -1,6 +1,7 @@
 <?php
 
 use Acms\Services\Facades\Session;
+use Acms\Services\Facades\Login;
 
 abstract class ACMS_POST_Member_Sns_Base extends ACMS_POST_Member
 {
@@ -24,11 +25,23 @@ abstract class ACMS_POST_Member_Sns_Base extends ACMS_POST_Member
      */
     public function post(): Field_Validation
     {
+        $this->validate();
         $authUrl = $this->getAuthUrl();
         if (!empty($authUrl)) {
             $this->run($authUrl);
         }
         return $this->Post;
+    }
+
+    protected function validate()
+    {
+        if (config('snslogin') !== 'on') {
+            die403();
+        }
+        $auth = config('snslogin_auth');
+        if (!in_array($auth, Login::getAdminLoginAuth(), true)) {
+            die403();
+        }
     }
 
     /**

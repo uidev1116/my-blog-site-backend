@@ -14,7 +14,7 @@ class ACMS_POST_Entry_Update_Title extends ACMS_POST_Entry_Update
             $SQL->addWhereOpr('entry_id', EID);
             $DB->query($SQL->get(dsn()), 'exec');
             ACMS_RAM::entry(EID, null);
-            $this->clearCache(BID, EID);
+            ACMS_POST_Cache::clearEntryPageCache(EID); // @phpstan-ignore argument.type
 
             AcmsLogger::info('「' . ACMS_RAM::entryTitle(EID) . '」エントリーのタイトルを変更しました', [
                 'eid' => EID,
@@ -24,7 +24,7 @@ class ACMS_POST_Entry_Update_Title extends ACMS_POST_Entry_Update
         } else {
             httpStatusCode('403 Forbidden');
         }
-        header(PROTOCOL . ' ' . httpStatusCode());
+        Common::setSafeHeadersWithoutCache((int) substr(httpStatusCode(), 0, 3), 'text/plain');
         die(httpStatusCode());
     }
 }

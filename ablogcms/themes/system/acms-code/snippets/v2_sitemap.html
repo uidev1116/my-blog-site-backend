@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V2_Sitemap</title>
+    <link rel="stylesheet" href="src/highlight/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="src/snippets.css" />
+    <script src="src/highlight/highlight.min.js"></script>
+    <script src="src/highlight/javascript.min.js"></script>
+    <script src="src/highlight/twig.min.js"></script>
+    <script src="src/snippets.js"></script>
+  </head>
+  <body>
+    <h1>V2_Sitemap</h1>
+    <pre class="acms-admin-customfield-maker"><code class="language-twig">
+&#123;% set sitemap = module(&#039;V2_Sitemap&#039;, null) %&#125;
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;urlset xmlns=&quot;http://www.sitemaps.org/schemas/sitemap/0.9&quot;&gt;
+  &#123;% for item in sitemap.items %&#125;
+    &lt;url&gt;
+      &lt;loc&gt;&#123;&#123; item.loc &#125;&#125;&lt;/loc&gt;
+      &#123;% if item.lastmod %&#125;
+      &lt;lastmod&gt;&#123;&#123; item.lastmod &#125;&#125;&lt;/lastmod&gt;
+      &#123;% endif %&#125;
+    &lt;/url&gt;
+  &#123;% endfor %&#125;
+&lt;/urlset&gt;
+    </code></pre>
+  </body>
+</html>

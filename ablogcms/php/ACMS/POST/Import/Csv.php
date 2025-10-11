@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\PrivateStorage;
+
 class ACMS_POST_Import_Csv extends ACMS_POST_Import
 {
     protected $importCid;
@@ -31,10 +33,10 @@ class ACMS_POST_Import_Csv extends ACMS_POST_Import
 
         $path = null;
         $this->init();
-        $this->textType = $this->Post->get('text_type');
+        $this->unitType = $this->Post->get('unit_type');
         try {
             $this->httpFile = ACMS_Http::file($this->uploadFiledName);
-            if (Storage::exists($this->lockFile)) {
+            if (PrivateStorage::exists($this->lockFile)) {
                 throw new \RuntimeException('CSVインポートを中止しました。すでにインポート中の可能性があります。変化がない場合は、cache/csv-import-lock ファイルを削除してお試しください。');
             }
             Common::backgroundRedirect(HTTP_REQUEST_URL);
@@ -64,7 +66,7 @@ class ACMS_POST_Import_Csv extends ACMS_POST_Import
     function run()
     {
         set_time_limit(0);
-        Storage::put($this->lockFile, 'lock');
+        PrivateStorage::put($this->lockFile, 'lock');
         $logger = App::make('common.logger');
         $logger->setDestinationPath(CACHE_DIR . 'csv-import-logger.json');
         $logger->init();
@@ -79,7 +81,7 @@ class ACMS_POST_Import_Csv extends ACMS_POST_Import
             $this->csvLabels = $csv->fgetcsv();
         } catch (Exception $e) {
             $logger->error($e->getMessage());
-            Storage::remove($this->lockFile);
+            PrivateStorage::remove($this->lockFile);
             sleep(5);
             $logger->terminate();
 
@@ -126,7 +128,7 @@ class ACMS_POST_Import_Csv extends ACMS_POST_Import
             'error' => $this->errorCount,
         ]);
 
-        Storage::remove($this->lockFile);
+        PrivateStorage::remove($this->lockFile);
         sleep(5);
         $logger->terminate();
 

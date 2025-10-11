@@ -1,0 +1,58 @@
+@use '../global/common' as global;
+
+/* ------------------------------
+  ショートカットキー一覧
+------------------------------- */
+.acms-shortcut {
+  padding: 14px 9px;
+
+  & + & {
+    margin-top: 4px;
+  }
+}
+
+.acms-shortcut-heading {
+  margin: 0;
+  padding: 14px 0;
+  color: global.$acms-color-black;
+
+  @include global.font-size(14);
+}
+
+.acms-shortcut-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid global.$acms-color-system-gray40;
+}
+
+.acms-shortcut-listitem {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid global.$acms-color-system-gray40;
+}
+
+.acms-shortcut-label {
+  margin-right: auto;
+
+  @include global.font-size(13);
+}
+
+.acms-shortcut-key-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.acms-shortcut-key {
+  display: grid;
+  min-width: 20px;
+  height: 20px;
+  padding: 4px;
+  font-family: global.$acms-admin-font-family;
+  background: global.$acms-color-system-gray20;
+  border-radius: global.$acms-form-border-radius;
+  place-content: center;
+}

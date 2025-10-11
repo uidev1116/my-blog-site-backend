@@ -17,6 +17,7 @@ export default class ResizeImage {
     this.dragging = 0;
     this.previewOnly = ACMS.Config.resizeImage !== 'on';
     this.util = new Util();
+    this.eventListeners = [];
   }
 
   /**
@@ -37,6 +38,32 @@ export default class ResizeImage {
       this.elm.classList.add('resizeImage');
       this.exec(this.elm);
     }
+  }
+
+  /**
+   * イベントリスナーを削除し、クリーンアップする
+   */
+  destroy() {
+    // 登録したイベントリスナーを削除
+    this.eventListeners.forEach(({ element, type, handler }) => {
+      element.removeEventListener(type, handler);
+    });
+    this.eventListeners = [];
+
+    // プレビュー要素を削除
+    const previewElements = this.elm.querySelectorAll(this.previewMark);
+    previewElements.forEach((element) => {
+      element.remove();
+    });
+
+    // リサイズデータを削除
+    const resizeDataElements = this.elm.querySelectorAll('.js-img_resize_data');
+    resizeDataElements.forEach((element) => {
+      element.remove();
+    });
+
+    // クラスを削除
+    this.elm.classList.remove('resizeImage');
   }
 
   /**
@@ -82,87 +109,82 @@ export default class ResizeImage {
           });
         }, 800);
       }
+
       // ドロップ時のアクションを設定
-      dropArea.addEventListener(
-        'drop',
-        (event) => {
-          event.stopPropagation();
-          event.preventDefault();
-          this.dragging = 0;
-          this.dropSelect = true;
-          dropArea.classList.remove('drag-n-drop-hover');
+      const dropHandler = (event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        this.dragging = 0;
+        this.dropSelect = true;
+        dropArea.classList.remove('drag-n-drop-hover');
 
-          const { files } = event.dataTransfer;
-          let gif = false;
+        const { files } = event.dataTransfer;
+        let gif = false;
 
-          for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            if (file.type === 'image/gif') {
-              gif = true;
-              break;
-            }
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          if (file.type === 'image/gif') {
+            gif = true;
+            break;
           }
-          if (gif) {
-            if (!window.confirm(ACMS.i18n('drop_select_gif_image.alert'))) {
-              // eslint-disable-line no-alert, no-console
-              return false;
-            }
+        }
+        if (gif) {
+          if (!window.confirm(ACMS.i18n('drop_select_gif_image.alert'))) {
+            return false;
           }
-          this.readFiles(event.dataTransfer.files, target);
-          return false;
-        },
-        false
-      );
+        }
+        this.readFiles(event.dataTransfer.files, target);
+        return false;
+      };
+      dropArea.addEventListener('drop', dropHandler, false);
+      this.eventListeners.push({ element: dropArea, type: 'drop', handler: dropHandler });
 
       // ドロップエリアにいる間
-      dropArea.addEventListener(
-        'dragover',
-        (event) => {
-          event.stopPropagation();
-          event.preventDefault();
-          dropArea.classList.add('drag-n-drop-hover');
-          return false;
-        },
-        false
-      );
+      const dragOverHandler = (event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        dropArea.classList.add('drag-n-drop-hover');
+        return false;
+      };
+      dropArea.addEventListener('dragover', dragOverHandler, false);
+      this.eventListeners.push({ element: dropArea, type: 'dragover', handler: dragOverHandler });
 
       // ドロップエリアに入った時
-      dropArea.addEventListener(
-        'dragenter',
-        (event) => {
-          event.stopPropagation();
-          event.preventDefault();
-          this.dragging++;
-          dropArea.classList.add('drag-n-drop-hover');
-          return false;
-        },
-        false
-      );
+      const dragEnterHandler = (event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        this.dragging++;
+        dropArea.classList.add('drag-n-drop-hover');
+        return false;
+      };
+      dropArea.addEventListener('dragenter', dragEnterHandler, false);
+      this.eventListeners.push({ element: dropArea, type: 'dragenter', handler: dragEnterHandler });
 
       // ドロップエリアから出て行った時
-      dropArea.addEventListener(
-        'dragleave',
-        (event) => {
-          event.stopPropagation();
-          event.preventDefault();
-          this.dragging--;
-          if (this.dragging === 0) {
-            dropArea.classList.remove('drag-n-drop-hover');
-          }
-          return false;
-        },
-        false
-      );
-    } else {
-      // ブラウザが対応していない場合の処理
+      const dragLeaveHandler = (event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        this.dragging--;
+        if (this.dragging === 0) {
+          dropArea.classList.remove('drag-n-drop-hover');
+        }
+        return false;
+      };
+      dropArea.addEventListener('dragleave', dragLeaveHandler, false);
+      this.eventListeners.push({ element: dropArea, type: 'dragleave', handler: dragLeaveHandler });
     }
 
     // フォーム入力よりファイルが選択された
-    $(this.inputMark, target).on('change', (event) => {
-      if (lastTime + interval <= new Date().getTime()) {
-        lastTime = new Date().getTime();
-        this.readFiles(event.target.files, target);
-      }
+    const fileInputs = target.querySelectorAll(this.inputMark);
+    fileInputs.forEach((fileInput) => {
+      const changeHandler = (event) => {
+        if (lastTime + interval <= new Date().getTime()) {
+          lastTime = new Date().getTime();
+          this.readFiles(event.target.files, target);
+        }
+      };
+      fileInput.addEventListener('change', changeHandler);
+      this.eventListeners.push({ element: fileInput, type: 'change', handler: changeHandler });
     });
   }
 
@@ -194,13 +216,9 @@ export default class ResizeImage {
     [].forEach.call(target.querySelectorAll('.js-img_resize_data'), (item) => {
       item.parentNode.removeChild(item);
     });
-    [].forEach.call(target.querySelectorAll('.js-img_exif_data'), (item) => {
-      item.parentNode.removeChild(item);
-    });
 
     const lgImageSize = ACMS.Config.lgImg;
     const lgImgAry = lgImageSize.split(':');
-    const multi = files.length > 1;
     const lgImgSide = lgImgAry[0];
     let lgImgSize = lgImgAry[1];
 
@@ -217,21 +235,13 @@ export default class ResizeImage {
         if (rawSize) {
           resize = false;
         }
-        if (multi) {
-          resize = true;
-        }
         if (!this.dropSelect && file.type === 'image/gif') {
           resize = false;
         }
         if (this.previewOnly) {
           resize = false;
         }
-        import(/* webpackChunkName: "exif-js" */ 'exif-js').then(({ default: Exif }) => {
-          Exif.getData(file, () => {
-            const exif = Exif.getAllTags(file);
-            this.set(target, dataUrl, resize || this.dropSelect, exif, multi);
-          });
-        });
+        this.set(target, dataUrl, resize || this.dropSelect);
       });
     }
   }
@@ -243,12 +253,18 @@ export default class ResizeImage {
    */
   banDrag(target) {
     [].forEach.call(target.querySelectorAll('img'), (item) => {
-      item.addEventListener('mousedown', (event) => {
+      const mouseDownHandler = (event) => {
         event.preventDefault();
-      });
-      item.addEventListener('mouseup', (event) => {
+      };
+      const mouseUpHandler = (event) => {
         event.preventDefault();
-      });
+      };
+      item.addEventListener('mousedown', mouseDownHandler);
+      item.addEventListener('mouseup', mouseUpHandler);
+      this.eventListeners.push(
+        { element: item, type: 'mousedown', handler: mouseDownHandler },
+        { element: item, type: 'mouseup', handler: mouseUpHandler }
+      );
     });
   }
 
@@ -278,65 +294,12 @@ export default class ResizeImage {
   /**
    * リサイズした画像データをdomとして追加
    *
-   * @param target
-   * @param dataUrl
-   * @param resize
-   * @param exif
-   * @param multi
+   * @param {HTMLElement} target 対象の要素
+   * @param {string} dataUrl 画像データのURL
+   * @param {boolean} resize リサイズされているかどうか
+   * @return {void}
    */
-  set(target, dataUrl, resize, exif, multi) {
-    //------
-    // exif
-    [].forEach.call(target.querySelectorAll('.js-img_exif_add'), (item) => {
-      item.style.display = 'none';
-    });
-    let checkField = true;
-    ACMS.Config.exif.requireField.forEach((item) => {
-      if (!exif[item]) {
-        checkField = false;
-      }
-    });
-
-    if (1 && ACMS.Config.exif.captionEnable === 'on' && checkField && ACMS.Config.exif.requireField instanceof Array) {
-      if (checkField) {
-        if (exif.ExposureTime && exif.ExposureTime.numerator && exif.ExposureTime.denominator) {
-          exif.ExposureTime = this.reduce(exif.ExposureTime.numerator, exif.ExposureTime.denominator);
-        }
-        if (exif.DateTimeOriginal) {
-          exif.DateTimeOriginal = exif.DateTimeOriginal.replace(
-            /(\d{4}):(\d{2}):(\d{2})\s(\d{2}):(\d{2}):(\d{2})/g,
-            '$1-$2-$3 $4:$5:$6'
-          );
-        }
-        if (!multi) {
-          const tpl = _.template(ACMS.Config.exif.captionFormat);
-          const dataExif = target.querySelector('.js-img_exif_add');
-          if (dataExif) {
-            dataExif.setAttribute('data-exif', tpl(exif));
-            dataExif.style.display = '';
-          }
-        }
-      }
-    }
-    if (ACMS.Config.exif.saveData === 'on' && checkField) {
-      const name = target.querySelector(this.inputMark).getAttribute('name');
-
-      if (name !== name.replace('file', 'exif')) {
-        const tpl2 = _.template(ACMS.Config.exif.dataFormat);
-        const exifData = document.createElement('input');
-
-        exifData.classList.add('js-img_exif_data');
-        exifData.setAttribute('type', 'hidden');
-        exifData.setAttribute(
-          'name',
-          target.querySelector(this.inputMark).getAttribute('name').replace('file', 'exif')
-        );
-        exifData.value = tpl2(exif);
-
-        target.querySelector(this.inputMark).insertAdjacentHTML('afterend', exifData.outerHTML);
-      }
-    }
-
+  set(target, dataUrl, resize) {
     if (!this.previewBox) {
       this.previewBox = target.querySelector(this.previewMark).cloneNode(true);
       [].forEach.call(target.querySelectorAll(this.previewMark), (item) => {
@@ -367,22 +330,27 @@ export default class ResizeImage {
 
     // insert data
     if (resize) {
-      $(this.inputMark, target).replaceWith($(this.inputMark, target).clone(true));
-      if ($(this.inputMark, target).val() !== '') {
-        $(this.inputMark, target).val('');
+      const fileInput = target.querySelector(this.inputMark);
+      if (fileInput) {
+        fileInput.value = '';
       }
     } else {
       dataUrl = '';
     }
 
+    const inputName = input.getAttribute('name');
     const dataForm = document.createElement('input');
     dataForm.classList.add('js-img_resize_data');
     dataForm.setAttribute('type', 'hidden');
     dataForm.setAttribute('accept', 'image/*');
     dataForm.setAttribute('type', 'hidden');
-    dataForm.setAttribute('name', input.getAttribute('name'));
+    dataForm.setAttribute('name', inputName);
     dataForm.value = dataUrl;
 
+    const dummy = target.querySelector('.js-img_resize_dummy');
+    if (dummy) {
+      dummy.remove();
+    }
     target.querySelector(this.inputMark).insertAdjacentHTML('afterend', dataForm.outerHTML);
   }
 }

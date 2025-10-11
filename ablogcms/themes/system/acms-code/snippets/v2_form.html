@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V2_Form</title>
+    <link rel="stylesheet" href="src/highlight/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="src/snippets.css" />
+    <script src="src/highlight/highlight.min.js"></script>
+    <script src="src/highlight/javascript.min.js"></script>
+    <script src="src/highlight/twig.min.js"></script>
+    <script src="src/snippets.js"></script>
+  </head>
+  <body>
+    <h1>V2_Form</h1>
+    <pre class="acms-admin-customfield-maker"><code class="language-twig">
+&#123;% set form = module(&#039;V2_Form&#039;) %&#125;
+
+&#123;% if form.error %&#125;
+&lt;!-- 全体エラー --&gt;
+&lt;p&gt;入力内容をもう一度ご確認ください。&lt;/p&gt;
+&lt;p&gt;フォームID : &#123;&#123; form.error.formID &#125;&#125;&lt;/p&gt;
+&lt;p&gt;エラー項目 : &#123;&#123; form.error.fields | join(&#039;|&#039;) &#125;&#125;&lt;/p&gt;
+&#123;% endif %&#125;
+
+&#123;% if form.step == &#039;step&#039; %&#125;
+&lt;!-- フォームステップ：初期 --&gt;
+&lt;form id=&quot;contactForm&quot; action=&quot;&quot; method=&quot;post&quot; enctype=&quot;multipart/form-data&quot; class=&quot;js-validator js-unload_alert&quot;&gt;
+
+  &#123;&#123; include(&quot;/contact/form/input.twig&quot;, form.fields) &#125;&#125;
+
+  &lt;div&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;step&quot; value=&quot;confirm&quot;&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;error&quot; value=&quot;reapply&quot;&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;id&quot; value=&quot;contactForm&quot;&gt;
+
+    &lt;button type=&quot;submit&quot; name=&quot;ACMS_POST_Form_Confirm&quot;&gt;
+      送信内容の確認へ
+    &lt;/button&gt;
+  &lt;/div&gt;
+&lt;/form&gt;
+&#123;% endif %&#125;
+
+&#123;% if form.step == &#039;reapply&#039; %&#125;
+&lt;!-- フォームステップ：修正・エラー --&gt;
+&lt;form action=&quot;&quot; method=&quot;post&quot; enctype=&quot;multipart/form-data&quot; class=&quot;js-validator js-unload_alert&quot;&gt;
+
+  &#123;&#123; include(&quot;/contact/form/input.twig&quot;, form.fields) &#125;&#125;
+
+  &lt;div&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;step&quot; value=&quot;confirm&quot;&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;error&quot; value=&quot;reapply&quot;&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;id&quot; value=&quot;contactForm&quot;&gt;
+
+    &lt;button type=&quot;submit&quot; name=&quot;ACMS_POST_Form_Confirm&quot;&gt;
+      送信内容の確認へ
+    &lt;/button&gt;
+  &lt;/div&gt;
+&lt;/form&gt;
+&#123;% endif %&#125;
+
+&#123;% if form.step == &#039;confirm&#039; %&#125;
+&lt;!-- フォームステップ：確認画面 --&gt;
+&lt;p&gt;以下の内容で送信します。内容に誤りがないかよくご確認ください。&lt;/p&gt;
+
+&#123;&#123; include(&quot;/contact/form/confirm.twig&quot;, form.fields) &#125;&#125;
+
+&lt;div&gt;
+  &lt;form action=&quot;&quot; method=&quot;post&quot;&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;step&quot; value=&quot;reapply&quot;&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;takeover&quot; value=&quot;&#123;&#123; form.fields.takeover &#125;&#125;&quot;&gt;
+
+    &lt;button type=&quot;submit&quot; name=&quot;ACMS_POST_Form_Chain&quot;&gt;
+      入力内容を修正する
+    &lt;/button&gt;
+  &lt;/form&gt;
+
+  &lt;form action=&quot;thanks.html&quot; method=&quot;post&quot; enctype=&quot;multipart/form-data&quot;&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;To[]&quot; value=&quot;&#123;&#123; form.fields.email.value &#125;&#125;&quot;&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;AdminReply-To[]&quot; value=&quot;&#123;&#123; form.fields.email.value &#125;&#125;&quot;&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;AdminFrom[]&quot; value=&quot;&#123;&#123; form.fields.email.value &#125;&#125;&quot;&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;step&quot; value=&quot;result&quot;&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;takeover&quot; value=&quot;&#123;&#123; form.fields.takeover &#125;&#125;&quot;&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;id&quot; value=&quot;contactForm&quot;&gt;
+    &lt;button type=&quot;submit&quot; name=&quot;ACMS_POST_Form_Submit&quot;&gt;
+      送信する
+    &lt;/button&gt;
+  &lt;/form&gt;
+&lt;/div&gt;
+&#123;% endif %&#125;
+
+&#123;% if form.step == &#039;result&#039; %&#125;
+&lt;!-- フォームステップ：完了画面 --&gt;
+&lt;p&gt;入力内容を送信しました。お問い合わせいただきありがとうございました。&lt;/p&gt;
+
+&#123;&#123; include(&quot;/contact/form/confirm.twig&quot;, form.fields) &#125;&#125;
+
+&lt;p&gt;
+  &lt;a href=&quot;&#123;&#123; HOME_URL &#125;&#125;&quot;&gt;トップページへ&lt;/a&gt;
+&lt;/p&gt;
+&#123;% endif %&#125;
+
+&#123;% if form.step == &#039;forbidden&#039; %&#125;
+&lt;p&gt;不正なアクセスです。お手数ですがはじめからご入力ください。&lt;/p&gt;
+
+&lt;p&gt;
+  &lt;a href=&quot;&#123;&#123; HOME_URL &#125;&#125;contact/&quot;&gt;
+    お問い合わせフォームへ戻る
+  &lt;/a&gt;
+&lt;/p&gt;
+&#123;% endif %&#125;
+
+&#123;% if form.step == &#039;repeated&#039; %&#125;
+&lt;p&gt;連続投稿は禁止されています。入力された内容は正常に送信されました。送信内容は、登録されたメールアドレス宛にお送りした確認メールからご確認ください。&lt;/p&gt;
+
+&lt;p class=&quot;mt-8 text-center&quot;&gt;
+  &lt;a href=&quot;&#123;&#123; HOME_URL &#125;&#125;&quot;&gt;トップページへ&lt;/a&gt;
+&lt;/p&gt;
+&#123;% endif %&#125;
+    </code></pre>
+  </body>
+</html>

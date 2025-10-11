@@ -5,33 +5,26 @@ class ACMS_GET_Admin_Role_Index extends ACMS_GET_Admin
     function get()
     {
         if (BID !== 1 || !sessionWithEnterpriseAdministration()) {
-            return '';
+            die403();
         }
-
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());
         $order  = ORDER ? ORDER : 'id-asc';
         $vars   = [];
         $vars['order:selected#' . $order] = config('attr_selected');
         list($field, $order) = explode('-', $order);
 
-        //---------
-        // refresh
-        if (!$this->Post->isNull()) {
-            $Tpl->add('refresh');
-            $vars['notice_mess'] = 'show';
-        }
-
         $DB     = DB::singleton(dsn());
         $SQL    = SQL::newSelect('role');
         $SQL->setOrder('role_' . $field, $order);
 
-        $q  = $SQL->get(dsn());
-        if (!$DB->query($q, 'fetch') or !($row = $DB->fetch($q))) {
+        $q = $SQL->get(dsn());
+        $statement = $DB->query($q, 'exec');
+        if (!$statement || !($row = $DB->next($statement))) {
             $Tpl->add('index#notFound');
             $vars['notice_mess'] = 'show';
         }
 
-        $all    = $DB->query($q, 'all');
+        $all = $DB->query($q, 'all');
         foreach ($all as $i => $row) {
             $rid    = intval($row['role_id']);
             $var    = [

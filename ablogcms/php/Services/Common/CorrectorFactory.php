@@ -21,8 +21,10 @@ class CorrectorFactory extends Factory
             $argument = $params;
         }
         foreach ($this->_collection as $corrector) {
-            if (is_callable([$corrector, $method])) {
-                return call_user_func_array([$corrector, $method], $argument);
+            $callback = [$corrector, $method];
+            if (is_callable($callback)) {
+                /** @var callable $callback */
+                return call_user_func_array($callback, $argument);
             }
         }
         return false;

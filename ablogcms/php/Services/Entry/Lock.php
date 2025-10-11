@@ -58,7 +58,7 @@ class Lock
      * @param int $eid
      * @param int|null $rvid
      * @param int $suid
-     * @return bool|array
+     * @return false|array
      */
     public function getLockedUser($eid, $rvid, $suid = null)
     {

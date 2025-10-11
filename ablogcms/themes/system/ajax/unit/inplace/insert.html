@@ -1,0 +1,25 @@
+<!-- BEGIN_MODULE Admin_Unit_Single -->
+<!-- actionに更新後のユニットを取得するURLを指定 -->
+<form
+  action="/bid/%{BID}/eid/%{EID}/tpl/include/unit-fetch.html/?hash=%{U}"
+  id="unitForm"
+  class="js-validator acms-admin-form acms-admin-form-edit acms-admin-form-direct"
+  method="post"
+  enctype="multipart/form-data"
+>
+  <template id="unit-html-repository">
+    @include("/admin/entry/unit.html")
+  </template>
+  <div
+    id="js-unit-inplace-editor"
+    data-default-value="{json}[escvars]"
+    <!-- BEGIN_MODULE Admin_Unit_EditorSettings -->
+    data-settings="{json}[escvars]"
+    <!-- END_MODULE Admin_Unit_EditorSettings -->
+    data-unit-id="{id}"
+  ></div>
+  <input type="hidden" name="bid" value="%{BID}" />
+  <input type="hidden" name="eid" value="%{EID}" />
+  <input type="hidden" name="ACMS_POST_Unit_Insert" value="追加" />
+</form>
+<!-- END_MODULE Admin_Unit_Single -->

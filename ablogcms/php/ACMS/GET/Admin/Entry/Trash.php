@@ -1,279 +1,189 @@
 <?php
 
-class ACMS_GET_Admin_Entry_Trash extends ACMS_GET_Admin_Entry
+class ACMS_GET_Admin_Entry_Trash extends ACMS_GET_Admin_Entry_Index
 {
-    function get()
+    /**
+     * @inheritDoc
+     */
+    protected function isExecutionAllowed(): bool
     {
-        if ('entry_trash' <> ADMIN) {
-            return '';
+        if ('entry_trash' !== ADMIN) {
+            return false;
         }
         if (!sessionWithContribution()) {
-            return '';
+            return false;
         }
 
-        $status = ite($_GET, 'status');
-        $order  = ORDER ? ORDER : 'updated_datetime-desc';
-        $limits = configArray('admin_limit_option');
-        $limit  = LIMIT ? LIMIT : $limits[config('admin_limit_default')];
+        return true;
+    }
 
-        $Tpl    = new Template($this->tpl, new ACMS_Corrector());
-        $vars   = [];
+    /**
+     * @inheritDoc
+     */
+    protected function defineStatus(): ?string
+    {
+        return null; // ゴミ箱のエントリーはステータスでの絞り込みはしない
+    }
 
-        //-------
-        // error
-        if ($entries = $this->Post->getArray('error_entries')) {
-            $Tpl->add('errorMessage');
-            $vars['notice_mess'] = 'show';
-            foreach ($entries as $id) {
-                $Tpl->add('errorEid:loop', [
-                    'errorEid'  => $id,
-                ]);
-            }
-        } else {
-            //---------
-            // refresh
-            if (!$this->Post->isNull()) {
-                $Tpl->add('refresh');
-                $vars['notice_mess'] = 'show';
-                $notice = true;
-            }
-        }
+    /**
+     * @inheritDoc
+     */
+    protected function defineSession(): ?string
+    {
+        return null; // 掲載期間での絞り込みはしない
+    }
 
-        //------------
-        // userSelect
-        if (sessionWithCompilation()) {
-            $Tpl->add('userSelect#filter');
-        }
+    /**
+     * @inheritDoc
+     */
+    protected function filterByStatus(SQL_Select &$sql, array $params): void
+    {
+        $sql->addWhereOpr('entry_status', 'trash'); // ゴミ箱のエントリーのみを取得する
+    }
 
-        //----------
-        // init SQL
-        $DB     = DB::singleton(dsn());
-        $SQL    = SQL::newSelect('entry');
+    /**
+     * @inheritDoc
+     */
+    protected function buildEntry(
+        Template $tpl,
+        array $params,
+        array $row,
+        \Field $fields,
+        array $tags,
+        array $mainImage
+    ): array {
+        /** @var int<1, max> $eid */
+        $eid = $row['entry_id'];
+        /** @var int<1, max>|null $cid */
+        $cid = $row['entry_category_id'];
+        /** @var int<1, max> $uid */
+        $uid = $row['entry_user_id'];
+        /** @var int<1, max> $bid */
+        $bid = $row['entry_blog_id'];
+        /** @var int<1, max>|null $delUid */
+        $delUid = $row['entry_delete_uid'];
 
-        //-----
-        // bid
-        $target_bid = $this->Get->get('_bid', BID);
+        $entry  = [
+            'eid' => $eid,
+            'bid' => $bid,
+            'sort' => $this->getSort($row, $params),
+            'sort#eid' => $eid,
+            'datetime'  => $row['entry_datetime'],
+            'status#' . $row['entry_status'] => (object)[],
+            'del_datetime' => $row['entry_updated_datetime'],
+            'title' => $row['entry_title'],
+            'code' => $row['entry_code'],
+            'blogName'  => ACMS_RAM::blogName($bid),
+            'userName'  => ACMS_RAM::userName($uid),
+            'userIcon'  => loadUserIcon($uid),
+            'entryUrl'  => acmsLink([
+                'eid'   => $eid,
+            ]),
+            'blogUrl'   => acmsLink([
+                'admin' => ADMIN,
+                'bid'   => BID,
+                'query' => [
+                    '_bid' => $bid !== BID ? $bid : null,
+                ],
+            ]),
+            'userUrl'   => acmsLink([
+                'admin' => ADMIN,
+                'uid'   => $uid,
+            ]),
+            'editUrl'   => acmsLink([
+                'admin' => 'entry_editor',
+                'bid'   => $bid,
+                'eid'   => $eid,
+            ], false),
+        ];
 
-        //------
-        // axis
-        $axis   = $this->Get->get('axis', 'self');
-        if (1 < ACMS_RAM::blogRight($target_bid) - ACMS_RAM::blogLeft($target_bid)) {
-            $Tpl->add('axis', [
-                'axis:checked#' . $axis => config('attr_checked')
-            ]);
-        } else {
-            $axis   = 'self';
-        }
-
-        //--------
-        // status
-        $SQL->addWhereOpr('entry_status', 'trash');
-
-        //---------
-        // keyword
-        if (!!KEYWORD) {
-            $SQL->addLeftJoin('fulltext', 'fulltext_eid', 'entry_id');
-            $keywords = preg_split(REGEX_SEPARATER, KEYWORD, -1, PREG_SPLIT_NO_EMPTY);
-            foreach ($keywords as $keyword) {
-                $SQL->addWhereOpr('fulltext_value', '%' . $keyword . '%', 'LIKE');
-            }
-        }
-
-        //-------
-        // order
-        $vars['order:selected#' . $order]  = config('attr_selected');
-
-        //-------
-        // limit
-        foreach ($limits as $val) {
-            $_vars  = ['limit' => $val];
-            if ($limit == $val) {
-                $_vars['selected'] = config('attr_selected');
-            }
-            $Tpl->add('limit:loop', $_vars);
-        }
-
-        $SQL->addLeftJoin('blog', 'blog_id', 'entry_blog_id');
-        ACMS_Filter::blogTree($SQL, $target_bid, $axis);
-        ACMS_Filter::blogStatus($SQL);
-
-        if (CID) {
-            $SQL->addLeftJoin('category', 'category_id', 'entry_category_id');
-            ACMS_Filter::categoryTree($SQL, CID, 'descendant-or-self');
-            ACMS_Filter::categoryStatus($SQL);
-        } elseif ($this->Get->get('_cid') === '0') {
-            $SQL->addWhereOpr('entry_category_id', null);
-            $vars['non_category#selected'] = config('attr_selected');
-        }
-
-        //-------------
-        // contributor
-        if (roleAvailableUser()) {
-            $UID    = !roleAuthorization('entry_edit_all', BID) ? SUID : UID;
-        } else {
-            $UID    = !sessionWithCompilation() ? SUID : UID;
-        }
-        if ($UID) {
-            $SQL->addWhereOpr('entry_user_id', $UID);
-        }
-
-        $Pager  = new SQL_Select($SQL);
-        $Pager->setSelect('*', 'entry_amount', null, 'count');
-        if (!$pageAmount = intval($DB->query($Pager->get(dsn()), 'one'))) {
-            $Tpl->add('index#notFound');
-            $vars['notice_mess'] = 'show';
-            $Tpl->add(null, $vars);
-            return $Tpl->get();
-        }
-
-        $vars   += $this->buildPager(
-            PAGE,
-            $limit,
-            $pageAmount,
-            config('admin_pager_delta'),
-            config('admin_pager_cur_attr'),
-            $Tpl,
-            [],
-            ['admin' => ADMIN]
-        );
-
-        $SQL->setLimit($limit, (PAGE - 1) * $limit);
-        ACMS_Filter::entryOrder($SQL, $order, $UID, CID);
-
-        $q  = $SQL->get(dsn());
-        $DB->query($q, 'fetch');
-
-        while ($row = $DB->fetch($q)) {
-            $eid    = $row['entry_id'];
-            $cid    = $row['entry_category_id'];
-            $uid    = $row['entry_user_id'];
-            $bid    = $row['entry_blog_id'];
-            $delUid = $row['entry_delete_uid'];
-
-            $_vars = [];
-            $_vars += [
-                'eid'       => $eid,
-                'bid'       => $bid,
-                'datetime'  => $row['entry_datetime'],
-                'del_datetime' => $row['entry_updated_datetime'],
-                'title'     => $row['entry_title'],
-                'code'      => $row['entry_code'],
-                'blogName'  => ACMS_RAM::blogName($bid),
-                'userName'  => ACMS_RAM::userName($uid),
-                'userIcon'  => loadUserIcon($uid),
-                'entryUrl'  => acmsLink([
-                    'admin' => false,
-                    'bid'   => $bid,
-                    'eid'   => $eid,
-                ]),
-                'blogUrl'   => acmsLink([
+        if ($delUid !== null) {
+            $entry += [
+                'delUserName' => ACMS_RAM::userName($delUid),
+                'delUserIcon' => loadUserIcon($delUid),
+                'delUserUrl' => acmsLink([
                     'admin' => ADMIN,
-                    'bid'   => $bid,
-                ]),
-                'userUrl'   => acmsLink([
-                    'admin' => ADMIN,
-                    'uid'   => $uid,
-                ]),
-                'editUrl'   => acmsLink([
-                    'admin' => 'entry_editor',
-                    'eid'   => $eid,
+                    'uid' => $delUid,
                 ]),
             ];
-            if (!empty($delUid)) {
-                $_vars += [
-                    'delUserName' => ACMS_RAM::userName($delUid),
-                    'delUserIcon' => loadUserIcon($delUid),
-                    'delUserUrl' => acmsLink([
-                        'admin' => ADMIN,
-                        'uid' => $delUid,
-                    ]),
-                ];
-            }
-
-            if ($cid) {
-                $_vars += [
-                    'categoryName' => ACMS_RAM::categoryName($cid),
-                    'categoryUrl' => acmsLink([
-                        'admin' => ADMIN,
-                        'cid' => $cid,
-                    ]),
-                ];
-            }
-
-            //------------
-            // sort#value
-            if ('self' == $axis) {
-                if ($UID) {
-                    $sort   = $row['entry_user_sort'];
-                } elseif (CID) {
-                    $sort   = $row['entry_category_sort'];
-                } else {
-                    $sort   = $row['entry_sort'];
-                }
-
-                $_vars  += [
-                    'sort'      => $sort,
-                    'sort#eid'  => $eid,
-                ];
-            }
-
-            //---------
-            // delete
-            do {
-                if (config('approval_contributor_edit_auth') !== 'on' && enableApproval(BID, CID)) {
-                    if (!sessionWithApprovalAdministrator(BID, CID)) {
-                        break;
-                    }
-                } elseif (roleAvailableUser()) {
-                    if (!roleAuthorization('entry_delete', BID, $eid)) {
-                        break;
-                    }
-                }
-                $Tpl->add(['adminDeleteActionLoop', 'entry:loop']);
-            } while (false);
-
-            //-------
-            // field
-            $_vars  += $this->buildField(loadEntryField($eid), $Tpl, 'entry:loop', 'entry');
-
-            $Tpl->add('status#' . $row['entry_status']);
-            $Tpl->add('entry:loop', $_vars);
+        }
+        if ($cid !== null) {
+            $entry += [
+                'categoryName'  => ACMS_RAM::categoryName($cid),
+                'categoryUrl'   => acmsLink([
+                    'admin' => ADMIN,
+                    'cid'   => $cid,
+                ]),
+            ];
         }
 
-        do {
-            if (config('approval_contributor_edit_auth') !== 'on' && enableApproval(BID, CID)) {
-                if (!sessionWithApprovalAdministrator(BID, CID)) {
-                    break;
-                }
-            } elseif (roleAvailableUser()) {
-                if (!roleAuthorization('entry_delete', BID)) {
-                    break;
-                }
-            }
-            $Tpl->add(['adminDeleteAction']);
-            $Tpl->add(['adminDeleteAction2']);
-        } while (false);
+        $entry += ['action' => $this->buildEntryActions($row)];
 
-        //-------------
-        // sort:action
-        if ('self' == $axis) {
-            if ($UID) {
-                $Tpl->add('sort:action#user');
-            } elseif (CID) {
-                $Tpl->add('sort:action#category');
-            } else {
-                $Tpl->add('sort:action#entry');
-            }
+        //-------
+        // field
+        $entry += $this->buildField($fields, $tpl, 'entry:loop', 'entry');
+
+        return $entry;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function buildEntryActions(array $row): array
+    {
+        /** @var int $entryId */
+        $entryId = $row['entry_id'];
+        $actions = [[]];
+        if (Entry::canTrashRestore($entryId)) {
+            $actions[] = ['id' => 'restore'];
         }
-
-        //------------
-        // userSelect
-        if (sessionWithCompilation()) {
-            $Tpl->add('userSelect#batch');
+        if (Entry::canViewApprovalHistory($entryId)) {
+            $actions[] = [
+                'id' => 'approval-history',
+                'url' => acmsLink([
+                    'admin' => 'entry_approval-history',
+                    'eid' => $entryId,
+                ]),
+            ];
         }
+        return $actions;
+    }
 
+    /**
+     * @inheritDoc
+     */
+    protected function isSortable(array $params, string $sortType): bool
+    {
+        return false; // ゴミ箱のエントリーは並び替えができない
+    }
 
-        $Tpl->add(null, $vars);
-        return $Tpl->get();
+    /**
+     * @inheritDoc
+     */
+    protected function buildBulkActions(
+        Template $tpl,
+        array $params,
+        array $entries,
+        array $field,
+        array $tag,
+        array $primaryImage
+    ): array {
+        $bulkActions = [];
+        if (Entry::canBulkDelete(BID, CID)) {
+            $bulkActions[] = 'delete';
+        }
+        if (Entry::canBulkTrashRestore(BID, CID)) {
+            // ゴミ箱のエントリーを一括で復元できる場合
+            $bulkActions[] = 'restore';
+        }
+        return ['bulkActions' => $bulkActions, 'bulkAction' => $bulkActions];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function defaultOrder(): string
+    {
+        return 'updated_datetime-desc'; // ゴミ箱のエントリーは更新日時の降順で表示する
     }
 }

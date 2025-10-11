@@ -6,6 +6,16 @@ use Acms\Services\Login\Exceptions\ExpiredException;
 class ACMS_GET_Member_Admin_Login extends ACMS_GET_Member_Signin
 {
     /**
+     * トークンのキーを取得
+     *
+     * @return string
+     */
+    protected function getTokenKey(): string
+    {
+        return 'email-login';
+    }
+
+    /**
      * トークンのタイプを取得
      *
      * @return string

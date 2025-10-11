@@ -42,7 +42,7 @@ class ACMS_GET_Module_Preview extends ACMS_GET_Layout
         $sql->addSelect('module_name');
         $sql->addWhereOpr('module_id', $mid);
         /** @var array{module_id: int, module_identifier: string, module_name: string}|false $module */
-        $module = DB::query((string)$sql->get(dsn()), 'row');
+        $module = DB::query($sql->get(dsn()), 'row');
         return is_array($module) ? $module : null;
     }
 

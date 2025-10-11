@@ -1,0 +1,14 @@
+{
+<!-- BEGIN_MODULE Admin_ActionResult -->
+  "status": "{status}"
+<!-- END_MODULE Admin_ActionResult -->
+<!-- BEGIN_MODULE Admin_Errors -->
+  ,
+  "messages": [
+    <!-- BEGIN error:loop -->
+    <!-- BEGIN error:glue -->,<!-- END error:glue -->
+    "{error}"
+    <!-- END error:loop -->
+  ]
+<!-- END_MODULE Admin_Errors -->
+}

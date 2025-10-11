@@ -3,7 +3,7 @@
 namespace Acms\Services\Config;
 
 use SQL;
-use DB;
+use Acms\Services\Facades\Database as DB;
 
 class ModuleExport extends Export
 {
@@ -15,17 +15,15 @@ class ModuleExport extends Export
     /**
      * export module data
      *
-     * @param int $bid
      * @param int $mid
      *
      * @return void
      */
-    public function exportModule($bid, $mid)
+    public function exportModule($mid)
     {
-        $this->bid = $bid;
         $this->mid = $mid;
 
-        if (empty($this->bid) || empty($this->mid)) {
+        if (empty($this->mid)) {
             return;
         }
 
@@ -45,14 +43,13 @@ class ModuleExport extends Export
     protected function buildConfigYaml()
     {
         $SQL = SQL::newSelect('config');
-        $SQL->addWhereOpr('config_blog_id', $this->bid);
         $SQL->addWhereOpr('config_module_id', $this->mid);
         $SQL->addWhereOpr('config_rule_id', null);
         $q = $SQL->get(dsn());
-        DB::query($q, 'fetch');
+        $statement = DB::query($q, 'exec');
         $records = [];
 
-        while ($r = DB::fetch($q)) {
+        while ($r = DB::next($statement)) {
             $this->extractMetaIds($r);
             $records[] = $r;
         }
@@ -65,13 +62,12 @@ class ModuleExport extends Export
     protected function buildModuleYaml()
     {
         $SQL = SQL::newSelect('module');
-        $SQL->addWhereOpr('module_blog_id', $this->bid);
         $SQL->addWhereOpr('module_id', $this->mid);
         $q = $SQL->get(dsn());
-        DB::query($q, 'fetch');
+        $statement = DB::query($q, 'exec');
         $records = [];
 
-        while ($r = DB::fetch($q)) {
+        while ($r = DB::next($statement)) {
             $this->extractMetaIds($r);
             $records[] = $r;
         }
@@ -84,7 +80,6 @@ class ModuleExport extends Export
     protected function buildFieldYaml()
     {
         $SQL = SQL::newSelect('field');
-        $SQL->addWhereOpr('field_blog_id', $this->bid);
         $SQL->addWhereOpr('field_mid', $this->mid);
         $field = DB::query($SQL->get(dsn()), 'all');
         $this->setYaml($field, 'field');

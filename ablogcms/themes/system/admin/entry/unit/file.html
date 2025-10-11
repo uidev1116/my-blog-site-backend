@@ -1,0 +1,82 @@
+<table class="entryFormColumnTable">
+  <tbody>
+    <tr>
+      <td class="entryFormFilePreview">
+        <!-- BEGIN icon#none -->
+        <img
+          src="%{IMAGES_DIR}default/noimage.gif"
+          width="100"
+          height="100"
+          alt="<!--T-->登録されていません<!--/T-->"
+        >
+        <!-- END icon#none -->
+        <!-- BEGIN icon:veil -->
+        <a href="%{HTTP_ARCHIVES_DIR}{old}" class="entryFormFileName">
+          <img
+            src="%{IMAGES_DIR}fileicon/{icon}.png"
+            class="icon"
+            alt="{type}"
+            width="70"
+            height="81"
+            alt="<!--T-->登録したファイル<!--/T-->"
+          >
+        </a>
+        <!-- END icon:veil -->
+        <input type="hidden" name="file_old_{id}" value="{old}">
+      </td>
+      <td class="entryFormFileControl">
+        <table class="entryFormColumnSettingTable">
+          <tbody>
+            <tr>
+              <th>
+                <label for="entry-file">
+                  <!--T-->ファイル<!--/T-->
+                </label>
+              </th>
+              <td>
+                <input type="file" name="file_file_{id}[]" id="entry-file" multiple="multiple">
+                <!-- BEGIN fileDelete:veil -->
+                <br>
+                <div class="acms-admin-form-checkbox">
+                  <input
+                    type="checkbox"
+                    name="file_edit_{deleteId}"
+                    value="delete"
+                    id="input-checkbox-file_edit_{deleteId}"
+                  >
+                  <label for="input-checkbox-file_edit_{deleteId}">
+                    <i class="acms-admin-ico-checkbox"></i>
+                    <!--T-->削除<!--/T-->
+                  </label>
+                </div>
+                <!-- END fileDelete:veil -->
+              </td>
+            </tr>
+            <!-- BEGIN fileName:veil -->
+             <tr>
+              <th><!--T-->ファイル名<!--/T--></th>
+              <td>
+                <p class="entryFormFileName"><a href="%{HTTP_ARCHIVES_DIR}{old}">{basename}</a></p>
+              </td>
+            </tr><!-- END fileName:veil -->
+            <tr>
+              <th>
+                <label for="unit-file-caption-{id}">
+                  <!--T-->キャプション<!--/T-->
+                </label>
+              </th>
+              <td>
+                <textarea
+                  name="file_caption_{id}"
+                  rows="1"
+                  id="unit-file-caption-{id}"
+                  class="acms-admin-form-width-full"
+                >{caption}</textarea>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+  </tbody>
+</table>

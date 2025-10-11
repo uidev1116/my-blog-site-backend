@@ -21,7 +21,7 @@ interface ExportEntry
     /**
      * エントリーのエクスポートでエクスポートするモジュールIDを返却
      *
-     * @return int[]
+     * @return positive-int|null
      */
-    public function exportModuleIds(): array;
+    public function exportModuleId(): ?int;
 }

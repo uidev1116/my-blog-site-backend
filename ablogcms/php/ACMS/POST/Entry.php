@@ -41,44 +41,19 @@ class ACMS_POST_Entry extends ACMS_POST
         return true;
     }
 
-    function clearCache($bid, $eid)
-    {
-        // clear page cache
-        if (config('cache_clear_when_post') !== 'on') {
-            ACMS_POST_Cache::clearEntryPageCache($eid); // このエントリのみ削除
-        } else {
-            ACMS_POST_Cache::clearPageCache($bid);
-        }
-    }
-
     /**
      * @param $url
-     * @param bool $ajax
      */
-    function responseRedirect($url, $ajax = false)
+    function responseRedirect($url)
     {
-        if ($ajax) {
-            die(json_encode([
-                'action' => 'redirect',
-                'url' => $url,
-            ]));
-        } else {
-            $this->redirect($url);
-        }
+        $this->redirect($url);
     }
 
     /**
-     * @param bool $ajax
      * @return Field_Validation
      */
-    function responseGet($ajax = false)
+    function responseGet()
     {
-        if ($ajax) {
-            die(json_encode([
-                'action' => 'post',
-                'throughPost' => acmsSerialize($this->Post),
-            ]));
-        }
         return $this->Post;
     }
 
@@ -88,14 +63,6 @@ class ACMS_POST_Entry extends ACMS_POST
     function validEntryCodeDouble($code, $bid = BID, $cid = null, $eid = null)
     {
         return Entry::validEntryCodeDouble($code, $bid, $cid, $eid);
-    }
-
-    /**
-     * ToDo: deprecated method 2.7.0
-     */
-    function pingTrackback($endpoint, $eid)
-    {
-        Entry::pingTrackback($endpoint, $eid);
     }
 
     /**

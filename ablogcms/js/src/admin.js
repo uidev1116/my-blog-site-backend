@@ -4,6 +4,7 @@ import dispatchSystemUpdate from './features/system-update';
 import dispatchBackup from './features/backup';
 import dispatchStaticExport from './features/static-export';
 import dispatchCsvImport from './features/csv-import';
+import dispatchWxrExport from './features/wxr-export';
 import dispatchWebhookEventSelect from './dispatch/dispatch-webhook-event-select';
 import dispatchPreviewMode from './dispatch/dispatch-preview-mode';
 import dispatchTimeMachineMode from './dispatch/dispatch-timemachine-mode';
@@ -16,15 +17,33 @@ import dispatchCustomFieldMaker from './dispatch/dispatch-custom-field-maker';
 import dispatchAuditLogDetailModal from './dispatch/dispatch-audit-log-detail-modal';
 import dispatchQuickSearch from './dispatch/dispatch-quick-search';
 import dispatchEntryLockModal from './dispatch/dispatch-entry-lock-modal';
+import dispatchKeyboardShortcutModal from './dispatch/dispatch-keyboard-shortcut-modal';
 import dispatchNavigationEditor from './dispatch/dispatch-navigation-editor';
-import { dispatchMediaAdmin, dispatchMediaField, dispatchMediaUnit } from './dispatch/media';
+import dispatchMediaAdmin from './dispatch/media/dispatch-media-admin';
+import dispatchMediaField from './dispatch/media/dispatch-media-field';
 import dispatchCategorySelect from './dispatch/dispatch-category-select';
 import dispatchTagSelect from './dispatch/dispatch-tag-select';
 import dispatchSubCategorySelect from './dispatch/dispatch-sub-category-select';
-import dispatchAtable from './dispatch/dispatch-a-table';
+import dispatchAtableField from './dispatch/dispatch-a-table-field';
 import dispatchRichEditor from './dispatch/dispatch-rich-editor';
+import dispatchBlockEditor from './dispatch/dispatch-block-editor';
 import dispatchRelatedEntry from './dispatch/dispatch-related-entry';
-import { dispatchLiteEditor, dispatchLiteEditorField } from './dispatch/lite-editor';
+import dispatchLiteEditorField from './dispatch/dispatch-lite-editor-field';
+import dispatchEntryAdmin from './dispatch/dispatch-entry-admin';
+import dispatchEntryBulkChangeSelect from './dispatch/dispatch-entry-bulk-change-select';
+import dispatchModuleAdmin from './dispatch/dispatch-module-admin';
+import dispatchNotify from './dispatch/dispatch-notify';
+import dispatchUnitEditor from './dispatch/dispatch-unit-editor';
+import dispatchUnitInplaceEditor from './dispatch/dispatch-unit-inplace-editor';
+import dispatchPending from './dispatch/dispatch-pending';
+import dispatchTooltip from './dispatch/dispatch-tooltip';
+import dispatchGoogleMapsPicker from './dispatch/dispatch-google-maps-picker';
+import dispatchOpenStreetMapPicker from './dispatch/dispatch-open-street-map-picker';
+import dispatchModal from './dispatch/dispatch-modal';
+import dispatchResizeImageCF from './dispatch/dispatch-resize-image-cf';
+import dispatchFlatpicker from './dispatch/dispatch-flatpicker';
+import dispatchDialog from './dispatch/dispatch-dialog';
+import dispatchUnitConfigEditor from './dispatch/dispatch-unit-config-editor';
 
 ACMS.Ready(() => {
   __webpack_public_path__ = ACMS.Config.root; // eslint-disable-line
@@ -33,16 +52,16 @@ ACMS.Ready(() => {
    * Delayed contents event
    */
   ACMS.addListener('acmsAdminSelectTab', (e) => {
-    ACMS.dispatchEvent('acmsAdminDelayedContents', e.target, e.obj);
+    ACMS.dispatchEvent('acmsAdminDelayedContents', e.target, e.detail);
   });
   ACMS.addListener('acmsAdminShowTabPanel', (e) => {
-    ACMS.dispatchEvent('acmsAdminDelayedContents', e.target, e.obj);
+    ACMS.dispatchEvent('acmsAdminDelayedContents', e.target, e.detail);
   });
   ACMS.addListener('acmsDialogOpened', (e) => {
-    ACMS.dispatchEvent('acmsAdminDelayedContents', e.target, e.obj);
+    ACMS.dispatchEvent('acmsAdminDelayedContents', e.target, e.detail);
   });
   ACMS.addListener('acmsAddCustomFieldGroup', (e) => {
-    ACMS.dispatchEvent('acmsAdminDelayedContents', e.target, e.obj);
+    ACMS.dispatchEvent('acmsAdminDelayedContents', e.target, e.detail);
   });
 
   /**
@@ -50,6 +69,43 @@ ACMS.Ready(() => {
    */
   ACMS.addListener('acmsDialogOpened', (e) => {
     $('.js-hide-on-modal', e.target).remove();
+  });
+
+  /**
+   * 通知
+   */
+  dispatchNotify();
+
+  /**
+   * ダイアログ
+   */
+  dispatchDialog();
+
+  /**
+   * ツールチップ
+   */
+  dispatchTooltip();
+
+  /*
+   * ペンディング
+   */
+  dispatchPending();
+
+  /**
+   * モーダル
+   */
+  dispatchModal();
+
+  /**
+   * Unit Editor
+   */
+  dispatchUnitEditor(document);
+
+  /**
+   * Unit Inplace Editor
+   */
+  ACMS.addListener('acmsInplaceDialogOpen', (event) => {
+    dispatchUnitInplaceEditor(event.target);
   });
 
   /**
@@ -80,71 +136,28 @@ ACMS.Ready(() => {
   });
 
   /**
-   * 会員限定記事チェックボックス
+   * a-table field
    */
-  const dispatchMembersOnlyCheckbox = () => {
-    const checkboxs = document.querySelectorAll('.js-input-members-only');
-    const normalDelimiter = document.querySelector('.js-normal-delimiter');
-    const membersOnlyDelimiter = document.querySelector('.js-members-only-delimiter');
-
-    if (normalDelimiter && membersOnlyDelimiter && checkboxs && checkboxs.length > 0) {
-      [].forEach.call(checkboxs, (input) => {
-        input.addEventListener('change', () => {
-          if (input.checked) {
-            normalDelimiter.style.display = 'none';
-            membersOnlyDelimiter.style.display = 'block';
-          } else {
-            normalDelimiter.style.display = 'block';
-            membersOnlyDelimiter.style.display = 'none';
-          }
-        });
-      });
-    }
-  };
-  dispatchMembersOnlyCheckbox();
-
-  /**
-   * a-table
-   */
-  const dispatchATableField = (ctx) => {
-    const tables = ctx.querySelectorAll(ACMS.Config.aTableFieldMark);
-    [].forEach.call(tables, (table) => {
-      dispatchAtable(table);
-    });
-  };
-  dispatchATableField(document);
+  dispatchAtableField(document);
   ACMS.addListener('acmsAdminDelayedContents', () => {
-    dispatchATableField(document);
-  });
-  function dispatchATableUnit(context = document) {
-    const tables = context.querySelectorAll('.js-table-unit');
-    [].forEach.call(tables, (table) => {
-      dispatchAtable(table);
-    });
-  }
-  dispatchATableUnit(document);
-  ACMS.addListener('acmsAddUnit', (event) => {
-    if (event.obj.item && event.obj.item.querySelector) {
-      dispatchATableUnit(event.obj.item);
-      dispatchATableField(event.obj.item);
-    }
+    dispatchAtableField(document);
   });
   ACMS.addListener('acmsCustomFieldMakerPreview', (event) => {
-    dispatchATableField(event.target);
+    dispatchAtableField(event.target);
   });
 
   /**
-   * Rich Editor
+   * BlockEditor, Rich Editor
    */
+  dispatchBlockEditor(document);
   dispatchRichEditor(document);
-  ACMS.addListener('acmsAddUnit', (event) => {
-    dispatchRichEditor(event.obj.item);
-  });
   ACMS.addListener('acmsAdminDelayedContents', (e) => {
     const context = e.obj.item || e.target;
+    dispatchBlockEditor(context);
     dispatchRichEditor(context);
   });
   ACMS.addListener('acmsCustomFieldMakerPreview', (event) => {
+    dispatchBlockEditor(event.target);
     dispatchRichEditor(event.target);
   });
 
@@ -158,13 +171,9 @@ ACMS.Ready(() => {
   });
 
   /**
-   * Lite Editor
+   * Lite Editor Field
    */
-  dispatchLiteEditor();
   dispatchLiteEditorField(document);
-  ACMS.addListener('acmsAddUnit', (event) => {
-    dispatchLiteEditorField(event.obj.item);
-  });
   ACMS.addListener('acmsAdminDelayedContents', (e) => {
     const ctx = e.target || document;
     dispatchLiteEditorField(ctx);
@@ -183,25 +192,24 @@ ACMS.Ready(() => {
   dispatchCustomFieldMaker(document);
 
   /**
-   * OpenSereetMap
+   * Google Map Picker
    */
-  const dispatchGeoPicker = (item) => {
-    import(/* webpackChunkName: "geo-picker" */ './lib/geo-picker').then(({ default: geoPicker }) => {
-      geoPicker(item);
-    });
-  };
-  const openStreetMapsPickers = document.querySelectorAll('.js-open-street-map-editable');
-  [].forEach.call(openStreetMapsPickers, (item) => {
-    dispatchGeoPicker(item);
-  });
+  dispatchGoogleMapsPicker(document);
   ACMS.addListener('acmsAddCustomFieldGroup', (e) => {
-    dispatchGeoPicker(e.obj.item);
+    dispatchGoogleMapsPicker(e.obj.item);
   });
-  ACMS.addListener('acmsAddUnit', (e) => {
-    dispatchGeoPicker(e.obj.item);
+
+  ACMS.addListener('acmsDialogOpened', (e) => {
+    dispatchGoogleMapsPicker(e.target);
   });
-  ACMS.addListener('onGeoInfoAdded', (e) => {
-    dispatchGeoPicker(e.target);
+
+  dispatchOpenStreetMapPicker(document);
+  ACMS.addListener('acmsAddCustomFieldGroup', (e) => {
+    dispatchOpenStreetMapPicker(e.obj.item);
+  });
+
+  ACMS.addListener('acmsDialogOpened', (e) => {
+    dispatchOpenStreetMapPicker(e.target);
   });
 
   /**
@@ -296,6 +304,11 @@ ACMS.Ready(() => {
   }
 
   /**
+   * キーボードショートカットモーダル
+   */
+  dispatchKeyboardShortcutModal(document);
+
+  /**
    * プレビューモード（インライン）
    */
   dispatchInlinePreview(document);
@@ -309,56 +322,6 @@ ACMS.Ready(() => {
    * タイムマシーンモード
    */
   dispatchTimeMachineMode(document);
-
-  /**
-   * 擬似フォーム
-   */
-  const dispatchFakeForms = (context = document) => {
-    const fakeForms = context.querySelectorAll('.js-fake-form');
-    [].forEach.call(fakeForms, (item) => {
-      const submit = item.querySelector('.js-submit');
-      $(submit)
-        .unbind('click')
-        .bind('click', (e) => {
-          e.preventDefault();
-
-          const confirmMsg = $(submit).data('confirm')?.replace(/\\n/g, '\n');
-
-          if (confirmMsg && !window.confirm(confirmMsg)) {
-            return false;
-          }
-          const method = item.getAttribute('data-method');
-          const form = document.createElement('form');
-
-          form.setAttribute('method', method);
-          form.style.display = 'none';
-
-          $(item)
-            .find(':input, :radio, :checkbox, :submit')
-            .each((i, elm) => {
-              const copy = elm.cloneNode(true);
-              copy.value = elm.value;
-              form.appendChild(copy);
-            });
-
-          const csrfToken = document.createElement('input');
-          csrfToken.type = 'hidden';
-          csrfToken.name = 'formToken';
-          csrfToken.value = window.csrfToken;
-          form.appendChild(csrfToken);
-          document.body.appendChild(form);
-          form.submit();
-        });
-    });
-    $('form').submit(function () {
-      $(this).find('.js-fake-form').remove();
-    });
-  };
-  ACMS.addListener('acmsAdminDelayedContents', (event) => {
-    const context = event.obj.item || event.target;
-    dispatchFakeForms(context);
-  });
-  dispatchFakeForms(document);
 
   /**
    * System update
@@ -381,10 +344,9 @@ ACMS.Ready(() => {
   dispatchCsvImport(document);
 
   /**
-   * 固定ナビゲーション
+   * WXR Export
    */
-  const scrollAreaHeight = $('.js-scroll-fixed').height();
-  $('.js-scroll-contents').css('padding-bottom', scrollAreaHeight);
+  dispatchWxrExport(document);
 
   /**
    * Select2
@@ -393,11 +355,24 @@ ACMS.Ready(() => {
   ACMS.addListener('acmsAdminDelayedContents', (e) => {
     dispatchSelect2(e.target);
   });
-  ACMS.addListener('acmsAddUnit', (e) => {
-    dispatchSelect2(e.obj.item);
-  });
   ACMS.addListener('acmsAddCustomFieldGroup', (e) => {
     dispatchSelect2(e.obj.item);
+  });
+
+  /**
+   * Flatpicker
+   */
+  dispatchFlatpicker(document);
+  ACMS.addListener('acmsAddCustomFieldGroup', (event) => {
+    dispatchFlatpicker(event.target);
+  });
+
+  /**
+   * Resize image cf
+   */
+  dispatchResizeImageCF(document);
+  ACMS.addListener('acmsAddCustomFieldGroup', (event) => {
+    dispatchResizeImageCF(event.target);
   });
 
   /**
@@ -415,6 +390,75 @@ ACMS.Ready(() => {
       }
     });
   });
+
+  /**
+   * AdminMenu editor
+   */
+  dispatchAdminMenuEditor(document);
+  ACMS.addListener('acmsAdminDelayedContents', () => {
+    dispatchAdminMenuEditor(document);
+  });
+
+  /**
+   * Navigation editor
+   */
+  dispatchNavigationEditor(document);
+  ACMS.addListener('acmsAdminDelayedContents', () => {
+    dispatchNavigationEditor(document);
+  });
+
+  /**
+   * Banner Editor
+   */
+  dispatchBannerEditor(document);
+  ACMS.addListener('acmsAdminDelayedContents', (event) => {
+    const context = event.obj.item || event.target;
+    dispatchBannerEditor(context);
+  });
+
+  /**
+   * Unit Config Editor
+   */
+  dispatchUnitConfigEditor(document);
+
+  /**
+   * メディア管理
+   */
+  dispatchMediaAdmin(document);
+  ACMS.addListener('acmsAdminDelayedContents', (event) => {
+    const context = event.obj.item || event.target;
+    dispatchMediaAdmin(context);
+  });
+
+  /**
+   * メディアフィールド
+   */
+  dispatchMediaField(document);
+  ACMS.addListener('acmsDialogOpened', (event) => {
+    dispatchMediaField(event.target);
+  });
+  ACMS.addListener('acmsAddCustomFieldGroup', (event) => {
+    dispatchMediaField(event.target);
+  });
+
+  ACMS.addListener('acmsCustomFieldMakerPreview', (event) => {
+    dispatchMediaField(event.target);
+  });
+
+  /**
+   * エントリー管理
+   */
+  dispatchEntryAdmin(document);
+
+  /**
+   * エントリー一括変更選択
+   */
+  dispatchEntryBulkChangeSelect(document);
+
+  /**
+   * モジュール管理
+   */
+  dispatchModuleAdmin(document);
 
   /**
    * ライセンス警告
@@ -444,57 +488,6 @@ ACMS.Ready(() => {
   });
 
   /**
-   * AdminMenu editor
-   */
-  dispatchAdminMenuEditor(document);
-  ACMS.addListener('acmsAdminDelayedContents', () => {
-    dispatchAdminMenuEditor(document);
-  });
-
-  /**
-   * Navigation editor
-   */
-  dispatchNavigationEditor(document);
-  ACMS.addListener('acmsAdminDelayedContents', () => {
-    dispatchNavigationEditor(document);
-  });
-
-  /**
-   * Banner Editor
-   */
-  dispatchBannerEditor(document);
-  ACMS.addListener('acmsAdminDelayedContents', (event) => {
-    const context = event.obj.item || event.target;
-    dispatchBannerEditor(context);
-  });
-
-  /**
-   * メディア管理
-   */
-  dispatchMediaAdmin(document);
-  ACMS.addListener('acmsAdminDelayedContents', (event) => {
-    const context = event.obj.item || event.target;
-    dispatchMediaAdmin(context);
-  });
-
-  dispatchMediaField(document);
-
-  ACMS.addListener('acmsAddUnit', (event) => {
-    dispatchMediaUnit(event.target);
-    dispatchMediaField(event.target);
-  });
-  ACMS.addListener('acmsDialogOpened', (event) => {
-    dispatchMediaField(event.target);
-  });
-  ACMS.addListener('acmsAddCustomFieldGroup', (event) => {
-    dispatchMediaField(event.target);
-  });
-
-  ACMS.addListener('acmsCustomFieldMakerPreview', (event) => {
-    dispatchMediaField(event.target);
-  });
-
-  /**
    * Dispatch acmsAdminReady
    */
   ACMS.dispatchEvent('acmsAdminReady');
@@ -503,57 +496,64 @@ ACMS.Ready(() => {
    * GeoPicker
    */
   const dispatchGeoInput = (context) => {
-    const $geoInput = $('.js-geo_input', context);
-    const $geoForm = $('.js-geo_form', context);
-    if (!$geoInput.length || !$geoForm.length) {
-      return;
-    }
-    const $lat = $geoForm.find('[name=geo_lat]');
-    const $lng = $geoForm.find('[name=geo_lng]');
-    const $zoom = $geoForm.find('[name=geo_zoom]');
-    const $gmapTarget = $geoForm.find('.js-map_editable-container-flag');
-    const defaultLat = ACMS.Config.adminLocationDefaultLat || '';
-    const defaultLng = ACMS.Config.adminLocationDefaultLng || '';
-    const defaultZoom = ACMS.Config.adminLocationDefaultZoom || '10';
+    const buttons = context.querySelectorAll('.js-geo-button');
+    buttons.forEach((button) => {
+      const form = context.querySelector(button.dataset.target);
+      if (!form) {
+        return;
+      }
+      const lat = form.querySelector('[name=geo_lat]');
+      const lng = form.querySelector('[name=geo_lng]');
+      const zoom = form.querySelector('[name=geo_zoom]');
 
-    const addGeo = function () {
-      $geoForm.show();
-      $geoInput.val(ACMS.i18n('geo.message1'));
-      $geoInput.data('type', 'add');
-      if (!$lat.val()) {
-        $lat.val(defaultLat);
-      }
-      if (!$lng.val()) {
-        $lng.val(defaultLng);
-      }
-      if (!$zoom.val()) {
-        $zoom.val(defaultZoom);
-      }
-      if ($gmapTarget) {
-        $gmapTarget.addClass('js-map_editable-container');
-        ACMS.Dispatch.Admin($geoForm.parent().get(0));
-      }
-      ACMS.dispatchEvent('onGeoInfoAdded', $geoForm.parent().get(0));
-    };
-    const deleteGeo = function () {
-      $geoForm.hide();
-      $geoInput.val(ACMS.i18n('geo.message2'));
-      $geoInput.data('type', 'delete');
-      $lat.val('');
-      $lng.val('');
-      $zoom.val('');
-    };
+      const addGeo = function () {
+        const {
+          adminLocationDefaultLat: defaultLat,
+          adminLocationDefaultLng: defaultLng,
+          adminLocationDefaultZoom: defaultZoom = '10',
+        } = ACMS.Config;
+        if (lat.value === '') {
+          lat.value = defaultLat;
+          lat.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (lng.value === '') {
+          lng.value = defaultLng;
+          lng.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (zoom.value === '') {
+          zoom.value = defaultZoom || '10';
+          zoom.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        form.style.display = 'block';
+        button.textContent = ACMS.i18n('geo.message1');
+        button.setAttribute('data-type', 'add');
+        ACMS.dispatchEvent('onGeoInfoAdded', form.parentElement);
+      };
 
-    $geoInput
-      .on('click', () => {
-        const type = $geoInput.data('type');
+      const deleteGeo = function () {
+        form.style.display = 'none';
+        button.textContent = ACMS.i18n('geo.message2');
+        button.setAttribute('data-type', 'delete');
+        lat.value = '';
+        lat.dispatchEvent(new Event('change', { bubbles: true }));
+        lng.value = '';
+        lng.dispatchEvent(new Event('change', { bubbles: true }));
+        zoom.value = '';
+        zoom.dispatchEvent(new Event('change', { bubbles: true }));
+      };
+
+      const handleClick = () => {
+        const { type } = button.dataset;
         if (type === 'add') {
           deleteGeo();
         } else if (type === 'delete') {
           addGeo();
         }
-      })
-      .trigger('click');
+      };
+
+      button.addEventListener('click', handleClick);
+      handleClick(); // Initial trigger
+    });
   };
   dispatchGeoInput(document);
   ACMS.addListener('acmsDialogOpened', (event) => {
@@ -579,7 +579,15 @@ ACMS.Ready(() => {
     } catch (e) {
       console.log('JSONのparseに失敗しました。'); // eslint-disable-line no-console
     }
-    const table = document.getElementById('js-entry-detail-table');
+    const details = document.getElementById('js-entry-details');
+    if (!details) {
+      return;
+    }
+    const tableSelector = details.dataset.target;
+    if (!tableSelector) {
+      return;
+    }
+    const table = details.querySelector(tableSelector);
     if (!table) {
       return;
     }
@@ -592,34 +600,10 @@ ACMS.Ready(() => {
       }
     });
     if (!flag) {
-      table.style.display = 'none';
+      details.style.display = 'none';
     }
   };
 
   changeEntryLabels();
   ACMS.addListener('acmsAdminDelayedContents', changeEntryLabels);
-
-  /**
-   * スタイルガイド
-   */
-  if ($('.js-navSubOpener').length > 0) {
-    $('.js-navSubOpener').click(() => {
-      $('.navSubGroup').toggleClass('acms-admin-block');
-      return false;
-    });
-
-    const calcHeight = () => {
-      const adminNav = $('.acms-navbar-admin').height() + 40;
-      const height = $(window).height() - adminNav;
-      $('.navSubGroup').height(`${height}px`);
-    };
-
-    calcHeight();
-
-    $(window).resize(calcHeight);
-
-    $('.js-sample-start').click(function () {
-      $(this).parent().parent().toggleClass('active');
-    });
-  }
 });

@@ -754,18 +754,6 @@
     },
     {
       "bid": "%{BID}",
-      "title": "\u0025{META_KEYWORDS}",
-      "subtitle": "<!--T-->コンフィグで指定したメタ情報のキーワード<!--/T-->",
-      "url": "%{META_KEYWORDS}"
-    },
-    {
-      "bid": "%{BID}",
-      "title": "\u0025{META_DESCRIPTION}",
-      "subtitle": "<!--T-->コンフィグで指定したメタ情報のディスクリプション<!--/T-->",
-      "url": "%{META_DESCRIPTION}"
-    },
-    {
-      "bid": "%{BID}",
       "title": "\u0025{SYSTEM_MAIL}",
       "subtitle": "<!--T-->コンフィグで指定したシステムが使用するメールアドレス<!--/T-->",
       "url": "%{SYSTEM_MAIL}"
@@ -919,6 +907,18 @@
       "title": "\u0025{NOW_TIME}",
       "subtitle": "<!--T-->表示した時点の時間<!--/T-->",
       "url": "%{NOW_TIME}"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "\u0025{YESTERDAY}",
+      "subtitle": "<!--T-->表示した時点の前の日付<!--/T-->",
+      "url": "%{YESTERDAY}"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "\u0025{TOMORROW}",
+      "subtitle": "<!--T-->表示した時点の明日の日付<!--/T-->",
+      "url": "%{TOMORROW}"
     },
     {
       "bid": "%{BID}",

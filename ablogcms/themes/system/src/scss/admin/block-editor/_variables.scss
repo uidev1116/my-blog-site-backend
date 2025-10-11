@@ -1,0 +1,126 @@
+// ------------------------------
+// ブロックエディター変数
+// ------------------------------
+
+// 共通の変数をインポート
+@use '../../global/variables' as global;
+
+// CSS変数の定義
+:root {
+  // ------------------------------
+  // カラー
+  // ------------------------------
+  --acms-block-editor-white: #fff;
+  --acms-block-editor-black: #000;
+
+  // ニュートラル
+  --acms-block-editor-neutral-50: #{global.$acms-color-gray10};
+  --acms-block-editor-neutral-100: #{global.$acms-color-gray20};
+  --acms-block-editor-neutral-200: #{global.$acms-color-gray30};
+  --acms-block-editor-neutral-300: #{global.$acms-color-gray40};
+  --acms-block-editor-neutral-400: #{global.$acms-color-gray50};
+  --acms-block-editor-neutral-500: #{global.$acms-color-gray60};
+  --acms-block-editor-neutral-600: #{global.$acms-color-gray70};
+  --acms-block-editor-neutral-700: #{global.$acms-color-gray80};
+  --acms-block-editor-neutral-800: #{global.$acms-color-gray90};
+  --acms-block-editor-neutral-900: #{global.$acms-color-black};
+
+  // システムグレー
+  --acms-block-editor-gray-100: #{global.$acms-color-system-gray10};
+  --acms-block-editor-gray-200: #{global.$acms-color-system-gray20};
+  --acms-block-editor-gray-300: #{global.$acms-color-system-gray30};
+  --acms-block-editor-gray-400: #{global.$acms-color-system-gray40};
+  --acms-block-editor-gray-500: #{global.$acms-color-system-gray50};
+  --acms-block-editor-gray-600: #{global.$acms-color-system-gray60};
+  --acms-block-editor-gray-700: #{global.$acms-color-system-gray70};
+  --acms-block-editor-gray-800: #{global.$acms-color-system-gray80};
+  --acms-block-editor-gray-900: #{global.$acms-color-system-gray90};
+
+  // Info
+  --acms-block-editor-info-100: #{global.$acms-color-info10};
+  --acms-block-editor-info-200: #{global.$acms-color-info20};
+  --acms-block-editor-info-300: #{global.$acms-color-info30};
+  --acms-block-editor-info-400: #{global.$acms-color-info40};
+  --acms-block-editor-info-500: #{global.$acms-color-info50};
+  --acms-block-editor-info-600: #{global.$acms-color-info60};
+  --acms-block-editor-info-700: #{global.$acms-color-info70};
+  --acms-block-editor-info-800: #{global.$acms-color-info80};
+  --acms-block-editor-info-900: #{global.$acms-color-info90};
+
+  // Danger
+  --acms-block-editor-danger-100: #{global.$acms-color-danger10};
+  --acms-block-editor-danger-200: #{global.$acms-color-danger20};
+  --acms-block-editor-danger-300: #{global.$acms-color-danger30};
+  --acms-block-editor-danger-400: #{global.$acms-color-danger40};
+  --acms-block-editor-danger-500: #{global.$acms-color-danger50};
+  --acms-block-editor-danger-600: #{global.$acms-color-danger60};
+  --acms-block-editor-danger-700: #{global.$acms-color-danger70};
+  --acms-block-editor-danger-800: #{global.$acms-color-danger80};
+  --acms-block-editor-danger-900: #{global.$acms-color-danger90};
+
+  // テキストカラー
+  --acms-block-editor-color-link: #006dec;
+  --acms-block-editor-color-link-dark: #2e67a5;
+  --acms-block-editor-color-info: var(--acms-block-editor-info-900);
+  --acms-block-editor-color-danger: var(--acms-block-editor-danger-600);
+
+  // ------------------------------
+  // スペーシング
+  // ------------------------------
+  --acms-block-editor-spacing-0: 0;
+  --acms-block-editor-spacing-0-5: 0.125rem; /* 2px */
+  --acms-block-editor-spacing-1: 0.25rem; /* 4px */
+  --acms-block-editor-spacing-1-5: 0.375rem; /* 6px */
+  --acms-block-editor-spacing-2: 0.5rem; /* 8px */
+  --acms-block-editor-spacing-2-5: 0.625rem; /* 10px */
+  --acms-block-editor-spacing-3: 0.75rem; /* 12px */
+  --acms-block-editor-spacing-3-5: 0.875rem; /* 14px */
+  --acms-block-editor-spacing-4: 1rem; /* 16px */
+  --acms-block-editor-spacing-5: 1.25rem; /* 20px */
+  --acms-block-editor-spacing-6: 1.5rem; /* 24px */
+  --acms-block-editor-spacing-8: 2rem; /* 32px */
+  --acms-block-editor-spacing-10: 2.5rem; /* 40px */
+  --acms-block-editor-spacing-12: 3rem; /* 48px */
+
+  // ------------------------------
+  // フォントサイズ
+  // ------------------------------
+  --acms-block-editor-font-size-xs: 0.75rem; /* 12px */
+  --acms-block-editor-font-size-sm: 0.875rem; /* 14px */
+  --acms-block-editor-font-size-base: 1rem; /* 16px */
+  --acms-block-editor-font-size-lg: 1.125rem; /* 18px */
+  --acms-block-editor-font-size-xl: 1.25rem; /* 20px */
+
+  // ------------------------------
+  // 行間
+  // ------------------------------
+  --acms-block-editor-line-height-sm: 1.5;
+  --acms-block-editor-line-height-base: 1.7;
+  --acms-block-editor-line-height-lg: 2;
+
+  // ------------------------------
+  // ボーダー半径
+  // ------------------------------
+  --acms-block-editor-border-radius-sm: 0.1875rem; /* 3px */
+  --acms-block-editor-border-radius-md: 0.375rem; /* 6px */
+  --acms-block-editor-border-radius-lg: 0.5rem; /* 8px */
+  --acms-block-editor-border-radius-xl: 0.75rem; /* 12px */
+
+  // ------------------------------
+  // シャドウ
+  // ------------------------------
+  --acms-block-editor-shadow-xs: 0 1px 4px 0 rgb(51 51 51 / 20%);
+  --acms-block-editor-shadow-sm: 0 2px 8px 0 rgb(51 51 51 / 20%);
+  --acms-block-editor-shadow-md: 0 3px 12px 0 rgb(51 51 51 / 20%);
+  --acms-block-editor-shadow-lg: 0 4px 16px 0 rgb(51 51 51 / 20%);
+  --acms-block-editor-shadow-xl: 0 5px 20px 0 rgb(51 51 51 / 20%);
+
+  // a:focus, button:focus
+  --acms-block-editor-shadow-focus: 0 0 0 2px rgb(19 122 243 / 40%);
+
+  // ------------------------------
+  // セレクション・ドロップカーソル
+  // ------------------------------
+  --acms-block-editor-dropcursor: #{global.$acms-color-info50};
+  --acms-block-editor-sellection: rgb(0 123 255 / 20%);
+}

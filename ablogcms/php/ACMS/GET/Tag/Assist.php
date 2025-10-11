@@ -5,6 +5,7 @@ class ACMS_GET_Tag_Assist extends ACMS_GET
     function get()
     {
         $Tpl = new Template($this->tpl, new ACMS_Corrector());
+        $DB = DB::singleton(dsn());
 
         $SQL = SQL::newSelect('tag');
         $SQL->addSelect('tag_name');
@@ -14,18 +15,17 @@ class ACMS_GET_Tag_Assist extends ACMS_GET
         $SQL->setLimit(config('tag_assist_limit'));
         ACMS_Filter::tagOrder($SQL, config('tag_assist_order'));
         if (1 < ($tagThreshold = idval(config('tag_assist_threshold')))) {
-            $SQL->addHaving('tag_amount >= ' . $tagThreshold);
+            $SQL->addHaving(SQL::newOpr('tag_amount', $tagThreshold, '>='));
         }
         $q = $SQL->get(dsn());
-        $DB = DB::singleton(dsn());
-        if (!$DB->query($q, 'fetch')) {
+        $statement = $DB->query($q, 'exec');
+
+        if (!$statement) {
             return $Tpl->get();
         }
-
-        if (!$row = $DB->fetch($q)) {
+        if (!$row = $DB->next($statement)) {
             return $Tpl->get();
         }
-
         $firstLoop = true;
         do {
             if (!$firstLoop) {
@@ -36,7 +36,7 @@ class ACMS_GET_Tag_Assist extends ACMS_GET
                 'name' => $row['tag_name'],
                 'amount' => $row['tag_amount'],
             ]);
-        } while ($row = $DB->fetch($q));
+        } while ($row = $DB->next($statement));
 
         return $Tpl->get();
     }

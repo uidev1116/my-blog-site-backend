@@ -1,37 +1,38 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="css/vars.css" />
-	<!--[if lte IE 9]><script src="/js/html5shiv.min.js"></script><![endif]-->
-	<title>Category_GeoList</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="css/vars.css" />
+  <!--[if lte IE 9]><script src="/js/html5shiv.min.js"></script><![endif]-->
+  <title>Category_GeoList</title>
 </head>
 <body>
 <h1>Category_GeoList</h1>
+<var>parent.loop.class (v3.2.0 later)<span>ループ親クラス</span></var>
 <fieldset>
-	<legend>currentCategory<span>現在いるカテゴリー</span>
-		<var class="textLong"><a href="%{ADMIN_BASE_URL}acms-code/vars/field.html" target="_blank">categoryField</a><span>カテゴリーのカスタムフィールド</span></var>
-	</legend>
-	<var>url<span>カテゴリーURL</span></var>
-	<var>id<span>カテゴリーID</span></var>
-	<var>code<span>カテゴリーコード</span></var>
-	<var>name<span>カテゴリーの名前</span></var>
+  <legend>currentCategory<span>現在いるカテゴリー</span>
+    <var class="textLong"><a href="%{ADMIN_BASE_URL}acms-code/vars/field.html" target="_blank">categoryField</a><span>カテゴリーのカスタムフィールド</span></var>
+  </legend>
+  <var>url<span>カテゴリーURL</span></var>
+  <var>id<span>カテゴリーID</span></var>
+  <var>code<span>カテゴリーコード</span></var>
+  <var>name<span>カテゴリーの名前</span></var>
 </fieldset>
 <fieldset class="loop">
-	<legend class="loop">category:loop<span>カテゴリーのループ</span>
-		<var class="textLong"><a href="%{ADMIN_BASE_URL}acms-code/vars/field.html" target="_blank">categoryField</a><span>カテゴリーのカスタムフィールド</span></var>
-	</legend>
-	<var>name<span>カテゴリーの名前</span></var>
-	<var>url<span>カテゴリーのURL</span></var>
-	<var>id<span>カテゴリーID</span></var>
-	<var>domain<span>カテゴリーのドメイン</span></var>
-	<var>status<span>カテゴリーのステータス</span></var>
-	<var>geo_distance<span>基準点からの距離（m）</span></var>
-	<var>geo_lat<span>緯度</span></var>
-	<var>geo_lng<span>経度</span></var>
-	<var>category:loop.class<span>コンフィグで設定したクラス名</span></var>
-	<fieldset><legend>glue<span>ループの接続ブロック</span></legend></fieldset>
+  <legend class="loop">category:loop<span>カテゴリーのループ</span>
+    <var class="textLong"><a href="%{ADMIN_BASE_URL}acms-code/vars/field.html" target="_blank">categoryField</a><span>カテゴリーのカスタムフィールド</span></var>
+  </legend>
+  <var>name<span>カテゴリーの名前</span></var>
+  <var>url<span>カテゴリーのURL</span></var>
+  <var>id<span>カテゴリーID</span></var>
+  <var>domain<span>カテゴリーのドメイン</span></var>
+  <var>status<span>カテゴリーのステータス</span></var>
+  <var>geo_distance<span>基準点からの距離（m）</span></var>
+  <var>geo_lat<span>緯度</span></var>
+  <var>geo_lng<span>経度</span></var>
+  <var>category:loop.class<span>コンフィグで設定したクラス名</span></var>
+  <fieldset><legend>glue<span>ループの接続ブロック</span></legend></fieldset>
 </fieldset>
 </body>
 </html>

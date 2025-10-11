@@ -1,4 +1,5 @@
 import { Suspense, lazy } from 'react';
+import Spinner from '@components/spinner/spinner';
 import { render } from '../utils/react';
 import { BannerItem } from '../features/banner-editor/types';
 
@@ -26,7 +27,13 @@ const dispatchBannerEditor = async (context: Element | Document) => {
   const tooltip1 = document.querySelector<HTMLInputElement>('.js-tooltip-attr1')?.value || '';
   const tooltip2 = document.querySelector<HTMLInputElement>('.js-tooltip-attr2')?.value || '';
   render(
-    <Suspense fallback={null}>
+    <Suspense
+      fallback={
+        <div className="acms-admin-d-flex acms-admin-justify-content-center acms-admin-align-items-center">
+          <Spinner size={20} />
+        </div>
+      }
+    >
       <BannerEditor
         attr1={attr1}
         attr2={attr2}

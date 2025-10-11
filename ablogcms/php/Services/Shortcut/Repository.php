@@ -151,13 +151,17 @@ class Repository
         $blogId = $Shortcut->getBlogId();
         $sort = $Shortcut->getSort();
 
+        $sql = SQL::newBulkInsert('dashboard');
         foreach ($data as $key => $value) {
-            $insertSql = SQL::newInsert('dashboard');
-            $insertSql->addInsert('dashboard_key', $key);
-            $insertSql->addInsert('dashboard_value', $value);
-            $insertSql->addInsert('dashboard_sort', $sort);
-            $insertSql->addInsert('dashboard_blog_id', $blogId);
-            DB::query($insertSql->get(dsn()), 'exec');
+            $sql->addInsert([
+                'dashboard_key' => $key,
+                'dashboard_value' => $value,
+                'dashboard_sort' => $sort,
+                'dashboard_blog_id' => $blogId,
+            ]);
+        }
+        if ($sql->hasData()) {
+            DB::query($sql->get(dsn()), 'exec');
         }
     }
 
@@ -202,12 +206,12 @@ class Repository
      *
      * @param string $key
      * @return array{
-     *  bid: int|null,
-     *  cid: int|null,
-     *  rid: int|null,
-     *  mid: int|null,
-     *  scid: int|null,
-     *  setid: int|null,
+     *  bid?: int|null,
+     *  cid?: int|null,
+     *  rid?: int|null,
+     *  mid?: int|null,
+     *  scid?: int|null,
+     *  setid?: int|null,
      *  admin: string,
      *  key: string,
      *  type: string
@@ -228,12 +232,17 @@ class Repository
                 $ids[$resource[$i - 1]] = intval($node);
             }
         }
-
-        return array_merge([
+        return [
+            'bid' => $ids['bid'] ?? null,
+            'cid' => $ids['cid'] ?? null,
+            'rid' => $ids['rid'] ?? null,
+            'mid' => $ids['mid'] ?? null,
+            'scid' => $ids['scid'] ?? null,
+            'setid' => $ids['setid'] ?? null,
             'key' => $key,
             'admin' => $admin,
             'type' => $type,
-        ], $ids);
+        ];
     }
 
     /**

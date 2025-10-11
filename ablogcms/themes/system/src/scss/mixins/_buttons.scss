@@ -5,50 +5,88 @@
 @mixin button-shape(
   $border-radius: 3px,
   $padding: (
-    math.div(var.$acms-form-height-sp - var.$acms-btn-font-size - 2px, 2),
+    math.div(var.$acms-form-height - var.$acms-btn-font-size - 2px, 2),
   )
   var.$acms-btn-padding-x,
   $font-size: var.$acms-btn-font-size,
-  $font-size-desktop: var.$acms-btn-font-size-desktop
+  $column-gap: var.$acms-btn-column-gap,
+  $line-height: var.$acms-btn-line-height,
+  $font-weight: normal,
+  $min-height: auto
 ) {
-  display: inline-block;
+  $self: &;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: $min-height;
   padding: $padding;
-  line-height: 1;
+  font-weight: $font-weight;
+  line-height: $line-height;
   text-align: center;
   text-decoration: none;
   vertical-align: middle;
+  column-gap: $column-gap;
   border-radius: $border-radius;
+  cursor: pointer;
   transition:
     background-color 0.2s,
     border-color 0.2s;
 
-  @include fontSize.font-size($font-size);
+  @if $font-size {
+    @include fontSize.font-size($font-size);
+  }
+
+  &::-webkit-details-marker {
+    /* Safariで表示されるデフォルトの三角形アイコンを消します */
+    display: none;
+  }
+
+  &#{$self}-disabled,
+  &.disabled,
+  &:disabled {
+    pointer-events: none;
+  }
 }
 
 @mixin button-decoration(
-  $bg-color: #f7f7f7,
+  $bg-color: var.$acms-color-white,
   $active-bg-color: $bg-color,
   $hover-bg-color: $bg-color,
   $focus-bg-color: $bg-color,
-  $border-radius: 3px,
-  $border: 1px solid var.$acms-btn-border-color,
+  $disabled-bg-color: $bg-color,
+  $border-width: 1px,
+  $border-style: solid,
   $border-color: var.$acms-btn-border-color,
   $hover-border-color: var.$acms-btn-hover-border-color,
   $active-border-color: var.$acms-btn-active-border-color,
   $focus-border-color: var.$acms-btn-focus-border-color,
-  $text-color: var.$acms-btn-text-default-color,
+  $disabled-border-color: $border-color,
+  $border: $border-width $border-style $border-color,
+  $text-color: var.$acms-btn-default-color,
   $active-text-color: $text-color,
   $hover-text-color: $text-color,
   $focus-text-color: $text-color,
+  $disabled-text-color: $text-color,
   $box-shadow: null,
   $active-box-shadow: $box-shadow,
   $hover-box-shadow: $box-shadow,
-  $focus-box-shadow: var.$acms-btn-focus-box-shadow
+  $focus-box-shadow: $box-shadow,
+  $disabled-box-shadow: $box-shadow,
+  $focus-outline-color: null,
+  $focus-outline-style: none,
+  $focus-outline-width: null,
+  $focus-outline: $focus-outline-color $focus-outline-style $focus-outline-width,
+  $focus-outline-offset: 0
 ) {
+  $self: &;
+
   & {
     color: $text-color;
     background-color: $bg-color;
     border: $border;
+    box-shadow: $box-shadow;
     transition: background-color 0.2s;
   }
 
@@ -60,47 +98,76 @@
     color: $text-color;
   }
 
-  &:hover {
-    text-decoration: none;
-    background-color: $hover-bg-color;
-    border-color: $hover-border-color;
-    box-shadow: $hover-box-shadow;
+  @media (any-hover: hover) {
+    &:hover {
+      color: $hover-text-color;
+      text-decoration: none;
+      background-color: $hover-bg-color;
+      border-color: $hover-border-color;
+      box-shadow: $hover-box-shadow;
+    }
+  }
+
+  // focus
+  &:focus-visible {
+    color: $focus-text-color;
+    background-color: $focus-bg-color;
+    border-color: $focus-border-color;
+    box-shadow: $focus-box-shadow;
+
+    @if $focus-outline {
+      outline: $focus-outline;
+    }
+
+    @if $focus-outline-offset {
+      outline-offset: $focus-outline-offset;
+    }
   }
 
   // active
   &:active,
-  &-active {
-    color: $text-color;
+  &#{$self}-active {
+    // focus-visibleより詳細度を高くするために $self を使用
+    color: $active-text-color;
     text-decoration: none;
     background-color: $active-bg-color;
     border-color: $active-border-color;
     box-shadow: $active-box-shadow;
   }
 
+  &#{$self}-active:focus-visible {
+    // active × focus-visible時はフォーカスリングに関わるスタイルだけ有効にする
+    box-shadow: $focus-box-shadow;
+
+    @if $focus-outline {
+      outline: $focus-outline;
+    }
+
+    @if $focus-outline-offset {
+      outline-offset: $focus-outline-offset;
+    }
+  }
+
   &:active[disabled],
-  &-active[disabled] {
+  &#{$self}-active[disabled] {
     opacity: 1;
     filter: alpha(opacity=1);
   }
 
-  // focus
-  &:focus {
-    background-color: $focus-bg-color;
-    border-color: $focus-border-color;
-    outline: none;
-    box-shadow: $focus-box-shadow;
+  // disabled
+  &#{$self}-disabled,
+  &.disabled,
+  &:disabled {
+    color: $disabled-text-color;
+    background-color: $disabled-bg-color;
+    border-color: $disabled-border-color;
+    box-shadow: $disabled-box-shadow;
   }
 }
 
 @mixin button-gradation($start-color: #f7f7f7, $end-color: #e1e1e1) {
   background-image: -webkit-gradient(linear, center top, center bottom, from($start-color), to($end-color));
   background-image: linear-gradient(top, $start-color, $end-color);
-
-  // filter: unquote(
-  //   (
-  //     "progid:DXImageTransform.Microsoft.gradient(startColorstr='#{$start-color}', endColorstr='#{$end-color}', GradientType=0)"
-  //   )
-  // );
 }
 
 // ログインボタン

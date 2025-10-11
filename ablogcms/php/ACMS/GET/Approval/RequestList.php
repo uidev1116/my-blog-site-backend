@@ -36,7 +36,7 @@ class ACMS_GET_Approval_RequestList extends ACMS_GET
         $SQL->setLimit($limit, (PAGE - 1) * $limit);
         $all = $DB->query($SQL->get(dsn()), 'all');
 
-        foreach ($all as $row) {
+        foreach ($all as $i => $row) {
             //-----------
             // 承認フロー
             $SQL    = SQL::newSelect('approval');
@@ -103,7 +103,9 @@ class ACMS_GET_Approval_RequestList extends ACMS_GET
             $last = array_shift($history);
             $Tpl->add('type:touch#' . $last['approval_type']);
 
-            $loop = [];
+            $loop = [
+                'i' => $i,
+            ];
 
             $SQL = SQL::newSelect('entry_rev');
             $SQL->addWhereOpr('entry_id', $row['approval_entry_id']);
@@ -118,7 +120,7 @@ class ACMS_GET_Approval_RequestList extends ACMS_GET
                 $loop['url'] = acmsLink([
                     'bid' => $row['approval_blog_id'],
                     'eid' => $row['approval_entry_id'],
-                    'tpl' => 'ajax/revision-preview.html',
+                    'tpl' => 'ajax/revision/preview.html',
                     'query' => [
                         'rvid' => $row['approval_revision_id'],
                     ],

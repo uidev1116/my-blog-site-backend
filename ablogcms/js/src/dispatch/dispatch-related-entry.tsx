@@ -26,6 +26,7 @@ const dispatchRelatedEntry = (context: Document | Element = document) => {
     const title = element.getAttribute('data-title') ?? '';
     const moduleId = element.getAttribute('data-module-id') ?? '';
     const ctx = element.getAttribute('data-ctx') ?? '';
+    const thumbnail = element.getAttribute('data-thumbnail') ?? '';
     const maxItem = parseInt(element.getAttribute('data-max-item') ?? '0', 10);
     const jsonId = element.getAttribute('data-json-id') ?? '';
 
@@ -44,6 +45,7 @@ const dispatchRelatedEntry = (context: Document | Element = document) => {
           title={title}
           moduleId={moduleId}
           ctx={ctx}
+          thumbnail={thumbnail}
           maxItem={maxItem}
           onChange={(entries) => {
             triggerEvent(element, 'acmsAdminRelatedEntryChange', {

@@ -32,6 +32,9 @@ class ACMS_GET_Category_EntrySummary extends ACMS_GET_Category_EntryList
             'imageZoom'                 => config('category_entry_summary_image_zoom'),
             'imageCenter'               => config('category_entry_summary_image_center'),
             'mainImageOn'               => config('category_entry_summary_image_on'),
+            'mainImageTarget'           => config('category_entry_summary_main_image_target', 'unit'),
+            'mainImageFieldName'        => config('category_entry_summary_main_image_field_name'),
+            'categoryParentLoopClass'   => config('category_entry_summary_category_parent_loop_class'),
             'categoryLoopClass'         => config('category_entry_summary_category_loop_class'),
             'fulltextWidth'             => config('category_entry_summary_fulltext_width'),
             'fulltextMarker'            => config('category_entry_summary_fulltext_marker'),
@@ -64,36 +67,25 @@ class ACMS_GET_Category_EntrySummary extends ACMS_GET_Category_EntryList
         $subCategory = isset($this->_config['subCategory']) && $this->_config['subCategory'] === 'on';
 
 
-        $SQL1 = SQL::newSelect('entry', 'union1');
+        $sql = SQL::newSelect('entry', 'entry');
         foreach ($list as $name) {
-            $SQL1->addSelect($name);
+            $sql->addSelect($name);
         }
-        $SQL1->addLeftJoin('blog', 'blog_id', 'entry_blog_id');
-        $SQL1->addLeftJoin('category', 'entry_category_id', 'category_id');
+        $sql->addLeftJoin('blog', 'blog_id', 'entry_blog_id', 'blog', 'entry');
+        $sql->addLeftJoin('category', 'category_id', 'entry_category_id', 'category', 'entry');
+        $this->filterQuery($sql);
+        ACMS_Filter::categoryStatus($sql);
+        $where = SQL::newWhere();
+        $where->addWhereOpr('entry_category_id', $cid, '=', 'AND');
         if ($subCategory) {
-            $SQL1->addLeftJoin('entry_sub_category', 'entry_id', 'entry_sub_category_eid');
+            $subCategorySql = SQL::newSelect('entry_sub_category', 'sub_category');
+            $subCategorySql->setSelect(SQL::newField(1, null, false));
+            $subCategorySql->addWhereOpr('entry_sub_category_eid', SQL::newField('entry.entry_id'), '=', 'AND', 'sub_category');
+            $subCategorySql->addWhereOpr('entry_sub_category_id', $cid, '=', 'AND', 'sub_category');
+            $existsSql = SQL::newOprExists($subCategorySql);
+            $where->addWhere($existsSql, 'OR');
         }
-        $SQL1->addWhereOpr('entry_category_id', $cid);
-        $this->unionQuery($SQL1);
-        $q1 = $SQL1->get(dsn());
-
-        if ($subCategory) {
-            $SQL2 = SQL::newSelect('entry', 'union2');
-            foreach ($list as $name) {
-                $SQL2->addSelect($name);
-            }
-            $SQL2->addLeftJoin('blog', 'blog_id', 'entry_blog_id');
-            $SQL2->addLeftJoin('entry_sub_category', 'entry_id', 'entry_sub_category_eid');
-            $SQL2->addLeftJoin('category', 'entry_sub_category_id', 'category_id');
-            $SQL2->addWhereOpr('entry_sub_category_id', $cid);
-            $this->unionQuery($SQL2);
-            $q2 = $SQL2->get(dsn());
-
-            $sql = '((' . $q1 . ') UNION (' . $q2 . '))';
-        } else {
-            $sql = '(' . $q1 . ')';
-        }
-        $SQL = SQL::newSelect($sql, 'master');
+        $sql->addWhere($where);
 
         $limit  = $this->_config['limit'];
         $offset = intval($this->_config['offset']);
@@ -101,15 +93,16 @@ class ACMS_GET_Category_EntrySummary extends ACMS_GET_Category_EntryList
             return '';
         }
 
-        $sortFd = ACMS_Filter::entryOrder($SQL, $this->_config['order'], $this->uid, $cid);
-        $SQL->setLimit($limit, $offset);
+        $sortFd = ACMS_Filter::entryOrder($sql, $this->_config['order'], $this->uid, $cid);
+        $sql->setLimit($limit, $offset);
 
         if (!empty($sortFd)) {
-            $SQL->setGroup($sortFd);
+            $sql->setGroup($sortFd);
         }
-        $SQL->addGroup('entry_id');
+        $sql->addGroup('entry_id');
 
-        $q = $SQL->get(dsn(['prefix' => '']));
+        $q = $sql->get(dsn());
+
         $all = DB::query($q, 'all');
         if (empty($all)) {
             return false;
@@ -143,7 +136,9 @@ class ACMS_GET_Category_EntrySummary extends ACMS_GET_Category_EntryList
 
         // メイン画像のEagerLoading
         if (!isset($this->_config['mainImageOn']) || $this->_config['mainImageOn'] === 'on') {
-            $this->eagerLoadingData['mainImage'] = Tpl::eagerLoadMainImage($this->entries);
+            $target = $this->_config['mainImageTarget'] ?? 'unit';
+            $fieldName = $this->_config['mainImageFieldName'] ?? '';
+            $this->eagerLoadingData['mainImage'] = Tpl::eagerLoadMainImage($this->entries, $target, $fieldName);
         }
         // フルテキストのEagerLoading
         if (!isset($this->_config['fullTextOn']) || $this->_config['fullTextOn'] === 'on') {
@@ -178,7 +173,10 @@ class ACMS_GET_Category_EntrySummary extends ACMS_GET_Category_EntryList
         $this->buildSummary($Tpl, $eRow, $count, $this->_endGluePoint, $this->_config, [], $this->eagerLoadingData);
     }
 
-    protected function unionQuery($SQL)
+    /**
+     * @inheritDoc
+     */
+    protected function filterQuery($SQL)
     {
         $BlogSub = null;
         if (!empty($this->bid)) {
@@ -234,7 +232,7 @@ class ACMS_GET_Category_EntrySummary extends ACMS_GET_Category_EntryList
         if ('on' == $this->_config['indexing']) {
             $SQL->addWhereOpr('entry_indexing', 'on');
         }
-        if ('on' <> $this->_config['noimage']) {
+        if ('on' !== $this->_config['noimage'] && $this->_config['mainImageTarget'] !== 'field') {
             $SQL->addWhereOpr('entry_primary_image', null, '<>');
         }
 
@@ -243,7 +241,5 @@ class ACMS_GET_Category_EntrySummary extends ACMS_GET_Category_EntryList
         if ($BlogSub) {
             $SQL->addWhereIn('entry_blog_id', DB::subQuery($BlogSub));
         }
-
-        return $SQL;
     }
 }

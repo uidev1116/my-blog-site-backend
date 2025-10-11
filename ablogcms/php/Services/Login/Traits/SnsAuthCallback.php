@@ -351,7 +351,7 @@ trait SnsAuthCallback
     /**
      * 指定された（SNSアカウント含む）ユーザー情報を取得
      *
-     * @param string $key IDのタイプを指定 user_id | user_google_id | user_twitter_id | user_facebook_id
+     * @param string $key IDのタイプを指定 user_id | user_google_id | user_twitter_id
      * @param string $id
      * @return array
      */
@@ -369,7 +369,7 @@ trait SnsAuthCallback
     /**
      * 指定されたユーザーでログインできるか認証
      *
-     * @param string $key IDのタイプを指定 user_id | user_google_id | user_twitter_id | user_facebook_id
+     * @param string $key IDのタイプを指定 user_id | user_google_id | user_twitter_id
      * @param string $id
      * @return null|array
      */

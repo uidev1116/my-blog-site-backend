@@ -13,18 +13,18 @@
 <textarea>
 &lt;!-- BEGIN_MODULE Feed_ExList --&gt;
 
-	&lt;!-- BEGIN notFound --&gt;
-	&lt;p&gt;フィードアイテムが見つかりません&lt;/p&gt;
-	&lt;!-- END notFound --&gt;
+  &lt;!-- BEGIN notFound --&gt;
+  &lt;p&gt;フィードアイテムが見つかりません&lt;/p&gt;
+  &lt;!-- END notFound --&gt;
 
-	&lt;p&gt;&lt;a href="{link}"&gt;{title}&lt;/a&gt;&lt;/p&gt;
+  &lt;p&gt;&lt;a href="{link}"&gt;{title}&lt;/a&gt;&lt;/p&gt;
 
-	&lt;dl&gt;
-		&lt;!-- BEGIN item:loop --&gt;
-		&lt;dt&gt;&lt;a href="{link}"&gt;{title}[urldecode]&lt;/a&gt; ( {date#Y}-{date#m}-{date#d} {date#H}:{date#i}:{date#s} )&lt;!-- BEGIN new --&gt;&lt;span class="acms-label acms-label-warning"&gt;New!&lt;/span&gt;&lt;!-- END new --&gt;&lt;/dt&gt;
-		&lt;dd&gt;{description}[urldecode]&lt;/dd&gt;
-		&lt;!-- END item:loop --&gt;
-	&lt;/dl&gt;
+  &lt;dl&gt;
+    &lt;!-- BEGIN item:loop --&gt;
+    &lt;dt&gt;&lt;a href="{link}"&gt;{title}[urldecode]&lt;/a&gt; ( {date#Y}-{date#m}-{date#d} {date#H}:{date#i}:{date#s} )&lt;!-- BEGIN new --&gt;&lt;span class="acms-label acms-label-warning"&gt;New!&lt;/span&gt;&lt;!-- END new --&gt;&lt;/dt&gt;
+    &lt;dd&gt;{description}[urldecode]&lt;/dd&gt;
+    &lt;!-- END item:loop --&gt;
+  &lt;/dl&gt;
 
 &lt;!-- END_MODULE Feed_ExList --&gt;
 

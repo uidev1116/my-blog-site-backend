@@ -1,23 +1,23 @@
 <?php
 
+use Acms\Services\Facades\Auth;
+
 class ACMS_GET_Admin_Blog_Index extends ACMS_GET_Admin
 {
     function get()
     {
         if ('blog_index' <> ADMIN && 'blog_edit' <> ADMIN) {
-            return '';
+            die403();
         }
         if (!sessionWithAdministration()) {
-            return '';
+            if (Auth::checkShortcut(['bid' => BID])) {
+                return '';
+            }
+            die403();
         }
 
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());
         $vars   = [];
-
-        if (!$this->Post->isNull()) {
-            $Tpl->add('refresh');
-            $vars['notice_mess'] = 'show';
-        }
 
         //-------
         // order
@@ -89,9 +89,9 @@ class ACMS_GET_Admin_Blog_Index extends ACMS_GET_Admin
         ACMS_Filter::blogOrder($SQL, $order);
 
         $q  = $SQL->get(dsn());
-        $DB->query($q, 'fetch');
+        $statement = $DB->query($q, 'exec');
 
-        while ($row = $DB->fetch($q)) {
+        while ($row = $DB->next($statement)) {
             $bid    = $row['blog_id'];
             $Tpl->add('status#' . $row['blog_status']);
             $_vars  = [
@@ -105,7 +105,7 @@ class ACMS_GET_Admin_Blog_Index extends ACMS_GET_Admin
                 'editorSet' => $row['editorSetName'],
                 'editorSetScope' => $row['blog_editor_set_scope'],
                 'urlValue'  => acmsLink(['bid' => $bid]),
-                'urlLabel'  => acmsLink(['bid' => $bid, 'sid' => false]),
+                'urlLabel'  => acmsLink(['bid' => $bid]),
                 'adminTopLink'  => acmsLink([
                     'bid'   => $bid,
                     'admin' => 'top',

@@ -1,0 +1,70 @@
+@use '../global/common' as global;
+
+/* ------------------------------
+  SEO（ページ下 メタ情報一覧）
+------------------------------- */
+
+.acms-edit-info {
+  margin: 20px 0;
+  padding: 15px;
+  font-size: 14px;
+  line-height: 1.7;
+  background-color: global.$acms-color-gray30;
+  border: 1px solid global.$acms-color-gray50;
+}
+
+.acms-edit-info-heading {
+  padding: 5px 10px;
+  color: global.$acms-color-white;
+  font-size: 16px;
+  background-color: global.$acms-color-gray90;
+
+  a,
+  a:visited,
+  a:active,
+  a:focus {
+    color: global.$acms-color-white;
+  }
+}
+
+.acms-edit-info-table {
+  background: global.$acms-color-white;
+
+  th {
+    width: 1%;
+    white-space: nowrap;
+  }
+}
+
+.acms-edit-info-ogpimage {
+  width: 100%;
+  max-width: 100px;
+  height: auto;
+}
+
+@include global.media-breakpoint-down(md) {
+  .acms-edit-info-table {
+    th,
+    td {
+      display: block;
+      box-sizing: border-box;
+    }
+
+    th {
+      width: 100%;
+      padding: 5px 10px;
+      color: global.$acms-color-white;
+      white-space: inherit;
+      background: global.$acms-color-gray70;
+    }
+  }
+}
+
+@include global.media-breakpoint-up(md) {
+  .acms-edit-info-table {
+    th,
+    td {
+      padding: 15px;
+    }
+  }
+}

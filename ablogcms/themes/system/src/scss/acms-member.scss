@@ -6,7 +6,7 @@
 /* ------------------------------
  会員ページ ベース
 ------------------------------- */
-@media (min-width: global.$breakpoint-sm-min) {
+@include global.media-breakpoint-up(sm) {
   body {
     background-color: global.$acms-color-system-gray10;
   }
@@ -24,7 +24,7 @@
   background-color: global.$acms-color-white;
 }
 
-@media (min-width: global.$breakpoint-sm-min) {
+@include global.media-breakpoint-up(sm) {
   .acms-member-container {
     margin-top: 100px;
     margin-bottom: 60px;
@@ -47,7 +47,7 @@
   padding-left: var(--member-space-container-x);
 }
 
-@media (min-width: global.$breakpoint-sm-min) {
+@include global.media-breakpoint-up(sm) {
   .acms-member-main-box-bottom {
     padding-top: var(--member-space-section-y);
     padding-bottom: var(--member-space-section-y);
@@ -323,24 +323,6 @@
   }
 }
 
-/* Facebookログインボタン */
-
-/* Facebookによるログイン機能は、将来廃止予定になります。 */
-.acms-member-sns-btn-facebook {
-  &,
-  &:hover,
-  &:focus,
-  &:active {
-    color: #fff;
-    background-color: #1877f2;
-    border-color: #1877f2;
-  }
-
-  .acms-member-sns-btn-text {
-    border-color: rgb(255 255 255 / 35%);
-  }
-}
-
 /* ------------------------------
  会員ページ 会員情報テーブル
 ------------------------------- */
@@ -451,11 +433,6 @@ $_member-subscribe-table-line-height: 1.4;
   font-size: 0;
   line-height: 0;
 
-  /* 位置情報フォーム */
-  .js-geo_form {
-    margin-top: 10px;
-  }
-
   /* 位置情報キーワード検索入力欄 */
   input[type='text'].js-editable_map-search_text,
   input[type='text'].js-osm-search {
@@ -491,7 +468,7 @@ $_member-subscribe-table-line-height: 1.4;
     line-height: 1;
     vertical-align: middle;
 
-    @include global.font-size(#{$_member-subscribe-table-font-size-th});
+    @include global.font-size($_member-subscribe-table-font-size-th);
   }
 
   /* 緯度・軽度・ズーム入力欄 */

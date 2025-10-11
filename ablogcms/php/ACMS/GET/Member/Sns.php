@@ -38,7 +38,6 @@ class ACMS_GET_Member_Sns extends ACMS_GET_Member
         }
         $this->google($user, $tpl);
         $this->twitter($user, $tpl);
-        $this->facebook($user, $tpl);
         $this->line($user, $tpl);
 
         $vars = $this->buildField($this->Post, $tpl);
@@ -89,28 +88,6 @@ class ACMS_GET_Member_Sns extends ACMS_GET_Member
             ]);
         }
         $tpl->add('twitter');
-    }
-
-    /**
-     * Facebookログインできるか判定
-     *
-     * @param Field_Validation $user
-     * @param Template $tpl
-     * @return void
-     */
-    protected function facebook(Field_Validation $user, Template $tpl): void
-    {
-        if (config('facebook_app_id')) {
-            $fbid = $user->get('facebook_id');
-            if (empty($fbid)) {
-                $tpl->add(['fb_notVerified', 'facebook']);
-            } else {
-                $tpl->add(['fb_verified', 'facebook'], [
-                    'fbid' => $fbid,
-                ]);
-            }
-            $tpl->add('facebook');
-        }
     }
 
     /**

@@ -16,15 +16,11 @@ class ACMS_GET_Member_ResetPasswordAuth extends ACMS_GET_Member
     /**
      * トークンのキーを取得
      *
-     * @param array $data
      * @return string
      */
-    protected function getTokenKey(array $data): string
+    protected function getTokenKey(): string
     {
-        if (!isset($data['email']) || empty($data['email'])) {
-            return '';
-        }
-        return BID . '_' . $data['email'];
+        return 'reset-password';
     }
 
     /**
@@ -108,6 +104,9 @@ class ACMS_GET_Member_ResetPasswordAuth extends ACMS_GET_Member
      */
     protected function findAccount(array $data): int
     {
+        if (!isset($data['email'])) {
+            throw new NotFoundException('Not found account.');
+        }
         $sql = SQL::newSelect('user');
         $sql->setSelect('user_id');
         $sql->addWhereOpr('user_status', 'open');

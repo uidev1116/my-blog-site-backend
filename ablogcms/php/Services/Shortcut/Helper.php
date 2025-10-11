@@ -100,7 +100,7 @@ class Helper
         }
         $url['query'] = $query;
 
-        return acmsLink($url);
+        return acmsLink($url); // @phpstan-ignore argument.type
     }
 
     /**

@@ -1,6 +1,6 @@
 <?php
 
-class ACMS_GET_Admin_Entry_Revision extends ACMS_GET_Admin_Entry
+class ACMS_GET_Admin_Entry_Revision extends ACMS_GET_Admin
 {
     /**
      * @param int $eid

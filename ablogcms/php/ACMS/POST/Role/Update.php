@@ -31,11 +31,15 @@ class ACMS_POST_Role_Update extends ACMS_POST
             $SQL->addWhereOpr('role_id', $roleId);
             $DB->query($SQL->get(dsn()), 'exec');
 
+            $insert = SQL::newBulkInsert('role_blog');
             foreach ($Role->getArray('blog_list') as $bid) {
-                $SQL    = SQL::newInsert('role_blog');
-                $SQL->addInsert('role_id', $roleId);
-                $SQL->addInsert('blog_id', $bid);
-                $DB->query($SQL->get(dsn()), 'exec');
+                $insert->addInsert([
+                    'role_id' => $roleId,
+                    'blog_id' => $bid,
+                ]);
+            }
+            if ($insert->hasData()) {
+                $DB->query($insert->get(dsn()), 'exec');
             }
 
             $this->Post->set('edit', 'update');

@@ -1,0 +1,23 @@
+{% if body.pageType in ['edit', 'editForm'] %}
+<article class="entry clearfix">
+  {% if body.pageType == 'edit' %}
+  <div class="titleWrapper">
+    {% if body.editAction == 'insert' %}
+    <h2>エントリー作成</h2>
+    <p>内容を入力し、「作成」ボタンを押してください。</p>
+    {% endif %}
+    {% if body.editAction == 'update' %}
+    <h2>エントリー変更</h2>
+    <p>内容を変更し、「保存」ボタンを押してください。</p>
+    {% endif %}
+  </div>
+  {{ include('/admin/entry/edit-parts.twig') }}
+  {% endif %}
+  {% if body.pageType == 'editForm' %}
+  <div class="acms-box-medium">
+    @include("/admin/form2/edit.html")
+    <hr class="clearHidden" />
+  </div>
+  {% endif %}
+</article>
+{% endif %}

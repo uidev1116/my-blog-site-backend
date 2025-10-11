@@ -66,26 +66,19 @@ class ACMS_POST_Config_Set_Duplicate extends ACMS_POST_Config_Set_Insert
         if (empty($id)) {
             throw new RuntimeException('不正な操作です');
         }
-
         $db = DB::singleton(dsn());
         $sql = SQL::newSelect('config');
         $sql->addWhereOpr('config_set_id', $id);
         $q = $sql->get(dsn());
-        $db->query($q, 'fetch');
+        $statement = $db->query($q, 'exec');
 
-        while ($config = $db->fetch($q)) {
-            $insert = SQL::newInsert('config');
-            foreach (array_keys($config) as $key) {
-                if ($key === 'config_set_id') {
-                    continue;
-                }
-                if ($key === 'config_blog_id') {
-                    continue;
-                }
-                $insert->addInsert($key, $config[$key]);
-            }
-            $insert->addInsert('config_set_id', $newId);
-            $insert->addInsert('config_blog_id', BID);
+        $insert = SQL::newBulkInsert('config');
+        while ($config = $db->next($statement)) {
+            $config['config_set_id'] = $newId;
+            $config['config_blog_id'] = BID;
+            $insert->addInsert($config);
+        }
+        if ($insert->hasData()) {
             $db->query($insert->get(dsn()), 'exec');
         }
     }

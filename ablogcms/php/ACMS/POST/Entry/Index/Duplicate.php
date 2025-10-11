@@ -1,11 +1,13 @@
 <?php
 
+use Acms\Services\Facades\Entry;
+
 class ACMS_POST_Entry_Index_Duplicate extends ACMS_POST_Entry_Duplicate
 {
     public function post()
     {
         $this->Post->reset(true);
-        $this->Post->setMethod('entry', 'operative', sessionWithContribution());
+        $this->Post->setMethod('entry', 'operative', Entry::canBulkDuplicate(BID));
         $this->Post->setMethod('checks', 'required');
         $this->Post->validate(new ACMS_Validator());
 

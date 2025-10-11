@@ -35,7 +35,7 @@ class ACMS_POST_StaticExport_DiffGenerate extends ACMS_POST_StaticExport_Generat
     public function post()
     {
         if (!sessionWithAdministration()) {
-            die();
+            die403();
         }
 
         $this->validate($this->Post);

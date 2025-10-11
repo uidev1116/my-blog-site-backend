@@ -44,6 +44,7 @@ class ACMS_GET_Category_GeoList extends ACMS_GET
             'referencePoint' => config('category_geo-list_reference_point'),
             'within'  => floatval(config('category_geo-list_within')),
             'limit' => intval(config('category_geo-list_limit')),
+            'parent_loop_class' => config('category_geo-list_parent_loop_class'),
             'loop_class' => config('category_geo-list_loop_class'),
         ];
     }
@@ -78,13 +79,18 @@ class ACMS_GET_Category_GeoList extends ACMS_GET
         $this->categories = $DB->query($SQL->get(dsn()), 'all');
         $this->build($Tpl);
 
-        $currentCategory = loadCategoryField($this->cid);
-        $currentCategory->overload(loadCategory($this->cid));
-        $currentCategory->set('url', acmsLink([
-            'bid' => $this->bid,
-            'cid' => $this->cid,
-        ]));
-        $Tpl->add('currentCategory', $this->buildField($currentCategory, $Tpl));
+        if ($this->cid) {
+            $currentCategory = loadCategoryField($this->cid);
+            $currentCategory->overload(loadCategory($this->cid));
+            $currentCategory->set('url', acmsLink([
+                'bid' => $this->bid,
+                'cid' => $this->cid,
+            ]));
+            $Tpl->add('currentCategory', $this->buildField($currentCategory, $Tpl));
+        }
+
+        $rootVars = $this->getRootVars();
+        $Tpl->add(null, $rootVars);
 
         return $Tpl->get();
     }
@@ -97,7 +103,7 @@ class ACMS_GET_Category_GeoList extends ACMS_GET
      */
     protected function filterQuery(&$SQL)
     {
-        $SQL->addWhereOpr('category_parent', $this->cid);
+        $SQL->addWhereOpr('category_parent', (int) $this->cid);
         $SQL->addWhereOpr('blog_indexing', 'on');
         ACMS_Filter::categoryStatus($SQL);
         if (!empty($this->keyword)) {
@@ -174,8 +180,8 @@ class ACMS_GET_Category_GeoList extends ACMS_GET
         if ($this->config['referencePoint'] === 'url_context' && $this->cid) {
             $DB = DB::singleton(dsn());
             $SQL = SQL::newSelect('geo', 'geo');
-            $SQL->addSelect('geo_geometry', 'lat', 'geo', POINT_Y);
-            $SQL->addSelect('geo_geometry', 'lng', 'geo', POINT_X);
+            $SQL->addSelect('geo_geometry', 'lat', 'geo', 'ST_Y');
+            $SQL->addSelect('geo_geometry', 'lng', 'geo', 'ST_X');
             $SQL->addWhereOpr('geo_cid', $this->cid);
             if ($data = $DB->query($SQL->get(dsn()), 'row')) {
                 $this->lat = $data['lat'];
@@ -198,8 +204,8 @@ class ACMS_GET_Category_GeoList extends ACMS_GET
         $SQL->addLeftJoin('category', 'category_id', 'geo_cid');
         $SQL->addLeftJoin('blog', 'blog_id', 'category_blog_id');
         $SQL->addSelect('*');
-        $SQL->addSelect('geo_geometry', 'longitude', null, POINT_X);
-        $SQL->addSelect('geo_geometry', 'latitude', null, POINT_Y);
+        $SQL->addSelect('geo_geometry', 'longitude', null, 'ST_X');
+        $SQL->addSelect('geo_geometry', 'latitude', null, 'ST_Y');
         $SQL->addGeoDistance('geo_geometry', $this->lng, $this->lat, 'distance');
 
         if ($this->config['referencePoint'] === 'url_context' && $this->bid) {
@@ -208,7 +214,7 @@ class ACMS_GET_Category_GeoList extends ACMS_GET
         $within = $this->config['within'];
         if ($within > 0) {
             $within = $within * 1000;
-            $SQL->addHaving('distance < ' . $within);
+            $SQL->addHaving(SQL::newOpr('distance', $within, '<'));
         }
 
         $this->filterQuery($SQL);
@@ -231,5 +237,17 @@ class ACMS_GET_Category_GeoList extends ACMS_GET
             return false;
         }
         return true;
+    }
+
+    /**
+     * ルート変数を取得
+     *
+     * @return array<string, mixed>
+     */
+    protected function getRootVars(): array
+    {
+        return [
+            'parent.loop.class' => $this->config['parent_loop_class'] ?? '',
+        ];
     }
 }

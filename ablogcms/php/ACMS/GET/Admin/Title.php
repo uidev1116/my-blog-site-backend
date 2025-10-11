@@ -7,7 +7,6 @@ class ACMS_GET_Admin_Title extends ACMS_GET_Admin
         if (!SUID) {
             return '';
         }
-
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());
 
         $aryAdmin   = [];

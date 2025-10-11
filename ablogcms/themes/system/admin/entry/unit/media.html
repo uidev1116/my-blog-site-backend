@@ -1,0 +1,32 @@
+<div
+  class="js-media-unit"
+  data-active="%{MEDIA_LIBRARY}"
+  data-thumbnail="<!-- BEGIN_IF [{type}/eq/image] -->{tiny}<!-- ELSE_IF [{type}/eq/svg] -->{path}<!-- ELSE_IF [{thumbnail}/nem/] -->{thumbnail}<!-- ELSE_IF [{icon}/nem/] -->{icon}<!-- END_IF -->"
+  data-pdf="{media_pdf}"
+  data-pdf-icon="{use_icon}"
+  data-path="{path}"
+  data-media-dir="%{HTTP_MEDIA_ARCHIVES_DIR}"
+  data-mid="<!-- BEGIN_IF [{media_id}/nem] -->{media_id}<!-- END_IF -->"
+  data-type="<!-- BEGIN_IF [{media_id}/nem] -->{type}<!-- END_IF -->"
+  data-landscape="{landscape}"
+  data-id="{id}"
+  data-bid="%{BID}"
+  data-media-sizes='[<!-- BEGIN size:loop -->{
+    "value": "{value}",
+    "label": "{label}",
+    "selected": <!-- BEGIN_IF [{selected}/nem] -->true<!-- ELSE -->false<!-- END_IF -->
+  },<!-- END size:loop -->{
+
+  }]'
+  data-enlarged="<!-- BEGIN_IF [{enlarged:checked#no}/em] -->false<!-- ELSE -->true<!-- END_IF -->"
+  data-primary-image-id="{primaryImageId}"
+  data-primary="<!-- BEGIN_IF [{primaryImageChecked}/nem] -->true<!-- ELSE -->false<!-- END_IF -->"
+  data-link="{link}"
+  data-caption="{caption}"
+  data-alt="{alt}"
+  data-override-link="{override-link}[escvars]"
+  data-override-alt="{override-alt}"
+  data-override-caption="{override-caption}"
+  data-text="{title}"
+  data-name="{name}"
+></div>

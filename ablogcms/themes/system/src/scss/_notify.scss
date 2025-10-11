@@ -1,0 +1,18 @@
+@use 'global/common' as global;
+
+/* ------------------------------
+ 通知
+------------------------------- */
+.acms-notification-container {
+  --acms-notification-container-z-index: #{global.zIndex(acms-notification-container)};
+  --acms-notification-container-width: 100%;
+  --acms-notification-container-padding: 0;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--acms-notification-container-z-index);
+  box-sizing: border-box;
+  width: var(--acms-notification-container-width);
+  padding: var(--acms-notification-container-padding);
+}

@@ -1,8 +1,7 @@
 {
   "title": "<!--T-->スニペット<!--/T-->",
   "enTitle": "Snippets",
-  "items": [
-    <!-- BEGIN_MODULE Touch_SessionWithAdministration -->
+  "items": [<!-- BEGIN_MODULE Touch_SessionWithAdministration -->
     {
       "bid": "%{BID}",
       "title": "<!--T-->エントリー本文<!--/T-->",
@@ -11,19 +10,19 @@
     },
     {
       "bid": "%{BID}",
-      "title": "<!--T-->エントリーリスト<!--/T-->",
+      "title": "<!--T-->エントリーリスト（非推奨）<!--/T-->",
       "subtitle": "Entry_List",
       "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/entry_list.html"
     },
     {
       "bid": "%{BID}",
-      "title": "<!--T-->エントリーフォト<!--/T-->",
+      "title": "<!--T-->エントリーフォト（非推奨）<!--/T-->",
       "subtitle": "Entry_Photo",
       "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/entry_photo.html"
     },
     {
       "bid": "%{BID}",
-      "title": "<!--T-->エントリーヘッドライン<!--/T-->",
+      "title": "<!--T-->エントリーヘッドライン（非推奨）<!--/T-->",
       "subtitle": "Entry_Headline",
       "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/entry_headline.html"
     },
@@ -77,7 +76,7 @@
     },
     {
       "bid": "%{BID}",
-      "title": "<!--T-->カテゴリーエントリーリスト<!--/T-->",
+      "title": "<!--T-->カテゴリーエントリーリスト（非推奨）<!--/T-->",
       "subtitle": "Category_EntryList",
       "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/category_entry-list.html"
     },
@@ -95,7 +94,7 @@
     },
     {
       "bid": "%{BID}",
-      "title": "<!--T-->バナー<!--/T-->",
+      "title": "<!--T-->バナー（非推奨）<!--/T-->",
       "subtitle": "Banner",
       "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/banner.html"
     },
@@ -143,7 +142,7 @@
     },
     {
       "bid": "%{BID}",
-      "title": "<!--T-->カートリスト<!--/T-->",
+      "title": "<!--T-->カートリスト（非推奨）<!--/T-->",
       "subtitle": "Shop2_Cart_List",
       "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/shop2_cart_list.html"
     },
@@ -173,7 +172,7 @@
     },
     {
       "bid": "%{BID}",
-      "title": "<!--T-->ユーザープロフィール<!--/T-->",
+      "title": "<!--T-->ユーザープロフィール（非推奨）<!--/T-->",
       "subtitle": "User_Profile",
       "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/user_profile.html"
     },
@@ -248,7 +247,216 @@
         "title": "<!--T-->Js<!--/T-->",
         "subtitle": "acms.jsを使用するためのモジュール",
         "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/js.html"
-    }
-    <!-- END_MODULE Touch_SessionWithAdministration -->
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_ブログフィールド<!--/T-->",
+      "subtitle": "V2_Blog_Field",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_blog_field.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_モジュールフィールド<!--/T-->",
+      "subtitle": "V2_Module_Field",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_module_field.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_エントリーフィールド<!--/T-->",
+      "subtitle": "V2_Entry_Field",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_entry_field.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_カテゴリーフィールド<!--/T-->",
+      "subtitle": "V2_Category_Field",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_category_field.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_ユーザーフィールド<!--/T-->",
+      "subtitle": "V2_User_Field",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_user_field.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_エントリーサマリー<!--/T-->",
+      "subtitle": "V2_Entry_Summary",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_entry_summary.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_フィールドサーチ<!--/T-->",
+      "subtitle": "V2_Field_Search",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_field_search.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_フィールドバリューリスト<!--/T-->",
+      "subtitle": "V2_Field_ValueList",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_field_value-list.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_エントリー本文<!--/T-->",
+      "subtitle": "V2_Entry_Body",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_entry_body.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_エントリーアーカイブリスト<!--/T-->",
+      "subtitle": "V2_Entry_ArchiveList",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_entry_archive-list.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_タグリレーショナル<!--/T-->",
+      "subtitle": "V2_Entry_TagRelational",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_entry_tag-relational.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_エントリー本文続き<!--/T-->",
+      "subtitle": "V2_Entry_MoreContent",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_entry_more-content.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_エントリーユニットリスト<!--/T-->",
+      "subtitle": "V2_Entry_UnitList",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_entry_unit-list.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_エントリー位置リスト<!--/T-->",
+      "subtitle": "V2_Entry_GeoList",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_entry_geo-list.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_カテゴリーツリー<!--/T-->",
+      "subtitle": "V2_Category_Tree",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_category_tree.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_カテゴリーエントリーサマリー<!--/T-->",
+      "subtitle": "V2_Category_EntrySummary",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_category_entry-summary.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_カテゴリー位置リスト<!--/T-->",
+      "subtitle": "V2_Category_GeoList",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_category_geo-list.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_メディアバナー<!--/T-->",
+      "subtitle": "V2_Media_Banner",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_media_banner.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_ナビゲーション<!--/T-->",
+      "subtitle": "V2_Navigation",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_navigation.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_リンク集<!--/T-->",
+      "subtitle": "V2_Links",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_links.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_タグクラウド<!--/T-->",
+      "subtitle": "V2_Tag_Cloud",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_tag_cloud.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_タグフィルター<!--/T-->",
+      "subtitle": "V2_Tag_Filter",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_tag_filter.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_トピックパス<!--/T-->",
+      "subtitle": "V2_Topicpath",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_topicpath.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_ユーザーサーチ<!--/T-->",
+      "subtitle": "V2_User_Search",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_user_search.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_ユーザー位置リスト<!--/T-->",
+      "subtitle": "V2_User_GeoList",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_user_geo-list.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_子ブログリスト<!--/T-->",
+      "subtitle": "V2_Blog_ChildList",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_blog_child-list.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_ブログ位置リスト<!--/T-->",
+      "subtitle": "V2_Blog_GeoList",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_blog_geo-list.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_JSONテンプレート<!--/T-->",
+      "subtitle": "V2_Json_2Tpl",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_json2-tpl.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_OGP<!--/T-->",
+      "subtitle": "V2_Ogp",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_ogp.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_サイトマップ<!--/T-->",
+      "subtitle": "V2_Sitemap",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_sitemap.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_フォーム<!--/T-->",
+      "subtitle": "V2_Form",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_form.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_カレンダー<!--/T-->",
+      "subtitle": "V2_Calendar",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_calendar.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_年間カレンダー<!--/T-->",
+      "subtitle": "V2_CalendarYear",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_calendar-year.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_スケジュール<!--/T-->",
+      "subtitle": "V2_Schedule",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_schedule.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2ページネーション<!--/T-->",
+      "subtitle": "V2_Pagination",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_pagination.html"
+    }<!-- END_MODULE Touch_SessionWithAdministration -->
   ]
 }

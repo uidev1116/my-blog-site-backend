@@ -6,59 +6,6 @@ export default () => {
   ACMS.Dispatch.Utility = function (context) {
     const { Config } = ACMS;
 
-    //-----------
-    // fix align
-    if (Config.unitFixAlign !== 'off') {
-      $(
-        'div[class^=column-image], div[class^=column-file], div[class^=column-eximage],  div[class^=column-media]',
-        context
-      ).each(function () {
-        const $img = $('img', this);
-        let width = $img.width();
-        const offset = $img.outerWidth() - width;
-        const style = $(this).attr('style');
-
-        if (ACMS.Dispatch.Utility.browser().ltIE9) {
-          width = parseInt($img.attr('width'), 10);
-        }
-
-        if (width && style === undefined && !$(this).hasClass('js_notStyle')) {
-          $(this).width(width + offset);
-        }
-        if (!$(this).next('.caption').size() && !$(this).find('.caption').size()) $(this).addClass('nocaption');
-      });
-      $('[class^=column-youtube-], [class^=column-video-]', context).each(function () {
-        const $video = $('iframe', this);
-        const width = $video.attr('width');
-
-        const style = $(this).attr('style');
-        if (width && style === undefined && !$(this).hasClass('js_notStyle')) {
-          $(this).width(width);
-        }
-      });
-      $('[class^=column-map]', context).each(() => {
-        ACMS.Library.googleLoadProxy('maps', '3', {
-          callback() {
-            const style = $(this).attr('style');
-            if (style === undefined && !$(this).hasClass('js_notStyle')) {
-              $(this).width($(':first-child', this).width());
-            }
-          },
-          options: {
-            region: ACMS.Config.s2dRegion,
-          },
-        });
-      });
-
-      if (ACMS.Dispatch.Utility.browser_ie6() && !$.boxModel) {
-        $(
-          '.column-image-center, .column-file-center, .column-youtube-center, .column-eximage-center, .column-media-center',
-          context
-        ).css('width', '100%');
-        $('.column-map-center', context).wrap('<div style="text-align:center; width:100%"></div>');
-      }
-    }
-
     //------------------------------------------
     // unitgroup to make all of uniform height
     if (Config.unitGroupAlign) {
@@ -136,9 +83,20 @@ export default () => {
 
     //--------
     // toggle
-    $(`[class*=${Config.toggleHeadClassSuffix}]`, context)
-      .css('cursor', 'pointer')
-      .click(function () {
+    ((context) => {
+      const $toggleHead = $(`[class*=${Config.toggleHeadClassSuffix}]`, context);
+      const $toggleBody = $(`[class*="${Config.toggleBodyClassSuffix}"]`, context);
+      if ($toggleHead.length === 0) {
+        return;
+      }
+      if ($toggleBody.length === 0) {
+        return;
+      }
+      ACMS.Library.deprecated(ACMS.i18n('deprecated.feature.toggle.name'), {
+        since: '3.2.0',
+        alternative: ACMS.i18n('deprecated.feature.toggle.alternative'),
+      });
+      $toggleHead.css('cursor', 'pointer').on('click', function () {
         if (!new RegExp(`([^\\s]*)${Config.toggleHeadClassSuffix}`).test(this.className)) return false;
         const mark = RegExp.$1;
         const $target = $(`.${mark}${Config.toggleBodyClassSuffix}`);
@@ -146,27 +104,41 @@ export default () => {
         $target.slideToggle();
         return false;
       });
-    $(`[class*="${Config.toggleBodyClassSuffix}"]`, context).hide();
+      $toggleBody.hide();
+    })(context);
 
     //------
     // fade
-    const $fadeHead = $(`[class*=${Config.fadeHeadClassSuffix}]`, context);
-    $fadeHead.css('cursor', 'pointer').click(function (e) {
-      const $headTarget = $(e.target);
-      if (!new RegExp(`([^\\s]*)${Config.fadeHeadClassSuffix}`).test(this.className)) return false;
-      const mark = RegExp.$1;
-      const $bodyTarget = $(`.${mark}${Config.fadeBodyClassSuffix}`);
-      if (!$bodyTarget.size()) return false;
-      $bodyTarget.css('display') === 'none' ? $bodyTarget.fadeIn() : $bodyTarget.fadeOut(); // eslint-disable-line no-unused-expressions
-      if ($headTarget.data('fade-replace')) {
-        const fadeCurrentTxt = $headTarget.text();
-        const fadeReplaceTxt = $headTarget.data('fade-replace');
-        $headTarget.text(fadeReplaceTxt);
-        $headTarget.data('fade-replace', fadeCurrentTxt);
+    ((context) => {
+      const $fadeHead = $(`[class*=${Config.fadeHeadClassSuffix}]`, context);
+      const $fadeBody = $(`[class*="${Config.fadeBodyClassSuffix}"]`, context);
+      if ($fadeHead.length === 0) {
+        return;
       }
-      return false;
-    });
-    $(`[class*="${Config.fadeBodyClassSuffix}"]`, context).hide();
+      if ($fadeBody.length === 0) {
+        return;
+      }
+      ACMS.Library.deprecated(ACMS.i18n('deprecated.feature.fade.name'), {
+        since: '3.2.0',
+        alternative: ACMS.i18n('deprecated.feature.fade.alternative'),
+      });
+      $fadeHead.css('cursor', 'pointer').on('click', function (e) {
+        const $headTarget = $(e.target);
+        if (!new RegExp(`([^\\s]*)${Config.fadeHeadClassSuffix}`).test(this.className)) return false;
+        const mark = RegExp.$1;
+        const $bodyTarget = $(`.${mark}${Config.fadeBodyClassSuffix}`);
+        if (!$bodyTarget.size()) return false;
+        $bodyTarget.css('display') === 'none' ? $bodyTarget.fadeIn() : $bodyTarget.fadeOut(); // eslint-disable-line no-unused-expressions
+        if ($headTarget.data('fade-replace')) {
+          const fadeCurrentTxt = $headTarget.text();
+          const fadeReplaceTxt = $headTarget.data('fade-replace');
+          $headTarget.text(fadeReplaceTxt);
+          $headTarget.data('fade-replace', fadeCurrentTxt);
+        }
+        return false;
+      });
+      $fadeBody.hide();
+    })(context);
 
     //-------------------
     // styleswitch ready
@@ -183,12 +155,6 @@ export default () => {
     $(Config.styleSwitchMark, context).click(function () {
       ACMS.Library.switchStyle(this.rel, $(Config.styleSwitchStyleMark));
       return false;
-    });
-
-    //------------
-    // eval value
-    $(Config.inputEvalValueMark, context).each(function () {
-      $(this).val(eval($(this).val())); // eslint-disable-line no-eval
     });
 
     //----------
@@ -229,29 +195,6 @@ export default () => {
     //-------------
     // ready focus
     $(Config.readyFocusMark, context).focus();
-
-    //--------------
-    // ready scroll
-    const $elm = $(Config.readyScrollMark, context);
-    if ($elm.size()) {
-      ACMS.Library.scrollToElm($elm);
-    }
-
-    //-----------
-    // copyright
-    $(Config.copyrightMark, context).click(function () {
-      return hs.htmlExpand(this, {
-        // eslint-disable-line no-undef
-        objectType: 'iframe',
-        wrapperClassName: 'draggable-header',
-        headingText: this.title,
-        align: 'center',
-        width: $(window).width() * 0.5,
-        height: $(window).height() * 0.5,
-        dimmingOpacity: 0.75,
-        dimmingDuration: 25,
-      });
-    });
   };
 
   ACMS.Dispatch.Utility.getBrowser = getBrowser;
@@ -294,14 +237,6 @@ export default () => {
       };
     })();
     return _ua;
-  };
-
-  ACMS.Dispatch.Utility.browser_ie6 = function () {
-    const _ua = ACMS.Dispatch.Utility.browser();
-    if (_ua.ltIE6) {
-      return true;
-    }
-    return false;
   };
 
   ACMS.Dispatch.Utility.unloadAlert = (context, selector, force = false) => {

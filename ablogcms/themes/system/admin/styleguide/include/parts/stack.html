@@ -1,0 +1,114 @@
+<section id="stack" class="sectionBox">
+<h1 class="sectionTitle">スタック</h1>
+
+<p>スタックは、Flexboxユーティリティを基盤としたショートカットヘルパーで、コンポーネントレイアウトをより速く簡単に作成できるようにします。</p>
+
+<h2 class="sectionTitle2">垂直スタック</h2>
+
+<p><code>.%{STYLEGUIDE_PAGE}-stack</code>または<code>.%{STYLEGUIDE_PAGE}-vstack</code>を使用して垂直レイアウトを作成します。スタックされたアイテムはデフォルトで全幅になります。<code>.%{STYLEGUIDE_PAGE}-gap-*</code>ユーティリティを使用してアイテム間にスペースを追加できます。</p>
+
+<div class="%{STYLEGUIDE_PAGE}-vstack %{STYLEGUIDE_PAGE}-gap-3">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 panel">First item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 panel">Second item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 panel">Third item</div>
+</div>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-vstack %{STYLEGUIDE_PAGE}-gap-3&quot;&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 panel&quot;&gt;First item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 panel&quot;&gt;Second item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 panel&quot;&gt;Third item&lt;/div&gt;
+&lt;/div&gt;
+</pre>
+
+<h2 class="sectionTitle2">水平スタック</h2>
+
+<p><code>.%{STYLEGUIDE_PAGE}-hstack</code>を使用して水平レイアウトを作成します。スタックされたアイテムはデフォルトで垂直方向に中央揃えされ、必要な幅のみを占めます。<code>.%{STYLEGUIDE_PAGE}-gap-*</code>ユーティリティを使用してアイテム間にスペースを追加できます。</p>
+
+<div class="%{STYLEGUIDE_PAGE}-hstack %{STYLEGUIDE_PAGE}-gap-3">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 panel">First item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 panel">Second item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 panel">Third item</div>
+</div>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-hstack %{STYLEGUIDE_PAGE}-gap-3&quot;&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 panel&quot;&gt;First item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 panel&quot;&gt;Second item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 panel&quot;&gt;Third item&lt;/div&gt;
+&lt;/div&gt;
+</pre>
+
+<h3 class="sectionTitle3">水平マージンユーティリティの使用</h3>
+
+<p><code>.%{STYLEGUIDE_PAGE}-ms-auto</code>などの水平マージンユーティリティをスペーサーとして使用：</p>
+
+<div class="%{STYLEGUIDE_PAGE}-hstack %{STYLEGUIDE_PAGE}-gap-3">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 panel">First item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 panel %{STYLEGUIDE_PAGE}-ms-auto">Second item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 panel">Third item</div>
+</div>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-hstack %{STYLEGUIDE_PAGE}-gap-3&quot;&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 panel&quot;&gt;First item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 panel %{STYLEGUIDE_PAGE}-ms-auto&quot;&gt;Second item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 panel&quot;&gt;Third item&lt;/div&gt;
+&lt;/div&gt;
+</pre>
+
+<h2 class="sectionTitle2">CSS</h2>
+
+<p>スタッククラスは以下のCSSプロパティを適用します：</p>
+
+<div class="acms-admin-margin-bottom-medium">
+	<table class="%{STYLEGUIDE_PAGE}-table %{STYLEGUIDE_PAGE}-table-bordered">
+		<thead class="%{STYLEGUIDE_PAGE}-table-heading">
+			<tr>
+				<th>クラス</th>
+				<th>CSSプロパティ</th>
+				<th>説明</th>
+			</tr>
+		</thead>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-stack<br>.%{STYLEGUIDE_PAGE}-vstack</th>
+			<td>
+				<code>display: flex;</code><br>
+				<code>flex-flow: column nowrap;</code><br>
+				<code>gap: var(--acms-stack-spacing, 0.5rem);</code><br>
+				<code>align-items: center;</code>
+			</td>
+			<td>垂直方向のスタックレイアウト</td>
+		</tr>
+		<tr>
+			<th>.%{STYLEGUIDE_PAGE}-hstack</th>
+			<td>
+				<code>display: flex;</code><br>
+				<code>flex-flow: row nowrap;</code><br>
+				<code>gap: var(--acms-stack-spacing, 0.5rem);</code><br>
+				<code>align-items: center;</code>
+			</td>
+			<td>水平方向のスタックレイアウト</td>
+		</tr>
+	</table>
+</div>
+
+<h3 class="sectionTitle3">CSS変数</h3>
+
+<p>スタックの間隔はCSS変数<code>--acms-stack-spacing</code>でカスタマイズできます：</p>
+
+<div class="%{STYLEGUIDE_PAGE}-stack" style="--acms-stack-spacing: 2rem;">
+	<div class="%{STYLEGUIDE_PAGE}-p-2 panel">First item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 panel">Second item</div>
+	<div class="%{STYLEGUIDE_PAGE}-p-2 panel">Third item</div>
+</div>
+
+<pre class="code HTML">
+&lt;div class=&quot;%{STYLEGUIDE_PAGE}-stack&quot; style=&quot;--acms-stack-spacing: 2rem;&quot;&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 panel&quot;&gt;First item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 panel&quot;&gt;Second item&lt;/div&gt;
+	&lt;div class=&quot;%{STYLEGUIDE_PAGE}-p-2 panel&quot;&gt;Third item&lt;/div&gt;
+&lt;/div&gt;
+</pre>
+
+</section>

@@ -2,8 +2,9 @@
 <ul class="navSubGroup">
 	<li class="navSubList"><a href="#at-first" class="scrollTo">まず始めに</a></li>
 	<li class="navSubList"><a href="#utility" class="scrollTo">ユーティリティ</a></li>
-	<li class="navSubList"><a href="#display" class="scrollTo">表示非表示</a></li>
+	<li class="navSubList"><a href="#visually-hidden" class="scrollTo">視覚的に非表示</a></li>
 	<li class="navSubList"><a href="#grid" class="scrollTo">グリッドシステム</a></li>
+	<li class="navSubList"><a href="#stack" class="scrollTo">スタック</a></li>
 	<li class="navSubList"><a href="#typo" class="scrollTo">タイポグラフィ</a></li>
 	<li class="navSubList"><a href="#code" class="scrollTo">ソースコード</a></li>
 	<li class="navSubList"><a href="#table" class="scrollTo">テーブル</a></li><!-- BEGIN_IF [%{ADMIN}/eq/styleguide_acms-admin] -->
@@ -13,7 +14,9 @@
 	<li class="navSubList"><a href="#list-group" class="scrollTo">リストグループ</a></li>
 	<li class="navSubList"><a href="#summary" class="scrollTo">サマリー</a></li>
 	<li class="navSubList"><a href="#thumbnails" class="scrollTo">サムネイル</a></li>
+  <!-- BEGIN_IF [%{ADMIN}/eq/styleguide_acms-admin] -->
 	<li class="navSubList"><a href="#filter" class="scrollTo">絞り込みフィルター</a></li>
+  <!-- END_IF -->
 	<li class="navSubList"><a href="#topicpath" class="scrollTo">トピックパス</a></li>
 	<li class="navSubList"><a href="#title" class="scrollTo">タイトル</a></li>
 	<li class="navSubList"><a href="#pager" class="scrollTo">ページャー</a></li>
@@ -29,3 +32,24 @@
 	<li class="navSubList"><a href="#fonts" class="scrollTo">シンボルフォント</a></li>
 	<li class="scrollTop"><a href="#" class="scrollTo"><i class="acms-admin-icon-arrow-small-up"></i>ページのトップに戻る</a></li>
 </ul>
+
+<script>
+  $(document).ready(() => {
+    if ($('.js-navSubOpener').length > 0) {
+      $('.js-navSubOpener').click(() => {
+        $('.navSubGroup').toggleClass('acms-admin-block');
+        return false;
+      });
+
+      const calcHeight = () => {
+        const adminNav = $('.acms-navbar-admin').height() + 40;
+        const height = $(window).height() - adminNav;
+        $('.navSubGroup').height(`${height}px`);
+      };
+
+      calcHeight();
+
+      $(window).resize(calcHeight);
+    }
+  });
+</script>

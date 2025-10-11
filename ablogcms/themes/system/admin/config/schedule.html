@@ -5,14 +5,22 @@
 	<div>
 		@include("/admin/config/parts/module-header.html", {
 			"title": "<!--T-->スケジュール<!--/T-->",
-			"sub_title": "Plugin_Schedule"
+			"sub_title": "Schedule"
 		})
 	</div>
 </header>
 
 <!-- BEGIN_MODULE Admin_Config -->
 <!-- BEGIN_IF [{notice_mess}/nem/] -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after">×</button>Plugin_Schedule <!--T-->設定を保存しました<!--/T--></p>
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  Schedule <!--T-->設定を保存しました<!--/T-->
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >×</button>
+</div>
 <!-- END_IF -->
 
 <form action="" method="post" class="acms-admin-form js-dialog-body">

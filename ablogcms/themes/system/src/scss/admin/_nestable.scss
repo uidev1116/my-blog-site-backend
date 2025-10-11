@@ -30,7 +30,7 @@
   animation-name: nested-item-added;
   animation-duration: 0.3s;
   animation-timing-function: ease-out;
-  row-gap: 5px;
+  row-gap: 10px;
 }
 
 .acms-nested-item-inner {
@@ -47,6 +47,21 @@
 
   > * {
     width: 100%;
+  }
+}
+
+.acms-nested-item-media {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  justify-content: flex-start;
+
+  .acms-media-field-preview {
+    height: 95px;
+  }
+
+  .acms-media-unit-preview-wrap {
+    padding: 0;
   }
 }
 
@@ -131,7 +146,7 @@
   animation-name: none;
 }
 
-@media screen and (min-width: global.$breakpoint-md-min) {
+@include global.media-breakpoint-up(md) {
   .acms-nested-item-inner {
     flex-direction: row;
     gap: 0 10px;
@@ -139,11 +154,12 @@
 
   .acms-nested-item-child,
   .acms-nested-item-handle,
+  .acms-nested-item-media,
   .acms-nested-item-actions {
     padding: 0;
   }
 
   .acms-nested-item-detail {
-    padding-left: 38px;
+    padding-left: 114px;
   }
 }

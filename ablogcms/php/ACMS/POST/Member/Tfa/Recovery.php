@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_POST_Member_Tfa_Recovery extends ACMS_POST_Member_Signin
 {
     /**
@@ -96,6 +98,13 @@ class ACMS_POST_Member_Tfa_Recovery extends ACMS_POST_Member_Signin
         $recoveryCode = isset($args[1]) ? $args[1] : false;
         $lockKey = isset($args[2]) ? $args[2] : false;
 
+        if (!Login::canMemberSignin()) {
+            AcmsLogger::info('会員ログイン機能が無効のため、リカバリーコードを使った2段階認証の無効化を中断しました', [
+                'id' => $inputMail,
+                'recoveryCode' => $recoveryCode,
+            ]);
+            $loginField->setMethod('pass', 'auth', false);
+        }
         if (SUID) {
             AcmsLogger::info('すでにログイン中のため、リカバリーコードを使った2段階認証の無効化を中断しました', [
                 'uid' => SUID,

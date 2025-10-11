@@ -7,7 +7,7 @@ use DB;
 use SQL;
 use ACMS_Filter;
 use ACMS_RAM;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Facades\Common;
 use Acms\Services\StaticExport\Generator\TopGenerator;
 use Acms\Services\StaticExport\Generator\ThemeGenerator;
@@ -91,10 +91,10 @@ class Engine
         $this->config = $config;
 
         try {
-            if (!Storage::exists($this->destination->getDestinationPath())) {
-                Storage::makeDirectory($this->destination->getDestinationPath());
+            if (!LocalStorage::exists($this->destination->getDestinationPath())) {
+                LocalStorage::makeDirectory($this->destination->getDestinationPath());
             }
-            if (!Storage::isWritable($this->destination->getDestinationPath())) {
+            if (!LocalStorage::isWritable($this->destination->getDestinationPath())) {
                 $this->logger->error('データの書き込みに失敗しました。', $this->destination->getDestinationPath());
             }
             $this->compiler = App::make('static-export.compiler');
@@ -309,7 +309,7 @@ class Engine
                 $SQL->setSelect('category_id');
                 $SQL->addLeftJoin('blog', 'blog_id', 'category_blog_id');
                 ACMS_Filter::blogTree($SQL, BID, 'ancestor-or-self');
-                ACMS_Filter::categoryStatus($SQL);
+                $SQL->addWhereOpr('category_status', 'open');
                 $Where  = SQL::newWhere();
                 $Where->addWhereOpr('category_blog_id', BID, '=', 'OR');
                 $Where->addWhereOpr('category_scope', 'global', '=', 'OR');
@@ -351,8 +351,15 @@ class Engine
                 $SQL = SQL::newSelect('entry');
                 $SQL->setSelect('entry_id');
                 $SQL->addLeftJoin('blog', 'blog_id', 'entry_blog_id');
+                $SQL->addLeftJoin('category', 'category_id', 'entry_category_id');
                 $SQL->addWhereOpr('entry_blog_id', BID);
+                $SQL->addWhereOpr('entry_start_datetime', date('Y-m-d H:i:s', requestTime()), '<=');
+                $SQL->addWhereOpr('entry_end_datetime', date('Y-m-d H:i:s', requestTime()), '>=');
                 $SQL->addWhereOpr('entry_status', 'open');
+                $where = SQL::newWhere();
+                $where->addWhereOpr('category_status', null, '=', 'OR');
+                $where->addWhereOpr('category_status', 'open', '=', 'OR');
+                $SQL->addWhere($where);
                 $entryIds = DB::query($SQL->get(dsn()), 'list');
                 if ($entryIds === false) {
                     $this->logger->error('エントリーの取得に失敗したため、エントリーの書き出しを中止します。');
@@ -475,6 +482,13 @@ class Engine
                     $SQL->addLeftJoin('category', 'category_id', 'entry_category_id');
                     $SQL->addSelect('entry_datetime');
                     $SQL->addWhereOpr('entry_status', 'open');
+                    $SQL->addWhereOpr('entry_start_datetime', date('Y-m-d H:i:s', requestTime()), '<=');
+                    $SQL->addWhereOpr('entry_end_datetime', date('Y-m-d H:i:s', requestTime()), '>=');
+                    $SQL->addWhereOpr('entry_status', 'open');
+                    $where = SQL::newWhere();
+                    $where->addWhereOpr('category_status', null, '=', 'OR');
+                    $where->addWhereOpr('category_status', 'open', '=', 'OR');
+                    $SQL->addWhere($where);
                     $SQL->setOrder('entry_datetime', 'DESC');
                     $SQL->setLimit(1);
                     if ($categoryId > 0) {
@@ -548,19 +562,19 @@ class Engine
 
         $src_archives_dir = ARCHIVES_DIR . $blog_archives_dir;
         $dest_archives_dir = $this->destination->getDestinationPath() . ARCHIVES_DIR . $blog_archives_dir;
-        Storage::copyDirectory($src_archives_dir, $dest_archives_dir);
+        LocalStorage::copyDirectory($src_archives_dir, $dest_archives_dir);
 
         $src_media_dir = MEDIA_LIBRARY_DIR;
         $dest_media_dir = $this->destination->getDestinationPath() . MEDIA_LIBRARY_DIR;
-        Storage::copyDirectory($src_media_dir, $dest_media_dir);
+        LocalStorage::copyDirectory($src_media_dir, $dest_media_dir);
 
         $src_storage_dir = MEDIA_STORAGE_DIR;
         $dest_storage_dir = $this->destination->getDestinationPath() . MEDIA_STORAGE_DIR;
-        Storage::copyDirectory($src_storage_dir, $dest_storage_dir);
-        Storage::remove($this->destination->getDestinationPath() . MEDIA_STORAGE_DIR . '.htaccess');
+        LocalStorage::copyDirectory($src_storage_dir, $dest_storage_dir);
+        LocalStorage::remove($this->destination->getDestinationPath() . MEDIA_STORAGE_DIR . '.htaccess');
 
-        Storage::copyDirectory(JS_DIR, $this->destination->getDestinationPath() . JS_DIR);
-        Storage::copy('acms.js', $this->destination->getDestinationPath() . 'acms.js');
+        LocalStorage::copyDirectory(JS_DIR, $this->destination->getDestinationPath() . JS_DIR);
+        LocalStorage::copy('acms.js', $this->destination->getDestinationPath() . 'acms.js');
     }
 
     /**
@@ -595,8 +609,8 @@ class Engine
                 $relative_dir_path = $file->getRelativePath();
                 $relative_file_path = $file->getRelativePathname();
                 $this->logger->processing();
-                Storage::makeDirectory($this->destination->getDestinationPath() . $this->destination->getBlogCode() . $relative_dir_path);
-                Storage::copy($theme . $relative_file_path, $this->destination->getDestinationPath() . $this->destination->getBlogCode() . $relative_file_path);
+                LocalStorage::makeDirectory($this->destination->getDestinationPath() . $this->destination->getBlogCode() . $relative_dir_path);
+                LocalStorage::copy($theme . $relative_file_path, $this->destination->getDestinationPath() . $this->destination->getBlogCode() . $relative_file_path);
             } catch (\Exception $e) {
                 $this->logger->error($e->getMessage(), $file->getRelativePathname());
             }
@@ -635,8 +649,8 @@ class Engine
                         $relative_dir_path = $file->getRelativePath();
                         $relative_file_path = $file->getRelativePathname();
                         $this->logger->processing();
-                        Storage::makeDirectory($this->destination->getDestinationPath() . $this->destination->getBlogCode() . $relative_dir_path);
-                        Storage::copy($theme . $relative_file_path, $this->destination->getDestinationPath() . $this->destination->getBlogCode() . $relative_file_path);
+                        LocalStorage::makeDirectory($this->destination->getDestinationPath() . $this->destination->getBlogCode() . $relative_dir_path);
+                        LocalStorage::copy($theme . $relative_file_path, $this->destination->getDestinationPath() . $this->destination->getBlogCode() . $relative_file_path);
                     } catch (\Exception $e) {
                         $this->logger->error($e->getMessage(), $file->getRelativePathname());
                     }
@@ -675,11 +689,11 @@ class Engine
             $relative_file_path = $file->getRelativePathname();
             $this->logger->processing($relative_file_path);
             if ($file->isReadable()) {
-                $data = Storage::get($theme . $relative_file_path);
+                $data = LocalStorage::get($theme . $relative_file_path);
                 if ($data = $this->compiler->compile($data)) {
                     $destPath = $this->destination->getDestinationPath() . $this->destination->getBlogCode() . $relative_file_path;
-                    Storage::makeDirectory(dirname($destPath));
-                    Storage::put($destPath, $data);
+                    LocalStorage::makeDirectory(dirname($destPath));
+                    LocalStorage::put($destPath, $data);
                 }
             }
         }
@@ -724,7 +738,7 @@ class Engine
             $path = $this->destination->getDestinationPath() . $this->destination->getBlogCode() . $file->getRelativePathname();
             $this->logger->processing($path);
             $this->logger->removedFile($path);
-            Storage::remove($path);
+            LocalStorage::remove($path);
         }
     }
 

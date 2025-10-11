@@ -1,0 +1,62 @@
+@use '../global/common' as global;
+
+.acms-unit-config-editor {
+  margin: 0 0 20px;
+  padding: 10px;
+  background: global.$acms-color-white;
+  border: 1px solid global.$edit-entry-bg-color-dark;
+}
+
+// ユニット タイトル
+.acms-unit-config-editor-title {
+  margin: 5px 5px 5px 0;
+  color: global.$acms-color-black;
+
+  @include global.font-size(15);
+}
+
+.acms-unit-config-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.acms-unit-config-edit {
+  display: grid;
+  grid-template:
+    'handle header' auto
+    'body body' auto
+    / auto 1fr;
+  background: global.$edit-entry-bg-color-light;
+  border: 1px solid global.$edit-entry-bg-color-dark;
+}
+
+.acms-unit-config-edit-handle {
+  display: flex;
+  grid-area: handle;
+  align-items: center;
+  justify-content: center;
+}
+
+.acms-unit-config-edit-header {
+  display: flex;
+  flex: 1 1 auto;
+  grid-area: header;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.5rem;
+}
+
+.acms-unit-config-edit-title {
+  margin: 0;
+  color: global.$acms-color-black;
+  font-weight: bold;
+  line-height: 1.5;
+
+  @include global.font-size(13);
+}
+
+.acms-unit-config-edit-body {
+  grid-area: body;
+  padding: 8px 32px;
+}

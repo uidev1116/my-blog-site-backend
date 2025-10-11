@@ -1,7 +1,13 @@
 <?php
 
+use Acms\Modules\Get\Helpers\Blog\BlogHelper;
+use Acms\Services\Facades\Database;
+use Acms\Services\Facades\Template as TemplateHelper;
+
 class ACMS_GET_Blog_ChildList extends ACMS_GET
 {
+    use \Acms\Traits\Modules\ConfigTrait;
+
     public $_scope = [
         'bid'   => 'global',
     ];
@@ -9,27 +15,30 @@ class ACMS_GET_Blog_ChildList extends ACMS_GET
     /**
      * @var array
      */
-    protected $config;
-
-    /**
-     * @var SQL_Select
-     */
-    protected $amount;
-
-    /**
-     * @var array
-     */
     protected $blog = [];
 
     /**
-     * @return array
+     * @var \Acms\Modules\Get\Helpers\Blog\BlogHelper
      */
-    protected function initVars()
+    protected $blogHelper;
+
+    /**
+     * @return array{
+     *  order: string,
+     *  limit: int,
+     *  parent_loop_class: string,
+     *  loop_class: string,
+     *  geoLocation: bool,
+     * }
+     */
+    protected function initConfig(): array
     {
         return [
             'order' => config('blog_child_list_order'),
             'limit' => intval(config('blog_child_list_limit')),
+            'parent_loop_class' => config('blog_child_list_parent_loop_class'),
             'loop_class' => config('blog_child_list_loop_class'),
+            'geoLocation' => config('blog_child_list_geolocation_on') === 'on',
         ];
     }
 
@@ -38,95 +47,93 @@ class ACMS_GET_Blog_ChildList extends ACMS_GET
      */
     public function get()
     {
-        if (!$this->setConfig()) {
+        if (!$this->setConfigTrait()) {
             return '';
         }
+        $tpl = new Template($this->tpl, new ACMS_Corrector());
+        TemplateHelper:: buildModuleField($tpl);
 
-        $DB = DB::singleton(dsn());
-        $Tpl = new Template($this->tpl, new ACMS_Corrector());
-        $this->buildModuleField($Tpl);
-
-        $SQL = $this->buildQuery();
-        $this->blog = $DB->query($SQL->get(dsn()), 'all');
-        $this->build($Tpl);
-
-        $currentBlog = loadBlogField($this->bid);
-        $currentBlog->overload(loadBlog($this->bid));
-        $currentBlog->set('url', acmsLink([
-            'bid'   => $this->bid,
-        ]));
-        $Tpl->add('currentBlog', $this->buildField($currentBlog, $Tpl));
-
-        return $Tpl->get();
+        $this->boot();
+        $sql = $this->buildQuery();
+        $this->blog = $this->getblogs($sql);
+        [$isRunnable, $renderTpl] = $this->preBuild($tpl);
+        if (!$isRunnable) {
+            if ($renderTpl) {
+                return $tpl->get();
+            } else {
+                return '';
+            }
+        }
+        $this->build($tpl);
+        if ($this->bid) {
+            $currentBlog = loadBlogField($this->bid);
+            $currentBlog->overload(loadBlog($this->bid));
+            $currentBlog->set('url', acmsLink([
+                'bid'   => $this->bid,
+            ]));
+            $tpl->add('currentBlog', TemplateHelper::buildField($currentBlog, $tpl));
+        }
+        $rootVars = $this->getRootVars();
+        $tpl->add(null, $rootVars);
+        return $tpl->get();
     }
 
     /**
+     * 起動処理
+     *
+     * @return void
+     */
+    protected function boot(): void
+    {
+        $this->blogHelper = new BlogHelper($this->getBaseParams([
+            'config' => $this->config,
+        ]));
+    }
+
+    /**
+     * クエリの組み立て
+     *
      * @return SQL_Select
      */
-    protected function buildQuery()
+    protected function buildQuery(): SQL_Select
     {
-        $SQL = SQL::newSelect('blog');
-
-        if (config('blog_child_list_geolocation_on') === 'on') {
-            $SQL->addLeftJoin('geo', 'geo_bid', 'blog_id');
-            $SQL->addSelect('*');
-            $SQL->addSelect('geo_geometry', 'longitude', null, POINT_X);
-            $SQL->addSelect('geo_geometry', 'latitude', null, POINT_Y);
-        }
-        $this->filterQuery($SQL);
-        $this->orderQuery($SQL);
-        $this->limitQuery($SQL);
-
-        return $SQL;
+        return $this->blogHelper->buildBlogListQuery($this->bid, $this->keyword, $this->Field, $this->config['order'], (int) $this->config['limit'], $this->config['geoLocation']);
     }
 
     /**
-     * 絞り込みクエリ組み立て
+     * ブログデータの取得
      *
-     * @param SQL_Select & $SQL
-     * @return void
+     * @param SQL_Select $sql
+     * @return array
      */
-    protected function filterQuery(&$SQL)
+    protected function getblogs(SQL_Select $sql): array
     {
-        $SQL->addWhereOpr('blog_parent', $this->bid);
-        $SQL->addWhereOpr('blog_indexing', 'on');
-        ACMS_Filter::blogStatus($SQL);
-        if (!empty($this->keyword)) {
-            ACMS_Filter::blogKeyword($SQL, $this->keyword);
+        $q = $sql->get(dsn());
+        $blogs = Database::query($q, 'all');
+        foreach ($blogs as $blog) {
+            ACMS_RAM::blog($blog['blog_id'], $blog);
         }
-        if (!empty($this->Field)) {
-            ACMS_Filter::blogField($SQL, $this->Field);
-        }
+        return $blogs;
     }
 
     /**
-     * orderクエリ組み立て
+     * ビルド前のカスタム処理
      *
-     * @param SQL_Select & $SQL
-     * @return void
+     * @param Template $tpl
+     * @return array{0: bool, 1: bool} 0: 処理を続けるかどうか, 1: ここまでの処理をレンダリングするかどうか
      */
-    protected function orderQuery(&$SQL)
+    protected function preBuild(Template $tpl): array
     {
-        ACMS_Filter::blogOrder($SQL, $this->config['order']);
-    }
-
-    /**
-     * limitクエリ組み立て
-     *
-     * @param SQL_Select & $SQL
-     * @return void
-     */
-    protected function limitQuery(&$SQL)
-    {
-        $SQL->setLimit($this->config['limit']);
+        return [true, true];
     }
 
     /**
      * テンプレートの組み立て
      *
-     * @param $Tpl
+     * @param Template $tpl
+     * @return void
      */
-    protected function build(&$Tpl)
+    protected function build($tpl): void
     {
         $loopClass = $this->config['loop_class'];
 
@@ -150,9 +157,9 @@ class ACMS_GET_Blog_ChildList extends ACMS_GET
             //------
             // glue
             if ($i !== $j) {
-                $Tpl->add('glue');
+                $tpl->add('glue');
             }
-            $vars = $this->buildField($Field, $Tpl);
+            $vars = TemplateHelper::buildField($Field, $tpl);
             if (isset($row['distance'])) {
                 $vars['geo_distance'] = $row['distance'];
             }
@@ -162,21 +169,19 @@ class ACMS_GET_Blog_ChildList extends ACMS_GET
             if (isset($row['longitude'])) {
                 $vars['geo_lng'] = $row['longitude'];
             }
-            $Tpl->add('blog:loop', $vars);
+            $tpl->add('blog:loop', $vars);
         }
     }
 
     /**
-     * コンフィグのセット
+     * ルート変数を取得
      *
-     * @return bool
+     * @return array
      */
-    protected function setConfig()
+    public function getRootVars(): array
     {
-        $this->config = $this->initVars();
-        if ($this->config === false) {
-            return false;
-        }
-        return true;
+        return [
+            'parent.loop.class' => $this->config['parent_loop_class'] ?? '',
+        ];
     }
 }

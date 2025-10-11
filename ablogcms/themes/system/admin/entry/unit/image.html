@@ -1,0 +1,116 @@
+<div class="js-img_resize">
+  <div class="js-drop_area">
+    <div class="acms-admin-drop-area-wrap">
+      <div class="acms-admin-drop-area">
+        <div class="acms-admin-drop-area-inner">
+          <span class="acms-admin-icon acms-admin-icon-media acms-admin-drop-area-icon"></span>
+          <p class="acms-admin-drop-area-text"><!--T-->ここにファイルをドロップ<!--/T--></p>
+        </div>
+      </div>
+    </div>
+    <table class="entryFormColumnTable">
+      <tbody>
+        <tr>
+          <!-- BEGIN_IF [{tiny}/nem/] -->
+          <td class="entryFormFileentryFormImages">
+            <img
+              src="%{ARCHIVES_DIR}{tiny}"
+              width="{tinyX}"
+              height="{tinyY}"
+              alt="<!--T-->プレビュー<!--/T-->"
+              class="js-img_resize_preview_old entryFormFileImage"
+            >
+            <img src="" alt="<!--T-->プレビュー<!--/T-->" class="js-img_resize_preview entryFormFileImage" style="display:none;">
+          </td>
+          <!-- ELSE -->
+          <td class="entryFormFileentryFormImages">
+            <img src="" alt="<!--T-->プレビュー<!--/T-->" class="js-img_resize_preview entryFormFileImage" style="display:none;">
+          </td>
+          <!-- END_IF -->
+          <td class="entryFormFileControl">
+            <div class="acms-admin-form-group">
+              <label for="unit-image-file-{id}" class="acms-admin-form-label">
+                <input
+                  type="file"
+                  name="image_file_{id}[]"
+                  size="20"
+                  multiple="multiple"
+                  accept="image/*"
+                  id="unit-image-file-{id}"
+                  class="js-img_resize_input"
+                >
+              </label>
+              <input type="hidden" name="image_exif_{id}" value="{exif}" />
+            </div>
+            <div class="entryFormFileControlSelects">
+              <div class="entryFormFileControlSelectsItem">
+                <select name="image_size_{id}">
+                  <!-- BEGIN size:loop -->
+                  <option value="{value}"{selected}>{label}</option>
+                  <!-- END size:loop -->
+                </select>
+                <input type="hidden" name="old_image_size_{id}" value="{size_old}" />
+              </div>
+              <div class="entryFormFileControlSelectsItem">
+                <select name="image_edit_{id}">
+                  <option value="none"{edit:selected#none}><!--T-->編集しない<!--/T--></option>
+                  <option value="deleteLarge"{edit:selected#deleteLarge}><!--T-->拡大表示させない<!--/T--></option><!-- BEGIN rotate -->
+                  <option value="rotate270"{edit:selectedEditRotate270}><!--T-->時計回りで90度回転<!--/T--></option>
+                  <option value="rotate90"{edit:selectedEditRotate90}><!--T-->反時計回りで90度回転<!--/T--></option>
+                  <option value="rotate180"{edit:selectedEditRotate180}><!--T-->180度回転<!--/T--></option><!-- END rotate -->
+                  <option value="delete"{edit:selected#delete}><!--T-->削除<!--/T--></option>
+                </select>
+              </div>
+            </div>
+            <table class="entryFormImageTable">
+              <tbody>
+                <tr>
+                  <td colspan="2"><!-- BEGIN normal:veil -->
+                    <strong>Normal </strong>({normalX} x {normalY})<!-- END normal:veil --><!-- BEGIN large:veil -->
+                    <strong class="imageLargeSize">Large </strong>({largeX} x {largeY})<!-- END large:veil -->
+                  </td>
+                </tr>
+                <tr>
+                  <th><label for="unit-image-caption-{id}"><!--T-->キャプション<!--/T--></label></th>
+                  <td>
+                    <textarea name="image_caption_{id}" rows="1" id="unit-image-caption-{id}" class="js-img_exif_caption acms-admin-form-width-full">{caption}</textarea>
+                    <input type="hidden" name="image_old_{id}" value="{old}">
+                  </td>
+                </tr>
+                <tr>
+                  <th><label for="unit-image-link-{id}"><!--T-->リンク<!--/T--></label></th>
+                  <td><input type="text" name="image_link_{id}" value="{link}" id="unit-image-link-{id}" class="acms-admin-form-width-full"></td>
+                </tr>
+                <tr>
+                  <th><label for="unit-image-alt-text"><!--T-->代替テキスト<!--/T--></label></th>
+                  <td>
+                    <textarea name="image_alt_{id}" rows="1" id="unit-image-alt-text" class="acms-admin-form-width-full">{alt}</textarea>
+                  </td>
+                </tr>
+                <tr>
+                  <th></th>
+                  <td>
+                    <!-- BEGIN primaryImage:veil -->
+                    <div class="acms-admin-form-radio">
+                      <input
+                        type="radio"
+                        name="primary_image"
+                        value="{primaryImageId}"
+                        {primaryImageChecked}[raw]
+                        id="input-radio-image_primary_image_{primaryImageId}"
+                      >
+                      <label for="input-radio-image_primary_image_{primaryImageId}">
+                        <i class="acms-admin-ico-radio" aria-hidden="true"></i>
+                        <!--T-->メイン画像<!--/T-->
+                      </label><!-- END primaryImage:veil -->
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

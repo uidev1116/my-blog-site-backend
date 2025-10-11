@@ -1,239 +1,200 @@
 <?php
 
-use Acms\Services\Facades\Image;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\Logger as AcmsLogger;
+use Acms\Services\Facades\Application;
+use Acms\Services\Facades\PublicStorage;
 
 class ImageResize
 {
+    /**
+     * @var int
+     */
     public const MIME_GIF = 1;
+
+    /**
+     * @var int
+     */
     public const MIME_PNG = 2;
+
+    /**
+     * @var int
+     */
     public const MIME_BMP = 3;
+
+    /**
+     * @var int
+     */
     public const MIME_XBM = 4;
+
+    /**
+     * @var int
+     */
     public const MIME_JPEG = 5;
 
+    /**
+     * @var int
+     */
     public const SCALE_TO_FILL = 1;        // 出力サイズにめいっぱい広げる
+
+    /**
+     * @var int
+     */
     public const SCALE_ASPECT_FIT = 2;     // aspect比を維持して、ちょうど入るようにする
+
+    /**
+     * @var int
+     */
     public const SCALE_ASPECT_FILL = 3;    // aspect比を維持して、めいっぱい広げる
 
-    protected $engine;
+    /**
+     * @var string
+     */
+    protected $srcPath;
 
-    protected $srcImg;
-    protected $destImg;
+    /**
+     * @var string
+     */
+    protected $extension;
 
-    protected $mimeType;
+    /**
+     * @var int
+     */
     protected $qualityJpeg = 95;
 
+    /**
+     * @var int
+     */
     protected $originalW;
+
+    /**
+     * @var int
+     */
     protected $originalH;
 
+    /**
+     * @var int
+     */
     protected $srcX = 0;
+
+    /**
+     * @var int
+     */
     protected $srcY = 0;
+
+    /**
+     * @var int
+     */
     protected $srcW;
+
+    /**
+     * @var int
+     */
     protected $srcH;
 
+    /**
+     * @var int
+     */
     protected $destX = 0;
+
+    /**
+     * @var int
+     */
     protected $destY = 0;
+
+    /**
+     * @var int
+     */
     protected $destW;
+
+    /**
+     * @var int
+     */
     protected $destH;
 
+    /**
+     * @var int
+     */
     protected $canvasW;
+
+    /**
+     * @var int
+     */
     protected $canvasH;
 
+    /**
+     * @var int
+     */
     protected $colorR = 0;
+
+    /**
+     * @var int
+     */
     protected $colorG = 0;
+
+    /**
+     * @var int
+     */
     protected $colorB = 0;
 
+    /**
+     * @var int
+     */
     protected $mode = self::SCALE_ASPECT_FILL;
 
-    public function __construct($path)
+    /**
+     * @var \Acms\Services\Image\Contracts\ImageEngine
+     */
+    private $engine;
+
+    /**
+     * Constructor
+     *
+     * @param string $path
+     * @throws \Exception
+     */
+    public function __construct(string $path)
     {
-        if (!$xy = Storage::getImageSize($path)) {
+        if (!PublicStorage::getImageSize($path)) {
             AcmsLogger::warning('画像が読み込めないため、リサイズできませんでした', [
                 'path' => $path,
             ]);
             throw new Exception('Can\'t read image file');
         }
-        $this->mimeType = $xy['mime'];
-
-        if (class_exists('Imagick') && config('image_magick') == 'on') {
-            $this->engine = 'imagick';
-            $this->createSrcImageForImagick($path);
-        } else {
-            $this->engine = 'gd';
-            $this->createSrcImage($path);
-        }
+        $this->srcPath = $path;
+        $this->engine = Application::make('image.engine');
+        [$this->originalW, $this->originalH] = $this->engine->getSize($path);
     }
 
-    private function getExtension()
-    {
-        $exts = [
-            'image/gif' => self::MIME_GIF,
-            'image/png' => self::MIME_PNG,
-            'image/vnd.wap.wbmp' => self::MIME_BMP,
-            'image/xbm' => self::MIME_XBM,
-            'image/jpeg' => self::MIME_JPEG,
-        ];
-        return isset($exts[$this->mimeType]) ? $exts[$this->mimeType] : self::MIME_JPEG;
-    }
-
-    private function createSrcImage($path)
-    {
-        switch ($this->getExtension()) {
-            case self::MIME_GIF:
-                $this->srcImg = imagecreatefromgif($path);
-                break;
-            case self::MIME_PNG:
-                $this->srcImg = imagecreatefrompng($path);
-                break;
-            case self::MIME_BMP:
-                $this->srcImg = imagecreatefromwbmp($path);
-                break;
-            case self::MIME_XBM:
-                $this->srcImg = imagecreatefromxbm($path);
-                break;
-            default:
-                $this->srcImg = imagecreatefromjpeg($path);
-                break;
-        }
-        $this->originalW = imagesx($this->srcImg);
-        $this->originalH = imagesy($this->srcImg);
-    }
-
-    private function createSrcImageForImagick($path)
-    {
-        $this->srcImg = new Imagick($path);
-        $this->originalW = $this->srcImg->getImageWidth();
-        $this->originalH = $this->srcImg->getImageHeight();
-    }
-
-    private function createDestImage()
-    {
-        $this->destImg = imagecreatetruecolor($this->canvasW, $this->canvasH);
-
-        if (0 <= ($idx = imagecolortransparent($this->srcImg))) {
-            @imagetruecolortopalette($this->destImg, true, 256);
-            $rgb = @imagecolorsforindex($this->srcImg, $idx);
-            $idx = imagecolorallocate($this->destImg, $rgb['red'], $rgb['green'], $rgb['blue']);
-            imagefill($this->destImg, 0, 0, $idx);
-            imagecolortransparent($this->destImg, $idx);
-        } else {
-            imagealphablending($this->destImg, false);
-            imagefill(
-                $this->destImg,
-                0,
-                0,
-                imagecolorallocatealpha($this->destImg, $this->colorR, $this->colorG, $this->colorB, 127)
-            );
-            imagesavealpha($this->destImg, true);
-        }
-        if (function_exists('imagepalettetotruecolor')) {
-            imagepalettetotruecolor($this->destImg); // true color に変換
-        }
-        imagecopyresampled(
-            $this->destImg,
-            $this->srcImg,
-            $this->destX,
-            $this->destY,
-            $this->srcX,
-            $this->srcY,
-            $this->destW,
-            $this->destH,
-            $this->srcW,
-            $this->srcH
-        );
-    }
-
-    private function createDestImageForImagick($destPath)
-    {
-        $this->srcImg->setImageCompression(Imagick::COMPRESSION_JPEG);
-        $this->srcImg->setImageCompressionQuality($this->qualityJpeg);
-        $this->srcImg->cropImage($this->srcW, $this->srcH, $this->srcX, $this->srcY);
-        $this->srcImg->resizeImage($this->destW, $this->destH, Imagick::FILTER_LANCZOS, 0.9, false);
-
-        switch ($this->getExtension()) {
-            case self::MIME_GIF:
-            case self::MIME_PNG:
-                $this->srcImg->setImageBackgroundColor(new ImagickPixel('transparent'));
-                break;
-            default:
-                $this->srcImg->setImageBackgroundColor(new ImagickPixel("rgb($this->colorR, $this->colorG, $this->colorB)"));
-        }
-        if ($this->destW === $this->canvasW) {
-            // 横幅いっぱい
-            $this->srcImg->spliceImage(0, $this->destY, 0, 0);
-            $this->srcImg->spliceImage(0, $this->destY, 0, $this->destY + $this->destH);
-        } else {
-            // 縦幅いっぱい
-            $this->srcImg->spliceImage($this->destX, 0, 0, 0);
-            $this->srcImg->spliceImage($this->destX, 0, $this->destX + $this->destW, 0);
-        }
-        $this->srcImg->stripImage();
-        $this->srcImg->writeImages($destPath, true);
-        $this->srcImg->clear();
-        $this->srcImg->destroy();
-    }
-
-    private function resizeToAspectFit()
-    {
-        $this->srcW = $this->originalW;
-        $this->srcH = $this->originalH;
-
-        $srcRatio = $this->originalW / $this->originalH;
-        $destRatio = $this->canvasW / $this->canvasH;
-
-        if ($srcRatio > $destRatio) {
-            // 横幅いっぱい
-            $this->destW = $this->canvasW;
-            $this->destH = ceil($this->destW / $srcRatio);
-            $this->destY = ceil(($this->canvasH - $this->destH) / 2);
-        } else {
-            // 縦幅いっぱい
-            $this->destH = $this->canvasH;
-            $this->destW = ceil($this->destH * $srcRatio);
-            $this->destX = ceil(($this->canvasW - $this->destW) / 2);
-        }
-    }
-
-    private function resieToAspectFill()
-    {
-        $this->srcW = $this->originalW;
-        $this->srcH = $this->originalH;
-
-        $this->destW = $this->canvasW;
-        $this->destH = $this->canvasH;
-
-        $srcRatio = $this->originalW / $this->originalH;
-        $destRatio = $this->canvasW / $this->canvasH;
-
-
-        if ($srcRatio > $destRatio) {
-            // 左右をトリミング
-            $this->srcH = $this->originalH;
-            $this->srcW = ceil($this->srcH * $destRatio);
-            $this->srcX = ceil(($this->originalW - $this->srcW) / 2);
-        } else {
-            // 上下をトリミング
-            $this->srcH = ceil($this->srcW / $destRatio);
-            $this->srcW = $this->originalW;
-            $this->srcY = ceil(($this->originalH - $this->srcH) / 2);
-        }
-    }
-
-    public function setMode($mode)
+    /**
+     * リサイズモードをセット
+     *
+     * @param int $mode
+     * @return void
+     */
+    public function setMode(int $mode): void
     {
         $this->mode = $mode;
-
-        return $this;
     }
 
-    public function setQuality($quality)
+    /**
+     * 画像クオリティをセット
+     *
+     * @param int $quality
+     * @return void
+     */
+    public function setQuality(int $quality): void
     {
         $this->qualityJpeg = $quality;
-
-        return $this;
     }
 
-    public function setBgColor($color)
+    /**
+     * 背景色をセット
+     *
+     * @param string $color
+     * @throws \Exception
+     * @return void
+     */
+    public function setBgColor(string $color): void
     {
         $color = ltrim($color, '#');
 
@@ -255,45 +216,30 @@ class ImageResize
             ]);
             throw new Exception('Incorrect Color Value');
         }
-
-        return $this;
     }
 
-    public function save($path)
+    /**
+     * リサイズした画像を保存
+     *
+     * @param string $destPath
+     * @return void
+     */
+    public function save(string $destPath): void
     {
-        if ($this->engine === 'imagick') {
-            $this->createDestImageForImagick($path);
-            Image::createWebpWithImagick($path, $path . '.webp');
-        } else {
-            $this->createDestImage();
-
-            switch ($this->getExtension()) {
-                case self::MIME_GIF:
-                    imagegif($this->destImg, $path);
-                    break;
-                case self::MIME_PNG:
-                    imagepng($this->destImg, $path);
-                    Image::createWebpWithGd($this->destImg, $path . '.webp', $this->qualityJpeg);
-                    break;
-                case self::MIME_BMP:
-                    imagewbmp($this->destImg, $path);
-                    break;
-                case self::MIME_XBM:
-                    imagexbm($this->destImg, $path);
-                    break;
-                default:
-                    imagejpeg($this->destImg, $path, $this->qualityJpeg);
-                    Image::createWebpWithGd($this->destImg, $path . '.webp', $this->qualityJpeg);
-                    break;
-            }
-        }
-        Image::optimize($path);
-        Storage::changeMod($path);
-
-        return $this;
+        $color = [$this->colorR, $this->colorG, $this->colorB];
+        $this->engine->setImageQuality((int) config('resize_image_jpeg_quality', 75));
+        $this->engine->resizeImage($this->srcPath, $destPath, $this->srcW, $this->srcH, $this->srcX, $this->srcY, $this->destW, $this->destH, $this->destX, $this->destY, $this->canvasW, $this->canvasH, $color);
+        $this->engine->copyImageAsWebp($destPath, "{$destPath}.webp");
     }
 
-    public function resize($width, $height)
+    /**
+     * リサイズ（幅・高さを指定）
+     *
+     * @param int $width
+     * @param int $height
+     * @return void
+     */
+    public function resize(int $width, int $height): void
     {
         $this->canvasW = $width;
         $this->canvasH = $height;
@@ -312,11 +258,15 @@ class ImageResize
                 $this->resieToAspectFill();
                 break;
         }
-
-        return $this;
     }
 
-    public function resizeToHeight($height)
+    /**
+     * リサイズ（高さを指定・幅は自動計算）
+     *
+     * @param int $height
+     * @return void
+     */
+    public function resizeToHeight(int $height): void
     {
         $this->canvasH = $height;
         $this->srcW = $this->originalW;
@@ -325,19 +275,23 @@ class ImageResize
 
         if ($height < $this->originalH) {
             $this->destH = $height;
-            $this->destW = ceil($this->originalW * $ratio);
+            $this->destW = (int) ceil($this->originalW * $ratio);
             $this->canvasW = $this->destW;
         } else {
             $this->destW = $this->originalW;
             $this->destH = $this->originalH;
             $this->canvasW = $this->originalW;
-            $this->destY = ceil(($height - $this->originalH) / 2);
+            $this->destY = (int) ceil(($height - $this->originalH) / 2);
         }
-
-        return $this;
     }
 
-    public function resizeToWidth($width)
+    /**
+     * リサイズ（幅を指定・高さは自動計算）
+     *
+     * @param int $width
+     * @return void
+     */
+    public function resizeToWidth(int $width): void
     {
         $this->canvasW = $width;
         $this->srcW = $this->originalW;
@@ -346,15 +300,69 @@ class ImageResize
 
         if ($width < $this->originalW) {
             $this->destW = $width;
-            $this->destH = ceil($this->originalH * $ratio);
+            $this->destH = (int) ceil($this->originalH * $ratio);
             $this->canvasH = $this->destH;
         } else {
             $this->destW = $this->originalW;
             $this->destH = $this->originalH;
             $this->canvasH = $this->originalH;
-            $this->destX = ceil(($width - $this->originalW) / 2);
+            $this->destX = (int) ceil(($width - $this->originalW) / 2);
         }
+    }
 
-        return $this;
+    /**
+     * アクスペクト比を維持するようにサイズを計算
+     *
+     * @return void
+     */
+    private function resizeToAspectFit(): void
+    {
+        $this->srcW = $this->originalW;
+        $this->srcH = $this->originalH;
+
+        $srcRatio = $this->originalW / $this->originalH;
+        $destRatio = $this->canvasW / $this->canvasH;
+
+        if ($srcRatio > $destRatio) {
+            // 横幅いっぱい
+            $this->destW = $this->canvasW;
+            $this->destH = (int) ceil($this->destW / $srcRatio);
+            $this->destY = (int) ceil(($this->canvasH - $this->destH) / 2);
+        } else {
+            // 縦幅いっぱい
+            $this->destH = $this->canvasH;
+            $this->destW = (int) ceil($this->destH * $srcRatio);
+            $this->destX = (int) ceil(($this->canvasW - $this->destW) / 2);
+        }
+    }
+
+    /**
+     * 指定されたサイズを埋めるようにトリミングしたサイズを取得
+     *
+     * @return void
+     */
+    private function resieToAspectFill(): void
+    {
+        $this->srcW = $this->originalW;
+        $this->srcH = $this->originalH;
+
+        $this->destW = $this->canvasW;
+        $this->destH = $this->canvasH;
+
+        $srcRatio = $this->originalW / $this->originalH;
+        $destRatio = $this->canvasW / $this->canvasH;
+
+
+        if ($srcRatio > $destRatio) {
+            // 左右をトリミング
+            $this->srcH = $this->originalH;
+            $this->srcW = (int) ceil($this->srcH * $destRatio);
+            $this->srcX = (int) ceil(($this->originalW - $this->srcW) / 2);
+        } else {
+            // 上下をトリミング
+            $this->srcH = (int) ceil($this->srcW / $destRatio);
+            $this->srcW = $this->originalW;
+            $this->srcY = (int) ceil(($this->originalH - $this->srcH) / 2);
+        }
     }
 }

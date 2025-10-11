@@ -1,0 +1,493 @@
+@include("/admin/include/action-result.html", {
+  "successMessage": "<!--T-->エントリー一覧を更新しました。<!--/T-->",
+  "errorMessage": "<!--T-->エントリー一覧の更新に失敗しました。<!--/T-->"
+})
+
+@include("/admin/include/error-alert.html")
+
+<!-- BEGIN_MODULE Admin_Messages -->
+<!-- BEGIN message:loop -->
+<div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  {message}
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+  ×
+  </button>
+</div>
+<!-- END message:loop -->
+<!-- END_MODULE Admin_Messages -->
+
+<!-- BEGIN_MODULE Admin_Entry_Index -->
+
+<div class="acms-admin-filter">
+  <form action="" method="post" class="acms-admin-form">
+
+    @section("entry-index-filter")
+    <div class="acms-admin-filter-body">
+      @include("/admin/entry/filter.html")
+    </div>
+    <div class="acms-admin-filter-footer acms-admin-margin-top-sp">
+      <input type="hidden" name="query[]" value="axis"/>
+      <input type="hidden" name="bid" value="%{BID}"/>
+      <input type="hidden" name="ACMS_POST_2GET" value="post"/>
+      <div>
+        <button type="submit" name="admin" value="entry_index" class="acms-admin-btn-admin acms-admin-btn-admin-info acms-admin-btn-admin-search acms-admin-margin-top-bottom-small-sp">
+          <!--T-->検索<!--/T-->
+        </button>
+        <!-- BEGIN_MODULE Touch_SessionWithAdministration -->
+        <button type="submit" name="admin" value="entry_bulk-change" class="acms-admin-btn-admin acms-admin-btn-admin-search acms-admin-margin-top-bottom-small-sp">
+          <!--T-->まとめて操作<!--/T-->
+        </button>
+        <!-- END_MODULE Touch_SessionWithAdministration -->
+      </div>
+
+      <p class="acms-admin-filter-detail-btn">
+        <a href="#search-detail" class="js-admin-fader" data-fader-storage>
+          <span class="acms-admin-icon-arrow-right"></span><!--T-->詳細検索<!--/T-->
+        </a>
+      </p>
+    </div>
+    @endsection
+  </form>
+</div><!-- /.acms-filter -->
+
+<!-- BEGIN index#notFound -->
+<div class="acms-admin-announce">
+  <h2 class="acms-admin-announce-title">
+    <span class="acms-admin-icon acms-admin-icon-news" aria-hidden="true"></span>
+    <!--T-->該当するエントリーが見つかりませんでした<!--/T-->
+  </h2>
+  <p class="acms-admin-announce-text">
+    <!--T-->検索内容に一致したエントリーはありませんでした。<br>再検索または新規作成してください。<!--/T-->
+  </p>
+  <div class="acms-admin-announce-action">
+    <form action="" method="post" enctype="multipart/form-data">
+      <div style="display: inline-block; width: 350px;">
+        @include("/admin/include/category/select.html", {
+          "target": "#default-category-value",
+          "defaultValue": "%{CID}"
+        })
+      </div>
+      <input id="default-category-value" type="hidden" name="cid" value="%{CID}">
+      <input type="hidden" name="ACMS_POST_2GET" value="on"/>
+      <input type="hidden" name="admin" value="entry_editor"/>
+      <input type="hidden" name="bid" value="%{BID}"/>
+      <button
+        type="submit"
+        class="acms-admin-btn acms-admin-btn-success"
+        style="vertical-align: top;"
+      >
+        <!--T-->エントリー作成<!--/T-->
+      </button>
+    </form>
+  </div>
+</div>
+<!-- END index#notFound -->
+
+<!-- BEGIN_IF [<!-- BEGIN index#notFound -->1<!-- END index#notFound -->/neq/1] -->
+<!-- BEGIN sort#header -->
+<div class="acms-admin-alert acms-admin-alert-info"><!--T-->ドラッグでエントリーの表示順を変更できます<!--/T--></div>
+<!-- END sort#header --><!-- BEGIN sort#headerUser -->
+<div class="acms-admin-alert acms-admin-alert-info"><!--T-->ドラッグでユーザー絞り込み時の表示順を変更できます
+  <!--/T--></div><!-- END sort#headerUser --><!-- BEGIN sort#headerCategory -->
+<div class="acms-admin-alert acms-admin-alert-info"><!--T-->ドラッグでカテゴリー絞り込み時の表示順を変更できます
+  <!--/T--></div><!-- END sort#headerCategory -->
+
+<form action="" method="post" id="entry-create-form">
+  <input type="hidden" name="ACMS_POST_2GET" value="on"/>
+  <input type="hidden" name="admin" value="entry_editor"/>
+  <input type="hidden" name="bid" value="%{BID}"/>
+</form>
+<form action="" method="post" id="entry-unlock-form">
+  <input type="hidden" name="ACMS_POST_Entry_Lock_Unlock" value="on"/>
+</form>
+
+<form method="post" action="" id="entry-list-form" class="acms-admin-form">
+
+  <div class="js-acms-tab-select clearfix js-acms_fix_marker acms-admin-margin-bottom-small">
+    <select name="action-entry" class="js-acms-tab-select-value acms-admin-float-left acms-admin-margin-bottom-mini">
+      <!-- BEGIN bulkAction:loop -->
+      <!-- BEGIN_IF [{bulkAction}/eq/order] -->
+      <option value="action-order" {action-entry:selected#action-order}><!--T-->表示順<!--/T--></option>
+      <!-- END_IF -->
+      <!-- BEGIN_IF [{bulkAction}/eq/status] -->
+      <option value="action-status" {action-entry:selected#action-status}><!--T-->ステータス<!--/T--></option>
+      <!-- END_IF -->
+      <!-- BEGIN_IF [{bulkAction}/eq/user] -->
+      <option value="action-user" {action-entry:selected#action-user}><!--T-->ユーザー<!--/T--></option>
+      <!-- END_IF -->
+      <!-- BEGIN_IF [{bulkAction}/eq/category] -->
+      <option value="action-category" {action-entry:selected#action-category}><!--T-->カテゴリー<!--/T--></option>
+      <!-- END_IF -->
+      <!-- BEGIN_IF [{bulkAction}/eq/blog] -->
+      <option value="action-blog" {action-entry:selected#action-blog}><!--T-->ブログ<!--/T--></option>
+      <!-- END_IF -->
+      <!-- BEGIN_IF [{bulkAction}/eq/duplicate] -->
+      <option value="action-duplicate" {action-entry:selected#action-duplicate}><!--T-->複製<!--/T--></option>
+      <!-- END_IF -->
+      <!-- BEGIN_IF [{bulkAction}/eq/export] -->
+      <option value="action-export" {action-entry:selected#action-export}><!--T-->エクスポート<!--/T--></option>
+      <!-- END_IF -->
+      <!-- BEGIN_IF [{bulkAction}/eq/trash] -->
+      <option value="action-trash" {action-entry:selected#action-trash}><!--T-->ゴミ箱<!--/T--></option>
+      <!-- END_IF -->
+      <!-- END bulkAction:loop -->
+    </select>
+
+    <!-- BEGIN_IF [<!-- BEGIN bulkAction:loop -->{bulkAction}<!-- END bulkAction:loop -->/lk/order] -->
+    <!-- BEGIN sort:action#entry -->
+    <div id="action-order" class="js-acms-tab-select-panel js-acms-tab-select-active acms-admin-float-left">
+      <button
+        type="submit"
+        name="ACMS_POST_Entry_Index_Sort_Entry"
+        class="acms-admin-btn-admin acms-admin-btn-admin-primary"
+      >
+        <!--T-->変更<!--/T-->
+      </button>
+    </div>
+    <!-- END sort:action#entry -->
+    <!-- BEGIN sort:action#category -->
+    <div id="action-order" class="js-acms-tab-select-panel js-acms-tab-select-active acms-admin-float-left">
+      <button
+        type="submit"
+        name="ACMS_POST_Entry_Index_Sort_Category"
+        class="acms-admin-btn-admin acms-admin-btn-admin-primary"
+      >
+        <!--T-->変更<!--/T-->
+      </button>
+    </div>
+    <!-- END sort:action#category -->
+    <!-- BEGIN sort:action#user -->
+    <div id="action-order" class="js-acms-tab-select-panel js-acms-tab-select-active acms-admin-float-left">
+      <button
+        type="submit"
+        name="ACMS_POST_Entry_Index_Sort_User"
+        value="<!--T-->変更<!--/T-->"
+        class="acms-admin-btn-admin acms-admin-btn-admin-primary"
+      >
+        <!--T-->変更<!--/T-->
+      </button>
+    </div>
+    <!-- END sort:action#user -->
+    <!-- END_IF -->
+
+    <!-- BEGIN_IF [<!-- BEGIN bulkAction:loop -->{bulkAction}<!-- END bulkAction:loop -->/lk/status] -->
+    <div id="action-status" class="js-acms-tab-select-panel acms-admin-float-left">
+      <select name="status" class="js-select2">
+        <option value="open"><!--T-->公開<!--/T--></option>
+        <option value="close"><!--T-->非公開<!--/T--></option>
+        <option value="draft"><!--T-->下書き<!--/T--></option>
+      </select>
+      <button
+        type="submit"
+        name="ACMS_POST_Entry_Index_Status"
+        class="acms-admin-btn-admin acms-admin-btn-admin-primary"
+      >
+        <!--T-->変更<!--/T-->
+      </button>
+    </div>
+    <!-- END_IF -->
+    <!-- BEGIN_IF [<!-- BEGIN bulkAction:loop -->{bulkAction}<!-- END bulkAction:loop -->/lk/user] -->
+    <!-- BEGIN_MODULE Admin_User_SelectGlobal -->
+    <div id="action-user" class="js-acms-tab-select-panel acms-admin-float-left">
+      <select name="uid" class="js-select2"><!-- BEGIN loop -->
+        <option value="{value}" {selected}>{label}</option><!-- END loop -->
+      </select>
+      <button
+        type="submit"
+        name="ACMS_POST_Entry_Index_User"
+        class="acms-admin-btn-admin acms-admin-btn-admin-primary"
+      >
+        <!--T-->変更<!--/T-->
+      </button>
+    </div>
+    <!-- END_MODULE Admin_User_SelectGlobal -->
+    <!-- END_IF -->
+
+    <!-- BEGIN_IF [<!-- BEGIN bulkAction:loop -->{bulkAction}<!-- END bulkAction:loop -->/lk/category] -->
+    <div id="action-category" class="js-acms-tab-select-panel acms-admin-float-left">
+      <div style="display: inline-block; width: 350px;">
+        @include("/admin/include/category/select.html", {
+          "target": "#index-category-value",
+          "defaultValue": "%{CID}"
+        })
+      </div>
+      <input id="index-category-value" type="hidden" name="cid" value="%{CID}">
+      <button
+        type="submit"
+        name="ACMS_POST_Entry_Index_Category"
+        class="acms-admin-btn-admin acms-admin-btn-admin-primary"
+        style="vertical-align: top;"
+      >
+        <!--T-->変更<!--/T-->
+      </button>
+    </div>
+    <!-- END_IF -->
+
+    <!-- BEGIN_IF [<!-- BEGIN bulkAction:loop -->{bulkAction}<!-- END bulkAction:loop -->/lk/blog] -->
+    <!-- BEGIN_MODULE Admin_Blog_SelectGlobal -->
+    <div id="action-blog" class="js-acms-tab-select-panel acms-admin-float-left">
+      <select name="bid" class="js-select2"><!-- BEGIN loop -->
+        <option value="{value}" {selected}>{indent}[raw]{label}</option><!-- END loop -->
+      </select>
+      <button
+        type="submit"
+        name="ACMS_POST_Entry_Index_Blog"
+        class="acms-admin-btn-admin acms-admin-btn-admin-primary"
+      >
+        <!--T-->変更<!--/T-->
+      </button>
+      <br/>
+      <span class="acms-admin-tab-text">
+      (<!--T-->※変更されたエントリーはログイン中のユーザーの所有になり、カテゴリーの設定は解除されます。ただし、グローバルカテゴリーとして設定されている場合はカテゴリーが保持されます<!--/T--> )
+      </span>
+    </div>
+    <!-- END_MODULE Admin_Blog_SelectGlobal -->
+    <!-- END_IF -->
+
+    <!-- BEGIN_IF [<!-- BEGIN bulkAction:loop -->{bulkAction}<!-- END bulkAction:loop -->/lk/duplicate] -->
+    <div id="action-duplicate" class="js-acms-tab-select-panel acms-admin-float-left">
+      <button
+        type="submit"
+        name="ACMS_POST_Entry_Index_Duplicate"
+        class="acms-admin-btn-admin acms-admin-btn-admin-primary"
+      >
+        <!--T-->複製<!--/T-->
+      </button>
+      <br/>
+      <span class="acms-admin-tab-text">( <!--T-->※この操作は、件数が多いと処理に時間がかかることがあります<!--/T--> )</span>
+    </div>
+    <!-- END_IF -->
+
+    <!-- BEGIN_IF [<!-- BEGIN bulkAction:loop -->{bulkAction}<!-- END bulkAction:loop -->/lk/export] -->
+    <div id="action-export" class="js-acms-tab-select-panel acms-admin-float-left">
+      <button
+        type="submit"
+        name="ACMS_POST_Entry_Index_Export"
+        class="acms-admin-btn-admin acms-admin-btn-admin-primary"
+      >
+        <!--T-->エクスポート<!--/T-->
+      </button>
+    </div>
+    <!-- END_IF -->
+
+    <!-- BEGIN_IF [<!-- BEGIN bulkAction:loop -->{bulkAction}<!-- END bulkAction:loop -->/lk/trash] -->
+    <div id="action-trash" class="js-acms-tab-select-panel acms-admin-float-left">
+      <button
+        type="submit"
+        name="ACMS_POST_Entry_Index_Trash"
+        onclick="return confirm('<!--T-->ゴミ箱に移します。\nよろしいですか？<!--/T-->')"
+        class="acms-admin-btn-admin acms-admin-btn-admin-danger"
+      >
+        <!--T-->ゴミ箱<!--/T-->
+      </button>
+    </div>
+    <!-- END_IF -->
+    <div class="acms-admin-float-right">
+      <div class="acms-admin-margin-bottom-mini">
+        <div style="display: inline-block; width: 350px;">
+          @include("/admin/include/category/select.html", {
+            "target": "#default-category-value",
+            "defaultValue": "%{CID}",
+            "form": "entry-create-form"
+          })
+        </div>
+        <input id="default-category-value" type="hidden" name="cid" value="%{CID}" form="entry-create-form">
+        <button
+          type="submit"
+          class="acms-admin-btn acms-admin-btn-success"
+          style="vertical-align: top;"
+          form="entry-create-form"
+        >
+          <!--T-->エントリー作成<!--/T-->
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="acms-admin-table-scroll-xs acms-admin-table-scroll-sm acms-admin-table-scroll-md">
+    <table
+      class="acms-admin-table-admin js-admin_table-sortable acms-admin-table-hover"
+      data-sort-enable="{sortable}"
+      data-sort-submit="{postSortType}" data-sort-target="#entry-list-form" data-sort-order="%{ORDER}"
+    >
+      <thead class="acms-admin-table-heading">
+      <tr>
+        @section("entry-index-table-thead-tr")
+        <th class="item-handle acms-admin-hide-sp" style="display: none;"></th>
+        <th class="acms-admin-table-center acms-admin-th-checkbox acms-admin-table-cell-sm acms-admin-table-nowrap">
+          <div class="acms-admin-form-checkbox acms-admin-m-0">
+            <input type="checkbox" id="checkAll"/>
+            <label for="checkAll"><i class="acms-admin-ico-checkbox"></i><span class="acms-admin-hide-visually"><!-- T -->すべてのエントリーを選択する
+              <!--T--></span></label>
+          </div>
+        </th>
+        <!-- BEGIN_IF [%{axis}/neq/descendant-or-self] -->
+        <th class="acms-admin-table-nowrap"><!--T-->表示順<!--/T--></th>
+        <!-- END_IF -->
+        <th class="acms-admin-table-nowrap acms-admin-hide-lg acms-admin-hide-xl">編集</th>
+        <th class="acms-admin-table-nowrap">ID</th>
+        <th class="acms-admin-table-nowrap"><!--T-->ステータス<!--/T--></th>
+        <th><!--T-->タイトル<!--/T--> / <!--T-->コード<!--/T--></th>
+        <th><!--T-->日時<!--/T--> </th>
+        <th class="acms-admin-table-nowrap"><!--T-->ブログ<!--/T--> / <!--T-->カテゴリー<!--/T--></th>
+        <th><!--T-->ユーザー<!--/T--></th>
+        <th class="acms-admin-table-nowrap"></th>
+        <th class="acms-admin-table-nowrap"></th>
+        @endsection
+      </tr>
+      </thead>
+      <tbody>
+      <!-- BEGIN entry:loop -->
+      <tr data-sort-level="parallel" data-sort-name="sort-{sort#eid}">
+        @section("entry-index-table-tbody-tr")
+        <td class="item-handle acms-admin-td-sort acms-admin-hide-sp" style="cursor: move; display: none;"><i
+          class="acms-admin-icon-sort"></i></td>
+        <td class="acms-admin-table-center acms-admin-td-checkbox acms-admin-table-nowrap">
+          <div class="acms-admin-form-checkbox acms-admin-m-0">
+            <input type="checkbox" id="input-checkbox-eid{sort#eid}" name="checks[]" value="{bid}:{eid}"/>
+            <label for="input-checkbox-eid{sort#eid}"><i class="acms-admin-ico-checkbox"></i><span
+              class="acms-admin-hide-visually"><!-- T -->エントリータイトル「{title}」を選択する<!-- /T --></span></label>
+          </div>
+        </td>
+        <!-- BEGIN_IF [%{axis}/neq/descendant-or-self] -->
+        <td class="acms-admin-td-number">
+          <!-- BEGIN sort:veil -->
+          <input type="text" class="sort-number" name="sort-{sort#eid}" value="{sort}" size="4" {disabled}/>
+          <!-- END sort:veil -->
+        </td>
+        <!-- END_IF -->
+        <td class="acms-admin-text-center acms-admin-hide-lg acms-admin-hide-xl"><a href="{editUrl}"
+                                                                                    class="acms-admin-edit-icon-btn"><span
+          class="acms-admin-icon-control-edit" aria-label="<!--T-->編集<!--/T-->"></span></a></td>
+        <td class="acms-admin-td-id">
+          <span class="acms-admin-label label-default">{eid}</span>
+        </td>
+        <td class="acms-admin-table-nowrap acms-admin-text-center">
+          <small><!-- BEGIN status#close --><span class="acms-admin-label acms-admin-label-danger admin-status-label"><!--T-->非公開
+            <!--/T--></span><!-- END status#close --><!-- BEGIN status#open --><span
+            class="acms-admin-label acms-admin-label-info admin-status-label"><!--T-->公開<!--/T--></span>
+            <!-- END status#open --><!-- BEGIN status#draft --><span
+              class="acms-admin-label acms-admin-label-warning admin-status-label"><!--T-->下書き<!--/T--></span>
+            <!-- END status#draft --></small>
+        </td>
+        <td>
+          <a href="{entryUrl}" class="acms-admin-td-title">
+            <p class="acms-admin-entryTitle">{title}</p>
+          </a>
+          <p class="acms-admin-m-0">{code}</p>
+        </td>
+        <td>
+          {datetime}[date('Y/m/d H:i')]
+          <!-- BEGIN_IF [%{ORDER}/lk/updated_datetime]-->
+          <br>
+          <span class="acms-admin-label">更新日時</span> {updated_datetime}[date('Y/m/d H:i')]
+          <!-- END_IF -->
+          <!-- BEGIN_IF [%{ORDER}/lk/posted_datetime]-->
+          <br>
+          <span class="acms-admin-label">投稿日時</span> {posted_datetime}[date('Y/m/d H:i')]
+          <!-- END_IF -->
+        </td>
+        <td>
+          <ul class="acms-admin-list-nostyle">
+            <li><a href="{blogUrl}"><i class="acms-admin-icon acms-admin-icon-blog"></i>{blogName}</a></li>
+            <!-- BEGIN category:veil -->
+            <li><a href="{categoryUrl}"><i class="acms-admin-icon acms-admin-icon-category"></i>{categoryName}</a></li>
+            <!-- END category:veil -->
+          </ul>
+        </td>
+        <td class="acms-admin-td-user">
+          <!-- BEGIN_IF [{userUrl}/nem] -->
+          <a href="{userUrl}">
+          <!-- END_IF -->
+            <img
+              src="%{ARCHIVES_DIR}{userIcon}"
+              width="28"
+              height="28"
+              alt="%{SESSION_USER_NAME}"
+              class="acms-admin-user acms-admin-margin-right-small acms-admin-cell-text-middle"
+            >
+            {userName}
+          <!-- BEGIN_IF [{userUrl}/nem] -->
+          </a>
+          <!-- END_IF -->
+        </td>
+
+        @include("/admin/entry/field-list.html")
+        <td class="acms-admin-td-edit acms-admin-table-nowrap">
+          <div class="js-acms-dropdown-toggle acms-admin-btn-group">
+            <!-- BEGIN action:loop -->
+            <!-- BEGIN_IF [{id}/eq/edit] -->
+            <a class="acms-admin-btn-admin" href="{url}"><!--T-->編集<!--/T--></a>
+            <!-- END_IF -->
+            <!-- END action:loop -->
+            <button type="button" class="acms-admin-btn-admin js-acms-dropdown-btn">
+              <span class="acms-admin-arrow-bottom"></span>
+            </button>
+            <ul class="js-acms-dropdown-menu acms-admin-dropdown-menu acms-admin-dropdown-menu-sm" role="menu" data-within=".js-admin_table-sortable">
+              <!-- BEGIN action:loop -->
+              <!-- BEGIN_IF [{id}/neq/edit/_and_/{action.i}/neq/2] -->
+              <!-- BEGIN action:glue -->
+              <li><hr class="acms-admin-divider"></li>
+              <!-- END action:glue -->
+              <!-- END_IF -->
+              <!-- BEGIN_IF [{id}/eq/approval-history] -->
+              <li><a href="{url}"><!--T-->承認履歴<!--/T--></a></li>
+              <!-- END_IF -->
+              <!-- BEGIN_IF [{id}/eq/duplicate] -->
+              <li><button type="button" class="js-acms_entry_index_duplicate"><!--T-->複製<!--/T--></button></li>
+              <!-- END_IF -->
+              <!-- BEGIN_IF [{id}/eq/trash] -->
+              <li><button type="button" class="js-acms_entry_index_delete"><!--T-->削除<!--/T--></button></li>
+              <!-- END_IF -->
+              <!-- END action:loop -->
+            </ul>
+          </div>
+        </td>
+        <td>
+          <!-- BEGIN_IF [{lockUser}/nem] -->
+          <!-- BEGIN_IF [{selfLock}/eq/yes] -->
+          <div>
+            <button
+              type="submit"
+              class="acms-admin-btn-icon acms-admin-btn-unstyled"
+              form="entry-unlock-form"
+              onclick="return confirm('<!--T-->ロックを解除してもよろしいですか？<!--/T-->')"
+              name="eid"
+              value="{eid}"
+            >
+              <i class="acms-admin-icon-large acms-admin-icon-logout"></i>
+            </button>
+          </div>
+          <!-- ELSE -->
+          <span class="acms-admin-btn-icon">
+            <i
+              class="acms-admin-icon-large acms-admin-icon-lock js-acms-tooltip"
+              data-acms-position="top-left"
+              data-acms-tooltip="{lockUser}さんが編集中です"
+            ></i>
+          </span>
+          <!-- END_IF -->
+          <!-- END_IF -->
+        </td>
+        @endsection
+      </tr>
+      <!-- END entry:loop -->
+      </tbody>
+    </table>
+  </div>
+  <!-- BEGIN index -->
+  <div class="acms-admin-cssgrid acms-admin-mt-5">
+    @section("entry-index-pager")
+    @include("/admin/include/pagination.html")
+    @endsection
+  </div><!-- /.acms-grid -->
+  <!-- END index -->
+
+  <!-- END_IF -->
+</form>
+<!-- END_MODULE Admin_Entry_Index -->

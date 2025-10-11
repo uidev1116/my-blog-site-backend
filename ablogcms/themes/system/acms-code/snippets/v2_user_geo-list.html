@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V2_User_GeoList</title>
+    <link rel="stylesheet" href="src/highlight/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="src/snippets.css" />
+    <script src="src/highlight/highlight.min.js"></script>
+    <script src="src/highlight/javascript.min.js"></script>
+    <script src="src/highlight/twig.min.js"></script>
+    <script src="src/snippets.js"></script>
+  </head>
+  <body>
+    <h1>V2_User_GeoList</h1>
+    <pre class="acms-admin-customfield-maker"><code class="language-twig">
+&#123;% set userGeoList = module(&#039;V2_User_GeoList&#039;, null, &#123;
+  bid: null,
+  uid: null,
+  page: PAGE,
+  limit: null,
+  keyword: null,
+  field: null,
+&#125;) %&#125;
+
+&#123;% if userGeoList.items is not empty %&#125;
+&lt;div class=&quot;acms-margin-bottom-medium&quot;&gt;
+  &#123;&#123; include(&#039;/admin/module/setting.twig&#039;, &#123; moduleInfo: userGeoList.moduleInfo &#125;) &#125;&#125;
+
+  &#123;% for item in userGeoList.items %&#125;
+  &lt;div class=&quot;acms-summary&quot;&gt;
+    &#123;% if item.icon %&#125;
+    &lt;div class=&quot;acms-summary-image&quot;&gt;
+      &lt;img src=&quot;&#123;&#123; item.icon &#125;&#125;&quot; alt=&quot;&#123;&#123; item.name &#125;&#125;&quot; width=&quot;60&quot; /&gt;
+    &lt;/div&gt;
+    &#123;% endif %&#125;
+    &lt;div class=&quot;acms-summary-body&quot;&gt;
+      &lt;h4 class=&quot;acms-summary-heading&quot;&gt;&#123;&#123; item.name &#125;&#125;&lt;/h4&gt;
+      &lt;p&gt;&#123;&#123; item.geo.distance | number_format &#125;&#125;m&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &#123;% endfor %&#125;
+
+  &lt;!-- ページネーション --&gt;
+  &#123;&#123;
+    include(&#039;/include/pagination.twig&#039;, &#123;
+      pagination: userGeoList.pagination,
+    &#125;)
+  &#125;&#125;
+&lt;/div&gt;
+&#123;% endif %&#125;
+    </code></pre>
+  </body>
+</html>

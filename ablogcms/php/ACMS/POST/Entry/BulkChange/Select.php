@@ -5,7 +5,7 @@ class ACMS_POST_Entry_BulkChange_Select extends ACMS_POST_Entry_BulkChange
     /**
      * @var array
      */
-    protected $eids = [];
+    protected $targetEids = [];
 
     /**
      * Run
@@ -14,12 +14,12 @@ class ACMS_POST_Entry_BulkChange_Select extends ACMS_POST_Entry_BulkChange
      */
     public function post()
     {
-        $this->eids = $this->Post->getArray('checks');
+        $this->targetEids = $this->Post->getArray('checks');
         try {
             $this->validate();
             $this->Post->set('step', '2');
         } catch (ACMS_POST_Entry_BulkChange_Exceptions_PermissionDenied $e) {
-            die('Permission denied.');
+            die403('Permission denied.');
         } catch (ACMS_POST_Entry_BulkChange_Exceptions_TargetEmpty $e) {
             $this->Post->set('step', '1');
             $this->Post->set('error', 'targetEmpty');
@@ -37,7 +37,7 @@ class ACMS_POST_Entry_BulkChange_Select extends ACMS_POST_Entry_BulkChange
     {
         parent::validate();
 
-        if (count($this->eids) < 1) {
+        if (count($this->targetEids) < 1) {
             throw new ACMS_POST_Entry_BulkChange_Exceptions_TargetEmpty();
         }
     }

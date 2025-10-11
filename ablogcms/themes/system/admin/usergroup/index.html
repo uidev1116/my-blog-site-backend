@@ -9,8 +9,10 @@
 
 <!-- BEGIN_MODULE Admin_Usergroup_Index -->
 
-<!-- BEGIN refresh -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->ユーザーグループ一覧を更新しました。<!--/T--></p><!-- END refresh -->
+@include("/admin/include/action-result.html", {
+  "successMessage": "<!--T-->ユーザーグループ一覧を更新しました。<!--/T-->",
+  "errorMessage": "<!--T-->ユーザーグループ一覧の更新に失敗しました。<!--/T-->"
+})
 
 <!-- BEGIN_IF [<!-- BEGIN index#notFound -->1<!-- END index#notFound -->/neq/1/_or_/%{CURRENT_ROOT}/neq//bid/%{BID}/admin/%{ADMIN}] -->
 <div class="acms-admin-filter">

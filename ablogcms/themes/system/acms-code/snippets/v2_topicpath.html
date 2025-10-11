@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V2_Topicpath</title>
+    <link rel="stylesheet" href="src/highlight/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="src/snippets.css" />
+    <script src="src/highlight/highlight.min.js"></script>
+    <script src="src/highlight/javascript.min.js"></script>
+    <script src="src/highlight/twig.min.js"></script>
+    <script src="src/snippets.js"></script>
+  </head>
+  <body>
+    <h1>V2_Topicpath</h1>
+    <pre class="acms-admin-customfield-maker"><code class="language-twig">
+&#123;% set topicpath = module(&#039;V2_Topicpath&#039;, null, {
+  bid: null,
+  cid: null,
+  eid: null,
+&#125;) %&#125;
+
+&#123;% if topicpath.items is not empty %&#125;
+  &lt;div&gt;
+    &#123;&#123; include(&#039;/admin/module/setting.twig&#039;, { moduleInfo: topicpath.moduleInfo &#125;) &#125;&#125;
+    &lt;ol class=&quot;acms-topicpath acms-margin-bottom-mini clearfix&quot; aria-label=&quot;トピックパス&quot;&gt;
+      &#123;% for item in topicpath.items %&#125;
+        &lt;li&gt;
+          &lt;a href=&quot;&#123;&#123; item.url &#125;&#125;&quot;&gt;&#123;&#123; item.name &#125;&#125;&lt;/a&gt;
+        &lt;/li&gt;
+      &#123;% endfor %&#125;
+    &lt;/ol&gt;
+  &lt;/div&gt;
+&#123;% endif %&#125;
+    </code></pre>
+  </body>
+</html>

@@ -3,32 +3,68 @@
 namespace Acms\Services\Unit\Models;
 
 use Acms\Services\Unit\Contracts\Model;
-use Acms\Traits\Unit\UnitTemplateTrait;
+use Acms\Services\Unit\Contracts\AlignableUnitInterface;
+use Acms\Services\Unit\Contracts\AnkerUnitInterface;
+use Acms\Traits\Unit\AlignableUnitTrait;
+use Acms\Traits\Unit\AnkerUnitTrait;
+use Acms\Traits\Unit\SizeableUnitTrait;
+use Acms\Services\Unit\Contracts\SizeableUnitInterface;
+use Acms\Traits\Unit\UnitMultiLangTrait;
 use Template;
 use ACMS_Hook;
 
-class Video extends Model
+/**
+ * @extends \Acms\Services\Unit\Contracts\Model<array<string, mixed>>
+ */
+class Video extends Model implements AlignableUnitInterface, AnkerUnitInterface, SizeableUnitInterface
 {
-    use UnitTemplateTrait;
+    use AlignableUnitTrait;
+    use AnkerUnitTrait;
+    use SizeableUnitTrait;
+    use UnitMultiLangTrait;
+
+    /**
+     * ユニットの独自データ
+     * @var array<string, mixed>
+     */
+    private $attributes = [];
 
     /**
      * ユニットタイプを取得
      *
-     * @return string
+     * @inheritDoc
      */
-    public function getUnitType(): string
+    public static function getUnitType(): string
     {
         return 'video';
     }
 
     /**
-     * ユニットが画像タイプか取得
-     *
-     * @return bool
+     * @inheritDoc
      */
-    public function getIsImageUnit(): bool
+    public static function getUnitLabel(): string
     {
-        return false;
+        return gettext('ビデオ');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAttributes()
+    {
+        return [
+            'video_id' => $this->getField2(),
+            'video_size' => $this->getSize(),
+            ...$this->attributes,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setAttributes($attributes): void
+    {
+        $this->attributes = $attributes;
     }
 
     /**
@@ -44,20 +80,15 @@ class Video extends Model
     }
 
     /**
-     * POSTデータからユニット独自データを抽出
-     *
-     * @param array $post
-     * @param bool $removeOld
-     * @param bool $isDirectEdit
-     * @return void
+     * @inheritDoc
      */
-    public function extract(array $post, bool $removeOld = true, bool $isDirectEdit = false): void
+    public function extract(array $request): void
     {
-        $id = $this->getTempId();
-        $videoId = $this->implodeUnitData($_POST["video_id_{$id}"]);
-        if ($isDirectEdit && strlen($videoId) === 0) {
-            $videoId = config('action_direct_def_videoid');
+        $id = $this->getId();
+        if (is_null($id)) {
+            throw new \LogicException('Unit ID must be set before calling extract');
         }
+        $videoId = $this->implodeUnitDataTrait($request["video_id_{$id}"] ?? '');
         if (preg_match(REGEX_VALID_URL, $videoId)) {
             $tempVideoId = '';
             if (HOOK_ENABLE) {
@@ -69,12 +100,12 @@ class Video extends Model
             } else {
                 $parsed_url = parse_url($videoId);
                 if (!empty($parsed_url['query'])) {
-                    $videoId = preg_replace('/v=([\w\-_]+).*/', '$1', $parsed_url['query']);
+                    $videoId = preg_replace('/v=([\w\-_]+).*/', '$1', $parsed_url['query']) ?? '';
                 }
             }
         }
         $this->setField2($videoId);
-        [$size, $displaySize] = $this->extractUnitSizeTrait($post["video_size_{$id}"] ?? '');
+        [$size, $displaySize] = $this->extractUnitSizeTrait($request["video_size_{$id}"] ?? '', $this::getUnitType());
         $this->setSize($size);
         $this->setField3($displaySize);
     }
@@ -86,7 +117,7 @@ class Video extends Model
      */
     public function canSave(): bool
     {
-        if (empty($this->getField2())) {
+        if ($this->getField2() === '') {
             return false;
         }
         return true;
@@ -149,11 +180,11 @@ class Video extends Model
             'videoId' => $youtubeId,
             'x' => $x,
             'y' => $y,
-            'align' => $this->getAlign(),
+            'align' => $this->getAlign()->value,
+            'anker' => $this->getAnker(),
         ];
-        $this->formatMultiLangUnitData($vars['videoId'], $vars, 'videoId');
+        $this->formatMultiLangUnitDataTrait($vars['videoId'], $vars, 'videoId');
         $vars = $this->displaySizeStyleTrait($this->getField3(), $vars);
-        $vars['attr'] = $this->getAttr();
         $tpl->add(array_merge(['unit#' . $this->getType()], $rootBlock), $vars);
     }
 
@@ -167,10 +198,10 @@ class Video extends Model
      */
     public function renderEdit(Template $tpl, array $vars, array $rootBlock): void
     {
-        $this->renderSizeSelectTrait($this->getUnitType(), $this->getUnitType(), $this->getSize(), $tpl, $rootBlock);
-        $this->formatMultiLangUnitData($this->getField2(), $vars, 'videoId');
+        $this->renderSizeSelectTrait($this::getUnitType(), $this::getUnitType(), $this->getSize(), $tpl, $rootBlock);
+        $this->formatMultiLangUnitDataTrait($this->getField2(), $vars, 'videoId');
 
-        $tpl->add(array_merge([$this->getUnitType()], $rootBlock), $vars);
+        $tpl->add(array_merge([$this::getUnitType()], $rootBlock), $vars);
     }
 
     /**
@@ -182,7 +213,7 @@ class Video extends Model
     {
         return [
             'video_id' => $this->getField2(),
-            'display_size' => $this->getField3(),
+            'display_size' => $this->getField3()
         ];
     }
 }

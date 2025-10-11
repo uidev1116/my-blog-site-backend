@@ -7,8 +7,8 @@ import axiosLib from '../../../lib/axios';
 export const lockEntry = async () => {
   const params = new URLSearchParams();
   params.append('ACMS_POST_Entry_Lock_Exec', 'true');
-  params.append('rvid', ACMS.Config.rvid || 0);
-  params.append('eid', ACMS.Config.eid || 0);
+  params.append('rvid', ACMS.Config.rvid || '0');
+  params.append('eid', ACMS.Config.eid || '0');
   params.append('formToken', window.csrfToken);
 
   await axiosLib({
@@ -24,8 +24,8 @@ export const lockEntry = async () => {
 export const checkEntryLock = async () => {
   const params = new URLSearchParams();
   params.append('ACMS_POST_Entry_Lock_Check', 'true');
-  params.append('rvid', ACMS.Config.rvid || 0);
-  params.append('eid', ACMS.Config.eid || 0);
+  params.append('rvid', ACMS.Config.rvid || '0');
+  params.append('eid', ACMS.Config.eid || '0');
   params.append('formToken', window.csrfToken);
 
   const response = await axiosLib({

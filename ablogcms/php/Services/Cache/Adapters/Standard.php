@@ -5,6 +5,7 @@ namespace Acms\Services\Cache\Adapters;
 use Acms\Services\Cache\Contracts\AdapterInterface;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Cache\PruneableInterface;
+use ReflectionObject;
 
 class Standard implements AdapterInterface
 {
@@ -29,7 +30,17 @@ class Standard implements AdapterInterface
      */
     public function getItem(string $key): CacheItem
     {
-        return $this->adapter->getItem($key);
+        $item = $this->adapter->getItem($key);
+        if (defined('ACMS_POST') && !!ACMS_POST) {
+            // キャッシュヒットを偽装的に無効化
+            $reflection = new ReflectionObject($item);
+            if ($reflection->hasProperty('isHit')) {
+                $prop = $reflection->getProperty('isHit');
+                $prop->setAccessible(true);
+                $prop->setValue($item, false);
+            }
+        }
+        return $item;
     }
 
     /**

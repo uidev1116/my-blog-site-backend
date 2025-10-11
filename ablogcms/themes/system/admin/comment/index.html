@@ -8,8 +8,10 @@
 	</div>
 </header>
 
-<!-- BEGIN refresh -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->コメント一覧を更新しました。<!--/T--></p><!-- END refresh -->
+@include("/admin/include/action-result.html", {
+  "successMessage": "<!--T-->コメント一覧を更新しました。<!--/T-->",
+  "errorMessage": "<!--T-->コメント一覧の更新に失敗しました。<!--/T-->"
+})
 
 <!-- BEGIN_IF [<!-- BEGIN index#notFound -->1<!-- END index#notFound -->/neq/1/_or_/%{CURRENT_ROOT}/neq//bid/%{BID}/admin/%{ADMIN}] -->
 <div class="acms-admin-filter">
@@ -71,7 +73,7 @@
 			<input type="submit" name="ACMS_POST_2GET" value="<!--T-->検索<!--/T-->" class="acms-admin-btn-admin acms-admin-btn-admin-info acms-admin-btn-admin-search" />
 			<input type="hidden" name="admin" value="comment_index" />
 
-			<p class="acms-admin-filter-detail-btn"><a href="#search-detail" class="js-fader"><span class="acms-admin-icon-arrow-right"></span><!--T-->詳細検索<!--/T--></a></p>
+			<p class="acms-admin-filter-detail-btn"><a href="#search-detail" class="js-admin-fader"><span class="acms-admin-icon-arrow-right"></span><!--T-->詳細検索<!--/T--></a></p>
 		</div>
 	</form>
 </div><!-- /.acms-filter -->
@@ -122,7 +124,7 @@
 		<table class="acms-admin-table-admin js-admin_table-sortable acms-admin-table-hover">
 			<thead class="acms-admin-table-heading">
 				<tr>
-					<th class="acms-admin-table-center acms-admin-th-checkbox acms-admin-table-nowrap"><div class="acms-admin-form-checkbox acms-admin-margin-none"><input type="checkbox" id="checkAll" /><label for="checkAll"><i class="acms-admin-ico-checkbox acms-admin-margin-none"></i><span class="acms-admin-hide-visually">コメントをすべてチェックする</span></label></div></th>
+					<th class="acms-admin-table-center acms-admin-th-checkbox acms-admin-table-nowrap"><div class="acms-admin-form-checkbox acms-admin-m-0"><input type="checkbox" id="checkAll" /><label for="checkAll"><i class="acms-admin-ico-checkbox acms-admin-m-0"></i><span class="acms-admin-hide-visually">コメントをすべてチェックする</span></label></div></th>
 					<th><!--T-->日付<!--/T--> / <!--T-->タイトル<!--/T--></th>
 					<th><!--T-->コメント<!--/T--></th>
 					<th><!--T-->投稿者<!--/T--></th>
@@ -133,7 +135,7 @@
 			</thead>
 			<tbody><!-- BEGIN comment:loop -->
 				<tr>
-					<td class="acms-admin-table-center acms-admin-td-checkbox acms-admin-table-nowrap"><div class="acms-admin-form-checkbox acms-admin-margin-none"><input type="checkbox" name="checks[]" id="check-comment{id}" value="{id}"{disabled} /><label for="check-comment{id}"><i class="acms-admin-ico-checkbox acms-admin-margin-none"></i><span class="acms-admin-hide-visually"><!--T-->コメントタイトル{name}を選択する<!--/T--></span></label></div></td>
+					<td class="acms-admin-table-center acms-admin-td-checkbox acms-admin-table-nowrap"><div class="acms-admin-form-checkbox acms-admin-m-0"><input type="checkbox" name="checks[]" id="check-comment{id}" value="{id}"{disabled} /><label for="check-comment{id}"><i class="acms-admin-ico-checkbox acms-admin-m-0"></i><span class="acms-admin-hide-visually"><!--T-->コメントタイトル{name}を選択する<!--/T--></span></label></div></td>
 					<td>
 						{datetime}
 						<br /><strong>{title}</strong>
@@ -159,24 +161,8 @@
 		</table>
 	</div>
 
-<div class="acms-admin-grid">
-	<div class="acms-admin-col-md-6">
-		<!-- BEGIN pager:veil -->
-		<div class="acms-admin-pager-container">
-			<ul class="acms-admin-pager"><!-- BEGIN backLink -->
-				<li class="prev"><a href="{url}">&laquo;&nbsp;<!--T-->前へ<!--/T--></a></li><!-- END backLink --><!-- BEGIN page:loop -->
-				<li{pageCurAttr}[raw]><span><!-- BEGIN link#front --><a href="{url}"><!-- END link#front -->{page}<!-- BEGIN link#rear --></a><!-- END link#rear --></span></li><!-- END page:loop --><!-- BEGIN lastPage:veil -->
-				<li class="last"><a href="{lastPageUrl}">...{lastPage}</a></li><!-- END lastPage:veil --><!-- BEGIN forwardLink -->
-				<li class="next"><a href="{url}"><!--T-->次へ<!--/T-->&nbsp;&raquo;</a></li><!-- END forwardLink -->
-			</ul>
-		</div>
-		<!-- END pager:veil -->
-	</div>
-	<div class="acms-admin-col-md-6">
-		<div class="acms-admin-itemsAmount-container">
-			<p>{itemsFrom}<!--T-->件<!--/T--> - {itemsTo}<!--T-->件 <!--/T-->/ <!--T-->全<!--/T-->{itemsAmount}<!--T-->件<!--/T--></p>
-		</div>
-	</div>
+<div class="acms-admin-cssgrid acms-admin-mt-5">
+	@include("/admin/include/pagination.html")
 </div><!-- /.acms-grid -->
 
 </form><!-- END form:veil -->

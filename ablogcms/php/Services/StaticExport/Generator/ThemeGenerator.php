@@ -3,7 +3,7 @@
 namespace Acms\Services\StaticExport\Generator;
 
 use Acms\Services\StaticExport\Contracts\Generator;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 use Acms\Services\StaticExport\Entities\Page;
 use Symfony\Component\Finder\Finder;
 use React\Promise\Promise;
@@ -97,8 +97,8 @@ class ThemeGenerator extends Generator
         $baseDir = $this->destination->getDestinationPath() . $this->destination->getBlogCode();
         $destPath = $baseDir . $path;
         try {
-            Storage::makeDirectory(dirname($destPath));
-            Storage::put($destPath, $data);
+            LocalStorage::makeDirectory(dirname($destPath));
+            LocalStorage::put($destPath, $data);
         } catch (\Exception $e) {
             $this->logger->error('データの書き込みに失敗しました。', $destPath);
         }

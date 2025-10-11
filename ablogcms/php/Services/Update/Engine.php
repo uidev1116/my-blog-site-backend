@@ -2,10 +2,12 @@
 
 namespace Acms\Services\Update;
 
-use DB;
-use SQL;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Facades\Cache;
+use Acms\Services\Update\Contracts\LoggerInterface;
+use Acms\Services\Facades\Database as DB;
+use Acms\Services\Facades\Application;
+use SQL;
 use RuntimeException;
 
 class Engine
@@ -46,7 +48,7 @@ class Engine
     protected $schema;
 
     /**
-     * @var \Acms\Services\Update\Logger
+     * @var \Acms\Services\Update\Contracts\LoggerInterface
      */
     protected $logger;
 
@@ -59,9 +61,9 @@ class Engine
     /**
      * Constructor
      *
-     * @param \Acms\Services\Update\Logger $logger
+     * @param \Acms\Services\Update\Contracts\LoggerInterface $logger
      */
-    public function __construct($logger)
+    public function __construct(LoggerInterface $logger)
     {
         $DB = DB::singleton(dsn());
         $this->logger = $logger;
@@ -116,7 +118,7 @@ class Engine
         }
 
         // check permission of config.server.php
-        if (!Storage::isWritable($this->configServerPath)) {
+        if (!LocalStorage::isWritable($this->configServerPath)) {
             throw new RuntimeException(gettext('config.server.php への書き込み権限がありません。'));
         }
 
@@ -131,9 +133,9 @@ class Engine
      */
     public function update()
     {
-        $this->logger->addMessage('データベースのアップデートを開始...', 5);
+        $this->logger->message('データベースのアップデートを開始...', 5);
         $this->dbUpdate();
-        $this->logger->addMessage('データベースのアップデート完了', 20);
+        $this->logger->message('データベースのアップデート完了', 20);
     }
 
     /**
@@ -154,11 +156,27 @@ class Engine
             $this->updateSepecificRule(); // Sepecific Update Process
             $this->updateSequenceSystemVersion(); // Update Sequence System Version
 
+            // キャッシュを削除
+            if (LocalStorage::exists(CACHE_DIR)) {
+                $path = CACHE_DIR . '*.php';
+                $config_files = glob($path);
+                if (is_array($config_files)) {
+                    foreach (glob($path) as $val) {
+                        LocalStorage::remove($val);
+                    }
+                }
+            }
             Cache::flush('page');
             Cache::flush('template');
             Cache::flush('config');
             Cache::flush('field');
             Cache::flush('module');
+
+            $purifier = Application::make('html-purifier');
+            $purifier->clearCache();
+
+            $twig = Application::make('template.twig');
+            $twig->clearCache();
 
             $this->databaseVersion = $this->systemVersion;
         } catch (\Exception $e) {
@@ -271,15 +289,5 @@ class Engine
         $SQL = SQL::newUpdate('sequence');
         $SQL->addUpdate('sequence_system_version', $this->systemVersion);
         $DB->query($SQL->get(dsn()), 'exec');
-
-        if (Storage::exists(CACHE_DIR)) {
-            $path = CACHE_DIR . '*.php';
-            $config_files = glob($path);
-            if (is_array($config_files)) {
-                foreach (glob($path) as $val) {
-                    Storage::remove($val);
-                }
-            }
-        }
     }
 }

@@ -1,5 +1,5 @@
 import { useCallback, useRef, useEffect } from 'react';
-import { disableBodyScroll, enableBodyScroll, clearAllBodyScrollLocks } from 'body-scroll-lock';
+import { disableBodyScroll, enableBodyScroll } from 'body-scroll-lock';
 
 import type { BodyScrollOptions } from 'body-scroll-lock';
 
@@ -39,12 +39,13 @@ const useBodyScrollLock = (): UseBodyScrollLockReturn => {
     }
   }, []);
 
-  useEffect(
-    () => () => {
-      clearAllBodyScrollLocks();
-    },
-    []
-  );
+  useEffect(() => {
+    return () => {
+      enableScroll();
+    };
+    // 確実にunmount時のみ実行されるようにする
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const setRef = useCallback((node: HTMLElement | null) => {
     if (node === null) {

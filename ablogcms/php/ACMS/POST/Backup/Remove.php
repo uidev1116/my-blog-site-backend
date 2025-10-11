@@ -1,6 +1,6 @@
 <?php
 
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\PrivateStorage;
 
 class ACMS_POST_Backup_Remove extends ACMS_POST_Backup_Base
 {
@@ -22,7 +22,7 @@ class ACMS_POST_Backup_Remove extends ACMS_POST_Backup_Base
             if (!in_array($type, ['database', 'archives'], true)) {
                 throw new \RuntimeException('Wrong type.');
             }
-            Storage::remove($this->getPath($type, $fileName));
+            PrivateStorage::remove($this->getPath($type, $fileName));
 
             $this->addMessage($fileName . ' を削除しました。');
 

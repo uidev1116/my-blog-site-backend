@@ -1,0 +1,18 @@
+<!--
+ - テキストタグセレクトで textarea 要素を利用する値を選択した場合は通常の textarea 要素と同じで、校正オプションを適用しない
+ - テキストタグセレクトで JavaScript ライブラリをを利用する値を選択した場合は、JavaScript 側でエスケープ済みのHTMLを復元するため、2重エスケープが必要。そのため raw + escape 校正オプションを適用する
+-->
+<textarea
+  name="text_text_{id}"
+  aria-label="<!--T-->テキストユニットに内容を入力する<!--/T-->"
+  rows="5"
+  class="acms-admin-form-width-full"
+><!-- BEGIN_IF [{selected_tag}/re/^(ul|ol|dl|pre|blockquote|none|markdown|table|template|div)]-->{text}<!-- ELSE -->{text}[raw|escape]<!-- END_IF--></textarea>
+<!-- LiteEditorにタグ情報を渡すために非表示のselectを用意 -->
+<select name="text_tag_{id}" style="display: none;">
+  <!-- BEGIN textTag:loop -->
+  <option value="{value}" {selected} data-tag_extend="{extend}">{label}</option>
+  <!-- END textTag:loop -->
+</select>
+<!-- LiteEditorに拡張タグ情報を渡すためのinputを用意 -->
+<input type="hidden" name="text_extend_tag_{id}" value="{extend_tag}">

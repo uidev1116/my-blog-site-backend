@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V2_Entry_Body</title>
+    <link rel="stylesheet" href="src/highlight/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="src/snippets.css" />
+    <script src="src/highlight/highlight.min.js"></script>
+    <script src="src/highlight/javascript.min.js"></script>
+    <script src="src/highlight/twig.min.js"></script>
+    <script src="src/snippets.js"></script>
+  </head>
+  <body>
+    <h1>V2_Entry_Body</h1>
+    <pre class="acms-admin-customfield-maker"><code>
+&#123;% set entryBody = module(&#039;V2_Entry_Body&#039;, null, &#123;
+  bid: null,
+  cid: null,
+  eid: null,
+  uid: null,
+  page: PAGE,
+  limit: null,
+  keyword: null,
+  tag: [],
+  field: null,
+  order: null,
+  start: &#039;1000-01-01 00:00:00&#039;,
+  end: &#039;9999-12-31 23:59:59&#039;
+&#125;) %&#125;
+
+&lt;!-- 編集画面 --&gt;
+&#123;&#123; include(&#039;/admin/entry/edit.twig&#039;, &#123; body: entryBody &#125;) &#125;&#125;
+
+&lt;!-- エントリー表示 --&gt;
+&#123;% if entryBody.pageType in [&#039;entry&#039;, &#039;index&#039;] %&#125;
+&lt;div&gt;
+  &#123;&#123; include(&#039;/admin/module/setting.twig&#039;, &#123; moduleInfo: entryBody.moduleInfo &#125;) &#125;&#125;
+  &#123;% if entryBody.items is empty %&#125;
+    &lt;section class=&quot;entry&quot;&gt;
+      &lt;h2 class=&quot;entry-title&quot;&gt;
+        Not Found
+      &lt;/h2&gt;
+      &lt;p&gt;
+        お探しの記事は見つかりませんでした。
+      &lt;/p&gt;
+    &lt;/section&gt;
+  &#123;% endif %&#125;
+  &#123;% for entry in entryBody.items %&#125;
+    &#123;% if entry.editorialInfo.revisionBtn %&#125;
+      &lt;div class=&quot;acms-form-group&quot;&gt;
+        &#123;&#123; include(&#039;/admin/entry/revision-info.html&#039;) &#125;&#125;
+      &lt;/div&gt;
+    &#123;% endif %&#125;
+    &#123;% set className = VIEW != &#039;index&#039; ? &#039;entry&#039; : &#039;entry-index&#039; %&#125;
+    &lt;article class=&quot;&#123;&#123; className &#125;&#125;&quot;&gt;
+      &lt;header class=&quot;entry-header&quot;&gt;
+        &lt;!-- タイトル --&gt;
+        &lt;h2 class=&quot;entry-title&quot;&gt;
+          &lt;a href=&quot;&#123;&#123; entry.url &#125;&#125;&quot;&gt;&#123;&#123; entry.title &#125;&#125;&lt;/a&gt;
+        &lt;/h2&gt;
+        &lt;p class=&quot;entry-date&quot;&gt;
+          &lt;!-- 日付 --&gt;
+          &lt;time datetime=&quot;&#123;&#123; entry.datetime|date(&#039;Y-m-d&#039;) &#125;&#125;&quot;&gt;
+            &#123;&#123; entry.datetime|date(&#039;Y年m月d日&#039;) &#125;&#125;（&#123;&#123; entry.datetime|date(&#039;l&#039;)|weekEN2JP &#125;&#125;）
+          &lt;/time&gt;
+          &lt;!-- 新着ラベル --&gt;
+          &#123;% if entry.isNew %&#125;
+            &lt;span class=&quot;entry-new&quot;&gt;NEW&lt;/span&gt;
+          &#123;% endif %&#125;
+        &lt;/p&gt;
+        &lt;ul class=&quot;entry-labels&quot;&gt;
+          &lt;!-- カテゴリ --&gt;
+          &#123;% for category in entry.category.items %&#125;
+            &lt;li&gt;&lt;a href=&quot;&#123;&#123; category.url &#125;&#125;&quot; class=&quot;entry-category-label&quot;&gt;&#123;&#123; category.name &#125;&#125;&lt;/a&gt;&lt;/li&gt;
+          &#123;% endfor %&#125;
+          &lt;!-- タグ --&gt;
+          &#123;% if touch(&#039;Touch_NotEntry&#039;) and entry.tags %&#125;
+            &#123;% for tag in entry.tags %&#125;
+              &lt;li&gt;&lt;a href=&quot;&#123;&#123; tag.url &#125;&#125;&quot; class=&quot;entry-tag-label&quot;&gt;#&#123;&#123; tag.name &#125;&#125;&lt;/a&gt;&lt;/li&gt;
+            &#123;% endfor %&#125;
+          &#123;% endif %&#125;
+        &lt;/ul&gt;
+      &lt;/header&gt;
+
+      &lt;div&gt;
+        &lt;!-- カスタムフィールドの読み込み --&gt;
+        &#123;% if entry.fields is iterable %&#125;
+          &#123;&#123; include(&#039;/include/entry/field.twig&#039;, entry.fields) &#125;&#125;
+        &#123;% endif %&#125;
+        &lt;!-- 本文 --&gt;
+        &#123;% if entry.body %&#125;
+          &lt;div class=&quot;acms-entry&quot;&gt;
+            &lt;div&gt;
+              &#123;&#123; entry.body|raw &#125;&#125;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &#123;% endif %&#125;
+        &lt;!-- 続きを読む --&gt;
+        &#123;% if entry.hasMoreUnits %&#125;
+          &lt;a href=&quot;&#123;&#123; entry.url &#125;&#125;&quot; class=&quot;entry-continue-btn&quot;&gt;続きを読む&lt;/a&gt;
+        &#123;% endif %&#125;
+        &lt;!-- カスタムフィールドの読み込み --&gt;
+        &#123;% if entry.fields is iterable %&#125;
+          &#123;&#123; include(&#039;/include/entry/field_foot.twig&#039;, entry.fields) &#125;&#125;
+        &#123;% endif %&#125;
+      &lt;/div&gt;
+      &lt;!-- 動的フォーム --&gt;
+      &#123;% if entry.isFormVisible %&#125;
+        &#123;&#123; include(&#039;/include/form/unit.html&#039;) &#125;&#125;
+      &#123;% endif %&#125;
+      &lt;!-- 編集ボタン --&gt;
+      &lt;div class=&quot;acms-box-medium&quot;&gt;
+        &#123;&#123; include(&#039;admin/entry/action.twig&#039;, &#123; entry &#125;) &#125;&#125;
+      &lt;/div&gt;
+
+      &#123;% if touch(&#039;Touch_Entry&#039;) %&#125;
+        &lt;footer class=&quot;entry-footer&quot;&gt;
+          &lt;div class=&quot;entry-info&quot;&gt;
+            &#123;% if entry.datetime &lt; entry.updatedDatetime %&#125;
+              &lt;p class=&quot;entry-udate-info&quot;&gt;
+                更新 &#123;&#123; entry.updatedDatetime|date(&#039;Y/m/d H:i&#039;) &#125;&#125;
+              &lt;/p&gt;
+            &#123;% endif %&#125;
+          &lt;/div&gt;
+        &lt;/footer&gt;
+      &#123;% endif %&#125;
+    &lt;/article&gt;
+  &#123;% endfor %&#125;
+  &lt;!-- ページネーション --&gt;
+  &#123;&#123;
+    include(&#039;/include/pagination.twig&#039;, &#123;
+      pager: entryBody.pager,
+      pagination: entryBody.pagination ?? entryBody.microPagination,
+      serialNavi: entryBody.serialNavi
+    &#125;)
+  &#125;&#125;
+&lt;/div&gt;
+&#123;% endif %&#125;
+    </code></pre>
+  </body>
+</html>

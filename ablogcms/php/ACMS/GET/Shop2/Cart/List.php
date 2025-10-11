@@ -1,9 +1,13 @@
 <?php
 
 use Acms\Services\Facades\Application;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\PublicStorage;
 use Acms\Services\Facades\Media;
+use Acms\Services\Logger\Deprecated;
 
+/**
+ * @deprecated カート機能は非推奨です。代替として、Shopping Cart 拡張アプリをご利用ください。
+ */
 class ACMS_GET_Shop2_Cart_List extends ACMS_GET_Shop2
 {
     /**
@@ -42,6 +46,10 @@ class ACMS_GET_Shop2_Cart_List extends ACMS_GET_Shop2
 
     public function get()
     {
+        Deprecated::once('Shop2_Cart_List モジュール', [
+            'since' => '3.2.0',
+            'alternative' => ' Shopping Cart 拡張アプリ',
+        ]);
         $this->initVars();
         $this->initPrivateVars();
         $TEMP   = $this->openCart();
@@ -283,12 +291,15 @@ class ACMS_GET_Shop2_Cart_List extends ACMS_GET_Shop2
         $unit = $unitRepository->loadUnit($clid);
         $path = false;
         $filename = false;
-        if ($unit->getUnitType() === 'image') {
-            $data = $unit->explodeUnitData($unit->getField2());
+        if (is_null($unit)) {
+            return false;
+        }
+        if ($unit instanceof \Acms\Services\Unit\Models\Image) {
+            $data = $unit->explodeUnitDataTrait($unit->getField2());
             $filename = $data[0] ?? $data;
             $path = ARCHIVES_DIR . $filename;
-        } elseif ($unit->getUnitType() === 'media') {
-            $data = $unit->explodeUnitData($unit->getField1());
+        } elseif ($unit instanceof \Acms\Services\Unit\Models\Media) {
+            $data = $unit->explodeUnitDataTrait($unit->getField1());
             $mid = $data[0] ?? $data;
             $media = Media::getMedia($mid);
             $path = MEDIA_LIBRARY_DIR . $media['path'];
@@ -296,14 +307,14 @@ class ACMS_GET_Shop2_Cart_List extends ACMS_GET_Shop2
         /**
          * if already deleted unit. when return false.
          */
-        if (empty($path) || !Storage::exists($path) || $path === ARCHIVES_DIR || $path === MEDIA_LIBRARY_DIR) {
+        if (empty($path) || !PublicStorage::exists($path) || $path === ARCHIVES_DIR || $path === MEDIA_LIBRARY_DIR) {
             return false;
         }
-        [$x, $y] = Storage::getImageSize($path);
+        [$x, $y] = PublicStorage::getImageSize($path);
 
         if (max($this->imageX, $this->imageY) > max($x, $y)) {
             $_path = preg_replace('@(.*?)([^/]+)$@', '$1large-$2', $path);
-            if ($xy = Storage::getImageSize($_path)) {
+            if ($_path && $xy = PublicStorage::getImageSize($_path)) {
                 $path = $_path;
                 $x = $xy[0];
                 $y = $xy[1];
@@ -402,9 +413,9 @@ class ACMS_GET_Shop2_Cart_List extends ACMS_GET_Shop2
 
         //------
         // tiny
-        if ($unit->getUnitType() === 'image') {
+        if ($unit::getUnitType() === 'image') {
             $tiny = ARCHIVES_DIR . preg_replace('@(.*?)([^/]+)$@', '$1tiny-$2', $filename);
-            if ($xy = Storage::getImageSize($tiny)) {
+            if ($xy = PublicStorage::getImageSize($tiny)) {
                 $vars += [
                     'tinyPath' => $tiny,
                     'tinyX' => $xy[0],

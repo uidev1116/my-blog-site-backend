@@ -45,19 +45,17 @@ class ACMS_POST_Module_Delete extends ACMS_POST_Module
         $DB     = DB::singleton(dsn());
         $SQL    = SQL::newDelete('module');
         $SQL->addWhereOpr('module_id', $mid);
-        $SQL->addWhereOpr('module_blog_id', BID);
         $DB->query($SQL->get(dsn()), 'exec');
 
         //--------
         // delete
         $SQL    = SQL::newDelete('config');
         $SQL->addWhereOpr('config_module_id', $mid);
-        $SQL->addWhereOpr('config_blog_id', BID);
         $DB->query($SQL->get(dsn()), 'exec');
 
-        Config::forgetCache(BID, null, $mid);
+        Config::forgetCache(null, null, $mid);
 
-        Common::deleteField('mid', $mid, null, BID);
+        Common::deleteField('mid', $mid, null);
 
         $this->Post->set('edit', 'delete');
     }

@@ -1,4 +1,5 @@
 @use 'global/common' as global;
+@use 'sass:math';
 
 /* ------------------------------
  フォーム
@@ -22,7 +23,7 @@ input[type='button'],
 input[type='reset'],
 input[type='submit'] {
   cursor: pointer;
-  appearance: button;
+  appearance: auto;
 }
 
 input[type='checkbox'],
@@ -58,23 +59,24 @@ label {
   input[type='email'],
   input[type='url'],
   input[type='search'],
-  input[type='tel'] {
-    min-height: global.$acms-form-height-sp;
-    padding: calc(global.$acms-form-padding-x-sp / 2) global.$acms-form-padding-x-sp;
+  input[type='tel'],
+  input.acms-form-control {
+    min-height: global.$acms-form-height;
+    padding: global.$acms-form-padding-y global.$acms-form-padding-x;
     color: global.$acms-color-black;
-    line-height: 1;
+    line-height: global.$acms-form-line-height;
     vertical-align: middle;
-    background: global.$acms-color-gray10;
+    background: global.$acms-color-white;
     border: global.$acms-form-border;
     border-radius: global.$acms-form-border-radius;
     box-shadow: global.$acms-form-box-shadow;
     transition: background-color 0.2s;
     appearance: none;
 
-    @include global.font-size(16);
+    @include global.font-size(global.$acms-form-font-size-md);
 
     &:hover {
-      background: global.$acms-color-white;
+      background: global.$acms-color-gray20;
       border-color: global.$acms-form-hover-border-color;
     }
 
@@ -97,16 +99,22 @@ label {
     // ---------------
     // フォームサイズ 大
     &.acms-form-large {
-      min-height: global.$acms-form-height-large-sp;
+      min-height: global.$acms-form-height-large;
 
-      @include global.font-size(20);
+      @include global.font-size(global.$acms-form-font-size-lg);
     }
 
     // フォームサイズ 小
     &.acms-form-small {
-      min-height: global.$acms-form-height-small-sp;
+      min-height: global.$acms-form-height-small;
 
-      @include global.font-size(16);
+      @include global.font-size(global.$acms-form-font-size-sm);
+    }
+
+    &.acms-form-auto-size {
+      field-sizing: content;
+      min-width: var(--acms-form-control-min-width);
+      max-width: var(--acms-form-control-max-width);
     }
   }
 
@@ -116,22 +124,23 @@ label {
   }
 
   textarea,
-  .entryFormLiteEditor {
+  .entryFormLiteEditor,
+  textarea.acms-form-control {
     padding: 5px 5px 4px;
     overflow: auto;
     color: global.$acms-color-black;
     line-height: 1.7;
-    background: global.$acms-color-gray10;
+    background: global.$acms-color-white;
     border: global.$acms-form-border;
     border-radius: global.$acms-form-border-radius;
     box-shadow: global.$acms-form-box-shadow;
     transition: background-color 0.2s;
     resize: vertical;
 
-    @include global.font-size(16);
+    @include global.font-size(14);
 
     &:hover {
-      background: global.$acms-color-white;
+      background: global.$acms-color-gray20;
       border-color: global.$acms-form-hover-border-color;
     }
 
@@ -158,10 +167,28 @@ label {
     &.acms-form-small {
       @include global.font-size(10);
     }
+
+    &.acms-form-auto-size {
+      field-sizing: content;
+      min-width: var(--acms-form-control-min-width);
+      max-width: var(--acms-form-control-max-width);
+      min-height: var(--acms-form-control-min-height);
+      max-height: var(--acms-form-control-max-height);
+    }
   }
 
-  .entryFormLiteEditor img {
-    max-width: 100%;
+  /**
+   * overflow-wrap / word-break / line-break については以下を参考にしています。
+   * https://ics.media/entry/240411/
+   */
+  .entryFormLiteEditor {
+    word-break: normal; /* 単語の分割はデフォルトに依存 */
+    overflow-wrap: anywhere; /* 収まらない場合に折り返す */
+    line-break: strict; /* 禁則処理を厳格に適用 */
+
+    img {
+      max-width: 100%;
+    }
   }
 
   // テキスト系入力欄のプレースホルダー
@@ -171,17 +198,19 @@ label {
   input[type='url'],
   input[type='tel'],
   input[type='email'],
-  textarea {
+  textarea,
+  input.acms-form-control,
+  textarea.acms-form-control {
     @include global.placeholder($color: global.$acms-color-gray70);
   }
 
   select,
-  .acms-form-select {
+  select.acms-form-select {
     @include global.select(
-      $border-radius: 3px,
+      $border-radius: global.$acms-form-select-border-radius,
       $background-color: global.$acms-form-select-bg-color,
-      $background-color-hover: global.$acms-form-select-bg-color,
-      $text-align: left
+      $background-color-hover: global.$acms-form-select-hover-bg-color,
+      $text-align: global.$acms-form-select-text-align
     );
 
     &:focus {
@@ -195,14 +224,18 @@ label {
       border-color: global.$acms-form-disabled-border-color;
       cursor: not-allowed;
     }
+
+    &.acms-form-auto-size {
+      field-sizing: content;
+      min-width: var(--acms-form-select-min-width);
+      max-width: var(--acms-form-select-max-width);
+      min-height: var(--acms-form-select-min-height);
+      max-height: var(--acms-form-select-max-height);
+    }
   }
 
-  select::-ms-expand {
-    // IE対応
-    display: none;
-  }
-
-  select[multiple='multiple'] {
+  select[multiple='multiple'],
+  select.acms-form-select[multiple='multiple'] {
     padding: 7px 10px;
     background: global.$acms-form-multiple-bg-color;
     box-shadow: global.$acms-form-box-shadow;
@@ -214,6 +247,10 @@ label {
       box-shadow: global.$acms-form-focus-box-shadow;
     }
 
+    &:hover {
+      background: global.$acms-form-multiple-hover-bg-color;
+    }
+
     &:disabled {
       color: global.$acms-form-disabled-text-color;
       background-color: global.$acms-form-disabled-bg-color;
@@ -222,12 +259,46 @@ label {
     }
   }
 
-  @if global.$admin==true {
-    .select2-container--default .select2-selection--single .select2-selection__arrow b {
-      left: 5px;
-      border-color: global.$acms-color-gray80 transparent transparent;
+  input[type='file'] {
+    color: global.$acms-btn-default-color;
+    line-height: global.$acms-btn-line-height;
+
+    @include global.font-size(global.$acms-btn-font-size);
+
+    &::file-selector-button {
+      @include global.button-shape(
+        $font-size: global.$acms-btn-font-size,
+        $padding: (
+          math.div(global.$acms-form-height - global.$acms-btn-font-size - 2px, 2),
+        )
+        global.$acms-btn-padding-x
+      );
+      @include global.button-decoration(
+        $border: 1px solid rgba(0, 0, 0, 0.2),
+        $hover-bg-color: global.$acms-color-gray20,
+        $hover-border-color: rgba(0, 0, 0, 0.3),
+        $text-color: global.$acms-btn-default-color,
+        $active-border-color: global.$acms-btn-active-border-color,
+        $active-bg-color: global.$acms-color-gray40,
+        $active-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3),
+        $active-text-color: global.$acms-color-black,
+        $focus-border-color: global.$acms-btn-focus-border-color,
+        $focus-box-shadow: global.$acms-btn-focus-box-shadow
+      );
     }
   }
+}
+
+// ---------------
+// .acms-form textarea のスタイルと揃えるためのスタイル
+// カスタムフィールドメーカーで生成されるブロックエディターの初期スタイルで使用
+// ---------------
+.acms-form-box {
+  overflow: auto;
+  background: global.$acms-color-white;
+  border: global.$acms-form-border;
+  border-radius: global.$acms-form-border-radius;
+  box-shadow: global.$acms-form-box-shadow;
 }
 
 @if global.$admin==true {
@@ -239,40 +310,35 @@ label {
     }
 
     .select2-selection.acms-selectbox {
+      width: 100%;
       height: auto;
-      padding-top: 7px;
-      padding-bottom: 7px;
-      color: global.$acms-color-black;
-      background-color: global.$acms-form-select-bg-color;
-      border-color: rgb(0 0 0 / 20%);
-      border-radius: global.$acms-form-border-radius;
 
-      @include global.font-size(16);
+      @include global.select(
+        $border-radius: global.$acms-form-select-border-radius,
+        $background-color: global.$acms-form-select-bg-color,
+        $background-color-hover: global.$acms-form-select-hover-bg-color,
+        $text-align: global.$acms-form-select-text-align
+      );
 
-      &:hover {
-        background-color: global.$acms-form-select-bg-color;
-        border-color: global.$acms-form-hover-border-color;
+      &:focus {
+        border-color: global.$acms-form-focus-border-color;
+        outline: none;
+      }
+
+      &:disabled {
+        color: global.$acms-form-disabled-text-color;
+        background-color: global.$acms-form-disabled-bg-color;
+        border-color: global.$acms-form-disabled-border-color;
+        cursor: not-allowed;
       }
 
       .select2-selection__rendered {
-        padding-right: 30px;
-        line-height: 1;
+        padding: 0;
+        line-height: global.$acms-form-select-line-height;
       }
 
       .select2-selection__arrow {
-        margin-top: 3px;
-      }
-
-      @media (min-width: global.$breakpoint-md-min) {
-        padding-top: 6px;
-        padding-bottom: 6px;
-        line-height: 1;
-
-        @include global.font-size(12);
-
-        .select2-selection__arrow {
-          margin-top: 0;
-        }
+        display: none;
       }
     }
 
@@ -285,23 +351,27 @@ label {
       .select2-search__field {
         color: global.$acms-color-black;
         line-height: 1;
-        background: global.$acms-color-gray20;
+        background: global.$acms-color-white;
         border: global.$acms-form-border;
         border-radius: global.$acms-form-border-radius;
         box-shadow: global.$acms-form-box-shadow;
         transition: background-color 0.2s;
 
         &:hover {
-          background: global.$acms-color-white;
+          background: global.$acms-color-gray20;
           border-color: global.$acms-form-hover-border-color;
         }
 
         &:focus {
-          background: global.$acms-color-white;
+          background: global.$acms-color-gray20;
           border-color: global.$acms-form-focus-border-color;
           outline: none;
           box-shadow: global.$acms-form-focus-box-shadow, global.$acms-form-box-shadow;
         }
+      }
+
+      .select2-results__options {
+        max-height: global.$select2-result-options-max-height !important;
       }
 
       .select2-results__option {
@@ -324,61 +394,6 @@ label {
         @include global.font-size(12);
       }
     }
-  }
-}
-
-// デスクトップ対応
-@media (min-width: global.$breakpoint-md-min) {
-  .acms-form {
-    input[type='text'],
-    input[type='password'],
-    input[type='datetime'],
-    input[type='datetime-local'],
-    input[type='date'],
-    input[type='month'],
-    input[type='time'],
-    input[type='week'],
-    input[type='number'],
-    input[type='email'],
-    input[type='url'],
-    input[type='search'],
-    input[type='tel'] {
-      min-height: global.$acms-form-height;
-      padding: global.$acms-form-padding-x;
-      line-height: 1;
-
-      @include global.font-size(14);
-
-      &.acms-form-small {
-        min-height: global.$acms-form-height-small;
-
-        @include global.font-size(12);
-      }
-
-      &.acms-form-large {
-        min-height: global.$acms-form-height-large;
-
-        @include global.font-size(16);
-      }
-    }
-
-    textarea {
-      @include global.font-size(14);
-    }
-
-    .entryFormLiteEditor {
-      @include global.font-size(14);
-    }
-
-    select {
-      @include global.desktop-select;
-    }
-  }
-}
-
-.acms-form {
-  select {
-    @include global.desktop-select-for-ie;
   }
 }
 
@@ -498,17 +513,7 @@ label {
   input[type='password'],
   input[type='url'] {
     width: 100%;
-    height: global.$acms-form-height-sp;
-  }
-
-  @media (min-width: global.$breakpoint-md-min) {
-    input[type='text'],
-    input[type='search'],
-    input[type='email'],
-    input[type='password'],
-    input[type='url'] {
-      height: global.$acms-form-height;
-    }
+    height: global.$acms-form-height;
   }
 
   &:not(.acms-form-action-separate) {
@@ -626,11 +631,7 @@ label {
 .acms-ico-radio {
   display: inline-block;
   width: 20px;
-  *width: auto;
-  _width: auto;
   height: 20px;
-  *height: auto;
-  _height: auto;
   margin: 0 5px 0 0;
   vertical-align: middle;
 }
@@ -638,7 +639,6 @@ label {
 // チェックボックス
 .acms-ico-checkbox {
   background: url('#{global.$acms-input-images-path}') no-repeat left top;
-  _background-image: none;
   background-size: 40px 80px; // IE6-IE8
 }
 
@@ -771,9 +771,11 @@ label {
 
 // チェックボックス
 .acms-btn-checkbox {
-  display: none;
+  position: absolute;
+  clip: rect(0, 0, 0, 0);
+  pointer-events: none;
 
-  + label {
+  + label:not([class*='acms-btn']) {
     position: relative;
     display: inline-block;
     padding: 9px;
@@ -785,14 +787,14 @@ label {
       inset 0 -15px 10px -12px rgb(0 0 0 / 5%);
   }
 
-  + label:active,
-  &:checked + label:active {
+  + label:not([class*='acms-btn']):active,
+  &:checked + label:not([class*='acms-btn']):active {
     box-shadow:
       0 1px 2px rgb(0 0 0 / 5%),
       inset 0 1px 3px rgb(0 0 0 / 10%);
   }
 
-  &:checked + label {
+  &:checked + label:not([class*='acms-btn']) {
     color: global.$acms-color-white;
     background-color: global.$acms-color-gray70;
     border: 1px solid global.$acms-color-system-gray60;
@@ -802,7 +804,7 @@ label {
       inset 15px 10px -12px rgb(255 255 255 / 10%);
   }
 
-  &:checked + label::after {
+  &:checked + label:not([class*='acms-btn'])::after {
     position: absolute;
     top: 0;
     left: 3px;
@@ -811,6 +813,55 @@ label {
 
     @include global.font-size(14);
   }
+}
+
+.acms-btn-checkbox + .acms-btn-axis {
+  cursor: pointer;
+
+  @include global.button-shape($padding: 4px, $font-size: 16);
+  @include global.button-decoration(
+    $border: 1px solid global.$acms-color-gray50,
+    $border-color: global.$acms-color-gray50,
+    $hover-border-color: global.$acms-color-gray50,
+    $active-border-color: global.$acms-color-gray50,
+    $focus-border-color: global.$acms-color-gray50,
+    $hover-bg-color: global.$acms-color-system-gray20,
+    $text-color: global.$acms-btn-default-color,
+    $focus-box-shadow: global.$acms-btn-focus-box-shadow
+  );
+
+  .material-symbols-outlined::before {
+    content: 'playlist_remove';
+  }
+}
+
+.acms-btn-checkbox:checked + .acms-btn-axis {
+  color: global.$acms-color-white;
+  background-color: global.$acms-color-system-gray70;
+  border-color: global.$acms-color-system-gray70;
+
+  .material-symbols-outlined::before {
+    content: 'playlist_add_check';
+  }
+}
+
+@media (any-hover: hover) {
+  .acms-btn-checkbox:checked + .acms-btn-axis:hover {
+    background-color: global.$acms-color-system-gray70;
+    border-color: global.$acms-color-system-gray70;
+  }
+}
+
+.acms-btn-checkbox:focus-visible + .acms-btn-axis {
+  border-color: global.$acms-btn-focus-border-color;
+  box-shadow: global.$acms-btn-focus-box-shadow;
+}
+
+.acms-btn-checkbox:disabled + label,
+.acms-btn-checkbox[disabled] + label {
+  opacity: global.$acms-btn-disabled-opacity;
+  filter: alpha(opacity=global.$acms-btn-disabled-opacity-ie);
+  pointer-events: none;
 }
 
 // ラジオボタン
@@ -865,15 +916,57 @@ label {
   .acms-action-spacer {
     margin: 10px 0;
 
-    @media screen and (min-width: global.$breakpoint-lg-min) {
+    @include global.media-breakpoint-up(lg) {
       margin: 0 0 0 15px;
       white-space: nowrap;
     }
   }
 
   .acms-action-wrap {
-    @media screen and (min-width: global.$breakpoint-lg-min) {
+    @include global.media-breakpoint-up(lg) {
       display: flex;
     }
   }
+}
+
+//
+// Labels
+//
+
+.acms-form-label {
+  margin-bottom: global.$acms-form-label-margin-bottom;
+  color: global.$acms-form-label-color;
+  font-weight: global.$acms-form-label-font-weight;
+  font-style: global.$acms-form-label-font-style;
+
+  @if global.$acms-form-label-font-size {
+    @include global.font-size(global.$acms-form-label-font-size);
+  }
+}
+
+// For use with horizontal and inline forms, when you need the label (or legend)
+// text to align with the form controls.
+.acms-col-form-label {
+  margin-bottom: 0; // Override the `<legend>` default
+  padding-top: calc(#{global.$acms-form-padding-y} + #{global.$acms-form-border-width});
+  padding-bottom: calc(#{global.$acms-form-padding-y} + #{global.$acms-form-border-width});
+  color: global.$acms-form-label-color;
+  font-weight: global.$acms-form-label-font-weight;
+  font-size: inherit; // Override the `<legend>` default
+  font-style: global.$acms-form-label-font-style;
+  line-height: global.$acms-form-line-height;
+}
+
+.acms-col-form-label-lg {
+  padding-top: calc(#{global.$acms-form-padding-y} + #{global.$acms-form-border-width});
+  padding-bottom: calc(#{global.$acms-form-padding-y} + #{global.$acms-form-border-width});
+
+  @include global.font-size(global.$acms-form-font-size-lg);
+}
+
+.acms-col-form-label-sm {
+  padding-top: calc(#{global.$acms-form-padding-y} + #{global.$acms-form-border-width});
+  padding-bottom: calc(#{global.$acms-form-padding-y} + #{global.$acms-form-border-width});
+
+  @include global.font-size(global.$acms-form-font-size-sm);
 }

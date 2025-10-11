@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react';
+import Spinner from '@components/spinner/spinner';
 import { render } from '../../utils/react';
 
 export default function dispatchMediaAdmin(context: Element | Document = document) {
@@ -12,7 +13,13 @@ export default function dispatchMediaAdmin(context: Element | Document = documen
 
   elements.forEach((element) => {
     render(
-      <Suspense fallback={null}>
+      <Suspense
+        fallback={
+          <div className="acms-admin-position-absolute acms-admin-top-50 acms-admin-left-50 acms-admin-translate-middle">
+            <Spinner size={20} />
+          </div>
+        }
+      >
         <MediaAdmin />
       </Suspense>,
       element

@@ -8,18 +8,11 @@ class ACMS_GET_Admin_Comment_Index extends ACMS_GET_Admin
             return '';
         }
         if (!sessionWithCompilation()) {
-            return '';
+            die403();
         }
 
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());
         $Vars   = [];
-
-        //---------
-        // refresh
-        if (!$this->Post->isNull()) {
-            $Vars['notice_mess'] = 'show';
-            $Tpl->add('refresh');
-        }
 
         //------
         // axis
@@ -99,8 +92,8 @@ class ACMS_GET_Admin_Comment_Index extends ACMS_GET_Admin
         $SQL->setLimit($limit, (PAGE - 1) * $limit);
 
         $q  = $SQL->get(dsn());
-        $DB->query($q, 'fetch');
-        while ($row = $DB->fetch($q)) {
+        $statement = $DB->query($q, 'exec');
+        while ($row = $DB->next($statement)) {
             $bid    = intval($row['comment_blog_id']);
             $eid    = intval($row['comment_entry_id']);
             $cmid   = intval($row['comment_id']);

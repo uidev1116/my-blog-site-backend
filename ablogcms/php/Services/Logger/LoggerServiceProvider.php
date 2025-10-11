@@ -51,6 +51,23 @@ class LoggerServiceProvider extends ServiceProvider
             return $logger;
         });
 
+        $container->singleton('acms-logger-filter', function () {
+            return new Filter([
+                'password',
+                'passwd',
+                'pass',
+                'retype_pass',
+                'code',
+                'recovery',
+                'takeover',
+                'token',
+                'api_key',
+                'secret',
+                'formUniqueToken',
+                'formToken',
+            ], '***MASKED***');
+        });
+
         $container->singleton('acms-logger-repository', Repository::class);
     }
 

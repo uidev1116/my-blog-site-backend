@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V2_Entry_TagRelational</title>
+    <link rel="stylesheet" href="src/highlight/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="src/snippets.css" />
+    <script src="src/highlight/highlight.min.js"></script>
+    <script src="src/highlight/javascript.min.js"></script>
+    <script src="src/highlight/twig.min.js"></script>
+    <script src="src/snippets.js"></script>
+  </head>
+  <body>
+    <h1>V2_Entry_TagRelational</h1>
+    <pre class="acms-admin-customfield-maker"><code class="language-twig">
+&#123;% set entryTagRelational = module(&#039;V2_Entry_TagRelational&#039;, null, &#123;
+  bid: null,
+  cid: null,
+  eid: EID,
+  limit: null,
+  keyword: null,
+  field: null,
+  start: &#039;1000-01-01 00:00:00&#039;,
+  end: &#039;9999-12-31 23:59:59&#039;
+&#125;) %&#125;
+
+&#123;% if entryTagRelational.items %&#125;
+&lt;div class=&quot;acms-margin-bottom-medium&quot;&gt;
+  &#123;&#123; include(&#039;/admin/module/setting.twig&#039;, &#123; moduleInfo: entryTagRelational.moduleInfo &#125;) &#125;&#125;
+  &lt;div class=&quot;acms-cssgrid acms-g-cols-1 acms-g-cols-md-3&quot;&gt;
+    &#123;% for entry in entryTagRelational.items %&#125;
+    &lt;div&gt;
+      &lt;div class=&quot;acms-thumbnail&quot;&gt;
+        &#123;% if entry.mainImage.path %&#125;
+          &lt;img
+            class=&quot;acms-img-responsive&quot;
+            src=&quot;&#123;&#123; entry.mainImage.path|resizeImg(360) &#125;&#125;&quot;
+            alt=&quot;&#123;&#123; entry.mainImage.alt &#125;&#125;&quot;
+            width=&#123;&#123; entry.mainImage.width &#125;&#125;
+            height=&#123;&#123; entry.mainImage.height &#125;&#125;
+            loading=&quot;lazy&quot;
+            decoding=&quot;async&quot;
+          /&gt;
+        &#123;% else %&#125;
+          &lt;img class=&quot;acms-img-responsive&quot; src=&quot;/images/noimage.png&quot; alt=&quot;&quot; loading=&quot;lazy&quot; decoding=&quot;async&quot; /&gt;
+        &#123;% endif %&#125;
+        &lt;div&gt;
+          &lt;h3&gt;&#123;&#123; entry.title &#125;&#125;&lt;/h3&gt;
+          &lt;p&gt;&#123;&#123; entry.summary &#125;&#125;&lt;/p&gt;
+          &lt;p&gt;&lt;a href=&quot;&#123;url&#125;&quot; class=&quot;acms-btn acms-btn-primary&quot; role=&quot;button&quot;&gt;詳細をみる&lt;/a&gt;&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &#123;% endfor %&#125;
+  &lt;/div&gt;
+&lt;/div&gt;
+&#123;% endif %&#125;
+    </code></pre>
+  </body>
+</html>

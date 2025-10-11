@@ -92,11 +92,11 @@ class ACMS_POST_Fix_Image extends ACMS_POST_Fix
         }
         $ext    = $match[1];
 
-        $_file      = SCRIPT_DIR . ARCHIVES_DIR . $target;
+        $_file      = ARCHIVES_DIR . $target;
 
         // Large
         $_largePath = preg_replace('@(.*/)([^/]*)$@', '$1large-$2', $path);
-        if ($xy = Storage::getImageSize(SCRIPT_DIR . ARCHIVES_DIR . $_largePath)) {
+        if ($xy = PublicStorage::getImageSize(ARCHIVES_DIR . $_largePath)) {
             $target = $_largePath;
         }
 
@@ -105,11 +105,11 @@ class ACMS_POST_Fix_Image extends ACMS_POST_Fix
         $_size      = $this->resize;
         $_angle     = null;
 
-        $editTarget = SCRIPT_DIR . ARCHIVES_DIR . $target;
+        $editTarget = ARCHIVES_DIR . $target;
         $_stdSide   = $this->stdSide;
 
         // long side
-        if ($xy = Storage::getImageSize($editTarget)) {
+        if ($xy = PublicStorage::getImageSize($editTarget)) {
             if (!empty($_stdSide)) {
             } elseif ($xy[0] >= $xy[1]) {
                 $_stdSide = 'width';

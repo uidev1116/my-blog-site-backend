@@ -64,6 +64,7 @@ class ACMS_POST_Module_Update extends ACMS_POST_Module
         $Module = $this->extract('module');
 
         $Module->setMethod('name', 'required');
+        $Module->setMethod('name', 'safeName');
         $Module->setMethod('module', 'midIsNull', $this->moduleId);
         $Module->setMethod('module', 'invalidLicense', IS_LICENSED);
         $Module->setMethod('identifier', 'double', [$Module->get('scope') ?: 'local', $this->moduleId]);
@@ -134,6 +135,7 @@ class ACMS_POST_Module_Update extends ACMS_POST_Module
             $SQL->addUpdate('module_custom_field', $Module->get('custom_field', 1));
             $SQL->addUpdate('module_layout_use', $Module->get('layout_use', 1));
             $SQL->addUpdate('module_api_use', $Module->get('api_use', 'off'));
+            $SQL->addUpdate('module_updated_datetime', date('Y-m-d H:i:s', REQUEST_TIME));
 
             $SQL->addWhereOpr('module_id', $this->moduleId);
             $SQL->addWhereOpr('module_blog_id', BID);
@@ -183,24 +185,9 @@ class ACMS_POST_Module_Update extends ACMS_POST_Module
         if (Module::canUpdate(BID)) {
             return true;
         }
-
-        if ($this->shortcutAuthorization()) {
+        if ($this->moduleId && Module::canUpdateWithShortcut($this->moduleId, $this->ruleId)) {
             return true;
         }
-
         return false;
-    }
-
-    /**
-     *  ショートカットによる認可チェック
-     *
-     * @return bool
-     */
-    protected function shortcutAuthorization(): bool
-    {
-        return Auth::checkShortcut([
-            'mid' => $this->moduleId,
-            'rid' => $this->ruleId
-        ]);
     }
 }

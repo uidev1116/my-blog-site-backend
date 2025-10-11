@@ -4,9 +4,10 @@ namespace Acms\Services\Login;
 
 use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Common;
-use Acms\Services\Facades\Storage;
 use Acms\Services\Facades\Image;
 use Acms\Services\Facades\Config;
+use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\PublicStorage;
 use Acms\Services\Facades\Session;
 use Acms\Services\Facades\Login;
 use Acms\Services\Facades\Preview;
@@ -44,7 +45,7 @@ class Helper
         define('IS_UPDATE_EMAIL_PAGE', (int)$queryParameter->get('update-email'));
         define('IS_UPDATE_TFA_PAGE', (int)$queryParameter->get('update-tfa'));
         define('IS_WITHDRAWAL_PAGE', (int)$queryParameter->get('withdrawal'));
-        define('IS_REVISION_PREVIEW_PAGE', $queryParameter->get('tpl') === 'ajax/revision-preview.html' ? 1 : 0);
+        define('IS_REVISION_PREVIEW_PAGE', $queryParameter->get('tpl') === 'ajax/revision/preview.html' ? 1 : 0);
 
         if (
             IS_SYSTEM_LOGIN_PAGE ||
@@ -138,7 +139,7 @@ class Helper
      *
      * @return bool
      */
-    protected function isAuthRequiredPage(): bool
+    public function isAuthRequiredPage(): bool
     {
         if (!!ADMIN && Preview::isPreviewShareAdmin(ADMIN) === false) {
             return true;
@@ -147,6 +148,26 @@ class Helper
             return true;
         }
         return false;
+    }
+
+    /**
+     * 現在のセッションがログイン状態かどうか判定
+     * @return bool
+     */
+    public function isLoggedIn(): bool
+    {
+        if (Preview::isPreviewMode()) {
+            return false;
+        }
+        /** @var int|null $suid */
+        $suid = SUID;
+        if (is_null($suid)) {
+            return false;
+        }
+        if ($suid < 1) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -180,6 +201,22 @@ class Helper
             }
         }
         return $isAccessible;
+    }
+
+    /**
+     * 会員サインインが可能かどうかを判定
+     *
+     * @return bool
+     */
+    public function canMemberSignin(): bool
+    {
+        if (ACMS_POST) {
+            if (strpos(ACMS_POST, 'Member_Admin') === false) {
+                return config('member_login_enable') === 'on';
+            }
+            return true;
+        }
+        return config('member_login_enable') === 'on';
     }
 
     /**
@@ -221,19 +258,20 @@ class Helper
             return tplConfig('tpl_404');
         }
         if (IS_SYSTEM_SIGNIN_PAGE) {
-            return tplConfig('tpl_signin');
+            return  $this->canMemberSignin() ? tplConfig('tpl_signin') : tplConfig('tpl_404');
         }
         if (IS_SYSTEM_SIGNUP_PAGE) {
-            return config('subscribe') === 'on' ? tplConfig('tpl_signup') : tplConfig('tpl_404');
+            $canSingnup = $this->canMemberSignin() && config('subscribe') === 'on';
+            return $canSingnup ? tplConfig('tpl_signup') : tplConfig('tpl_404');
         }
         if (IS_SYSTEM_RESET_PASSWORD_PAGE) {
-            return tplConfig('tpl_reset-password');
+            return $this->canMemberSignin() ? tplConfig('tpl_reset-password') : tplConfig('tpl_404');
         }
         if (IS_SYSTEM_RESET_PASSWORD_AUTH_PAGE) {
-            return tplConfig('tpl_reset-password-auth');
+            return $this->canMemberSignin() ? tplConfig('tpl_reset-password-auth') : tplConfig('tpl_404');
         }
         if (IS_SYSTEM_TFA_RECOVERY_PAGE) {
-            return config('two_factor_auth') === 'on' ? tplConfig('tpl_tfa-recovery') : tplConfig('tpl_404');
+            return $this->canMemberSignin() && config('two_factor_auth') === 'on' ? tplConfig('tpl_tfa-recovery') : tplConfig('tpl_404');
         }
 
         /**
@@ -259,10 +297,17 @@ class Helper
          * シークレットブログ・シークレットエントリー
          */
         if (ACMS_RAM::blogStatus(BID) === 'secret' || (CID && ACMS_RAM::categoryStatus(CID) === 'secret')) {
+            // @phpstan-ignore-next-line
             if (!Preview::isPreviewShareAdmin(ADMIN) && !SUID && (!defined('IS_OTHER_LOGIN') || !IS_OTHER_LOGIN)) {
                 if ($this->accessRestricted(false)) {
                     if (config('redirect_login_page') === 'signin') {
-                        return $this->isAuthRequiredPage() ? tplConfig('tpl_login') : tplConfig('tpl_signin');
+                        if ($this->isAuthRequiredPage()) {
+                            return tplConfig('tpl_signin');
+                        }
+                        if ($this->canMemberSignin()) {
+                            return tplConfig('tpl_signin');
+                        }
+                        return tplConfig('tpl_404');
                     } else {
                         return tplConfig('tpl_login');
                     }
@@ -412,7 +457,7 @@ class Helper
         $salt = Common::genPass(32); // 事前共有鍵
         $context['expire'] = REQUEST_TIME + $lifetime; // 有効期限
         $context = acmsSerialize($context);
-        $prk = hash_hmac('sha256', PASSWORD_SALT_1, $salt);
+        $prk = hash_hmac('sha256', Common::getCurrentSalt(), $salt);
         $derivedKey = hash_hmac('sha256', $prk, $context);
         $params = http_build_query([
             'key' => $derivedKey,
@@ -432,9 +477,11 @@ class Helper
      */
     public function validateTimedLinkParams($key, $salt, $context)
     {
-        $prk = hash_hmac('sha256', PASSWORD_SALT_1, $salt);
+        $prk = hash_hmac('sha256', Common::getCurrentSalt(), $salt);
+        $prk2 = hash_hmac('sha256', Common::getPreviousSalt(), $salt);
         $derivedKey = hash_hmac('sha256', $prk, $context);
-        if (!hash_equals($key, $derivedKey)) {
+        $derivedKey2 = hash_hmac('sha256', $prk2, $context);
+        if (!hash_equals($key, $derivedKey) && !hash_equals($key, $derivedKey2)) {
             throw new BadRequestException('Bad request.');
         }
         $context = acmsUnserialize($context);
@@ -565,15 +612,15 @@ class Helper
         $imgPath = '';
         try {
             $rsrc = file_get_contents($imageUri);
-            $imgPath = Storage::archivesDir() . uniqueString() . '.jpg';
-            Storage::makeDirectory(dirname(ARCHIVES_DIR . $imgPath));
-            Storage::put(ARCHIVES_DIR . $imgPath, $rsrc);
-
-            $resizePath = Storage::archivesDir() . 'square64-' . uniqueString() . '.jpg';
-            Image::copyImage(ARCHIVES_DIR . $imgPath, ARCHIVES_DIR . $resizePath, 64, 64, 64);
-            Storage::remove(ARCHIVES_DIR . $imgPath);
-
-            $imgPath = $resizePath;
+            $imgPath = PublicStorage::archivesDir() . uniqueString() . '.jpg';
+            PublicStorage::makeDirectory(dirname(ARCHIVES_DIR . $imgPath));
+            if ($rsrc) {
+                PublicStorage::put(ARCHIVES_DIR . $imgPath, $rsrc);
+                $resizePath = PublicStorage::archivesDir() . 'square64-' . uniqueString() . '.jpg';
+                Image::copyImage(ARCHIVES_DIR . $imgPath, ARCHIVES_DIR . $resizePath, 64, 64, 64);
+                PublicStorage::remove(ARCHIVES_DIR . $imgPath);
+                $imgPath = $resizePath;
+            }
         } catch (\Exception $e) {
             // ToDo: ログ仕込み
         }
@@ -635,7 +682,7 @@ class Helper
             $path = preg_replace('@' . LOGIN_SEGMENT . '$@', '', $path);
             $path = preg_replace('@' . SIGNIN_SEGMENT . '$@', '', $path);
             $query_hash = $_SERVER['QUERY_STRING'];
-            $path = ltrim($path, '/');
+            $path = ltrim($path ?? '', '/');
             $url = (SSL_ENABLE ? 'https' : 'http') . '://'
                 . HTTP_HOST . '/'
                 . $path
@@ -676,7 +723,7 @@ class Helper
         }
         $path = normalSizeImagePath($squarePath);
         $size = intval(config('user_icon_size', 255));
-        $iconPath = trim(dirname($path), '/') . '/square-' . Storage::mbBasename($path);
+        $iconPath = trim(dirname($path), '/') . '/square-' . LocalStorage::mbBasename($path);
         Image::copyImage(ARCHIVES_DIR . $squarePath, ARCHIVES_DIR . $iconPath, $size, $size, $size);
 
         return $iconPath;
@@ -712,5 +759,33 @@ class Helper
         if ($cookie->get($name)) {
             acmsSetCookie($name, null, REQUEST_TIME - 1);
         }
+    }
+
+    /**
+     * ログインセッションに付随するクライアント情報を更新
+     *
+     * @param int $uid
+     * @return void
+     */
+    public function updateSessionClientInfo(int $uid): void
+    {
+        $session = Session::handle();
+        $sessionId = $session->getSessionId();
+
+        $sql = SQL::newDelete('user_session');
+        $sql->addWhereOpr('user_session_uid', $uid);
+        if ($host = getCookieHost()) {
+            $sql->addWhereOpr('user_session_host', $host);
+        }
+        DB::query($sql->get(dsn()), 'exec');
+
+        $sql = SQL::newInsert('user_session');
+        $sql->addInsert('user_session_uid', $uid);
+        if ($host = getCookieHost()) {
+            $sql->addInsert('user_session_host', $host);
+        }
+        $sql->addInsert('user_session_address', REMOTE_ADDR);
+        $sql->addInsert('user_session_id', $sessionId);
+        DB::query($sql->get(dsn()), 'exec');
     }
 }

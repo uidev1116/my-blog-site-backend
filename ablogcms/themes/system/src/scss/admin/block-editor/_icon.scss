@@ -1,0 +1,22 @@
+// ---------------
+// アイコン
+// ---------------
+
+.acms-block-editor-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--acms-block-editor-font-size-base);
+
+  &.acms-block-editor-icon-xs {
+    font-size: var(--acms-block-editor-font-size-xs);
+  }
+
+  &.acms-block-editor-icon-sm {
+    font-size: var(--acms-block-editor-font-size-sm);
+  }
+
+  &.acms-block-editor-icon-lg {
+    font-size: var(--acms-block-editor-font-size-lg);
+  }
+}

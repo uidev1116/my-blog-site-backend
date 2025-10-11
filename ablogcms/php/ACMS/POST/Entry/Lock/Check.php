@@ -4,11 +4,12 @@ class ACMS_POST_Entry_Lock_Check extends ACMS_POST_Entry
 {
     public function post()
     {
-        $eid = $this->Post->get('eid');
-        $rvid = $this->Post->get('rvid', null);
+        $eid = (int)$this->Post->get('eid');
+        $rvid = $this->Post->get('rvid') ? (int)$this->Post->get('rvid') : null;
 
         try {
             $service = App::make('entry.lock');
+            assert($service instanceof \Acms\Services\Entry\Lock);
             $lockedUser = $service->getLockedUser($eid, $rvid, SUID);
 
             if ($lockedUser === false) {

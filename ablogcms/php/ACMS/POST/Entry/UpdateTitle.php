@@ -13,6 +13,7 @@ class ACMS_POST_Entry_UpdateTitle extends ACMS_POST_Entry_Update
             $SQL->addWhereOpr('entry_id', EID);
             $DB->query($SQL->get(dsn()), 'exec');
             ACMS_RAM::entry(EID, null);
+            ACMS_POST_Cache::clearEntryPageCache(EID); // @phpstan-ignore argument.type
 
             httpStatusCode('200 OK');
 
@@ -20,7 +21,7 @@ class ACMS_POST_Entry_UpdateTitle extends ACMS_POST_Entry_Update
         } else {
             httpStatusCode('403 Forbidden');
         }
-        header(PROTOCOL . ' ' . httpStatusCode());
+        Common::setSafeHeadersWithoutCache((int) substr(httpStatusCode(), 0, 3), 'text/plain');
         die(httpStatusCode());
     }
 }

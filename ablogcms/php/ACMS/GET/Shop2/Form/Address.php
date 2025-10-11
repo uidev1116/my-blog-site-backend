@@ -1,9 +1,18 @@
 <?php
 
+use Acms\Services\Logger\Deprecated;
+
+/**
+ * @deprecated カート機能は非推奨です。代替として、Shopping Cart 拡張アプリをご利用ください。
+ */
 class ACMS_GET_Shop2_Form_Address extends ACMS_GET_Shop2
 {
     public function get()
     {
+        Deprecated::once('Shop2_Form_Address モジュール', [
+            'since' => '3.2.0',
+            'alternative' => ' Shopping Cart 拡張アプリ',
+        ]);
         $this->initVars();
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());
 
@@ -40,7 +49,8 @@ class ACMS_GET_Shop2_Form_Address extends ACMS_GET_Shop2
         /*
         * primary
         */
-        if (is_null(SUID)) {
+        // @phpstan-ignore-next-line
+        if (!defined('SUID') || SUID === null) {
             if ($SESSION->isExists('mail')) {
                 $Tpl->add(['mailTo:veil', 'address#primary'], ['mail' => $SESSION->get('mail')]);
                 $Primary->set('mail', '');

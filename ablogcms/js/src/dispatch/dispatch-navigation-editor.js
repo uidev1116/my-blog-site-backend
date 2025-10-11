@@ -1,4 +1,5 @@
 import { lazy, Suspense, StrictMode } from 'react';
+import Spinner from '@components/spinner/spinner';
 import { render } from '../utils/react';
 
 export default async function dispatchNavigationEditor(context = document) {
@@ -6,12 +7,6 @@ export default async function dispatchNavigationEditor(context = document) {
   if (!element) {
     return;
   }
-  if (/^ie/.test(ACMS.Dispatch.Utility.getBrowser())) {
-    $('.js-navigation-ie').show();
-    return;
-  }
-  $('.js-navigation-ie').remove();
-
   const { AllHtmlEntities: Entities } = await import(/* webpackChunkName: "html-entities" */ 'html-entities');
   const NavigationEditor = lazy(
     () =>
@@ -21,6 +16,7 @@ export default async function dispatchNavigationEditor(context = document) {
   );
 
   const json = document.querySelector('#js-navigation-json').innerHTML;
+  const enableMedia = element.dataset.media === 'enable';
   const items = JSON.parse(json);
   const entities = new Entities();
   items.forEach((item) => {
@@ -29,8 +25,14 @@ export default async function dispatchNavigationEditor(context = document) {
     item.navigation_label = entities.decode(item.navigation_label);
   });
   render(
-    <Suspense fallback={null}>
-      <NavigationEditor items={items} message={ACMS.Config.navigationMessage} />
+    <Suspense
+      fallback={
+        <div className="acms-admin-d-flex acms-admin-justify-content-center acms-admin-align-items-center">
+          <Spinner size={20} />
+        </div>
+      }
+    >
+      <NavigationEditor items={items} enableMedia={enableMedia} message={ACMS.Config.navigationMessage} />
     </Suspense>,
     element
   );

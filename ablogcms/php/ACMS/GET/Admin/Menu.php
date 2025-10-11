@@ -172,10 +172,6 @@ class ACMS_GET_Admin_Menu extends ACMS_GET_Admin
                 'url'   => acmsLink(['bid' => BID, 'admin' => 'comment_index']),
                 'stay'  => $this->linkCheck('comment'),
             ]);
-            $Tpl->add('trackback', [
-                'url'   => acmsLink(['bid' => BID, 'admin' => 'trackback_index']),
-                'stay'  => $this->linkCheck('trackback'),
-            ]);
             $Tpl->add('blog#index', [
                 'url'   => acmsLink(['admin' => 'blog_index', 'bid' => BID]),
                 'stay'  => $this->linkCheck('blog_index'),
@@ -211,6 +207,10 @@ class ACMS_GET_Admin_Menu extends ACMS_GET_Admin
             $Tpl->add('import#index', [
                 'url'   => acmsLink(['bid' => BID, 'admin' => 'import_index']),
                 'stay'  => $this->linkCheck('import'),
+            ]);
+            $Tpl->add('export#index', [
+                'url'   => acmsLink(['bid' => BID, 'admin' => 'export_index']),
+                'stay'  => $this->linkCheck('export'),
             ]);
             $Tpl->add('app#index', [
                 'url'   => acmsLink(['bid' => BID, 'admin' => 'app_index']),
@@ -302,10 +302,6 @@ class ACMS_GET_Admin_Menu extends ACMS_GET_Admin
                     'url'   => acmsLink(['bid' => BID, 'admin' => 'comment_index']),
                     'stay'  => $this->linkCheck('comment'),
                 ]);
-                $Tpl->add('trackback', [
-                    'url'   => acmsLink(['bid' => BID, 'admin' => 'trackback_index']),
-                    'stay'  => $this->linkCheck('trackback'),
-                ]);
                 if (IS_LICENSED) {
                     $Tpl->add('category#insert', [
                         'url'   => acmsLink(['admin' => 'category_edit', 'bid' => BID]),
@@ -373,6 +369,10 @@ class ACMS_GET_Admin_Menu extends ACMS_GET_Admin
                     $Tpl->add('import#index', [
                         'url'   => acmsLink(['bid' => BID, 'admin' => 'import_index']),
                         'stay'  => $this->linkCheck('import'),
+                    ]);
+                    $Tpl->add('export#index', [
+                        'url'   => acmsLink(['bid' => BID, 'admin' => 'export_index']),
+                        'stay'  => $this->linkCheck('export'),
                     ]);
                     $Tpl->add('app#index', [
                         'url'   => acmsLink(['bid' => BID, 'admin' => 'app_index']),

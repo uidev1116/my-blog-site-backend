@@ -46,14 +46,15 @@ class ACMS_RAM
         if (isset(self::$funcCache[$key])) {
             return self::$funcCache[$key];
         }
+        if (is_callable($method)) {
+            self::$cacheAttached[$method] = true;
+            $ret = call_user_func_array($method, $args);
+            self::$cacheAttached[$method] = false;
+            self::$funcCache[$key] = $ret;
 
-        self::$cacheAttached[$method] = true;
-        $ret = call_user_func_array($method, $args);
-        self::$cacheAttached[$method] = false;
-
-        self::$funcCache[$key] = $ret;
-
-        return $ret;
+            return $ret;
+        }
+        throw new \RuntimeException("Method $method is not callable.");
     }
 
     /**
@@ -86,7 +87,7 @@ class ACMS_RAM
      * セッターとして利用する場合には元の値を返します。
      *
      * @param string $key
-     * @param int $id
+     * @param string|int $id
      * @param mixed $val
      * @return mixed
      */
@@ -94,9 +95,6 @@ class ACMS_RAM
     {
         static $table = [];
 
-        if (!$id = intval($id)) {
-            return false;
-        }
         if (self::$cache === null) {
             self::$cache = Cache::temp();
         }
@@ -968,11 +966,12 @@ class ACMS_RAM
      * $entry_cid = ACMS_RAM::entryCategory($eid);
      *
      * @param int $eid
-     * @return int
+     * @return int|null
      */
     public static function entryCategory($eid)
     {
-        return intval(ACMS_RAM::_mapping('entry_category_id', $eid));
+        $categoryId = ACMS_RAM::_mapping('entry_category_id', $eid);
+        return is_null($categoryId) ? null : intval($categoryId);
     }
 
     /**
@@ -1136,11 +1135,16 @@ class ACMS_RAM
      * $primaryImage = ACMS_RAM::entryPrimaryImage($eid);
      *
      * @param int $eid
-     * @return int
+     * @return ?non-empty-string
      */
-    public static function entryPrimaryImage($eid)
+    public static function entryPrimaryImage($eid): ?string
     {
-        return intval(ACMS_RAM::_mapping('entry_primary_image', $eid));
+        /** @var non-empty-string|null $primaryImage */
+        $primaryImage = ACMS_RAM::_mapping('entry_primary_image', $eid);
+        if (is_null($primaryImage)) {
+            return null;
+        }
+        return $primaryImage;
     }
 
     /**
@@ -1174,7 +1178,7 @@ class ACMS_RAM
      * 指定されたidから該当するユニットのレコードを配列で返します
      * $valが指定されていると，一時的なレコードのキャッシュを上書きします（恒久的な書き換えではありません）
      *
-     * @param int $utid
+     * @param string $utid
      * @param array|null $val
      * @return array|null
      */
@@ -1187,7 +1191,7 @@ class ACMS_RAM
      * 指定されたidから該当するユニットのソート番号を返します
      * $sort = ACMS_RAM::unitSort($utid);
      *
-     * @param int $utid
+     * @param string $utid
      * @return int
      */
     public static function unitSort($utid)
@@ -1199,7 +1203,7 @@ class ACMS_RAM
      * 指定されたidから該当するユニットの揃え位置を返します
      * $align = ACMS_RAM::unitAlign($utid);
      *
-     * @param int $utid
+     * @param string $utid
      * @return string|null
      */
     public static function unitAlign($utid)
@@ -1211,7 +1215,7 @@ class ACMS_RAM
      * 指定されたidから該当するユニットの種別を返します
      * $type = ACMS_RAM::unitType($utid);
      *
-     * @param int $utid
+     * @param string $utid
      * @return string|null
      */
     public static function unitType($utid)
@@ -1223,7 +1227,7 @@ class ACMS_RAM
      * 指定されたidから該当するユニットの属性を返します
      * $attr = ACMS_RAM::unitAttr($utid);
      *
-     * @param int $utid
+     * @param string $utid
      * @return string|null
      */
     public static function unitAttr($utid)
@@ -1235,7 +1239,7 @@ class ACMS_RAM
      * 指定されたidから該当するユニットのサイズを返します
      * $size = ACMS_RAM::unitSize($utid);
      *
-     * @param int $utid
+     * @param string $utid
      * @return string|null
      */
     public static function unitSize($utid)
@@ -1247,7 +1251,7 @@ class ACMS_RAM
      * 指定されたidから該当するユニットのフィールド1を返します
      * $field1 = ACMS_RAM::unitField1($utid);
      *
-     * @param int $utid
+     * @param string $utid
      * @return string|null
      */
     public static function unitField1($utid)
@@ -1259,7 +1263,7 @@ class ACMS_RAM
      * 指定されたidから該当するユニットのフィールド2を返します
      * $field2 = ACMS_RAM::unitField2($utid);
      *
-     * @param int $utid
+     * @param string $utid
      * @return int
      */
     public static function unitField2($utid)
@@ -1271,7 +1275,7 @@ class ACMS_RAM
      * 指定されたidから該当するユニットのフィールド3を返します
      * $field3 = ACMS_RAM::unitField3($utid);
      *
-     * @param int $utid
+     * @param string $utid
      * @return int
      */
     public static function unitField3($utid)
@@ -1283,7 +1287,7 @@ class ACMS_RAM
      * 指定されたidから該当するユニットのフィールド4を返します
      * $field4 = ACMS_RAM::unitField4($utid);
      *
-     * @param int $utid
+     * @param string $utid
      * @return int
      */
     public static function unitField4($utid)
@@ -1295,7 +1299,7 @@ class ACMS_RAM
      * 指定されたidから該当するユニットのフィールド5を返します
      * $field5 = ACMS_RAM::unitField5($utid);
      *
-     * @param int $utid
+     * @param string $utid
      * @return int
      */
     public static function unitField5($utid)
@@ -1307,7 +1311,7 @@ class ACMS_RAM
      * 指定されたidから該当するユニットの所属するエントリーIDを返します
      * $unit_eid = ACMS_RAM::unitEntry($utid);
      *
-     * @param int $utid
+     * @param string $utid
      * @return int|null
      */
     public static function unitEntry($utid)
@@ -1525,31 +1529,6 @@ class ACMS_RAM
     public static function formName($id)
     {
         return ACMS_RAM::_mapping('form_name', $id);
-    }
-
-    /**
-     * 指定されたidから該当するトラックバックのレコードを配列で返します
-     * $valが指定されていると，一時的なレコードのキャッシュを上書きします（恒久的な書き換えではありません）
-     *
-     * @param int $tbid
-     * @param array|null $val
-     * @return array|null
-     */
-    public static function trackback($tbid, $val = null)
-    {
-        return func_num_args() === 1 ? ACMS_RAM::_mapping('trackback', $tbid) : ACMS_RAM::_mapping('trackback', $tbid, $val);
-    }
-
-    /**
-     * 指定されたidから該当するトラックバックの所属するエントリーIDを返します
-     * $trackback_eid = ACMS_RAM::trackbackEntry($tbid);
-     *
-     * @param int $tbid
-     * @return int
-     */
-    public static function trackbackEntry($tbid)
-    {
-        return intval(ACMS_RAM::_mapping('trackback_entry_id', $tbid));
     }
 
     /**

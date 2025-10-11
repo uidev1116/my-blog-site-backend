@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
-import html2canvas from 'html2canvas';
+import html2canvas from 'html2canvas-pro';
 import { saveAs } from 'file-saver';
-import type { Options as Html2CanvasOptions } from 'html2canvas';
+import type { Options as Html2CanvasOptions } from 'html2canvas-pro';
 
 export default function useCapture() {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);

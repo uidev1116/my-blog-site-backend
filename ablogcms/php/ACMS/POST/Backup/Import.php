@@ -1,7 +1,8 @@
 <?php
 
-use Acms\Services\Facades\Storage;
 use Acms\Services\Facades\Cache;
+use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\PrivateStorage;
 use Symfony\Component\Finder\Finder;
 
 class ACMS_POST_Backup_Import extends ACMS_POST_Backup_Base
@@ -43,14 +44,23 @@ class ACMS_POST_Backup_Import extends ACMS_POST_Backup_Base
             $this->replication = App::make('db.replication');
             $this->versionCheck = $this->Post->get('version_check');
 
-            $this->decompress();
+            $fileName = $this->Post->get('sqlfile', false);
+            $path = Storage::validateDirectoryTraversal($this->backupDatabaseDir, $fileName);
+            if (empty($fileName) || !Storage::exists($path)) {
+                throw new \RuntimeException('無効なファイルです。DBエクスポートファイルを選択して下さい。');
+            }
+            $this->decompress($path);
             $hashFilePath = $this->backupTempDir . 'md5_hash.txt';
-            $hash = Storage::get($hashFilePath, dirname($hashFilePath));
+            $hash = LocalStorage::get($hashFilePath, dirname($hashFilePath));
 
             if ($this->fileHashTest($this->backupTempDir . 'sql_query.sql', $hash)) {
                 if ($sql_fp = fopen($this->backupTempDir . 'sql_query.sql', 'r')) {
                     sleep(3);
-                    $this->readLineSql(trim(fgets($sql_fp)));
+                    $data = fgets($sql_fp);
+                    if ($data === false) {
+                        throw new Exception('SQLファイルの読み込みに失敗しました。');
+                    }
+                    $this->readLineSql(trim($data));
                     $this->validation();
 
                     Common::backgroundRedirect(acmsLink(['bid' => RBID]));
@@ -86,7 +96,7 @@ class ACMS_POST_Backup_Import extends ACMS_POST_Backup_Base
         if ($this->Post->get('drop_table') === 'on') {
             $this->replication->dropCashTable();
         }
-        Storage::removeDirectory($this->backupTempDir);
+        LocalStorage::removeDirectory($this->backupTempDir);
 
         Cache::flush('template');
         Cache::flush('config');
@@ -120,7 +130,10 @@ class ACMS_POST_Backup_Import extends ACMS_POST_Backup_Base
     protected function fileHashTest($file_path, $hash)
     {
         $file_hash = md5_file($file_path);
-        $file_hash = @mb_convert_encoding($file_hash, "UTF-8");
+        if ($file_hash === false) {
+            return false;
+        }
+        $file_hash = mb_convert_encoding($file_hash, "UTF-8");
         if ($file_hash === $hash) {
             return true;
         } else {
@@ -129,14 +142,16 @@ class ACMS_POST_Backup_Import extends ACMS_POST_Backup_Base
     }
 
     /**
-     * @param $line
+     * @param string $line
      * @throws Exception
      */
     protected function readLineSql($line)
     {
         $line = str_replace('DB_PREFIX_STR_', DB_PREFIX, $line);
         $line = mb_convert_encoding($line, DB_CHARSET, "UTF-8");
-
+        if ($line === false) {
+            return;
+        }
         if (substr($line, 0, 2) === '--') {
             if ($this->versionCheck === 'on' and preg_match('/^--Version_.*/', $line)) {
                 $version = trim(substr($line, 2));
@@ -149,33 +164,41 @@ class ACMS_POST_Backup_Import extends ACMS_POST_Backup_Base
             $pattern = '/^(CREATE TABLE|INSERT INTO).*;$/is';
             if (preg_match($pattern, $line)) {
                 $line = rtrim($line, ';');
-                DB::query($line, 'exec');
+                DB::query(['sql' => $line, 'params' => []], 'exec');
             }
         }
     }
 
     /**
      * decompress
+     *
+     * @param string $path
      */
-    protected function decompress()
+    protected function decompress(string $path)
     {
-        $file_name = $this->Post->get('sqlfile', false);
-        if (empty($file_name) || !Storage::exists($this->backupDatabaseDir . $file_name)) {
+        if (!PrivateStorage::exists($path)) {
             throw new \RuntimeException('無効なファイルです。DBエクスポートファイルを選択して下さい。');
         }
-        Storage::removeDirectory($this->backupTempDir);
-        Storage::unzip($this->backupDatabaseDir . $file_name, MEDIA_STORAGE_DIR);
+        LocalStorage::removeDirectory($this->backupTempDir);
+        if (!Common::isLocalPrivateStorage()) {
+            LocalStorage::makeDirectory($this->backupDatabaseDir);
+            $fileContent = PrivateStorage::get($path);
+            if ($fileContent === false) {
+                throw new \RuntimeException('ファイルの読み込みに失敗しました: ' . $path);
+            }
+            LocalStorage::put($path, $fileContent);
+        }
+        LocalStorage::unzip($path, MEDIA_STORAGE_DIR);
 
-        if (!Storage::exists($this->backupTempDir . 'sql_query.sql')) {
+        if (!LocalStorage::exists($this->backupTempDir . 'sql_query.sql')) {
             $finder = new Finder();
             $iterator = $finder
                 ->in($this->backupTempDir)
                 ->depth('< 2')
                 ->name('/(md5_hash\.txt|sql_query\.sql)$/');
-            Storage::makeDirectory($this->backupTempDir);
             foreach ($iterator as $file) {
                 $filename = basename(str_replace('\\', '/', $file->getFilename()));
-                Storage::move($this->backupTempDir . $file->getRelativePathname(), $this->backupTempDir . $filename);
+                LocalStorage::move($this->backupTempDir . $file->getRelativePathname(), $this->backupTempDir . $filename);
             }
         }
     }

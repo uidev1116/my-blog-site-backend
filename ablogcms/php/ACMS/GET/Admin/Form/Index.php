@@ -1,6 +1,6 @@
 <?php
 
-class ACMS_GET_Admin_Form_Index extends ACMS_GET_Admin_Module
+class ACMS_GET_Admin_Form_Index extends ACMS_GET_Admin
 {
     function get()
     {
@@ -12,16 +12,11 @@ class ACMS_GET_Admin_Form_Index extends ACMS_GET_Admin_Module
             || ( !roleAvailableUser() && !sessionWithFormAdministration() )
             || ( roleAvailableUser() && !roleAuthorization('form_view', BID) && !roleAuthorization('form_edit', BID) )
         ) {
-            return '';
+            die403();
         }
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());
         $Vars   = [];
-        //---------
-        // refresh
-        if (!$this->Post->isNull()) {
-            $Tpl->add('refresh');
-            $Vars['notice_mess'] = 'show';
-        }
+
         //-------
         // order
         $order  = ORDER ? ORDER : 'id-asc';
@@ -29,7 +24,7 @@ class ACMS_GET_Admin_Form_Index extends ACMS_GET_Admin_Module
         //--------
         // limit
         $limits = configArray('admin_limit_option');
-        $limit  = $this->Q->get('limit', $limits[config('admin_limit_default')]);
+        $limit  = (int)$this->Q->get('limit', $limits[config('admin_limit_default')]);
         foreach ($limits as $val) {
             $_vars  = ['value' => $val];
             if ($limit == $val) {
@@ -74,9 +69,9 @@ class ACMS_GET_Admin_Form_Index extends ACMS_GET_Admin_Module
         $SQL->addSelect('form_scope');
         $SQL->addSelect('form_blog_id');
         $SQL->addSelect('log_form_datetime', 'form_log_amount', null, 'count');
-        $Case   = SQL::newCase();
+        $Case = SQL::newCase();
         $Case->add(SQL::newOpr('log_form_datetime'), '1000-01-01 00:00:00');
-        $Case->setElse(SQL::newField('MAX(log_form_datetime)'));
+        $Case->setElse(SQL::newFunction('log_form_datetime', 'MAX'));
         $SQL->addSelect($Case, 'form_last_datetime');
         //-------
         // order
@@ -96,8 +91,8 @@ class ACMS_GET_Admin_Form_Index extends ACMS_GET_Admin_Module
         $SQL->setGroup('form_id');
         $SQL->setLimit($limit, (PAGE - 1) * $limit);
         $q  = $SQL->get(dsn());
-        $DB->query($q, 'fetch');
-        while ($row = $DB->fetch($q)) {
+        $statement = $DB->query($q, 'exec');
+        while ($row = $DB->next($statement)) {
             $fmid   = intval($row['form_id']);
             $fmbid  = intval($row['form_blog_id']);
             $editAction = false;

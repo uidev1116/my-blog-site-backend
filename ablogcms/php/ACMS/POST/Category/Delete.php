@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Category;
+
 class ACMS_POST_Category_Delete extends ACMS_POST_Category
 {
     function isEntryExists($cid)
@@ -32,18 +34,16 @@ class ACMS_POST_Category_Delete extends ACMS_POST_Category
         return $DB->query($SQL->get(dsn()), 'exec');
     }
 
-    function post()
+    public function post()
     {
+        /** @var int<1, max>|null $categoryId */
+        $categoryId = CID;
         $DB     = DB::singleton(dsn());
 
         $this->Post->reset(true);
 
-        if (roleAvailableUser()) {
-            $this->Post->setMethod('category', 'operable', !!CID and !!roleAuthorization('category_edit', BID));
-        } else {
-            $this->Post->setMethod('category', 'operable', !!CID and !!sessionWithCompilation());
-        }
-        $this->Post->setMethod('category', 'subCategoryExists', !$this->isSubCategoryExists(CID));
+        $this->Post->setMethod('category', 'operable', !is_null($categoryId) && Category::canDelete(BID));
+        $this->Post->setMethod('category', 'subCategoryExists', !$this->isSubCategoryExists($categoryId));
 
         $this->Post->validate();
 

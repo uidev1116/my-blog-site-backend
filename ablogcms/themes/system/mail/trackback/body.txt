@@ -1,8 +1,0 @@
-「%{ENTRY_TITLE} | %{BLOG_NAME}」に
-新しいトラックバックが追加されました。
-{trackbackUrl}
-
-Blog : {blog_name}
-URL  : {url}
-
-{excerpt}

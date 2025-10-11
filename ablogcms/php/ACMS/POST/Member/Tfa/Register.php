@@ -40,9 +40,11 @@ class ACMS_POST_Member_Tfa_Register extends ACMS_POST_Member
     {
         if (!SUID) {
             $tfaField->setMethod('tfa', 'isOperable', false);
+            httpStatusCode('403 Forbidden');
         }
         if (!Tfa::isAvailable()) {
             $tfaField->setMethod('tfa', 'isOperable', false);
+            httpStatusCode('403 Forbidden');
         }
         $tfaField->setMethod('code', 'required');
         $tfaField->setMethod('secret', 'required');

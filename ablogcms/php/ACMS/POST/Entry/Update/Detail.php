@@ -1,27 +1,22 @@
 <?php
 
 use Acms\Services\Facades\Application;
+use Acms\Services\Unit\UnitCollection;
 
 class ACMS_POST_Entry_Update_Detail extends ACMS_POST_Entry_Update
 {
     /**
-     * ユニットを保存せずプライマリーイメージを取得
      *
-     * @param \Acms\Services\Unit\Contracts\Model[] $units
-     * @param int $eid
-     * @param string|null $primary_image
+     *
+     * @inheritdoc
      */
-    protected function saveUnit($units, $eid, $primary_image)
+    protected function saveUnit(UnitCollection $collection, int $eid): UnitCollection
     {
-        $sql = SQL::newSelect('entry');
-        $sql->addSelect('entry_primary_image');
-        $sql->addWhereOpr('entry_id', $eid);
-        $primaryImageId = DB::query($sql->get(dsn()), 'one');
-
-        return $primaryImageId;
+        // ユニットを保存しない
+        return $collection;
     }
 
-    function post()
+    public function post()
     {
         $this->unitRepository = Application::make('unit-repository');
         $this->lockService = Application::make('entry.lock');

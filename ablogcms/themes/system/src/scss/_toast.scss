@@ -147,7 +147,7 @@
   z-index: global.zIndex(js-admin-toast-toggle);
 }
 
-@media screen and (max-width: global.$breakpoint-md-max) {
+@include global.media-breakpoint-down(md) {
   .acms-toast.acms-toast-static-md {
     position: static;
     top: auto;

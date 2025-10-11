@@ -104,6 +104,9 @@ if (!function_exists("gzdecode")) {
             }
         }  // zero-byte body content is allowed
         // Verifiy CRC32
+        if ($data === false) {
+            return false;
+        }
         $crc = sprintf("%u", crc32($data));
         $crcOK = $crc == $datacrc;
         $lenOK = $isize == strlen($data);
@@ -126,5 +129,93 @@ if (!function_exists('gettext')) {
     function gettext($txt)
     {
         return $txt;
+    }
+}
+
+if (!function_exists('array_any')) {
+    /**
+     * 配列の要素の中にコールバック関数を満たす要素があるかどうかをチェック
+     * (PHP 8 >= 8.4.0)
+     *
+     * @see https://www.php.net/manual/ja/function.array-any.php
+     * @param array $array
+     * @param callable $callback
+     * @return bool
+     */
+    function array_any(array $array, callable $callback): bool
+    {
+        foreach ($array as $key => $value) {
+            if ($callback($value, $key)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
+if (!function_exists('array_all')) {
+    /**
+     * 配列の全ての要素がコールバック関数を満たすかどうかをチェック
+     * (PHP 8 >= 8.4.0)
+     *
+     * @see https://www.php.net/manual/ja/function.array-all.php
+     * @param array $array
+     * @param callable $callback
+     * @return bool
+     */
+    function array_all(array $array, callable $callback): bool
+    {
+        foreach ($array as $key => $value) {
+            if (!$callback($value, $key)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
+if (!function_exists('array_find')) {
+    /**
+     * 配列の要素の中からコールバック関数を満たす要素を探す
+     * (PHP 8 >= 8.4.0)
+     *
+     * @see https://www.php.net/manual/ja/function.array-find.php
+     * @param array $array
+     * @param callable $callback
+     * @return mixed
+     */
+    function array_find(array $array, callable $callback)
+    {
+        foreach ($array as $key => $value) {
+            if ($callback($value, $key)) {
+                return $value;
+            }
+        }
+
+        return null;
+    }
+}
+
+if (!function_exists('array_find_key')) {
+    /**
+     * 配列の要素の中からコールバック関数を満たす最初の要素のキーを返す
+     * (PHP 8 >= 8.4.0)
+     *
+     * @see https://www.php.net/manual/ja/function.array-find-key.php
+     * @param array $array
+     * @param callable $callback
+     * @return mixed
+     */
+    function array_find_key(array $array, callable $callback)
+    {
+        foreach ($array as $key => $value) {
+            if ($callback($value, $key)) {
+                return $key;
+            }
+        }
+
+        return null;
     }
 }

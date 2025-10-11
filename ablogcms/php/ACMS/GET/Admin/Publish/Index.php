@@ -5,20 +5,15 @@ class ACMS_GET_Admin_Publish_Index extends ACMS_GET_Admin_Publish
     public function get()
     {
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());
-
-        if (!IS_LICENSED) {
-            return '';
-        }
         if (roleAvailableUser()) {
             if (!roleAuthorization('publish_edit', BID) && !roleAuthorization('publish_exec', BID)) {
-                return '';
+                die403();
             }
         } else {
             if (!sessionWithAdministration()) {
-                return '';
+                die403();
             }
         }
-
         if (BID != 1) {
             $ParentConfig = loadConfig(ACMS_RAM::blogParent(BID));
             if ('on' != $ParentConfig->get('publish_children_allow')) {

@@ -1,0 +1,58 @@
+<div class="acms-admin-unit-toolbar" role="toolbar" aria-orientation="horizontal">
+  <!-- info -->
+  <div class="acms-admin-unit-toolbar-info">
+    <div>
+      <div class="acms-admin-unit-toolbar-meta">
+        <span>{unit_name}</span>
+      </div>
+    </div>
+    <!-- BEGIN_IF [<!-- BEGIN alignOptions:loop -->1<!-- END alignOptions:loop -->/nem] -->
+    @include('/admin/include/parts/spacer.html', {
+      "size": 12
+    })
+    <div>
+      <label for="unit-align-{unit_id}" class="acms-admin-hide-visually">配置</label>
+      <select id="unit-align-{unit_id}" name="unit_align[]">
+        <!-- BEGIN alignOptions:loop -->
+        <option value="{value}" {selected}>{label}</option>
+        <!-- END alignOptions:loop -->
+      </select>
+    </div>
+    <!-- ELSE -->
+    <input type="hidden" name="unit_align[]" value="{unit_align}" />
+    <!-- END_IF -->
+  </div>
+  <!-- menu -->
+  <div class="acms-admin-unit-toolbar-menus">
+    <div role="group" class="acms-admin-unit-toolbar-button-group">
+      <button
+        type="button"
+        class="js-change-unit-status js-acms-tooltip-hover acms-admin-unit-toolbar-button"
+        <!-- BEGIN_IF [{unit_status}/eq/open] -->
+        aria-label="<!--T-->非表示<!--/T-->"
+        data-acms-tooltip="<!--T-->非表示<!--/T-->"
+        <!-- ELSE -->
+        aria-label="<!--T-->表示<!--/T-->"
+        data-acms-tooltip="<!--T-->表示<!--/T-->"
+        <!-- END_IF -->
+        data-target="[name='unit_status[]']"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">
+          <!-- BEGIN_IF [{unit_status}/eq/open] -->
+          visibility_off
+          <!-- ELSE -->
+          visibility
+          <!-- END_IF -->
+        </span>
+      </button>
+      <button
+        type="button"
+        class="js-remove-unit js-acms-tooltip-hover acms-admin-unit-toolbar-button"
+        aria-label="<!--T-->編集を終了する<!--/T-->"
+        data-acms-tooltip="<!--T-->編集を終了する<!--/T-->"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+      </button>
+    </div>
+  </div>
+</div>

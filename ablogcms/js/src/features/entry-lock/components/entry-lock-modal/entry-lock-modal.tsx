@@ -3,6 +3,7 @@ import { throttle } from 'throttle-debounce';
 import Modal from '../../../../components/modal/modal';
 import useEffectOnce from '../../../../hooks/use-effect-once';
 import { checkEntryLock, lockEntry } from '../../api';
+import HStack from '../../../../components/stack/h-stack';
 
 const EntryLockModal = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -72,7 +73,7 @@ const EntryLockModal = () => {
   });
 
   const modalFooter = lockedInfo.alertOnly ? (
-    <div>
+    <HStack display="inline-flex">
       <a href={lockedInfo.viewLink} className="acms-admin-btn">
         {ACMS.i18n('entry_lock.modal.viewLink')}
       </a>
@@ -85,7 +86,7 @@ const EntryLockModal = () => {
       >
         {ACMS.i18n('entry_lock.modal.editLink')}
       </button>
-    </div>
+    </HStack>
   ) : (
     <div>
       <a href={lockedInfo.viewLink} className="acms-admin-btn acms-admin-btn-admin-info acms-admin-btn-admin-search">

@@ -4,7 +4,7 @@ namespace Acms\Services\StaticExport\Generator;
 
 use Acms\Services\StaticExport\CopyEntryArchive;
 use Acms\Services\StaticExport\Contracts\Generator;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 use Acms\Services\StaticExport\Entities\Page;
 use Acms\Services\StaticExport\Entities\EntryPage;
 use React\Promise\Promise;
@@ -96,8 +96,8 @@ class EntryGenerator extends Generator
         $destination = $this->destination->getDestinationPath() . $this->destination->getBlogCode();
         $destPath = $destination . $path;
         try {
-            Storage::makeDirectory(dirname($destPath));
-            Storage::put($destPath, $data);
+            LocalStorage::makeDirectory(dirname($destPath));
+            LocalStorage::put($destPath, $data);
         } catch (\Exception $e) {
             $this->logger->error('データの書き込みに失敗しました。', $destPath);
         }

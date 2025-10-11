@@ -1,0 +1,206 @@
+@use 'sass:math';
+@use 'global/common' as global;
+
+/* ------------------------------
+ ボタン V2
+------------------------------- */
+.acms-btn-v2 {
+  // shape
+  --acms-btn-v2-padding-inline-start: 24px;
+  --acms-btn-v2-padding-inline-end: 24px;
+  --acms-btn-v2-padding-block-start: 10px;
+  --acms-btn-v2-padding-block-end: 10px;
+  --acms-btn-v2-border-radius: 4px;
+  --acms-btn-v2-column-gap: 8px;
+  --acms-btn-v2-line-height: 1;
+  --acms-btn-v2-font-weight: 600;
+  --acms-btn-v2-min-height: 40px;
+
+  // text-color
+  --acms-btn-v2-text-color: #{global.$acms-color-black};
+  --acms-btn-v2-hover-text-color: var(--acms-btn-v2-text-color);
+  --acms-btn-v2-active-text-color: var(--acms-btn-v2-text-color);
+  --acms-btn-v2-focus-text-color: var(--acms-btn-v2-text-color);
+  --acms-btn-v2-disabled-text-color: var(--acms-btn-v2-text-color);
+
+  // bg-color
+  --acms-btn-v2-bg-color: transparent;
+  --acms-btn-v2-hover-bg-color: var(--acms-btn-v2-bg-color);
+  --acms-btn-v2-active-bg-color: var(--acms-btn-v2-bg-color);
+  --acms-btn-v2-focus-bg-color: var(--acms-btn-v2-bg-color);
+  --acms-btn-v2-disabled-bg-color: var(--acms-btn-v2-bg-color);
+
+  // border-width
+  --acms-btn-v2-border-width: 1px;
+
+  // border-style
+  --acms-btn-v2-border-style: solid;
+
+  // border-color
+  --acms-btn-v2-border-color: transparent;
+  --acms-btn-v2-hover-border-color: var(--acms-btn-v2-border-color);
+  --acms-btn-v2-active-border-color: var(--acms-btn-v2-border-color);
+  --acms-btn-v2-focus-border-color: #{global.$acms-btn-focus-border-color};
+  --acms-btn-v2-disabled-border-color: var(--acms-btn-v2-border-color);
+
+  // box-shadow-rgb
+  --acms-btn-v2-box-shadow-rgb: transparent;
+  --acms-btn-v2-hover-box-shadow-rgb: var(--acms-btn-v2-box-shadow-rgb);
+  --acms-btn-v2-active-box-shadow-rgb: var(--acms-btn-v2-box-shadow-rgb);
+  --acms-btn-v2-focus-box-shadow-rgb: var(--acms-btn-v2-box-shadow-rgb);
+  --acms-btn-v2-disabled-box-shadow-rgb: var(--acms-btn-v2-box-shadow-rgb);
+
+  // box-shadow
+  --acms-btn-v2-box-shadow: #{global.$acms-shadow-elevation-length-low} var(--acms-btn-v2-box-shadow-rgb);
+  --acms-btn-v2-hover-box-shadow: #{global.$acms-shadow-elevation-length-low} var(--acms-btn-v2-hover-box-shadow-rgb);
+  --acms-btn-v2-active-box-shadow: #{global.$acms-shadow-elevation-length-low} var(--acms-btn-v2-active-box-shadow-rgb);
+  --acms-btn-v2-focus-box-shadow: #{global.$acms-btn-focus-box-shadow};
+  --acms-btn-v2-disabled-box-shadow: #{global.$acms-shadow-elevation-length-low} var(--acms-btn-v2-disabled-box-shadow-rgb);
+
+  @include global.button-shape(
+    $font-size: 14,
+    $padding: var(--acms-btn-v2-padding-block-start) var(--acms-btn-v2-padding-inline-end)
+      var(--acms-btn-v2-padding-block-end) var(--acms-btn-v2-padding-inline-start),
+    $border-radius: var(--acms-btn-v2-border-radius),
+    $column-gap: var(--acms-btn-v2-column-gap),
+    $line-height: var(--acms-btn-v2-line-height),
+    $font-weight: var(--acms-btn-v2-font-weight),
+    $min-height: var(--acms-btn-v2-min-height)
+  );
+  @include global.button-decoration(
+    $bg-color: var(--acms-btn-v2-bg-color),
+    $hover-bg-color: var(--acms-btn-v2-hover-bg-color),
+    $active-bg-color: var(--acms-btn-v2-active-bg-color),
+    $focus-bg-color: var(--acms-btn-v2-focus-bg-color),
+    $disabled-bg-color: var(--acms-btn-v2-disabled-bg-color),
+    $text-color: var(--acms-btn-v2-text-color),
+    $hover-text-color: var(--acms-btn-v2-hover-text-color),
+    $active-text-color: var(--acms-btn-v2-active-text-color),
+    $focus-text-color: var(--acms-btn-v2-focus-text-color),
+    $disabled-text-color: var(--acms-btn-v2-disabled-text-color),
+    $border-width: var(--acms-btn-v2-border-width),
+    $border-style: var(--acms-btn-v2-border-style),
+    $border-color: var(--acms-btn-v2-border-color),
+    $hover-border-color: var(--acms-btn-v2-hover-border-color),
+    $active-border-color: var(--acms-btn-v2-active-border-color),
+    $focus-border-color: var(--acms-btn-v2-focus-border-color),
+    $disabled-border-color: var(--acms-btn-v2-disabled-border-color),
+    $box-shadow: var(--acms-btn-v2-box-shadow),
+    $hover-box-shadow: var(--acms-btn-v2-hover-box-shadow),
+    $active-box-shadow: var(--acms-btn-v2-active-box-shadow),
+    $focus-box-shadow: var(--acms-btn-v2-focus-box-shadow),
+    $disabled-box-shadow: var(--acms-btn-v2-disabled-box-shadow),
+    $focus-outline-style: none
+  );
+
+  // アイコンが含まれる場合
+  &:has([class*='material-symbols']) {
+    --acms-btn-v2-padding-inline-start: 16px;
+    --acms-btn-v2-padding-block-start: 8px;
+    --acms-btn-v2-padding-block-end: 8px;
+
+    > [class*='material-symbols'] {
+      @include global.font-size(18);
+    }
+  }
+
+  // ---------------
+  // Filled
+  // ---------------
+  &.acms-btn-v2-filled {
+    --acms-btn-v2-bg-color: #{global.$acms-color-system-gray80};
+    --acms-btn-v2-text-color: #{global.$acms-color-white};
+    --acms-btn-v2-hover-bg-color: #{global.$acms-color-system-gray90};
+    --acms-btn-v2-active-bg-color: #{global.$acms-color-system-gray90};
+    --acms-btn-v2-focus-bg-color: #{global.$acms-color-system-gray80};
+    --acms-btn-v2-disabled-bg-color: #{global.$acms-color-system-gray40};
+  }
+
+  // ---------------
+  // Outlined
+  // ---------------
+  &.acms-btn-v2-outlined {
+    --acms-btn-v2-bg-color: #{global.$acms-color-white};
+    --acms-btn-v2-text-color: #{global.$acms-color-system-gray80};
+    --acms-btn-v2-disabled-text-color: #{global.$acms-color-system-gray40};
+    --acms-btn-v2-hover-bg-color: #{global.$acms-color-system-gray20};
+    --acms-btn-v2-active-bg-color: #{global.$acms-color-system-gray30};
+    --acms-btn-v2-focus-bg-color: #{global.$acms-color-white};
+    --acms-btn-v2-disabled-bg-color: #{global.$acms-color-white};
+    --acms-btn-v2-border-color: #{global.$acms-color-system-gray80};
+    --acms-btn-v2-active-border-color: #{global.$acms-color-system-gray90};
+    --acms-btn-v2-disabled-border-color: #{global.$acms-color-system-gray40};
+  }
+
+  // ---------------
+  // Unit Insert
+  // ---------------
+  &.acms-btn-v2-unit-insert {
+    --acms-btn-v2-bg-color: #{global.$acms-color-system-gray10};
+    --acms-btn-v2-text-color: #{global.$acms-color-system-gray80};
+    --acms-btn-v2-disabled-text-color: #{global.$acms-color-system-gray40};
+    --acms-btn-v2-hover-bg-color: #{global.$acms-color-system-gray20};
+    --acms-btn-v2-active-bg-color: #{global.$acms-color-system-gray30};
+    --acms-btn-v2-focus-bg-color: #{global.$acms-color-system-gray10};
+    --acms-btn-v2-disabled-bg-color: #{global.$acms-color-system-gray10};
+    --acms-btn-v2-border-style: dashed;
+    --acms-btn-v2-border-color: #{global.$acms-color-system-gray40};
+    --acms-btn-v2-disabled-border-color: #{global.$acms-color-system-gray40};
+  }
+}
+
+// ---------------
+// Large
+// ---------------
+.acms-btn-v2.acms-btn-v2-large {
+  --acms-btn-v2-padding-inline-start: 24px;
+  --acms-btn-v2-padding-inline-end: 24px;
+  --acms-btn-v2-padding-block-start: 16px;
+  --acms-btn-v2-padding-block-end: 16px;
+  --acms-btn-v2-min-height: 52px;
+
+  @include global.font-size(16);
+
+  // アイコンが含まれる場合
+  &:has([class*='material-symbols']) {
+    --acms-btn-v2-padding-inline-start: 16px;
+    --acms-btn-v2-padding-block-start: 14px;
+    --acms-btn-v2-padding-block-end: 14px;
+
+    > [class*='material-symbols'] {
+      @include global.font-size(20);
+    }
+  }
+}
+
+// ---------------
+// Small
+// --------------
+.acms-btn-v2.acms-btn-v2-small {
+  --acms-btn-v2-padding-inline-start: 16px;
+  --acms-btn-v2-padding-inline-end: 16px;
+  --acms-btn-v2-padding-block-start: 8px;
+  --acms-btn-v2-padding-block-end: 8px;
+  --acms-btn-v2-column-gap: 4px;
+  --acms-btn-v2-min-height: auto;
+
+  @include global.font-size(12);
+
+  // アイコンが含まれる場合
+  &:has([class*='material-symbols']) {
+    --acms-btn-v2-padding-inline-start: 8px;
+    --acms-btn-v2-padding-block-start: 6px;
+    --acms-btn-v2-padding-block-end: 6px;
+
+    > [class*='material-symbols'] {
+      @include global.font-size(16);
+    }
+  }
+}
+
+// ---------------
+// Elevated
+// ---------------
+.acms-btn-v2.acms-btn-v2-elevated {
+  --acms-btn-v2-box-shadow-rgb: #{global.$acms-shadow-elevation-color};
+}

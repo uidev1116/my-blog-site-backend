@@ -1,6 +1,6 @@
 <?php
 
-class ACMS_GET_Admin_Form_Log extends ACMS_GET_Admin_Module
+class ACMS_GET_Admin_Form_Log extends ACMS_GET_Admin
 {
     function get()
     {
@@ -15,18 +15,11 @@ class ACMS_GET_Admin_Form_Log extends ACMS_GET_Admin_Module
             || ( !roleAvailableUser() && !sessionWithFormAdministration() )
             || ( roleAvailableUser() && !roleAuthorization('form_view', BID) && !roleAuthorization('form_edit', BID) )
         ) {
-            return '';
+            die403();
         }
 
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());
         $Vars   = [];
-
-        //---------
-        // refresh
-        if (!$this->Post->isNull()) {
-            $Vars['notice_mess'] = 'show';
-            $Tpl->add('refresh');
-        }
 
         //---------------
         // To or adminTo
@@ -41,7 +34,7 @@ class ACMS_GET_Admin_Form_Log extends ACMS_GET_Admin_Module
         //--------
         // limit
         $limits = configArray('admin_limit_option');
-        $limit  = $this->Q->get('limit', $limits[config('admin_limit_default')]);
+        $limit  = (int)$this->Q->get('limit', $limits[config('admin_limit_default')]);
         foreach ($limits as $val) {
             $_vars  = ['value' => $val];
             if ($limit == $val) {
@@ -107,13 +100,14 @@ class ACMS_GET_Admin_Form_Log extends ACMS_GET_Admin_Module
             ['admin' => ADMIN]
         );
 
+        /** @var 'asc' | 'desc' $sort */
         list($fd, $sort) = explode('-', $order);
         $SQL->setOrder('log_form_' . $fd, strtoupper($sort));
         $SQL->setLimit($limit, (PAGE - 1) * $limit);
 
         $q  = $SQL->get(dsn());
-        $DB->query($q, 'fetch');
-        while ($row = $DB->fetch($q)) {
+        $statement = $DB->query($q, 'exec');
+        while ($row = $DB->next($statement)) {
             if (isset($row['log_form_version']) && intval($row['log_form_version']) === 1) {
                 $log_subject        = acmsDangerUnserialize($row['log_form_mail_subject']);
                 $log_body           = acmsDangerUnserialize($row['log_form_mail_body']);

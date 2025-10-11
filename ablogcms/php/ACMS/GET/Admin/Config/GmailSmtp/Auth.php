@@ -9,6 +9,9 @@ class ACMS_GET_Admin_Config_GmailSmtp_Auth extends ACMS_GET
 {
     public function get()
     {
+        if (!sessionWithAdministration()) {
+            return '';
+        }
         $Tpl = new Template($this->tpl, new ACMS_Corrector());
         try {
             $api = Application::make('mailer.google.smtp.api');

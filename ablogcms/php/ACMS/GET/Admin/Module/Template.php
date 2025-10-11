@@ -1,18 +1,31 @@
 <?php
 
 use Acms\Services\Facades\Database as DB;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Facades\Config;
+use Acms\Services\Facades\Logger;
 
-class ACMS_GET_Admin_Module_Template extends ACMS_GET_Admin_Edit
+class ACMS_GET_Admin_Module_Template extends ACMS_GET
 {
     private const STANDARD_TEMPLATE = [
         'templatePath' => '',
         'templateLabel' => '標準',
     ];
 
+    public function auth()
+    {
+        if (!sessionWithAdministration()) {
+            return false;
+        }
+        return true;
+    }
+
     public function get()
     {
+        if (!$this->auth()) {
+            Logger::notice('認可されていないページにアクセスしました');
+            die403();
+        }
         $tplEngine = new Template($this->tpl, new ACMS_Corrector());
         $mid = (int)$this->Get->get('mid');
         $selectedTpl = $this->Get->get('selectedTpl');
@@ -71,9 +84,6 @@ class ACMS_GET_Admin_Module_Template extends ACMS_GET_Admin_Edit
     {
         $sql = $this->buildModuleListSql($name);
         $query = $sql->get(dsn());
-        if (!is_string($query)) {
-            return [];
-        }
         $modules = DB::query($query, 'all');
 
         return $modules;
@@ -106,9 +116,16 @@ class ACMS_GET_Admin_Module_Template extends ACMS_GET_Admin_Edit
         $tplAry     = [];
         $tplLabels  = [];
         foreach ($themes as $themeName) {
-            $dir = SCRIPT_DIR . THEMES_DIR . $themeName . '/' . $tplModuleDir . $name . '/';
-            if (Storage::isDirectory($dir)) {
-                $templateDir    = opendir($dir);
+            $baseDir = THEMES_DIR . $themeName . '/' . $tplModuleDir;
+            $dir = THEMES_DIR . $themeName . '/' . $tplModuleDir . $name . '/';
+            if (!LocalStorage::validateDirectoryTraversalPath($dir, $baseDir, false)) {
+                continue;
+            }
+            if (LocalStorage::isDirectory($dir)) {
+                $templateDir = opendir($dir);
+                if ($templateDir === false) {
+                    continue;
+                }
                 while ($tpl = readdir($templateDir)) {
                     preg_match('/(?:.*)\/(.*)(?:\.([^.]+$))/', $dir . $tpl, $info);
                     /**
@@ -189,7 +206,7 @@ class ACMS_GET_Admin_Module_Template extends ACMS_GET_Admin_Edit
         $sql = SQL::newSelect('module');
         $sql->addWhereOpr('module_id', $mid);
         /** @var array{module_name: string, module_identifier: string}|false $module */
-        $module = DB::query((string)$sql->get(dsn()), 'row');
+        $module = DB::query($sql->get(dsn()), 'row');
 
         return is_array($module) ? $module : null;
     }

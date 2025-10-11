@@ -2,8 +2,12 @@
 
 namespace Acms\Services\Update\System;
 
-use Acms\Services\Facades\Storage;
+use Acms\Services\Update\Contracts\LoggerInterface;
+use Acms\Services\Update\Exceptions\RollbackException;
+use Acms\Services\Facades\LocalStorage;
 use Symfony\Component\Finder\Finder;
+use Exception;
+use RuntimeException;
 
 /**
  * Class PlaceFile
@@ -27,16 +31,16 @@ class PlaceFile
     protected $backupList;
 
     /**
-     * @var \Acms\Services\Update\Logger
+     * @var \Acms\Services\Update\Contracts\LoggerInterface
      */
     protected $logger;
 
     /**
      * PlaceFile constructor.
      *
-     * @param \Acms\Services\Update\Logger $logger
+     * @param \Acms\Services\Update\Contracts\LoggerInterface $logger
      */
-    public function __construct($logger)
+    public function __construct(LoggerInterface $logger)
     {
         set_time_limit(0);
 
@@ -58,12 +62,7 @@ class PlaceFile
             'php/ACMS/User',
         ]);
 
-        $this->backupList = [
-            'private/config.system.yaml',
-            'config.server.php',
-            'license.php',
-            'extension',
-        ];
+        $this->backupList = [];
     }
 
     /**
@@ -75,7 +74,7 @@ class PlaceFile
      */
     public function validate($new_path, $backup_dir)
     {
-        $this->logger->addMessage(gettext('アップデートの検証中...'), 0);
+        $this->logger->message(gettext('アップデートの検証中...'), 0);
         $validate = true;
         // backup
         foreach ($this->moveList as $item => $to) {
@@ -83,35 +82,34 @@ class PlaceFile
                 continue;
             }
             $path = $backup_dir . $item;
-            Storage::makeDirectory(dirname($path));
-            if (!Storage::isWritable(dirname($path))) {
+            LocalStorage::makeDirectory(dirname($path));
+            if (!LocalStorage::isWritable(dirname($path))) {
                 $validate = false;
-                $this->logger->error(gettext('書き込み権限がありません。') . ' ' . $path);
+                $this->logger->failure(gettext('書き込み権限がありません。') . ' ' . $path);
             }
         }
 
         // place file
         foreach ($this->moveList as $from => $to) {
-            if (!Storage::exists($to)) {
+            if (!LocalStorage::exists($to)) {
                 $to = dirname($to);
             }
-            if (!Storage::isWritable($to)) {
+            if (!LocalStorage::isWritable($to)) {
                 $validate = false;
-                $this->logger->error(gettext('書き込み権限がありません。') . ' ' . $to);
+                $this->logger->failure(gettext('書き込み権限がありません。') . ' ' . $to);
             }
         }
         foreach ($this->exclusionMoveFile as $item) {
-            if (!Storage::isWritable($item)) {
+            if (!LocalStorage::isWritable($item)) {
                 $validate = false;
-                $this->logger->error(gettext('書き込み権限がありません。') . ' ' . $item);
+                $this->logger->failure(gettext('書き込み権限がありません。') . ' ' . $item);
             }
         }
         if (!$validate) {
-            $this->logger->error(gettext('アップデートの検証に失敗しました。'));
-            throw new \RuntimeException('');
+            throw new RuntimeException(gettext('アップデートの検証に失敗しました。'));
         }
         sleep(5);
-        $this->logger->addMessage(gettext('アップデートの検証完了'), 0);
+        $this->logger->message(gettext('アップデートの検証完了'), 0);
     }
 
     /**
@@ -132,10 +130,9 @@ class PlaceFile
             }
             $this->backup($backup_dir);
             $this->updateFiles($new_path, $backup_dir);
-        } catch (\Exception $e) {
-            $this->logger->error($e->getMessage());
+        } catch (Exception $e) {
             $this->rollback($backup_dir);
-            throw new \RuntimeException('');
+            throw new RollbackException($e->getMessage());
         }
     }
 
@@ -146,9 +143,11 @@ class PlaceFile
      */
     protected function backup($backup_dir)
     {
-        Storage::makeDirectory(dirname($backup_dir . 'tmp/'));
+        $this->logger->message(gettext('バックアップを作成中...'));
+        LocalStorage::makeDirectory(dirname($backup_dir . 'tmp/'));
         $this->copyFiles($this->exclusionMoveFile, '', $backup_dir . 'tmp/');
         $this->copyFiles($this->backupList, '', $backup_dir);
+        $this->logger->message(gettext('バックアップの作成完了'));
     }
 
     /**
@@ -159,24 +158,24 @@ class PlaceFile
      */
     protected function updateFiles($new_path, $backup_dir)
     {
-        $this->logger->addMessage(gettext('システムファイルを展開中...'), 0);
+        $this->logger->message(gettext('システムファイルを展開中...'), 0);
         $base = $new_path . '/';
         $percentage = intval(25 / count($this->moveList));
 
         foreach ($this->moveList as $from => $to) {
             // 現在のファイルをbackupに退避
-            Storage::makeDirectory(dirname($backup_dir . $to));
-            Storage::move($to, $backup_dir . $to);
+            LocalStorage::makeDirectory(dirname($backup_dir . $to));
+            LocalStorage::move($to, $backup_dir . $to);
 
             // Newバージョンのファイルを設置
-            if (!Storage::move($base . $from, $to)) {
-                throw new \RuntimeException('Could not be moved from ' . $base . $from . ' to ' . $to . '.');
+            if (!LocalStorage::move($base . $from, $to)) {
+                throw new RuntimeException('Could not be moved from ' . $base . $from . ' to ' . $to . '.');
             }
-            $this->logger->addPercentage($percentage);
+            $this->logger->incrementProgress($percentage);
         }
         // アップデートしないファイル（拡張ファイル）を戻す
         $this->copyFiles($this->exclusionMoveFile, $backup_dir . 'tmp/', '');
-        $this->logger->addMessage(gettext('システムファイルを展開完了'), 5);
+        $this->logger->message(gettext('システムファイルを展開完了'), 5);
     }
 
     /**
@@ -186,21 +185,21 @@ class PlaceFile
      */
     protected function rollback($backup_dir)
     {
-        $this->logger->error(gettext('ロールバック中...'));
+        $this->logger->message(gettext('ロールバック中...'));
 
         foreach ($this->moveList as $item => $to) {
             if ($item === 'setup') {
                 continue;
             }
             try {
-                Storage::makeDirectory(dirname($backup_dir . 'rollback/' . $to));
-                Storage::move($to, $backup_dir . 'rollback/' . $to);
-                Storage::move($backup_dir . $item, $item);
-            } catch (\Exception $e) {
-                $this->logger->error($e->getMessage());
+                LocalStorage::makeDirectory(dirname($backup_dir . 'rollback/' . $to));
+                LocalStorage::move($to, $backup_dir . 'rollback/' . $to);
+                LocalStorage::move($backup_dir . $item, $item);
+            } catch (Exception $e) {
+                $this->logger->failure($e->getMessage());
             }
         }
-        $this->logger->error(gettext('ロールバック終了'));
+        $this->logger->message(gettext('ロールバック終了'));
     }
 
     /**
@@ -221,8 +220,8 @@ class PlaceFile
         }
         foreach ($lists as $item) {
             try {
-                Storage::removeDirectory($item);
-            } catch (\Exception $e) {
+                LocalStorage::removeDirectory($item);
+            } catch (Exception $e) {
             }
         }
     }
@@ -239,19 +238,19 @@ class PlaceFile
         foreach ($list as $item) {
             $from = $from_dir . $item;
             $to = $to_dir . $item;
-            Storage::makeDirectory(dirname($to));
+            LocalStorage::makeDirectory(dirname($to));
             if (is_link($from)) {
                 if ($link = readlink($from)) {
                     $from = $link;
                 }
             }
-            if (Storage::isDirectory($from) && Storage::exists($from)) {
-                if (!Storage::copyDirectory($from, $to)) {
-                    throw new \RuntimeException('Could not be copied from ' . $from . ' to ' . $to . '.');
+            if (LocalStorage::isDirectory($from) && LocalStorage::exists($from)) {
+                if (!LocalStorage::copyDirectory($from, $to)) {
+                    throw new RuntimeException('Could not be copied from ' . $from . ' to ' . $to . '.');
                 }
-            } elseif (Storage::exists($from)) {
-                if (!Storage::copy($from, $to)) {
-                    throw new \RuntimeException('Could not be copied from ' . $from . ' to ' . $to . '.');
+            } elseif (LocalStorage::exists($from)) {
+                if (!LocalStorage::copy($from, $to)) {
+                    throw new RuntimeException('Could not be copied from ' . $from . ' to ' . $to . '.');
                 }
             }
         }

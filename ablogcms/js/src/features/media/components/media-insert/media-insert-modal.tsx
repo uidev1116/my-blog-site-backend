@@ -148,38 +148,36 @@ export default class MediaInsertModal extends Component<MediaInsertModalProps, M
         >
           <Modal.Header>{ACMS.i18n('media.media_insert')}</Modal.Header>
           <Modal.Body tabContentScrollable>
-            <div className="acms-admin-padding-small">
-              <Tabs index={tabIndex} onChange={this.handleTabChange.bind(this)}>
-                <TabPanel label={ACMS.i18n('media.media_list')} id="media-list">
-                  <MediaList
-                    extensions={extensions}
-                    filetype={filetype}
-                    items={items}
-                    actions={actions}
-                    mode={mode}
-                    radioMode={radioMode}
-                    lastPage={lastPage}
-                    config={config}
-                    archives={archives}
-                    tags={tags}
-                    total={total}
-                    selectedTags={selectedTags}
-                  />
-                </TabPanel>
-                <TabPanel label={ACMS.i18n('media.upload')} id="media-upload">
-                  <MediaUploader
-                    actions={actions}
-                    largeSize={largeSize}
-                    tags={tags}
-                    label={label}
-                    config={config}
-                    ref={this.uploaderRef}
-                    files={files}
-                    showUploadButton={false}
-                  />
-                </TabPanel>
-              </Tabs>
-            </div>
+            <Tabs index={tabIndex} onChange={this.handleTabChange.bind(this)}>
+              <TabPanel label={ACMS.i18n('media.media_list')} id="media-list">
+                <MediaList
+                  extensions={extensions}
+                  filetype={filetype}
+                  items={items}
+                  actions={actions}
+                  mode={mode}
+                  radioMode={radioMode}
+                  lastPage={lastPage}
+                  config={config}
+                  archives={archives}
+                  tags={tags}
+                  total={total}
+                  selectedTags={selectedTags}
+                />
+              </TabPanel>
+              <TabPanel label={ACMS.i18n('media.upload')} id="media-upload">
+                <MediaUploader
+                  actions={actions}
+                  largeSize={largeSize}
+                  tags={tags}
+                  label={label}
+                  config={config}
+                  ref={this.uploaderRef}
+                  files={files}
+                  showUploadButton={false}
+                />
+              </TabPanel>
+            </Tabs>
           </Modal.Body>
           <Modal.Footer>{footer}</Modal.Footer>
         </Modal>

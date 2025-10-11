@@ -3,7 +3,9 @@
 // openCart & closeCart はカートの表示でありモジュールIDとルールの対象であるため、$this->bid
 // openSession & closeSession はオーダーフォームのセンション管理下にあるため、BID
 
-
+/**
+ * @deprecated カート機能は非推奨です。代替として、Shopping Cart 拡張アプリをご利用ください。
+ */
 class ACMS_GET_Shop2 extends ACMS_GET
 {
     protected $session;

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V2_Calendar</title>
+    <link rel="stylesheet" href="src/highlight/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="src/snippets.css" />
+    <script src="src/highlight/highlight.min.js"></script>
+    <script src="src/highlight/javascript.min.js"></script>
+    <script src="src/highlight/twig.min.js"></script>
+    <script src="src/snippets.js"></script>
+  </head>
+  <body>
+    <h1>V2_Calendar</h1>
+    <pre class="acms-admin-customfield-maker"><code class="language-twig">
+&#123;% set calendar = module(&#039;V2_Calendar&#039;, null, &#123; bid: null, cid: null, start: null &#125;) %&#125;
+
+&lt;div&gt;
+  &#123;&#123; include(&#039;/admin/module/setting.twig&#039;, &#123; moduleInfo: calendar.moduleInfo &#125;) &#125;&#125;
+
+  &#123;% macro renderEntries(entries) %&#125;
+    &#123;% for entry in entries %&#125;
+      &lt;div&gt;
+        &#123;% if entry.url %&#125;
+          &lt;a href=&quot;&#123;&#123; entry.url &#125;&#125;&quot;&gt;&#123;&#123; entry.title &#125;&#125;&lt;/a&gt;
+        &#123;% else %&#125;
+          &#123;&#123; entry.title &#125;&#125;
+        &#123;% endif %&#125;
+      &lt;/div&gt;
+    &#123;% endfor %&#125;
+  &#123;% endmacro %&#125;
+
+  &lt;div&gt;
+    &#123;% if calendar.date %&#125;
+    &lt;div&gt;
+      &lt;h3 class=&quot;acms-text-center&quot;&gt;&lt;a href=&quot;&#123;&#123; BASE_URL &#125;&#125;calendar.html/&#123;&#123; calendar.date.year &#125;&#125;/&#123;&#123; calendar.date.month &#125;&#125;&quot;&gt;&#123;&#123; calendar.date.month &#125;&#125;月&lt;/a&gt;&lt;/h3&gt;
+      &lt;ul class=&quot;acms-text-center acms-list-inline&quot;&gt;
+        &lt;li&gt;&lt;a href=&quot;&#123;&#123; BASE_URL &#125;&#125;calendar.html/&#123;&#123; calendar.date.prevDate &#125;&#125;&quot; class=&quot;acms-btn-flat&quot; title=&quot;前月へ&quot;&gt;«&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&#123;&#123; calendar.date.year &#125;&#125;/&#123;&#123; calendar.date.month &#125;&#125;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&quot;&#123;&#123; BASE_URL &#125;&#125;calendar.html/&#123;&#123; calendar.date.nextDate &#125;&#125;&quot; class=&quot;acms-btn-flat&quot; title=&quot;次月へ&quot;&gt;»&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+    &#123;% endif %&#125;
+    &lt;table class=&quot;acms-table acms-table-bordered&quot;&gt;
+    &lt;thead&gt;
+      &lt;tr class=&quot;acms-text-center&quot;&gt;
+        &#123;% for week in calendar.weekLabels %&#125;
+        &lt;td &gt;&#123;&#123; week.label &#125;&#125;&lt;/td&gt;
+        &#123;% endfor %&#125;
+      &lt;/tr&gt;
+    &lt;/thead&gt;
+    &lt;tbody&gt;
+      &#123;% for week in calendar.weeks %&#125;
+      &lt;tr class=&quot;acms-text-center&quot;&gt;
+        &#123;% for day in week %&#125;
+        &lt;td&gt;
+          &#123;% if day.entries %&#125;
+          &lt;a href=&quot;&#123;&#123; day.url &#125;&#125;&quot;&gt;&#123;&#123; day.day &#125;&#125;&lt;/a&gt;
+          &#123;# &#123;&#123; _self.renderEntries(day.entries) &#125;&#125; #&#125;
+          &#123;% else %&#125;
+          &#123;&#123; day.day &#125;&#125;
+          &#123;% endif %&#125;
+        &lt;/td&gt;
+        &#123;% endfor %&#125;
+      &lt;/tr&gt;
+      &#123;% endfor %&#125;
+    &lt;/tbody&gt;
+    &lt;/table&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+    </code></pre>
+  </body>
+</html>

@@ -1,5 +1,6 @@
-const check = (jsonFileName: string, element: HTMLElement, interval: NodeJS.Timeout) => {
-  const rand = Math.random().toString(36).slice(-16);
+import axiosLib from './axios';
+
+const check = async (type: string, element: HTMLElement, interval: NodeJS.Timeout) => {
   const template = element.querySelector<HTMLScriptElement>('.js-processing-template')?.innerText;
   const box = element.querySelector<HTMLElement>('.js-processing-box');
   const progress = element.querySelector<HTMLElement>('.js-progress');
@@ -13,7 +14,14 @@ const check = (jsonFileName: string, element: HTMLElement, interval: NodeJS.Time
   }
   const progressMessage = progress.querySelector('span');
 
-  $.getJSON(`${ACMS.Config.root}cache/${jsonFileName}?${rand}`, (json) => {
+  try {
+    const data = new FormData();
+    data.append('ACMS_POST_Logger_ProgressJson', 'exec');
+    data.append('type', type);
+    data.append('formToken', window.csrfToken);
+    const response = await axiosLib.post(ACMS.Config.root, data);
+    const json = response.data;
+
     const engine = window._.template(template);
     box.innerHTML = engine(json);
 
@@ -36,17 +44,19 @@ const check = (jsonFileName: string, element: HTMLElement, interval: NodeJS.Time
       }
     } else {
       progress.style.display = 'none';
+      clearInterval(interval);
     }
-  }).catch(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
     clearInterval(interval);
-  });
+  }
 };
 
-export default (selector: string, jsonName: string, interval = 1000) => {
+export default (selector: string, type: string, interval = 1000) => {
   const progress = document.querySelector<HTMLElement>(selector);
   if (progress) {
     const i = setInterval(() => {
-      check(jsonName, progress, i);
+      check(type, progress, i);
     }, interval);
   }
 };

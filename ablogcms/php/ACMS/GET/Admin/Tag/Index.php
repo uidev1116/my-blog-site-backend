@@ -9,11 +9,11 @@ class ACMS_GET_Admin_Tag_Index extends ACMS_GET_Admin
         }
         if (roleAvailableUser()) {
             if (!roleAuthorization('tag_edit', BID)) {
-                return '';
+                die403();
             }
         } else {
             if (!sessionWithCompilation()) {
-                return '';
+                die403();
             }
         }
 
@@ -71,9 +71,9 @@ class ACMS_GET_Admin_Tag_Index extends ACMS_GET_Admin
         ACMS_Filter::tagOrder($SQL, $order);
         $SQL->setLimit($limit, (PAGE - 1) * $limit);
         $q  = $SQL->get(dsn());
+        $statement = $DB->query($q, 'exec');
 
-        $DB->query($q, 'fetch');
-        while ($row = $DB->fetch($q)) {
+        while ($row = $DB->next($statement)) {
             $tag    = $row['tag_name'];
             $Tpl->add('tag:loop', [
                 'url'   => acmsLink([

@@ -79,7 +79,7 @@
 	<p class="base-heading">コメントの認証</p>
 	<form action="#comment-form" method="post" id="comment-form" class="acms-form"><!-- BEGIN msg#auth -->
 		<p class="acms-alert acms-alert-danger">上記のコメントを投稿する際に登録したパスワードを入力してください。</p><!-- END msg#auth -->
-		<input type="password" name="pass" value="{pass}" class="formSizeS" />
+		<input type="password" name="pass" value="{pass}" class="acms-admin-form-width-mini" />
 		<input type="submit" name="ACMS_POST_Comment_Auth" value="認証" class="comment-btn-inline" />
 		<input type="hidden" name="comment[]" value="pass" />
 		<input type="hidden" name="pass:validator#auth" value="%{CMID}" id="validator-pass-auth" />

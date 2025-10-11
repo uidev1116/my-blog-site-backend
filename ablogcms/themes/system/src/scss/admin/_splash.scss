@@ -1,0 +1,49 @@
+@use '../global/common' as global;
+
+/* ------------------------------
+ スプラッシュ
+------------------------------- */
+
+.acms-splash {
+  position: fixed; /* スクロールしても中央に固定 */
+  top: 50%;
+  left: 50%;
+  z-index: global.zIndex(js-loading_splash);
+  transform: translate(-50%, -50%);
+
+  // ローディングイメージの背景
+  .acms-splash-frame {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    width: 160px;
+    height: 160px;
+    margin-top: -80px;
+    margin-left: -80px;
+    text-align: center;
+    background: global.$acms-color-black-dark;
+    border-radius: 10%;
+    opacity: 0.8; // 高さの半分// 幅の半分
+    // ローディングスプラッシュ内テキスト
+    .acms-splash-message {
+      position: absolute;
+      right: 0;
+      bottom: 18px;
+      left: 0;
+      margin: 0 auto;
+      color: global.$acms-color-white;
+      font-weight: bold;
+
+      @include global.font-size(16);
+    }
+  }
+
+  // ローディングイメージの位置調節
+  .acms-splash-spinner {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    color: global.$acms-color-white;
+    transform: translate(-50%, -50%);
+  }
+}

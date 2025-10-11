@@ -27,7 +27,7 @@ const Menu = ({ id, addItem }: { id: string; addItem: (type: BannerType) => void
       )}
     >
       <div className="acms-admin-banner-edit-unit-box-inner">
-        <DraggableButton ref={setActivatorNodeRef} {...attributes} {...listeners} />
+        <DraggableButton ref={setActivatorNodeRef} {...attributes} {...listeners} size="small" />
         <div className="acms-admin-banner-edit-menu">
           <span style={{ fontSize: '14px', verticalAlign: 'middle' }}>{ACMS.i18n('media.add')}</span>
           <div className="acms-admin-banner-edit-btn-group">

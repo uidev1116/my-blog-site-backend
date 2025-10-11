@@ -11,19 +11,19 @@
     },
     {
       "bid": "%{BID}",
-      "title": "<!--T-->エントリーリスト<!--/T-->",
+      "title": "<!--T-->エントリーリスト（非推奨）<!--/T-->",
       "subtitle": "Entry_List",
       "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/vars/Entry_List.html"
     },
     {
       "bid": "%{BID}",
-      "title": "<!--T-->フォト<!--/T-->",
+      "title": "<!--T-->エントリーフォト（非推奨）<!--/T-->",
       "subtitle": "Entry_Photo",
       "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/vars/Entry_Photo.html"
     },
     {
       "bid": "%{BID}",
-      "title": "<!--T-->ヘッドライン<!--/T-->",
+      "title": "<!--T-->エントリーヘッドライン（非推奨）<!--/T-->",
       "subtitle": "Entry_Headline",
       "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/vars/Entry_Headline.html"
     },
@@ -83,7 +83,7 @@
     },
     {
       "bid": "%{BID}",
-      "title": "<!--T-->カテゴリーエントリーリスト<!--/T-->",
+      "title": "<!--T-->カテゴリーエントリーリスト（非推奨）<!--/T-->",
       "subtitle": "Category_EntryList",
       "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/vars/Category_EntryList.html"
     },
@@ -107,7 +107,7 @@
     },
     {
       "bid": "%{BID}",
-      "title": "<!--T-->バナー<!--/T-->",
+      "title": "<!--T-->バナー（非推奨）<!--/T-->",
       "subtitle": "Banner",
       "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/vars/Banner.html"
     },
@@ -155,7 +155,7 @@
     },
     {
       "bid": "%{BID}",
-      "title": "<!--T-->カートリスト<!--/T-->",
+      "title": "<!--T-->カートリスト（非推奨）<!--/T-->",
       "subtitle": "Shop2_Cart_List",
       "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/vars/Shop2_Cart_List.html"
     },
@@ -185,7 +185,7 @@
     },
     {
       "bid": "%{BID}",
-      "title": "<!--T-->ユーザープロフィール<!--/T-->",
+      "title": "<!--T-->ユーザープロフィール（非推奨）<!--/T-->",
       "subtitle": "User_Profile",
       "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/vars/User_Profile.html"
     },

@@ -1,5 +1,8 @@
 <?php
 
+use Acms\Services\Facades\PublicStorage;
+use Acms\Services\Facades\Logger;
+
 class ACMS_POST_Form extends ACMS_POST
 {
     public $isCacheDelete  = false;
@@ -12,32 +15,22 @@ class ACMS_POST_Form extends ACMS_POST
      */
     public static function clearAttachedFile($lifetime = 1800)
     {
-        $temp_dir = ARCHIVES_DIR . config('mail_attachment_temp_dir', 'temp/');
-
-        $cur    = getcwd();
-        Storage::changeDir(SCRIPT_DIR);
-
-        if (!Storage::isDirectory($temp_dir)) {
+        $tempDirPath = ARCHIVES_DIR . config('mail_attachment_temp_dir', 'temp/');
+        if (!PublicStorage::isDirectory($tempDirPath)) {
             return;
         }
-
-        $target_dir = opendir($temp_dir);
-        while ($file = readdir($target_dir)) {
-            $path = $temp_dir . $file;
-
-            if ($file === '.' || $file === '..') {
+        $fileList = PublicStorage::getFileList($tempDirPath);
+        foreach ($fileList as $path) {
+            if (!PublicStorage::isReadable($path)) {
                 continue;
             }
-            if (!Storage::isReadable($path)) {
+            if (PublicStorage::isDirectory($path)) {
                 continue;
             }
-            if (Storage::isDirectory($path)) {
-                continue;
-            }
-            $mtime = Storage::lastModified($path);
+            $mtime = PublicStorage::lastModified($path);
             if (REQUEST_TIME - $lifetime > $mtime) {
-                Storage::remove($path);
-                AcmsLogger::debug('添付ファイルの一時ファイルを削除しました', [
+                PublicStorage::remove($path);
+                Logger::debug('添付ファイルの一時ファイルを削除しました', [
                     'path' => $path,
                 ]);
                 if (HOOK_ENABLE) {
@@ -46,8 +39,6 @@ class ACMS_POST_Form extends ACMS_POST
                 }
             }
         }
-        closedir($target_dir);
-        Storage::changeDir($cur);
     }
 
     /**
@@ -155,7 +146,10 @@ class ACMS_POST_Form extends ACMS_POST
 
         $field = new Field_Validation();
         if ($takeover = $this->Post->get('field:takeover')) {
-            $field->overload(acmsUnserialize($takeover));
+            $takeoverField = acmsUnserialize($takeover);
+            if ($takeoverField instanceof Field) {
+                $field->overload($takeoverField);
+            }
             $this->Post->delete('field:takeover');
         }
         $field->overload($this->Post->dig('field'));
@@ -206,12 +200,12 @@ class ACMS_POST_Form extends ACMS_POST
                 $original_name = $download_name;
             }
             if (strlen($filename) === 0) {
-                $filename = Storage::mbBasename($path);
+                $filename = PublicStorage::mbBasename($path);
             }
             $realpath = ARCHIVES_DIR . $path;
             $temppath = ARCHIVES_DIR . config('mail_attachment_temp_dir') . $filename;
 
-            if (Storage::exists($realpath) && Storage::isFile($realpath)) {
+            if (PublicStorage::exists($realpath) && PublicStorage::isFile($realpath)) {
                 return [
                     'realpath'  => $realpath,
                     'temppath'  => $temppath,

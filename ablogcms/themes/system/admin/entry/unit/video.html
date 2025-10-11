@@ -1,0 +1,48 @@
+<table class="entryFormColumnSettingTable entryFormColumnTable">
+  <tbody>
+    <tr>
+      <!-- BEGIN_IF [{videoId}/nem/] -->
+      <td class="entryFormFileentryFormImages">
+        <iframe
+          width="240"
+          height="150"
+          src="https://www.youtube.com/embed/{videoId}?wmode=transparent"
+          frameborder="0"
+          allowfullscreen
+        ></iframe>
+      </td>
+      <!-- END_IF -->
+      <td class="entryFormFileControl">
+        <table>
+          <tbody>
+            <tr>
+              <th>
+                <label for="unit-video-id-{id}">Video ID</label>
+              </th>
+              <td>
+                <input
+                  name="video_id_{id}"
+                  type="text"
+                  value="{videoId}"
+                  size="15"
+                  id="unit-video-id-{id}"
+                ></td>
+            </tr>
+            <tr>
+              <th>
+                <label for="unit-video-size-{id}"><!--T-->サイズ<!--/T--></label>
+              </th>
+              <td>
+                <select name="video_size_{id}" id="unit-video-size-{id}">
+                  <!-- BEGIN size:loop -->
+                  <option value="{value}"{selected}>{label}</option>
+                  <!-- END size:loop -->
+                </select>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+  </tbody>
+</table>

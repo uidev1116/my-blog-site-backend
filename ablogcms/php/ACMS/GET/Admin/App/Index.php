@@ -1,6 +1,6 @@
 <?php
 
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
 
 class ACMS_GET_Admin_App_Index extends ACMS_GET_Admin
 {
@@ -20,7 +20,7 @@ class ACMS_GET_Admin_App_Index extends ACMS_GET_Admin
             return '';
         }
         if (!sessionWithAdministration()) {
-            return '';
+            die403();
         }
 
         $Tpl = new Template($this->tpl, new ACMS_Corrector());
@@ -46,13 +46,13 @@ class ACMS_GET_Admin_App_Index extends ACMS_GET_Admin
     protected function getAppList()
     {
         $apps = [];
-        if (!Storage::exists(PLUGIN_LIB_DIR)) {
+        if (!LocalStorage::exists(PLUGIN_LIB_DIR)) {
             return $apps;
         }
         $list = scandir(PLUGIN_LIB_DIR);
 
         foreach ($list as $fd) {
-            if (!Storage::isDirectory(PLUGIN_LIB_DIR . $fd)) {
+            if (!LocalStorage::isDirectory(PLUGIN_LIB_DIR . $fd)) {
                 continue;
             }
             $namespace = 'Acms\\Plugins\\' . $fd;
@@ -76,12 +76,12 @@ class ACMS_GET_Admin_App_Index extends ACMS_GET_Admin
     {
         $apps = [];
         $list = scandir(AAPP_LIB_DIR);
-        if (!Storage::exists(AAPP_LIB_DIR)) {
+        if (!LocalStorage::exists(AAPP_LIB_DIR)) {
             return $apps;
         }
 
         foreach ($list as $fd) {
-            if (Storage::isFile(AAPP_LIB_DIR . $fd)) {
+            if (LocalStorage::isFile(AAPP_LIB_DIR . $fd)) {
                 $className = 'AAPP_' . str_replace('.php', '', $fd);
                 if (!class_exists($className)) {
                     continue;

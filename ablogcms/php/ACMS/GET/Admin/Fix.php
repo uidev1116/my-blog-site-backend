@@ -10,7 +10,7 @@ class ACMS_GET_Admin_Fix extends ACMS_GET_Admin
     public function get()
     {
         if (!sessionWithAdministration()) {
-            return '';
+            die403();
         }
 
         $Tpl    = new Template($this->tpl, new ACMS_Corrector());

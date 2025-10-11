@@ -42,10 +42,6 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
      */
     public function post()
     {
-        if (!Entry::validateMediaUnit()) {
-            httpStatusCode('500 Internal Server Error');
-            return $this->Post;
-        }
         $this->unitRepository = Application::make('unit-repository');
         $this->lockService = Application::make('entry.lock');
         assert($this->unitRepository instanceof \Acms\Services\Unit\Repository);
@@ -53,14 +49,11 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
 
         $updatedResponse = $this->update();
         $redirect = $this->Post->get('redirect');
-        $backend = $this->Post->get('backend');
-        $ajax = $this->Post->get('ajaxUploadImageAccess') === 'true';
 
         setCookieDelFlag();
-        $this->clearCache(BID, EID);
 
-        if (is_array($updatedResponse) && !empty($redirect) && Common::isSafeUrl($redirect)) {
-            $this->responseRedirect($redirect, $ajax);
+        if (is_array($updatedResponse) && $redirect !== '' && Common::isSafeUrl($redirect)) {
+            $this->responseRedirect($redirect);
         }
 
         if (is_array($updatedResponse)) {
@@ -74,7 +67,7 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
             if ($updatedResponse['trash'] == 'trash') {
                 $info['query'] = ['trash' => 'show'];
             }
-            if (!empty($backend)) {
+            if (ADMIN === 'entry_editor') {
                 $query = ['success' => $updatedResponse['success']];
                 if ($updatedResponse['rvid']) {
                     $query['rvid'] = $updatedResponse['rvid'];
@@ -86,11 +79,11 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
                     'admin' => 'entry_editor',
                     'query' => $query,
                 ]);
-                $this->responseRedirect($redirect, $ajax);
+                $this->responseRedirect($redirect);
             }
-            $this->responseRedirect(acmsLink($info), $ajax);
+            $this->responseRedirect(acmsLink($info));
         }
-        return $this->responseGet($ajax);
+        return $this->responseGet();
     }
 
     /**
@@ -106,8 +99,8 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
         $postEntry = $this->extract('entry');
         $this->fix($postEntry);
         $customFieldCollection = [];
-        $cid = $postEntry->get('category_id');
-        if (empty($cid)) {
+        $cid = (int)$postEntry->get('category_id');
+        if ($cid === 0) {
             $cid = null;
         }
 
@@ -131,7 +124,7 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
 
         if (!$this->Post->isValidAll()) {
             // バリデーション失敗
-            $this->validateFailed($field, $range, 'update');
+            $this->validateFailed($field, $range, $postEntry);
 
             AcmsLogger::info('「' . ACMS_RAM::entryTitle(EID) . '」エントリーの更新に失敗しました', [
                 'isUpdateableForMainEntry' => $isUpdateableForMainEntry,
@@ -142,16 +135,22 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
             return false;
         }
 
-        /** @var \Acms\Services\Unit\Contracts\Model[] $units */
-        $units = $this->unitRepository->extractUnits($range); // ユニットの事前処理
+        $primaryImageUnitId = $postEntry->get('primary_image') !== '' ? $postEntry->get('primary_image') : null;
+        ['collection' => $collection, 'range' => $range] = $this->unitRepository->extractUnits($range, $primaryImageUnitId); // ユニットの事前処理
+        $this->unitRepository->saveAssets($collection);
+        Entry::setSummaryRange($range);
         $entryData = $this->getUpdateEntryData($preEntry, $postEntry, Entry::getSummaryRange()); // エントリーの事前処理
 
         /**
          * エントリーの保存
          */
         if ($isUpdateableForMainEntry) {
-            $primaryImageId = $this->saveUnit($units, EID, $postEntry->get('primary_image')); // ユニット（unitテーブル）を更新
-            $entryData['entry_primary_image'] = $primaryImageId;
+            $collection = $this->saveUnit($collection, EID); // ユニット（unitテーブル）を更新
+            if (get_called_class() !== 'ACMS_POST_Entry_Update_Detail') {
+                $primaryImageUnit = $collection->getPrimaryImageUnitOrFallback();
+                $primaryImageId = $primaryImageUnit !== null ? $primaryImageUnit->getId() : null;
+                $entryData['entry_primary_image'] = $primaryImageId;
+            }
             $this->updateEntry($entryData); // エントリ（entryテーブル）を更新
             $this->saveTag(EID, $postEntry->get('tag')); // タグ（tagテーブル）を更新
             Entry::saveRelatedEntries(EID, $postEntry->getArray('related'), null, $postEntry->getArray('related_type'), $postEntry->getArray('loaded_realted_entries')); // 関連エントリ（relationship）を更新
@@ -186,7 +185,7 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
             $rvid = Entry::saveEntryRevision(EID, RVID, $entryData, $postEntry->get('revision_type'), $postEntry->get('revision_memo'));
             $rvid = is_int($rvid) ? $rvid : null;
             if (is_int($rvid)) {
-                $this->saveRevisionUnit($units, $postEntry, EID, $rvid);
+                $this->saveRevisionUnit($collection, EID, $rvid); // @phpstan-ignore-line
                 Entry::saveFieldRevision(EID, $field, $rvid);
                 $this->saveRevisionTag($postEntry->get('tag'), EID, $rvid);
                 Entry::saveRelatedEntries(EID, $postEntry->getArray('related'), $rvid, $postEntry->getArray('related_type'), $postEntry->getArray('loaded_realted_entries'));
@@ -235,7 +234,7 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
 
         //----------------
         // キャッシュクリア
-        ACMS_POST_Cache::clearEntryPageCache(EID);
+        ACMS_POST_Cache::clearEntryPageCache(EID); // このエントリのみ削除
 
         //------
         // Hook
@@ -261,7 +260,7 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
             'eid' => EID,
             'cid' => $cid,
             'ecd' => $this->getEntryCode($postEntry),
-            'ccd' => ACMS_RAM::categoryCode($cid),
+            'ccd' => $cid !== null ? ACMS_RAM::categoryCode($cid) : null,
             'rvid' => $rvid,
             'trash' => $status,
             'updateApproval' => $isApproved,
@@ -349,56 +348,58 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
      *
      * @param \Field_Validation $field
      * @param int $range
+     * @param \Field $postEntry
      * @return void
      */
-    protected function validateFailed($field, $range, $type = 'update')
+    protected function validateFailed($field, $range, $postEntry)
     {
         if ($field->isValid('recover_acms_Po9H2zdPW4fj', 'required')) {
             $this->addMessage('failure'); // エントリーの復元機能によるエラーの時はメッセージを出さない
         }
-        $units = $this->unitRepository->extractUnits($range, false, false);
-        $this->Post->set('step', 'reapply');
-        $this->Post->set('action', $type);
-        Entry::setTempUnitData($units);
+        $primaryImageUnitId = $postEntry->get('primary_image') !== '' ? $postEntry->get('primary_image') : null;
+        ['collection' => $collection, 'range' => $range] = $this->unitRepository->extractUnits($range, $primaryImageUnitId);
+        // バリデーション失敗時でもファイルを保存する（ファイルの削除は行わない）
+        // 編集画面で一度設定したファイルを保持するため
+        $this->unitRepository->saveAssets($collection, false);
+        Entry::setSummaryRange($range);
+        Entry::setTempUnitData($collection);
     }
 
     /**
      * ユニットをメインデータに保存
      *
-     * @param \Acms\Services\Unit\Contracts\Model[] $units
+     * @param \Acms\Services\Unit\UnitCollection $collection
      * @param int $eid
-     * @param string|null $primary_image
+     * @return \Acms\Services\Unit\UnitCollection 保存したユニットのコレクション
      */
-    protected function saveUnit($units, $eid, $primary_image)
-    {
-        $imageUnitIdTables = $this->unitRepository->saveUnits($units, $eid, BID);
-        return empty($imageUnitIdTables) ? null : (
-            !$primary_image ? reset($imageUnitIdTables) : (
-                !empty($imageUnitIdTables[$primary_image]) ? $imageUnitIdTables[$primary_image] : reset($imageUnitIdTables)
-            )
-        );
+    protected function saveUnit(
+        \Acms\Services\Unit\UnitCollection $collection,
+        int $eid
+    ): \Acms\Services\Unit\UnitCollection {
+        $collection = $this->unitRepository->saveAllUnits($collection, $eid, BID);
+        return $collection;
     }
 
     /**
      * リビジョンのユニットを更新
      *
-     * @param array $units
-     * @param \Field $postEntry
+     * @param \Acms\Services\Unit\UnitCollection $collection
      * @param int $eid
      * @param int $rvid
      * @return void
      */
-    protected function saveRevisionUnit($units, $postEntry, $eid, $rvid)
-    {
-        $unitIds = $this->unitRepository->saveRevisionUnits($units, $eid, BID, $rvid);
-        $primaryImageId = empty($unitIds) ? null : (
-            !$postEntry->get('primary_image') ? reset($unitIds) : (
-                !empty($unitIds[$postEntry->get('primary_image')]) ? $unitIds[$postEntry->get('primary_image')] : reset($unitIds)
-            )
-        );
+    protected function saveRevisionUnit(
+        \Acms\Services\Unit\UnitCollection $collection,
+        int $eid,
+        int $rvid
+    ): void {
+        $savedCollection = $this->unitRepository->saveRevisionUnits($collection, $eid, BID, $rvid);
+        $primaryImageUnit = $savedCollection->getPrimaryImageUnitOrFallback();
+        $primaryImageUnitId = $primaryImageUnit !== null ? $primaryImageUnit->getId() : null;
+
         // primaryImageIdを更新
         $sql = SQL::newUpdate('entry_rev');
-        $sql->addUpdate('entry_primary_image', $primaryImageId);
+        $sql->addUpdate('entry_primary_image', $primaryImageUnitId);
         $sql->addWhereOpr('entry_id', $eid);
         $sql->addWhereOpr('entry_rev_id', $rvid);
         $sql->addWhereOpr('entry_blog_id', BID);
@@ -428,7 +429,7 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
     protected function getEntryCode($postEntry)
     {
         $code = trim(strval($postEntry->get('code')), '/');
-        if (!empty($code) && !!config('entry_code_extension') && !strpos($code, '.')) {
+        if ($code !== '' && !!config('entry_code_extension') && !strpos($code, '.')) {
             $code .= ('.' . config('entry_code_extension'));
         }
         return $code;
@@ -451,8 +452,8 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
         if ('open' === $status && 'draft' === ACMS_RAM::entryStatus(EID) && config('update_datetime_as_entry_open') !== 'off') {
             $datetime = date('Y-m-d H:i:s', REQUEST_TIME);
         }
-        $cid = $postEntry->get('category_id');
-        if (empty($cid)) {
+        $cid = (int)$postEntry->get('category_id');
+        if ($cid === 0) {
             $cid = null;
         }
         $data = [
@@ -502,7 +503,7 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
      * タグをメインデータに保存
      *
      * @param int $eid
-     * @param array $tags
+     * @param string $tags
      * @return void
      */
     protected function saveTag($eid, $tags)
@@ -510,17 +511,21 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
         $sql = SQL::newDelete('tag');
         $sql->addWhereOpr('tag_entry_id', $eid);
         DB::query($sql->get(dsn()), 'exec');
-        if (!empty($tags)) {
+        if ($tags !== '') {
             $tags = Common::getTagsFromString($tags);
+            $sql = SQL::newBulkInsert('tag');
             foreach ($tags as $sort => $tag) {
                 if (isReserved($tag)) {
                     continue;
                 }
-                $sql = SQL::newInsert('tag');
-                $sql->addInsert('tag_name', $tag);
-                $sql->addInsert('tag_sort', $sort + 1);
-                $sql->addInsert('tag_entry_id', $eid);
-                $sql->addInsert('tag_blog_id', BID);
+                $sql->addInsert([
+                    'tag_name' => $tag,
+                    'tag_sort' => $sort + 1,
+                    'tag_entry_id' => $eid,
+                    'tag_blog_id' => BID,
+                ]);
+            }
+            if ($sql->hasData()) {
                 DB::query($sql->get(dsn()), 'exec');
             }
         }
@@ -529,7 +534,7 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
     /**
      * リビジョンのタグを保存
      *
-     * @param array $tags
+     * @param string $tags
      * @param int $eid
      * @param int $rvid
      * @return void
@@ -541,15 +546,19 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
         $sql->addWhereOpr('tag_rev_id', $rvid);
         DB::query($sql->get(dsn()), 'exec');
 
-        if (!empty($tags)) {
+        if ($tags !== '') {
             $tags = Common::getTagsFromString($tags);
+            $sql = SQL::newBulkInsert('tag_rev');
             foreach ($tags as $sort => $tag) {
-                $sql = SQL::newInsert('tag_rev');
-                $sql->addInsert('tag_name', $tag);
-                $sql->addInsert('tag_sort', $sort + 1);
-                $sql->addInsert('tag_entry_id', $eid);
-                $sql->addInsert('tag_blog_id', BID);
-                $sql->addInsert('tag_rev_id', $rvid);
+                $sql->addInsert([
+                    'tag_name' => $tag,
+                    'tag_sort' => $sort + 1,
+                    'tag_entry_id' => $eid,
+                    'tag_blog_id' => BID,
+                    'tag_rev_id' => $rvid,
+                ]);
+            }
+            if ($sql->hasData()) {
                 DB::query($sql->get(dsn()), 'exec');
             }
         }
@@ -565,54 +574,7 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
         if (!EID) {
             return false;
         }
-
-        if (roleAvailableUser()) {
-            if (!roleAuthorization('entry_edit', BID, EID)) {
-                return false;
-            }
-        } else {
-            if (!sessionWithCompilation(BID)) {
-                if (!sessionWithContribution(BID)) {
-                    return false;
-                }
-                if (SUID <> ACMS_RAM::entryUser(EID) && (config('approval_contributor_edit_auth') === 'on' || !enableApproval(BID, CID))) {
-                    return false;
-                }
-            }
-        }
-        if (enableRevision() && RVID > 1) {
-            if (Entry::isNewVersion()) {
-                return true;
-            }
-            $currentEntry = ACMS_RAM::entry(EID);
-            if (intval($currentEntry['entry_current_rev_id']) === RVID && !sessionWithApprovalAdministrator(BID, CID)) {
-                return false;
-            }
-            $sql = SQL::newSelect('entry_rev');
-            $sql->addWhereOpr('entry_id', EID);
-            $sql->addWhereOpr('entry_rev_id', RVID);
-            $revision = DB::query($sql->get(dsn()), 'row');
-            if ($revision) {
-                if (intval($revision['entry_rev_user_id']) !== SUID && !sessionWithApprovalAdministrator(BID, CID)) {
-                    return false;
-                }
-                if (enableApproval(BID, CID) && !sessionWithApprovalAdministrator(BID, CID)) {
-                    if ($revision['entry_rev_status'] === 'approved') {
-                        // 承認済みバージョンなので変更不可
-                        return false;
-                    }
-                    if ($revision['entry_rev_status'] === 'reject') {
-                        // 承認却下バージョンなので変更不可
-                        return false;
-                    }
-                    if ($revision['entry_rev_status'] === 'trash') {
-                        // 削除依頼バージョンなので変更不可
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
+        return Entry::canUpdate(EID, BID, CID, RVID);
     }
 
     /**

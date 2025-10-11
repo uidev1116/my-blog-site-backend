@@ -1,0 +1,95 @@
+// ---------------
+// プレースホルダー
+// ---------------
+
+:where(.acms-block-editor .ProseMirror) {
+  .is-empty {
+    position: relative;
+
+    &::before {
+      position: absolute;
+      left: 0;
+      display: block;
+      max-width: 100%;
+      overflow: hidden;
+      color: var(--acms-block-editor-neutral-500);
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      pointer-events: none;
+    }
+  }
+
+  &.ProseMirror-focused {
+    /* Slashmenu Placeholder */
+    > p.has-focus.is-empty::before {
+      content: '文章を入力するか、「/」でブロックを挿入する。（Shift + Enter で改行）';
+    }
+
+    > [data-type='columns'] > [data-type='column'] > p.is-empty.has-focus::before {
+      content: '文章を入力するか、「/」でブロックを挿入する。';
+    }
+  }
+
+  /* Default Placeholder */
+  & > .is-editor-empty:first-child::before {
+    content: '文章を入力するか、「/」でブロックを挿入する。（Shift + Enter で改行）';
+  }
+
+  /* Heading Placeholder */
+  h2.is-empty::before {
+    content: '見出し2';
+  }
+
+  h3.is-empty::before {
+    content: '見出し3';
+  }
+
+  h4.is-empty::before {
+    content: '見出し4';
+  }
+
+  h5.is-empty::before {
+    content: '見出し5';
+  }
+
+  h6.is-empty::before {
+    content: '見出し6';
+  }
+
+  /* Blockquote Placeholder */
+  blockquote > .has-focus.is-empty:first-child:last-child::before {
+    content: '引用';
+  }
+
+  /* List Placeholder */
+  li > .is-empty:first-child::before {
+    content: 'リスト';
+  }
+
+  /* Link Block Placeholder */
+  .acms-block-editor-link-button-link {
+    position: relative;
+  }
+
+  .acms-block-editor-link-button-link:has(.is-empty) {
+    justify-content: start;
+    min-width: 150px;
+  }
+
+  .node-linkButton.is-empty .is-empty {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    inset: 0;
+
+    &::before {
+      left: 15px;
+      content: 'ラベルを入力...';
+    }
+  }
+
+  [data-placeholder][data-suggestion]::before,
+  [data-placeholder][data-suggestion] *::before {
+    content: none !important;
+  }
+}

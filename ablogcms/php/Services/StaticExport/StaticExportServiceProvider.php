@@ -31,7 +31,8 @@ class StaticExportServiceProvider extends ServiceProvider
         $container->singleton('static-export.logger', function () use ($container, $logger_path) {
             $logger = new Logger();
             $logger_path = str_replace('BID', BID, $logger_path);
-            $logger->init($logger_path, $container->make('static-export.terminate-check'));
+            $excludeLogStatusCodes = configArray('static_export_exclude_log_status_codes', false);
+            $logger->init($logger_path, $container->make('static-export.terminate-check'), $excludeLogStatusCodes);
             return $logger;
         });
     }

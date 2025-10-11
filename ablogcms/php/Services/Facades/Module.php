@@ -13,9 +13,11 @@ namespace Acms\Services\Facades;
  * @method static bool canDelete(int $blogId) モジュールの削除を許可されているかどうか
  * @method static bool canDuplicate(int $blogId) モジュールの複製を許可されているかどうか
  * @method static bool canUpdate(int $blogId) モジュールの更新を許可されているかどうか
+ * @method static bool canUpdateWithShortcut(int $mid, ?int $rid = null) 現在ログイン中のユーザーがショートカット機能で許可されたモジュールの更新を許可されているかどうか
  * @method static bool canCreate(int $blogId) モジュールの作成を許可されているかどうか
  * @method static bool canExport(int $blogId) モジュールのエクスポートを許可されているかどうか
  * @method static bool canImport(int $blogId) モジュールのインポートを許可されているかどうか
+ * @method static bool isSafeModuleName(string $name) モジュール名が安全な文字列かどうかを確認
  */
 class Module extends Facade
 {

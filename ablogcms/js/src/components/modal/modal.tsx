@@ -7,9 +7,10 @@ interface ModalContextProps extends Pick<React.ComponentProps<typeof BaseModal>,
 
 const ModalContext = createContext<ModalContextProps | undefined>(undefined);
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface ModalProps extends React.ComponentProps<typeof BaseModal> {
   size?: 'small' | 'medium' | 'large';
+  isCentered?: boolean;
+  isScrollable?: boolean;
 }
 
 const Modal = forwardRef<HTMLDivElement, ModalProps>(
@@ -22,19 +23,27 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(
       onClose,
       'aria-labelledby': ariaLabelledBy,
       size,
+      isCentered = false,
+      isScrollable = false,
       children,
       ...props
     },
     ref
   ) => {
-    const value = useMemo(() => ({ onClose, 'aria-labelledby': ariaLabelledBy }), [onClose, ariaLabelledBy]);
+    const value = useMemo(
+      () => ({ onClose, 'aria-labelledby': ariaLabelledBy, isCentered }),
+      [onClose, ariaLabelledBy, isCentered]
+    );
     return (
       <ModalContext.Provider value={value}>
         <BaseModal
           ref={ref}
           className={classnames('acms-admin-modal', className)}
           backdropClassName={classnames('acms-admin-modal-backdrop', backdropClassName)}
-          dialogClassName={classnames('acms-admin-modal-dialog', dialogClassName, size)}
+          dialogClassName={classnames('acms-admin-modal-dialog', dialogClassName, size, {
+            'acms-admin-modal-dialog-centered': isCentered,
+            'acms-admin-modal-dialog-scrollable': isScrollable,
+          })}
           closeTimeout={closeTimeout}
           afterOpenClassName="in"
           beforeCloseClassName="out"

@@ -1,33 +1,31 @@
 <?php
 
 use Acms\Services\Update\System\CheckForUpdate;
+use Acms\Services\Facades\Application;
+use Acms\Services\Facades\Common;
+use Acms\Services\Facades\Logger;
+use Acms\Services\Facades\Database;
 
-class ACMS_POST_Update_CheckForUpdate extends ACMS_POST
+class ACMS_POST_Update_CheckForUpdate extends ACMS_POST_Update_Base
 {
     public function post()
     {
-        if (!sessionWithAdministration()) {
-            die();
-        }
-        if (RBID !== BID) {
-            die();
-        }
-        if (SBID !== BID) {
-            die();
+        if (!$this->validatePermissions()) {
+            $this->addError(gettext('権限がありません。'));
+            return $this->Post;
         }
 
-        $check = App::make('update.check');
-        $DB = DB::singleton(dsn());
-        $DB->setThrowException(true);
+        $check = Application::make('update.check');
+        Database::setThrowException(true);
         try {
             if (!$check->check(phpversion(), CheckForUpdate::PATCH_VERSION)) {
                 return $this->Post;
             }
         } catch (\Exception $e) {
             $this->addError($e->getMessage());
-            AcmsLogger::notice($e->getMessage(), Common::exceptionArray($e));
+            Logger::notice($e->getMessage(), Common::exceptionArray($e));
         }
-        $DB->setThrowException(false);
+        Database::setThrowException(false);
 
         return $this->Post;
     }

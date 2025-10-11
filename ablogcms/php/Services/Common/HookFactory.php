@@ -16,9 +16,11 @@ class HookFactory extends Factory
             $params = [$params];
         }
         foreach ($this->_collection as $Hook) {
-            if (method_exists($Hook, $timingMethod)) {
+            if (is_callable([$Hook, $timingMethod])) {
                 $rv[] = get_class($Hook);
-                call_user_func_array([$Hook, $timingMethod], $params);
+                /** @var callable $callback */
+                $callback = [$Hook, $timingMethod];
+                call_user_func_array($callback, $params);
             }
         }
         return $rv;

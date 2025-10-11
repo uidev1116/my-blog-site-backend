@@ -3,240 +3,91 @@
 namespace Acms\Services\Unit\Rendering;
 
 use Acms\Services\Unit\Contracts\Model;
+use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Media;
-use Acms\Traits\Unit\UnitTemplateTrait;
+use Acms\Services\Unit\UnitCollection;
 use Template;
 
 class Edit
 {
-    use UnitTemplateTrait;
-
-    /**
-     * ユニットのルートブロック
-     * @var string[]
-     */
-    protected $rootBlock = ['unit:loop'];
-
     /**
      * ユニットの描画
      *
-     * @param Model[] $units
+     * @param \Acms\Services\Unit\UnitCollection $collection
      * @param Template $tpl
-     * @param ?int $primaryImageUnitId
      * @param string[] $rootBlock
-     * @return void
+     * @return array<string, mixed>
      */
-    public function render(array $units, Template $tpl, ?int $primaryImageUnitId, array $rootBlock = []): void
+    public function render(UnitCollection $collection, Template $tpl, array $rootBlock = []): array
     {
-        $unitCount = count($units);
+        $unitCount = count($collection);
+
         if ($unitCount > 0) {
-            $eagerLoadedMedia = Media::mediaEagerLoadFromUnit($units);
-            $enabledUnitGroup = config('unit_group') === 'on';
-            foreach ($units as $unit) {
-                $unit->setEagerLoadedMedia($eagerLoadedMedia);
-                if ($unit->getIsImageUnit()) {
-                    // 画像系ユニットの場合、メイン画像情報をセット
-                    $unit->setPrimaryImageUnitId($primaryImageUnitId);
+            $unitRepository = Application::make('unit-repository');
+            assert($unitRepository instanceof \Acms\Services\Unit\Repository);
+            $unitRepository->eagerLoadCustomUnitFields($collection);
+
+            // メディアデータのセット
+            $eagerLoadedMedia = Media::mediaEagerLoadFromUnit($collection);
+            foreach ($collection->flat() as $unit) {
+                if ($unit instanceof \Acms\Services\Unit\Contracts\EagerLoadingMedia) {
+                    $unit->setEagerLoadedMedia($eagerLoadedMedia);
                 }
+            }
+
+            foreach ($collection->flat() as $unit) {
                 // ユニット独自の描画
                 $unit->renderEdit($tpl, [
-                    'id' => $unit->getTempId(),
-                ], $rootBlock);
-                // ソート番号選択肢の描画
-                $this->renderSort($tpl, $unit->getSort(), $unitCount, $rootBlock);
-                // 配置選択肢の描画
-                $this->renderAlign($tpl, $unit, $rootBlock);
-                // グループ選択肢の描画
-                if ($enabledUnitGroup) {
-                    $this->renderGroup($tpl, $unit, $rootBlock);
-                }
-                // 属性選択肢の描画
-                $this->renderAttr($tpl, $unit, $rootBlock);
-                // ユニット基本情報の描画
+                    'id' => $unit->getId(),
+                ], array_merge(['column:loop'], $rootBlock));
+
                 $tpl->add(array_merge(['column:loop'], $rootBlock), [
-                    'uniqid' => $unit->getTempId(),
-                    'clid' => $unit->getId(),
-                    'cltype' => $unit->getType(),
-                    'clattr' => $unit->getAttr(),
-                    'clname' => $this->getUnitLabelTrait($unit->getType()),
+                    'unitId' => $unit->getId(),
+                    'unitType' => $unit->getType(),
+                    'unitName' => $unit->getName(),
                 ]);
             }
-        } else {
-            $tpl->add(array_merge(['adminEntryColumn'], $rootBlock));
         }
+
+        $json = $collection->treeArray();
+        $json = $this->processUnitJson($json);
+        return [
+            'json' => json_encode($json),
+        ];
     }
 
     /**
-     * 新規追加ユニットの描画
+     * ユニット編集時の描画
      *
-     * @param Model[] $units
-     * @param int $offset
+     * @param Model $unit
      * @param Template $tpl
      * @param string[] $rootBlock
      * @return void
      */
-    public function renderAddUnit(array $units, int $offset, Template $tpl, array $rootBlock = []): void
+    public function renderEdit(Model $unit, Template $tpl, array $rootBlock = []): void
     {
-        $unitCount = count($units) + $offset;
-        $enabledUnitGroup = config('unit_group') === 'on';
-        foreach ($units as $i => $unit) {
-            // ユニット独自の描画
-            $unit->renderEdit($tpl, [
-                'id' => $unit->getTempId(),
-            ], $rootBlock);
-            // ソート番号選択肢の描画
-            $this->renderSort($tpl, $offset + $i + 1, $unitCount, $rootBlock);
-            // 配置選択肢の描画
-            $this->renderAlign($tpl, $unit, $rootBlock);
-            // グループ選択肢の描画
-            if ($enabledUnitGroup) {
-                $this->renderGroup($tpl, $unit, $rootBlock);
-            }
-            // 属性選択肢の描画
-            $this->renderAttr($tpl, $unit, $rootBlock);
-            // ユニット基本情報の描画
-            $tpl->add(array_merge(['column:loop'], $rootBlock), [
-                'uniqid' => $unit->getTempId(),
-                'cltype' => $unit->getType(),
-                'clname' => $this->getUnitLabelTrait($unit->getType()),
-            ]);
-        }
-    }
-
-    /**
-     * ダイレクト編集時のユニット追加・編集の描画
-     *
-     * @param \Acms\Services\Unit\Contracts\Model $unit
-     * @param Template $tpl
-     * @param int|null $primaryImageUnitId
-     * @param array $rootBlock
-     * @return void
-     */
-    public function renderAddUnitDirect(Model $unit, Template $tpl, ?int $primaryImageUnitId, array $rootBlock = []): void
-    {
-        if ($unit->getIsImageUnit()) {
-            // 画像系ユニットの場合、メイン画像情報をセット
-            $unit->setPrimaryImageUnitId($primaryImageUnitId);
-        }
         // ユニット独自の描画
         $unit->renderEdit($tpl, [
-            'id' => $unit->getTempId(),
-        ], $rootBlock);
-        // 配置選択肢の描画
-        $this->renderAlign($tpl, $unit, $rootBlock);
-        // 属性選択肢の描画
-        $this->renderAttr($tpl, $unit, $rootBlock);
-        // ユニット基本情報の描画
+            'id' => $unit->getId(),
+        ], array_merge(['column:loop'], $rootBlock));
         $tpl->add(array_merge(['column:loop'], $rootBlock), [
-            'uniqid' => $unit->getTempId(),
-            'cltype' => $unit->getType(),
-            'clname' => $this->getUnitLabelTrait($unit->getType()),
-            'clid' => $unit->getId(),
-        ]);
-        // add keep sort & gorup
-        $tpl->add(null, [
-            'group' => $unit->getGroup(),
-            'sort' => $unit->getSort(),
-            'post' => implode('/', $_POST),
+            'unitId' => $unit->getId(),
+            'unitType' => $unit->getType(),
+            'unitName' => $unit->getName(),
         ]);
     }
 
     /**
-     * ソート番号選択肢の描画
+     * ユニットJSONデータを処理する
      *
-     * @param Template $tpl
-     * @param int $currentNum
-     * @param int $unitCount
-     * @param string[] $rootBlock
-     * @return void
+     * @param array<int, array<string, mixed>> $json
+     * @return array<int, array<string, mixed>>
      */
-    protected function renderSort(Template $tpl, int $currentNum, int $unitCount, array $rootBlock): void
+    private function processUnitJson(array $json): array
     {
-        $range = range(1, $unitCount);
-        array_walk($range, function ($i) use ($currentNum, $tpl, $rootBlock) {
-            $vars = [
-                'value' => $i,
-                'label' => $i,
-            ];
-            if ($currentNum === $i) {
-                $vars['selected'] = config('attr_selected');
-            }
-            $tpl->add(array_merge(['sort:loop'], $rootBlock), $vars);
-        });
-    }
+        $processor = Application::make('unit-json-processor');
+        assert($processor instanceof \Acms\Services\Unit\Services\JsonProcessor);
 
-    /**
-     * 配置選択肢の描画
-     *
-     * @param Template $tpl
-     * @param \Acms\Services\Unit\Contracts\Model $unit
-     * @param string[] $rootBlock
-     * @return void
-     */
-    protected function renderAlign(Template $tpl, Model $unit, array $rootBlock = []): void
-    {
-        if (in_array($unit->getUnitType(), ['text', 'custom', 'module', 'table'], true)) {
-            $tpl->add(array_merge(['align#liquid'], $rootBlock), [
-                'align:selected#' . $unit->getAlign() => config('attr_selected')
-            ]);
-        } else {
-            $tpl->add(array_merge(['align#solid'], $rootBlock), [
-                'align:selected#' . $unit->getAlign() => config('attr_selected')
-            ]);
-        }
-    }
-
-    /**
-     * グループ選択肢の描画
-     *
-     * @param Template $tpl
-     * @param \Acms\Services\Unit\Contracts\Model $unit
-     * @param string[] $rootBlock
-     * @return void
-     */
-
-    protected function renderGroup(Template $tpl, Model $unit, array $rootBlock): void
-    {
-        $labels = configArray('unit_group_label');
-        $group = $unit->getGroup();
-        array_walk($labels, function ($label, $i) use ($tpl, $group, $rootBlock) {
-            $class = config('unit_group_class', '', $i);
-            $tpl->add(array_merge(['group:loop'], $rootBlock), [
-                'value' => $class,
-                'label' => $label,
-                'selected' => ($class === $group) ? config('attr_selected') : '',
-            ]);
-        });
-    }
-
-    /**
-     * 属性選択肢の描画
-     *
-     * @param Template $tpl
-     * @param \Acms\Services\Unit\Contracts\Model $unit
-     * @param string[] $rootBlock
-     * @return void
-     */
-    protected function renderAttr(Template $tpl, Model $unit, array $rootBlock): void
-    {
-        $type = $unit->getUnitType();
-        $currentAttr = $unit->getAttr();
-        $aryAttr = configArray('column_' . $type . '_attr');
-
-        if ($aryAttr) {
-            array_walk($aryAttr, function ($attr, $i) use ($tpl, $type, $currentAttr, $rootBlock) {
-                $label = config('column_' . $type . '_attr_label', '', $i);
-                $vars = [
-                    'value' => $attr,
-                    'label' => $label,
-                ];
-                if ($attr === $currentAttr) {
-                    $vars['selected'] = config('attr_selected');
-                }
-                $tpl->add(array_merge(['clattr:loop'], $rootBlock), $vars);
-            });
-        } else {
-            $tpl->add(array_merge(['clattr#none'], $rootBlock));
-        }
+        return $processor->process($json);
     }
 }

@@ -39,6 +39,7 @@ class ACMS_POST_Media_Upload extends ACMS_POST
                 $res = Media::uploadPdfThumbnail('media_pdf_thumbnail');
                 if (isset($res['path'])) {
                     $data['thumbnail'] = $res['path'];
+                    $data['size'] = $res['size'];
                     $data['field_6'] = 1;
                 }
             }

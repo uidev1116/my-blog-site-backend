@@ -1,0 +1,94 @@
+// ---------------
+// ボタン
+// ---------------
+
+.acms-block-editor-button,
+.acms-block-editor-icon-button {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--acms-block-editor-spacing-1);
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0;
+  padding: 4px;
+  font-weight: 600;
+  font-size: var(--acms-block-editor-font-size-xs);
+  line-height: 1;
+  white-space: nowrap;
+  text-align: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--acms-block-editor-border-radius-sm);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  // 共通Stateスタイル
+  &:hover:not(:disabled),
+  &:active:not(:disabled) {
+    background-color: var(--acms-block-editor-neutral-100);
+  }
+
+  &:focus,
+  &:focus-visible,
+  &:focus-within {
+    outline: none;
+    box-shadow: var(--acms-block-editor-shadow-focus);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  // バリアント：primary
+  &.acms-block-editor-button-primary {
+    color: var(--acms-block-editor-gray-900);
+  }
+
+  // バリアント：secondary
+  &.acms-block-editor-button-secondary {
+    display: block;
+    padding: 0;
+    color: var(--acms-block-editor-gray-400);
+    border: 0;
+  }
+
+  // アクティブ状態
+  &.acms-block-editor-button-active {
+    color: var(--acms-block-editor-info-700);
+  }
+
+  // サイズ：medium
+  &.acms-block-editor-button-medium {
+    padding: var(--acms-block-editor-spacing-2) var(--acms-block-editor-spacing-3);
+  }
+
+  // サイズ：small
+  &.acms-block-editor-button-small {
+    padding: var(--acms-block-editor-spacing-1) var(--acms-block-editor-spacing-2);
+  }
+
+  // サイズ：small
+  &.acms-block-editor-button-icon-small {
+    min-width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+.acms-block-editor-button-label {
+  font-size: var(--acms-block-editor-font-size-xs);
+}
+
+// リンクボタン
+// ------------
+:where(.acms-block-editor .ProseMirror) {
+  :where(.node-linkButton) {
+    /* 操作時 */
+    &:hover:not(&.has-focus) {
+      background-color: var(--acms-block-editor-sellection);
+    }
+  }
+}

@@ -1,6 +1,7 @@
 <?php
 
 use Acms\Services\Validator\Signin as SigninValidator;
+use Acms\Services\Facades\Login;
 
 class ACMS_POST_Member_ResetPassword extends ACMS_POST_Member
 {
@@ -9,15 +10,11 @@ class ACMS_POST_Member_ResetPassword extends ACMS_POST_Member
     /**
      * トークンのキーを取得
      *
-     * @param array $data
      * @return string
      */
-    protected function getTokenKey(array $data): string
+    protected function getTokenKey(): string
     {
-        if (!isset($data['email']) || empty($data['email'])) {
-            return '';
-        }
-        return BID . '_' . $data['email'];
+        return 'reset-password';
     }
 
     /**
@@ -175,6 +172,10 @@ class ACMS_POST_Member_ResetPassword extends ACMS_POST_Member
      */
     protected function validate(Field_Validation $inputField): void
     {
+        if (!Login::canMemberSignin()) {
+            $inputField->setMethod('resetPassword', 'operable', false);
+            httpStatusCode('403 Forbidden');
+        }
         $inputField->setMethod('login', 'sessionAlready', !SUID);
         $inputField->setMethod('mail', 'required');
         $inputField->setMethod('mail', 'exist');

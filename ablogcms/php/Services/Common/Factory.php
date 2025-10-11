@@ -31,4 +31,12 @@ class Factory extends Singleton
             unset($this->_collection[$ns]);
         }
     }
+
+    /**
+     * @return array
+     */
+    public function getCollection(): array
+    {
+        return $this->_collection;
+    }
 }

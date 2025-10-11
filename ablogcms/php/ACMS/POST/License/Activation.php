@@ -5,11 +5,11 @@ class ACMS_POST_License_Activation extends ACMS_POST
     public function post()
     {
         if (!sessionWithAdministration()) {
-            die('Permission denied.');
+            die403();
         }
         try {
             $licenseFilePath = CACHE_DIR . 'license.php';
-            Storage::remove($licenseFilePath);
+            LocalStorage::remove($licenseFilePath);
 
             $json = \App::licenseActivation($licenseFilePath);
             if (empty($json)) {

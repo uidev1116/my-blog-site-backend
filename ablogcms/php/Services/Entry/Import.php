@@ -6,6 +6,7 @@ use SQL;
 use DB;
 use ACMS_Filter;
 use Acms\Services\Facades\Common;
+use Acms\Services\Facades\BlockEditor;
 use Symfony\Component\Yaml\Yaml;
 
 class Import
@@ -133,8 +134,11 @@ class Import
             $sql = SQL::newInsert($table);
             foreach ($record as $field => $value) {
                 $value = $this->fix($table, $field, $value);
-                if (is_callable([$this, $table . 'Fix'])) {
-                    $value = call_user_func_array([$this, $table . 'Fix'], [$field, $value, $record]);
+                $method = $table . 'Fix';
+                if (is_callable([$this, $method])) {
+                    /** @var callable $callback */
+                    $callback = [$this, $method];
+                    $value = call_user_func_array($callback, [$field, $value, $record]);
                 }
                 if ($value !== false) {
                     $sql->addInsert($field, $value);
@@ -186,6 +190,8 @@ class Import
             $value = $this->getNewID('module', $value);
         } elseif (!is_null($value) && $key === 'media_id') {
             $value = $this->getNewID('media', $value);
+        } elseif (!is_null($value) && $key === 'unit_id') {
+            $value = $this->getNewID('column', $value);
         } elseif (!is_null($value) && $key === 'blog_id') {
             $value = $this->bid;
         }
@@ -260,52 +266,10 @@ class Import
     {
         $type = detectUnitTypeSpecifier($record['column_type']);
 
-        if ($type === 'custom' && $field === 'column_field_6') {
-            $data = acmsDangerUnserialize($value); // @phpstan-ignore-line
-            if ($data instanceof \Field && method_exists($data, 'deleteField')) {
-                $fixMediaField = [];
-                foreach ($data->listFields() as $fd) {
-                    foreach ($data->getArray($fd, true) as $i => $val) {
-                        if (!empty($val)) {
-                            if (strpos($fd, '@media') !== false) {
-                                $sourceFd = substr($fd, 0, -6);
-                                if (!isset($fixMediaField[$sourceFd])) {
-                                    $fixMediaField[$sourceFd] = [];
-                                }
-                                if ($val = $this->getNewID('media', $val)) {
-                                    $fixMediaField[$sourceFd][] = $val;
-                                }
-                            } elseif (
-                                0
-                                or strpos($fd, '@path')
-                                or strpos($fd, '@tinyPath')
-                                or strpos($fd, '@largePath')
-                                or strpos($fd, '@squarePath')
-                            ) {
-                                $val = $this->distPath . $val;
-                            }
-                        }
-                        if ($i === 0) {
-                            $data->set($fd, $val);
-                        } else {
-                            $data->add($fd, $val);
-                        }
-                    }
-                }
-                // fix media id
-                foreach ($fixMediaField as $fd => $mediaIds) {
-                    foreach ($mediaIds as $j => $mid) {
-                        if ($j === 0) {
-                            $data->set($fd, $mid);
-                        } else {
-                            $data->add($fd, $mid);
-                        }
-                    }
-                }
-                return acmsSerialize($data);
-            }
-        } elseif ($type === 'media' && $field === 'column_field_1' && !empty($value)) {
+        if ($type === 'media' && $field === 'column_field_1' && $value) {
             $value = $this->getNewID('media', $value) ?: 0;
+        } elseif ($type === 'block-editor' && $field === 'column_field_1' && $value) {
+            $value = $this->fixBlockEditorMedia($value);
         } elseif ($type === 'module' && $field === 'column_field_1' && !empty($value)) {
             $value = $this->getNewID('module', $value) ?: 0;
         } elseif ($type === 'image' && $field === 'column_field_2' && !empty($value)) {
@@ -344,7 +308,7 @@ class Import
     {
         if (!is_null($value) && $field === 'field_eid') {
             $value = $this->getNewID('entry', $value);
-        } elseif ($field === 'field_value' && !empty($value)) {
+        } elseif ($field === 'field_value' && $value) {
             if (preg_match('/@media$/', $record['field_key'])) {
                 if ($value = $this->getNewID('media', $value)) {
                     $this->mediaFieldFix[] = [
@@ -354,17 +318,23 @@ class Import
                         'sort' => $record['field_sort'],
                     ];
                 }
+            } elseif ($record['field_type'] === 'block-editor') {
+                $value = $this->fixBlockEditorMedia($value);
             } elseif (
-                0
-                || preg_match('/@path$/', $record['field_key'])
-                || preg_match('/@tinyPath$/', $record['field_key'])
-                || preg_match('/@largePath$/', $record['field_key'])
-                || preg_match('/@squarePath$/', $record['field_key'])
+                preg_match('/@path$/', $record['field_key']) ||
+                preg_match('/@tinyPath$/', $record['field_key']) ||
+                preg_match('/@largePath$/', $record['field_key']) ||
+                preg_match('/@squarePath$/', $record['field_key'])
             ) {
                 $value = $this->distPath . $value;
             }
         }
         return $value;
+    }
+
+    private function fixBlockEditorMedia(string $value): string
+    {
+        return BlockEditor::fixMediaId($value, $this->ids['media'] ?? []);
     }
 
     /**
@@ -394,8 +364,11 @@ class Import
      */
     private function getNewID($table, $id)
     {
-        if (is_numeric($id)) {
+        if (is_numeric($id) || $table === 'column') {
             if (!isset($this->ids[$table][$id])) {
+                if ($table === 'category') {
+                    return null; // カテゴリーは存在しない場合はnullを返す
+                }
                 return $id;
             }
             return $this->ids[$table][$id];
@@ -455,10 +428,10 @@ class Import
         $sql->addWhere($where);
         $sql->addWhereIn('category_code', $codeArray);
         $q = $sql->get(dsn());
-        DB::query($q, 'fetch');
+        $statement = DB::query($q, 'exec');
 
         $categoryTable = [];
-        while ($row = DB::fetch($q)) {
+        while ($row = DB::next($statement)) {
             $code = $row['category_code'];
             $categoryTable[$code] = $row['category_id'];
         }
@@ -492,10 +465,10 @@ class Import
         $sql->addWhere($where);
         $sql->addWhereIn('module_identifier', $identifierArray);
         $q = $sql->get(dsn());
-        DB::query($q, 'fetch');
+        $statement = DB::query($q, 'exec');
 
         $moduleTable = [];
-        while ($row = DB::fetch($q)) {
+        while ($row = DB::next($statement)) {
             $identifier = $row['module_identifier'];
             $moduleTable[$identifier] = $row['module_id'];
         }
@@ -529,7 +502,11 @@ class Import
             if (isset($this->ids[$table][$id])) {
                 continue;
             }
-            $this->ids[$table][$id] = DB::query(SQL::nextval($table . '_id', dsn()), 'seq');
+            if ($table === 'column') {
+                $this->ids[$table][$id] = uuidv4();
+            } else {
+                $this->ids[$table][$id] = DB::query(SQL::nextval($table . '_id', dsn()), 'seq');
+            }
         }
     }
 

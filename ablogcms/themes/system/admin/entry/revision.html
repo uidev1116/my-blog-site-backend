@@ -1,28 +1,22 @@
 <!-- BEGIN_MODULE Touch_Version -->
 <!-- BEGIN_MODULE Admin_Entry_Revision_UrlContext -->
-<div class="js-revision_action {eid}">
-  <div class="comPostInner">
-    <div class="comPostFull">
-      <input type="text" name="revision_memo" value="" size="30" placeholder="<!--T-->バージョン名<!--/T-->">
-      <input type="hidden" name="entry[]" value="revision_memo" />
-    </div>
+<div class="js-hide-on-modal acms-admin-entry-form-action-group acms-admin-entry-form-action-group-revision">
+  <div>
+    <input type="text" name="revision_memo" value="" class="acms-admin-form-width-full" placeholder="<!--T-->バージョン名<!--/T-->">
+    <input type="hidden" name="entry[]" value="revision_memo" />
   </div>
-  <div class="comPostInner">
-    <div class="comPostFull">
-      <select name="revision_type" class="js-select2">
-        <!-- BEGIN enbaleUpdateEntry -->
-        <option value=""><!--T-->そのまま<!--/T--></option>
-        <!-- END enbaleUpdateEntry -->
-        <!-- BEGIN enbaleUpdateVersion -->
-        <option value="update"><!--T-->このバージョンを<!--/T--></option>
-        <!-- END enbaleUpdateVersion -->
-        <option value="new"><!--T-->新規バージョンとして<!--/T--></option>
-      </select>
-      <input type="hidden" name="entry[]" value="revision_type" />
-    </div>
+  <div>
+    <select name="revision_type" class="js-select2 acms-admin-form-width-full">
+      <!-- BEGIN enbaleUpdateEntry -->
+      <option value=""><!--T-->そのまま<!--/T--></option>
+      <!-- END enbaleUpdateEntry -->
+      <!-- BEGIN enbaleUpdateVersion -->
+      <option value="update"><!--T-->このバージョンを<!--/T--></option>
+      <!-- END enbaleUpdateVersion -->
+      <option value="new"><!--T-->新規バージョンとして<!--/T--></option>
+    </select>
+    <input type="hidden" name="entry[]" value="revision_type" />
   </div>
 </div>
-</div>
-<div class="comPostInner">
 <!-- END_MODULE Admin_Entry_Revision_UrlContext -->
 <!-- END_MODULE Touch_Version -->

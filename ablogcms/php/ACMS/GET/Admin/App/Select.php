@@ -13,7 +13,7 @@ class ACMS_GET_Admin_App_Select extends ACMS_GET_Admin
         $list       = scandir(AAPP_LIB_DIR);
         $exsits     = false;
         foreach ($list as $fd) {
-            if (Storage::isFile(AAPP_LIB_DIR . $fd)) {
+            if (LocalStorage::isFile(AAPP_LIB_DIR . $fd)) {
                 $appName    = str_replace('.php', '', $fd);
                 $className  = 'AAPP_' . $appName;
                 if (!class_exists($className)) {

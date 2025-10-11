@@ -3,29 +3,50 @@
 namespace Acms\Services\Unit\Models;
 
 use Acms\Services\Unit\Contracts\Model;
-use Acms\Services\Unit\Contracts\UnitSetting;
-use Acms\Services\Facades\Common;
+use Acms\Services\Unit\Contracts\AlignableUnitInterface;
+use Acms\Services\Unit\Contracts\AnkerUnitInterface;
+use Acms\Services\Unit\Contracts\AttrableUnitInterface;
+use Acms\Traits\Unit\AlignableUnitTrait;
+use Acms\Traits\Unit\AnkerUnitTrait;
+use Acms\Traits\Unit\AttrableUnitTrait;
+use Acms\Traits\Unit\UnitMultiLangTrait;
 use Template;
-use Field;
 use ACMS_Corrector;
 
-class Text extends Model implements UnitSetting
+/**
+ * @extends \Acms\Services\Unit\Contracts\Model<array<string, mixed>>
+ */
+class Text extends Model implements AlignableUnitInterface, AnkerUnitInterface, AttrableUnitInterface
 {
+    use AlignableUnitTrait;
+    use AnkerUnitTrait;
+    use AttrableUnitTrait;
+    use UnitMultiLangTrait;
+
     /**
-     * ユニット設定の専用コンフィグ設定を描画
-     *
-     * @param Template $tpl
-     * @param Field $config
-     * @return void
+     * ユニットの独自データ
+     * @var array<string, mixed>
      */
-    public function renderUnitSettings(Template $tpl, Field $config): void
+    private $attributes = [];
+
+    /**
+     * @inheritDoc
+     */
+    public function getAttributes()
     {
-        foreach ($config->getArray('column_text_tag') as $i => $tag) {
-            $tpl->add(['textTag:loop', $this->getUnitType()], [
-                'value' => $tag,
-                'label' => $config->get('column_text_tag_label', '', $i),
-            ]);
-        }
+        return [
+            'text_text' => $this->getField1(),
+            'text_tag' => $this->getField2(),
+            ...$this->attributes,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setAttributes($attributes): void
+    {
+        $this->attributes = $attributes;
     }
 
     /**
@@ -33,19 +54,17 @@ class Text extends Model implements UnitSetting
      *
      * @return string
      */
-    public function getUnitType(): string
+    public static function getUnitType(): string
     {
         return 'text';
     }
 
     /**
-     * ユニットが画像タイプか取得
-     *
-     * @return bool
+     * @inheritDoc
      */
-    public function getIsImageUnit(): bool
+    public static function getUnitLabel(): string
     {
-        return false;
+        return gettext('テキスト');
     }
 
     /**
@@ -63,18 +82,20 @@ class Text extends Model implements UnitSetting
     }
 
     /**
-     * POSTデータからユニット独自データを抽出
-     *
-     * @param array $post
-     * @param bool $removeOld
-     * @param bool $isDirectEdit
-     * @return void
+     * @inheritDoc
      */
-    public function extract(array $post, bool $removeOld = true, bool $isDirectEdit = false): void
+    public function extract(array $request): void
     {
-        $id = $this->getTempId();
-        $tokens = preg_split('@(#|\.)@', $post["text_tag_{$id}"] ?? '', -1, PREG_SPLIT_DELIM_CAPTURE);
-        $this->setField2(array_shift($tokens));
+        $id = $this->getId();
+        if (is_null($id)) {
+            throw new \LogicException('Unit ID must be set before calling extract');
+        }
+        $tag = is_array($request["text_tag_{$id}"]) ? $request["text_tag_{$id}"][0] : $request["text_tag_{$id}"];
+        $tokens = preg_split('@(#|\.)@', $tag, -1, PREG_SPLIT_DELIM_CAPTURE);
+        if ($tokens === false) {
+            return;
+        }
+        $this->setField2(array_shift($tokens) ?? '');
 
         $idStr = '';
         $classStr = '';
@@ -87,18 +108,15 @@ class Text extends Model implements UnitSetting
                 $classStr = $val;
             }
         }
-        $attr .= !empty($idStr) ? " id=\"{$idStr}\"" : "";
-        $attr .= !empty($classStr) ? " class=\"{$classStr}\"" : "";
-        if (!empty($attr)) {
+        $attr .= $idStr !== '' ? " id=\"{$idStr}\"" : "";
+        $attr .= $classStr !== '' ? " class=\"{$classStr}\"" : "";
+        if ($attr !== '') {
             $this->setAttr($attr);
         }
-        if (isset($post["text_extend_tag_{$id}"])) {
-            $this->setField3($post["text_extend_tag_{$id}"] ?? '');
+        if (isset($request["text_extend_tag_{$id}"])) {
+            $this->setField3($request["text_extend_tag_{$id}"] ?? '');
         }
-        $text = $this->implodeUnitData($post["text_text_{$id}"] ?? '');
-        if ($isDirectEdit && strlen($text) === 0) {
-            $text = config('action_direct_def_text');
-        }
+        $text = $this->implodeUnitDataTrait($request["text_text_{$id}"] ?? '');
         $this->setField1($text);
     }
 
@@ -109,7 +127,7 @@ class Text extends Model implements UnitSetting
      */
     public function canSave(): bool
     {
-        if (empty($this->getField1())) {
+        if ($this->getField1() === '') {
             return false;
         }
         return true;
@@ -141,9 +159,6 @@ class Text extends Model implements UnitSetting
     public function getSearchText(): string
     {
         $text = $this->getField1();
-        if ('markdown' === $this->getField2()) {
-            $text = Common::parseMarkdown($text);
-        }
         return $text;
     }
 
@@ -154,12 +169,10 @@ class Text extends Model implements UnitSetting
      */
     public function getSummaryText(): array
     {
-        $textAry = $this->explodeUnitData($this->getField1());
+        $textAry = $this->explodeUnitDataTrait($this->getField1());
         $response = [];
         foreach ($textAry as $text) {
-            if ($this->getField2() === 'markdown') {
-                $text = Common::parseMarkdown($text);
-            } elseif ($this->getField2() === 'table') {
+            if ($this->getField2() === 'table') {
                 $corrector = new ACMS_Corrector();
                 $text = $corrector->table($text);
             }
@@ -179,24 +192,25 @@ class Text extends Model implements UnitSetting
      */
     public function render(Template $tpl, array $vars, array $rootBlock): void
     {
-        if (empty($this->getField1())) {
+        if ($this->getField1() === '') {
             return;
         }
         $vars += [
             'text' => $this->getField1(),
             'extend_tag' => $this->getField3(),
         ];
-        $this->formatMultiLangUnitData($vars['text'], $vars, 'text');
+        $this->formatMultiLangUnitDataTrait($vars['text'], $vars, 'text');
 
-        $attr = $this->getAttr();
-        if (!empty($attr)) {
+        $attr = $this->getAttr(); // テキストタグセレクトで登録したクラス属性
+        if ($attr !== '') {
             $vars['attr'] = $attr;
             $vars['class'] = $attr; // legacy
         }
         $vars['extend_tag'] = $this->getField3();
+        $vars['anker'] = $this->getAnker();
         $tpl->add(array_merge([$this->getField2(), 'unit#' . $this->getType()], $rootBlock), $vars);
         $tpl->add(array_merge(['unit#' . $this->getType()], $rootBlock), [
-            'align' => $this->getAlign(),
+            'align' => $this->getAlign()->value,
         ]);
     }
 
@@ -211,14 +225,14 @@ class Text extends Model implements UnitSetting
     public function renderEdit(Template $tpl, array $vars, array $rootBlock): void
     {
         $suffix = '';
-        $attr = $this->getAttr();
+        $attr = $this->getAttr(); // テキストタグセレクトで登録したクラス属性
         $currentTag = $this->getField2();
 
         if (preg_match('@(?:id="([^"]+)"|class="([^"]+)")@', $attr, $match)) {
-            if (!empty($match[1])) {
+            if ($match[1] !== '') {
                 $suffix .= '#' . $match[1];
             }
-            if (!empty($match[2])) {
+            if (isset($match[2])) {
                 $suffix .= '.' . $match[2];
             }
         }
@@ -231,14 +245,15 @@ class Text extends Model implements UnitSetting
             if ($currentTag . $suffix === $tag) {
                 $tagSelectVars['selected'] = config('attr_selected');
             }
-            $tpl->add(array_merge(['textTag:loop', $this->getUnitType()], $rootBlock), $tagSelectVars);
+            $tpl->add(array_merge(['textTag:loop', $this::getUnitType()], $rootBlock), $tagSelectVars);
         }
         $vars += [
             'extend_tag' => $this->getField3(),
+            'selected_tag' => $currentTag,
         ];
-        $this->formatMultiLangUnitData($this->getField1(), $vars, 'text');
+        $this->formatMultiLangUnitDataTrait($this->getField1(), $vars, 'text');
 
-        $tpl->add(array_merge([$this->getUnitType()], $rootBlock), $vars);
+        $tpl->add(array_merge([$this::getUnitType()], $rootBlock), $vars);
     }
 
     /**
@@ -251,7 +266,7 @@ class Text extends Model implements UnitSetting
         return [
             'text' => $this->getField1(),
             'tag' => $this->getField2(),
-            'extend_tag' => $this->getField3(),
+            'extend_tag' => $this->getField3()
         ];
     }
 }

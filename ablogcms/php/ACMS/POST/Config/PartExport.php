@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\LocalStorage;
+
 class ACMS_POST_Config_PartExport extends ACMS_POST_Config_Export
 {
     /**
@@ -21,16 +23,16 @@ class ACMS_POST_Config_PartExport extends ACMS_POST_Config_Export
             $export = App::make('config.export');
             $export->exportPartsConfig($Config);
             $this->yaml = $export->getYaml();
-            $this->destPath = ARCHIVES_DIR . 'config.yaml';
+            $this->destPath = CACHE_DIR . 'config.yaml';
 
-            Storage::remove($this->destPath);
+            LocalStorage::remove($this->destPath);
             $this->putYaml();
             $this->download();
 
             AcmsLogger::info('コンフィグの部分エクスポートをしました');
         } catch (\Exception $e) {
             $this->addError($e->getMessage());
-            Storage::remove($this->destPath);
+            LocalStorage::remove($this->destPath);
 
             AcmsLogger::info('コンフィグの部分エクスポートが失敗しました', Common::exceptionArray($e));
         }

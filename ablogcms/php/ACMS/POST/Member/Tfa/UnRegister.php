@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_POST_Member_Tfa_Unregister extends ACMS_POST_Member
 {
     /**
@@ -11,13 +13,14 @@ class ACMS_POST_Member_Tfa_Unregister extends ACMS_POST_Member
     {
         $tfaField = $this->extract('tfa');
         $this->validate($tfaField);
-        $this->disableTfa(SUID);
+        $uid = SUID ?? 0; // @phpstan-ignore-line
+        $this->disableTfa($uid);
 
         if ($this->Post->isValidAll()) {
             $this->Post->set('register', 'success');
             AcmsLogger::info('2段階認証の無効化をしました', [
-                'uid' => SUID,
-                'name' => ACMS_RAM::userName(SUID),
+                'uid' => $uid,
+                'name' => ACMS_RAM::userName($uid),
             ]);
         }
         return $this->Post;
@@ -31,11 +34,17 @@ class ACMS_POST_Member_Tfa_Unregister extends ACMS_POST_Member
      */
     protected function validate(Field_Validation $tfaField): void
     {
-        if (!SUID) {
+        if (!Login::canMemberSignin()) {
             $tfaField->setMethod('tfa', 'isOperable', false);
+            httpStatusCode('403 Forbidden');
+        }
+        if (!SUID) { // @phpstan-ignore-line
+            $tfaField->setMethod('tfa', 'isOperable', false);
+            httpStatusCode('403 Forbidden');
         }
         if (!Tfa::isAvailable()) {
             $tfaField->setMethod('tfa', 'isOperable', false);
+            httpStatusCode('403 Forbidden');
         }
         $tfaField->validate(new ACMS_Validator());
     }

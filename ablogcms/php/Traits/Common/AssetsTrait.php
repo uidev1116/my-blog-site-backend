@@ -3,10 +3,12 @@
 namespace Acms\Traits\Common;
 
 use Acms\Services\Facades\Application;
-use Acms\Services\Facades\Storage;
 use Acms\Services\Facades\Database;
+use Acms\Services\Facades\PublicStorage;
+use Acms\Services\Unit\UnitCollection;
 use SQL;
 use Field;
+use ACMS_Hook;
 
 trait AssetsTrait
 {
@@ -29,7 +31,12 @@ trait AssetsTrait
             }
             foreach ($field->getArray($fd, true) as $old) {
                 $path = ARCHIVES_DIR . $old;
-                deleteFile($path);
+                deleteFile($path, true);
+                deleteFile("{$path}.webp", true);
+                if (HOOK_ENABLE) {
+                    $Hook = ACMS_Hook::singleton();
+                    $Hook->call('mediaDelete', $path);
+                }
             }
         }
     }
@@ -43,7 +50,12 @@ trait AssetsTrait
     public function removeFileAssetsTrait(array $filePaths): void
     {
         foreach ($filePaths as $path) {
-            deleteFile(ARCHIVES_DIR . $path);
+            deleteFile(ARCHIVES_DIR . $path, true);
+            deleteFile("{$path}.webp", true);
+            if (HOOK_ENABLE) {
+                $Hook = ACMS_Hook::singleton();
+                $Hook->call('mediaDelete', $path);
+            }
         }
     }
 
@@ -60,10 +72,21 @@ trait AssetsTrait
             $large = otherSizeImagePath($normal, 'large');
             $tiny = otherSizeImagePath($normal, 'tiny');
             $square = otherSizeImagePath($normal, 'square');
-            deleteFile($normal);
-            deleteFile($large);
-            deleteFile($tiny);
-            deleteFile($square);
+            deleteFile($normal, true);
+            deleteFile($large, true);
+            deleteFile($tiny, true);
+            deleteFile($square, true);
+            deleteFile("{$normal}.webp", true);
+            deleteFile("{$large}.webp", true);
+            deleteFile("{$tiny}.webp", true);
+            deleteFile("{$square}.webp", true);
+            if (HOOK_ENABLE) {
+                $Hook = ACMS_Hook::singleton();
+                $Hook->call('mediaDelete', $normal);
+                $Hook->call('mediaDelete', $large);
+                $Hook->call('mediaDelete', $tiny);
+                $Hook->call('mediaDelete', $square);
+            }
         }
     }
 
@@ -76,6 +99,8 @@ trait AssetsTrait
     public function duplicateImagesTrait(array $imagePaths): array
     {
         $newImagePaths = [];
+        $hook = HOOK_ENABLE ? ACMS_Hook::singleton() : null;
+
         foreach ($imagePaths as $imagePath) {
             $fullpath = ARCHIVES_DIR . $imagePath;
             $newFullpath = $this->createUniqueFilepathTrait($fullpath);
@@ -87,17 +112,29 @@ trait AssetsTrait
             $newLargeFullpath = otherSizeImagePath($newFullpath, 'large');
             $newTinyFullpath = otherSizeImagePath($newFullpath, 'tiny');
             $newSquareFullpath = otherSizeImagePath($newFullpath, 'square');
-            if (Storage::isReadable($fullpath)) {
-                copyFile($fullpath, $newFullpath);
+            if (PublicStorage::isReadable($fullpath)) {
+                copyFile($fullpath, $newFullpath, true);
+                if ($hook) {
+                    $hook->call('mediaCreate', $newFullpath);
+                }
             }
-            if (Storage::isReadable($largeFullpath)) {
-                copyFile($largeFullpath, $newLargeFullpath);
+            if (PublicStorage::isReadable($largeFullpath)) {
+                copyFile($largeFullpath, $newLargeFullpath, true);
+                if ($hook) {
+                    $hook->call('mediaCreate', $newLargeFullpath);
+                }
             }
-            if (Storage::isReadable($tinyFullpath)) {
-                copyFile($tinyFullpath, $newTinyFullpath);
+            if (PublicStorage::isReadable($tinyFullpath)) {
+                copyFile($tinyFullpath, $newTinyFullpath, true);
+                if ($hook) {
+                    $hook->call('mediaCreate', $newTinyFullpath);
+                }
             }
-            if (Storage::isReadable($squareFullpath)) {
-                copyFile($squareFullpath, $newSquareFullpath);
+            if (PublicStorage::isReadable($squareFullpath)) {
+                copyFile($squareFullpath, $newSquareFullpath, true);
+                if ($hook) {
+                    $hook->call('mediaCreate', $newSquareFullpath);
+                }
             }
             $newImagePaths[] = substr($newFullpath, strlen(ARCHIVES_DIR));
         }
@@ -113,11 +150,16 @@ trait AssetsTrait
     public function duplicateFilesTrait(array $filePaths): array
     {
         $newFilePaths = [];
+        $hook = HOOK_ENABLE ? ACMS_Hook::singleton() : null;
+
         foreach ($filePaths as $filePath) {
             $fullpath = ARCHIVES_DIR . $filePath;
             $newFullpath = $this->createUniqueFilepathTrait($fullpath);
-            if (Storage::isReadable($fullpath)) {
-                copyFile($fullpath, $newFullpath);
+            if (PublicStorage::isReadable($fullpath)) {
+                copyFile($fullpath, $newFullpath, true);
+                if ($hook) {
+                    $hook->call('mediaCreate', $newFullpath);
+                }
             }
             $newFilePaths[] = substr($newFullpath, strlen(ARCHIVES_DIR));
         }
@@ -132,13 +174,15 @@ trait AssetsTrait
      */
     public function duplicateFieldsTrait(Field $field): void
     {
+        $hook = HOOK_ENABLE ? ACMS_Hook::singleton() : null;
+
         foreach ($field->listFields() as $fd) {
             if (preg_match('/(.*?)@path$/', $fd, $match)) {
                 $fieldBase = $match[1];
                 $set = false;
                 foreach ($field->getArray("{$fieldBase}@path") as $i => $path) {
                     $fullpath = ARCHIVES_DIR . $path;
-                    if (!Storage::isFile($fullpath)) {
+                    if (!PublicStorage::isFile($fullpath)) {
                         if ($i === 0) {
                             $field->deleteField("{$fieldBase}@path");
                             $field->deleteField("{$fieldBase}@largePath");
@@ -160,8 +204,8 @@ trait AssetsTrait
                         $set = true;
                     }
                     $info = pathinfo($path);
-                    $dirname = empty($info['dirname']) ? '' : $info['dirname'] . '/';
-                    Storage::makeDirectory(ARCHIVES_DIR . $dirname);
+                    $dirname = $info['dirname'] === '' ? '' : $info['dirname'] . '/';
+                    PublicStorage::makeDirectory(ARCHIVES_DIR . $dirname);
 
                     $largeFullpath = otherSizeImagePath($fullpath, 'large');
                     $tinyFullpath = otherSizeImagePath($fullpath, 'tiny');
@@ -172,23 +216,35 @@ trait AssetsTrait
                     $newTinyFullpath = otherSizeImagePath($newFullpath, 'tiny');
                     $newSquareFullpath = otherSizeImagePath($newFullpath, 'square');
 
-                    if (Storage::isReadable($fullpath)) {
-                        copyFile($fullpath, $newFullpath);
+                    if (PublicStorage::isReadable($fullpath)) {
+                        copyFile($fullpath, $newFullpath, true);
+                        if ($hook) {
+                            $hook->call('mediaCreate', $newFullpath);
+                        }
                         $newPath = substr($newFullpath, strlen(ARCHIVES_DIR));
                         $field->add("{$fieldBase}@path", $newPath);
                     }
-                    if (Storage::isReadable($largeFullpath)) {
-                        copyFile($largeFullpath, $newLargeFullpath);
+                    if (PublicStorage::isReadable($largeFullpath)) {
+                        copyFile($largeFullpath, $newLargeFullpath, true);
+                        if ($hook) {
+                            $hook->call('mediaCreate', $newLargeFullpath);
+                        }
                         $newLargePath = substr($newLargeFullpath, strlen(ARCHIVES_DIR));
                         $field->add("{$fieldBase}@largePath", $newLargePath);
                     }
-                    if (Storage::isReadable($tinyFullpath)) {
-                        copyFile($tinyFullpath, $newTinyFullpath);
+                    if (PublicStorage::isReadable($tinyFullpath)) {
+                        copyFile($tinyFullpath, $newTinyFullpath, true);
+                        if ($hook) {
+                            $hook->call('mediaCreate', $newTinyFullpath);
+                        }
                         $newTinyPath = substr($newTinyFullpath, strlen(ARCHIVES_DIR));
                         $field->add("{$fieldBase}@tinyPath", $newTinyPath);
                     }
-                    if (Storage::isReadable($squareFullpath)) {
-                        copyFile($squareFullpath, $newSquareFullpath);
+                    if (PublicStorage::isReadable($squareFullpath)) {
+                        copyFile($squareFullpath, $newSquareFullpath, true);
+                        if ($hook) {
+                            $hook->call('mediaCreate', $newSquareFullpath);
+                        }
                         $newSquarePath = substr($newSquareFullpath, strlen(ARCHIVES_DIR));
                         $field->add("{$fieldBase}@squarePath", $newSquarePath);
                     }
@@ -206,31 +262,36 @@ trait AssetsTrait
      */
     public function validateRemovePath(string $type, string $path): bool
     {
-        /** @var \Acms\Services\Unit\Contracts\Model[] $oldUnitData */
-        static $oldUnitData = [];
+        /** @var \Acms\Services\Unit\UnitCollection|null $oldUnitCollection */
+        static $oldUnitCollection = null;
+        if ($oldUnitCollection === null) {
+            $oldUnitCollection = new UnitCollection([]);
+        }
 
         /** @var \Acms\Services\Unit\Repository $unitRepository */
         $unitRepository = Application::make('unit-repository');
 
-        if (empty($oldUnitData)) {
+        if (count($oldUnitCollection) === 0) {
             $unitIds = [];
-            if (is_array($_POST['type'])) {
-                foreach (array_keys($_POST['type']) as $i) {
-                    $unitIds[] = intval($_POST['clid'][$i]);
+            if (is_array($_POST['unit_type'])) {
+                foreach (array_keys($_POST['unit_type']) as $i) {
+                    $unitIds[] = (string) $_POST['unit_id'][$i];
                 }
             }
             $unitData = [];
             foreach (['column', 'column_rev'] as $table) {
                 $sql = SQL::newSelect($table);
                 $sql->addWhereIn('column_id', $unitIds);
-                if ($data = Database::query($sql->get(dsn()), 'all')) {
+                $q = $sql->get(dsn());
+                $data = Database::query($q, 'all');
+                if ($data) {
                     $unitData = array_merge($data, $unitData);
                 }
             }
-            $oldUnitData = $unitRepository->loadModels($unitData);
+            $oldUnitCollection = $unitRepository->loadModels($unitData);
         }
-        foreach ($oldUnitData as $unit) {
-            if ($unit->getUnitType() === $type && $unit instanceof \Acms\Services\Unit\Contracts\ValidatePath) {
+        foreach ($oldUnitCollection->flat() as $unit) {
+            if ($unit::getUnitType() === $type && $unit instanceof \Acms\Services\Unit\Contracts\AssetProvider) {
                 $paths = $unit->getFilePaths();
                 if (in_array($path, $paths, true)) {
                     return true;
@@ -252,6 +313,6 @@ trait AssetsTrait
             $fileinfo = pathinfo($path);
             return $fileinfo['dirname'] . '/' . uniqueString() . '.' . $fileinfo['extension'];
         }
-        return Storage::uniqueFilePath($path);
+        return PublicStorage::uniqueFilePath($path);
     }
 }

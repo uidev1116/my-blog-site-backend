@@ -1,27 +1,27 @@
 <!-- BEGIN_IF [{name:validator#required}/eq/0] -->
-<div class="acms-alert acms-alert-danger"><!--T-->名前が入力されていません。<!--/T--></div>
+<div role="alert" class="acms-alert acms-alert-danger"><!--T-->名前が入力されていません。<!--/T--></div>
 <!-- END_IF -->
 <!-- BEGIN_IF [{mail:validator#required}/eq/0] -->
-<div class="acms-alert acms-alert-danger"><!--T-->メールアドレスが入力されていません。<!--/T--></div>
+<div role="alert" class="acms-alert acms-alert-danger"><!--T-->メールアドレスが入力されていません。<!--/T--></div>
 <!-- END_IF -->
 <!-- BEGIN_IF [{mail:validator#email}/eq/0] -->
-<div class="acms-alert acms-alert-danger"><!--T-->不正なメールアドレスです。<!--/T--></div>
+<div role="alert" class="acms-alert acms-alert-danger"><!--T-->不正なメールアドレスです。<!--/T--></div>
 <!-- END_IF -->
 <!-- BEGIN_IF [{mail:validator#doubleMail}/eq/0] -->
-<div class="acms-alert acms-alert-danger"><!--T-->すでに登録されているメールアドレスです。<!--/T--></div>
+<div role="alert" class="acms-alert acms-alert-danger"><!--T-->すでに登録されているメールアドレスです。<!--/T--></div>
 <!-- END_IF -->
 <!-- BEGIN_IF [{mail:validator#pseudoUserExists}/eq/0] -->
-<div class="acms-alert acms-alert-danger"><!--T-->このメールアドレスは現在登録できません。別のメールアドレスで登録いただくか、しばらく時間を置いてから再度お試しください。<!--/T--></div>
+<div role="alert" class="acms-alert acms-alert-danger"><!--T-->このメールアドレスは現在登録できません。別のメールアドレスで登録いただくか、しばらく時間を置いてから再度お試しください。<!--/T--></div>
 <!-- END_IF -->
 <!-- BEGIN_IF [{mail:validator#send}/eq/0] -->
-<div class="acms-alert acms-alert-danger"><!--T-->メールの送信に失敗しました。システムの設定に問題があります。システムの管理者にお問い合わせください。<!--/T--></div>
+<div role="alert" class="acms-alert acms-alert-danger"><!--T-->メールの送信に失敗しました。システムの設定に問題があります。システムの管理者にお問い合わせください。<!--/T--></div>
 <!-- END_IF -->
 <!-- BEGIN_IF [{pass:validator#required}/eq/0] -->
-<div class="acms-alert acms-alert-danger"><!--T-->パスワードが入力されていません。<!--/T--></div>
+<div role="alert" class="acms-alert acms-alert-danger"><!--T-->パスワードが入力されていません。<!--/T--></div>
 <!-- END_IF -->
 <!-- BEGIN_IF [{pass:validator#password}/eq/0] -->
-<div class="acms-alert acms-alert-danger"><!--T-->不正なパスワードです。別のパスワードを入力ください。<!--/T--></div>
+<div role="alert" class="acms-alert acms-alert-danger"><!--T-->不正なパスワードです。別のパスワードを入力ください。<!--/T--></div>
 <!-- END_IF -->
 <!-- BEGIN_IF [{retype_pass:validator#equalTo}/eq/0] -->
-<div class="acms-alert acms-alert-danger"><!--T-->パスワードが一致しません。<!--/T--></div>
+<div role="alert" class="acms-alert acms-alert-danger"><!--T-->パスワードが一致しません。<!--/T--></div>
 <!-- END_IF -->

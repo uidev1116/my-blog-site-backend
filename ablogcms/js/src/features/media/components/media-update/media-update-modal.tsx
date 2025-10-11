@@ -17,7 +17,7 @@ export default class MediaUpdateModal extends Component<MediaUpdateModalProps> {
         tpl: 'ajax/edit/media-edit.json',
         bid: ACMS.Config.bid,
         Query: {
-          cache: new Date().getTime(),
+          cache: new Date().getTime().toString(),
         },
       },
       false
@@ -36,7 +36,7 @@ export default class MediaUpdateModal extends Component<MediaUpdateModalProps> {
         tpl: 'ajax/edit/media-tag.json',
         bid: ACMS.Config.bid,
         Query: {
-          cache: new Date().getTime(),
+          cache: new Date().getTime().toString(),
         },
       },
       false

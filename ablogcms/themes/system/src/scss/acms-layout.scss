@@ -1,0 +1,60 @@
+@use 'sass:map';
+
+// Base
+@forward 'global/variables' with (
+  $admin: false
+);
+@forward 'global/functions';
+@forward 'global/mixins';
+@forward 'global/utilities';
+
+// Layout
+@use 'layout';
+
+// Only use the utilities that are needed
+@use 'global/functions' as functions;
+@use 'global/utilities' as utilities;
+
+$utilities: functions.map-get-multiple(
+  utilities.$utilities,
+  (
+    'display',
+    'order',
+    'flex',
+    'flex-direction',
+    'flex-grow',
+    'flex-shrink',
+    'flex-wrap',
+    'justify-content',
+    'align-items',
+    'align-content',
+    'align-self',
+    'margin',
+    'margin-x',
+    'margin-y',
+    'margin-top',
+    'margin-end',
+    'margin-bottom',
+    'margin-start',
+    'negative-margin',
+    'negative-margin-x',
+    'negative-margin-y',
+    'negative-margin-top',
+    'negative-margin-end',
+    'negative-margin-bottom',
+    'negative-margin-start',
+    'padding',
+    'padding-x',
+    'padding-y',
+    'padding-top',
+    'padding-end',
+    'padding-bottom',
+    'padding-start',
+    'gap',
+    'row-gap',
+    'column-gap'
+  )
+);
+
+// Utilities
+@use 'utilities/api';

@@ -33,7 +33,6 @@ class ACMS_POST_Module_Index_Delete extends ACMS_POST_Module_Delete
 
                 $targetModules[] = $module->get('label') . '（' . $module->get('identifier') . '）';
             }
-            $this->Post->set('refreshed', 'refreshed');
 
             Logger::info('選択したモジュールIDを削除しました', [
                 'targetModules' => $targetModules,

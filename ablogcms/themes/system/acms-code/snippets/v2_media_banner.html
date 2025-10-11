@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V2_Media_Banner</title>
+    <link rel="stylesheet" href="src/highlight/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="src/snippets.css" />
+    <script src="src/highlight/highlight.min.js"></script>
+    <script src="src/highlight/javascript.min.js"></script>
+    <script src="src/highlight/twig.min.js"></script>
+    <script src="src/snippets.js"></script>
+  </head>
+  <body>
+    <h1>V2_Media_Banner</h1>
+    <pre class="acms-admin-customfield-maker"><code class="language-twig">
+&#123;% set mediaBanner = module(&#039;V2_Media_Banner&#039;, &#039;&#039;) %&#125;
+
+&#123;% if mediaBanner.items is not empty %&#125;
+  &lt;div&gt;
+    &#123;&#123; include(&#039;/admin/module/setting.twig&#039;, &#123; moduleInfo: mediaBanner.moduleInfo &#125;) &#125;&#125;
+    &lt;ul class=&quot;acms-list-nostyle acms-cssgrid acms-g-cols-1 acms-g-cols-md-3&quot;&gt;
+      &#123;% for banner in mediaBanner.items %&#125;
+        &#123;% if banner.type == &#039;source&#039; %&#125;
+          &lt;li&gt;&#123;&#123; banner.src|safe_html &#125;&#125;&lt;/li&gt;
+        &#123;% endif %&#125;
+        &#123;% if banner.type == &#039;image&#039; %&#125;
+          &lt;li &#123;&#123; banner.attr1|safe_html &#125;&#125;&gt;
+            &lt;a href=&quot;&#123;&#123; banner.link &#125;&#125;&quot; target=&quot;&#123;&#123; banner.target &#125;&#125;&quot;&gt;
+              &lt;img
+                src=&quot;&#123;&#123; banner.path|resizeImg(310) &#125;&#125;&quot;
+                width=&quot;&#123;&#123; banner.width &#125;&#125;&quot;
+                height=&quot;&#123;&#123; banner.height&#125;&#125;&quot;
+                class=&quot;acms-img-responsive&quot;
+                alt=&quot;&#123;&#123; banner.alt &#125;&#125;&quot;
+                loading=&quot;lazy&quot;
+                decoding=&quot;async&quot;
+              /&gt;
+            &lt;/a&gt;
+          &lt;/li&gt;
+        &#123;% endif %&#125;
+      &#123;% endfor %&#125;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+&#123;% endif %&#125;
+    </code></pre>
+  </body>
+</html>

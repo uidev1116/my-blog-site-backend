@@ -1,24 +1,47 @@
+/**
+ * @typedef { import("./src/lib/acmsPath/types").AcmsContext } AcmsContext
+ */
+
+/**
+ * @typedef { import("./src/components/dataview/types").GetValues } DataviewGetValues
+ * @typedef { import("./src/components/dataview/types").CreateGetValuesOptions } DataviewCreateGetValuesOptions
+ * @typedef { import("./src/components/dataview/types").Action } DataviewAction
+ * @typedef { import("./src/components/dataview/types").BulkAction } DataviewBulkAction
+ * @typedef { import("./src/components/dataview/types").Menu } DataviewMenu
+ * @typedef { import("./src/components/dataview/types").Column } DataviewColumn
+ * @typedef { import("./src/components/dataview/types").GetGetValue } DataviewGetGetValue
+ * @typedef { import("./src/components/dataview/types").GetValues } DataviewGetValues
+ * @typedef { import("./src/components/dataview/types").CreateGetValues } DataviewCreateGetValues
+ * @typedef { import("./src/components/dataview/types").CreateGetValuesOptions } DataviewCreateGetValuesOptions
+ */
+
 ACMS.Config({
-
-  // 試験機能をv1.6α時点でデフォルトOFF
-  experimentalFeature: true,
-
   //---------------------------------------------------
   // jQuery UI テーマ名 ( 下記URLでDLとカスタマイズが可能 )
   // @url http://jqueryui.com/themeroller/
   uiTheme: 'smoothness',
 
+  //------
+  // htmx
+  htmxMark: 'meta[name="acms-htmx"],[data-hx-get],[data-hx-post],[hx-get],[hx-post]', // htmxを有効にする要素のセレクタ
+  htmxConfig: {
+    historyCacheSize: -1, // ローカルストレージにHTMLをキャッシュしない（キャッシュすると戻る・進むが正常に動作しないため）
+    refreshOnHistoryMiss: true, // キャッシュがなければページを再読込
+  },
+
   //----------------------
-  // google code prettify
-  googleCodePrettifyClass: 'prettyprint linenums', // prettyprint linenums, acms-admin-pre
-  googleCodePrettifyTheme: 'prettify', // prettify, desert, doxy, sons-of-obsidian, sunburst
+  // Syntax Highlighter
+  highlightMark: 'pre',
+  highlightConfig: {
+    theme: 'atom-one-light', // テーマを指定（https://highlightjs.org/examples を参照）
+    languages: ['bash', 'css', 'javascript', 'json', 'php', 'sql', 'typescript', 'xml', 'yaml', 'twig'], // ハイライトする言語を指定（https://highlightjs.org/download を参照）
+  },
 
   //-------------------
   // WYSIWYG Editor (trumbowyg)
   // @link https://alex-d.github.io/Trumbowyg/
   wysiwygMark: 'textarea.js-wysiwyg,textarea.js-ckeditor,textarea.js-emoditor',
-  wysiwygConfig:
-  {
+  wysiwygConfig: {
     lang: 'ja',
     // resetCss: true,
     autogrow: true,
@@ -44,126 +67,9 @@ ACMS.Config({
       // table: 'class-name',
     },
     semantic: {
-      'div': 'div',
+      div: 'div',
     },
   },
-
-  //----------------------------------
-  // イメージビューア ( prettyPhoto )
-  ppMark: 'a[rel^="prettyPhoto"],a[data-rel^="prettyPhoto"]',
-  ppMinWindowSize: 800,
-  ppDisableMobile: true,
-  ppDisableTablet: true,
-  ppWindowTarget: '',
-  ppConfig: // http://www.no-margin-for-errors.com/projects/prettyphoto-jquery-lightbox-clone/
-  {
-    animation_speed: 'fast', /* fast/slow/normal */
-    slideshow: 3000, /* false OR interval time in ms */
-    autoplay_slideshow: false, /* true/false */
-    opacity: 0.80, /* Value between 0 and 1 */
-    show_title: true, /* true/false */
-    allow_resize: true, /* Resize the photos bigger than viewport. true/false */
-    default_width: 500,
-    default_height: 344,
-    counter_separator_label: '/', /* The separator for the gallery counter 1 "of" 2 */
-    theme: 'pp_default', /* light_rounded / dark_rounded / light_square / dark_square / facebook */
-    horizontal_padding: 20, /* The padding on each side of the picture */
-    hideflash: false, /* Hides all the flash object on a page, set to TRUE if flash appears over prettyPhoto */
-    wmode: 'opaque', /* Set the flash wmode attribute */
-    autoplay: true, /* Automatically start videos: True/False */
-    modal: false, /* If set to true, only the close button will close the window */
-    deeplinking: true, /* Allow prettyPhoto to update the url to enable deeplinking. */
-    overlay_gallery: true, /* If set to true, a gallery will overlay the fullscreen image on mouse over */
-    keyboard_shortcuts: true, /* Set to false if you open forms inside prettyPhoto */
-    changepicturecallback: function () {
-    }, /* Called everytime an item is shown/changed */
-    callback: function () {
-    }, /* Called when prettyPhoto is closed */
-    ie6_fallback: true,
-    markup: '<div class="pp_pic_holder"> \
-                    <div class="ppt">&nbsp;</div> \
-                    <div class="pp_top"> \
-                        <div class="pp_left"></div> \
-                        <div class="pp_middle"></div> \
-                        <div class="pp_right"></div> \
-                    </div> \
-                    <div class="pp_content_container"> \
-                        <div class="pp_left"> \
-                        <div class="pp_right"> \
-                            <div class="pp_content"> \
-                                <div class="pp_loaderIcon"></div> \
-                                <div class="pp_fade"> \
-                                    <a href="#" class="pp_expand" title="Expand the image">Expand</a> \
-                                    <div class="pp_hoverContainer"> \
-                                        <a class="pp_next" href="#">next</a> \
-                                        <a class="pp_previous" href="#">previous</a> \
-                                    </div> \
-                                    <div id="pp_full_res"></div> \
-                                    <div class="pp_details"> \
-                                        <div class="pp_nav"> \
-                                            <a href="#" class="pp_arrow_previous">Previous</a> \
-                                            <p class="currentTextHolder">0/0</p> \
-                                            <a href="#" class="pp_arrow_next">Next</a> \
-                                        </div> \
-                                        <p class="pp_description"></p> \
-                                        {pp_social} \
-                                        <a class="pp_close" href="#">Close</a> \
-                                    </div> \
-                                </div> \
-                            </div> \
-                        </div> \
-                        </div> \
-                    </div> \
-                    <div class="pp_bottom"> \
-                        <div class="pp_left"></div> \
-                        <div class="pp_middle"></div> \
-                        <div class="pp_right"></div> \
-                    </div> \
-                </div> \
-                <div class="pp_overlay"></div>',
-    gallery_markup: '<div class="pp_gallery"> \
-                            <a href="#" class="pp_arrow_previous">Previous</a> \
-                            <div> \
-                                <ul> \
-                                    {gallery} \
-                                </ul> \
-                            </div> \
-                            <a href="#" class="pp_arrow_next">Next</a> \
-                        </div>',
-    image_markup: '<img id="fullResImage" src="{path}" />',
-    flash_markup: '<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="{width}" height="{height}"><param name="wmode" value="{wmode}" /><param name="allowfullscreen" value="true" /><param name="allowscriptaccess" value="sameDomain" /><param name="movie" value="{path}" /><embed src="{path}" type="application/x-shockwave-flash" allowfullscreen="true" allowscriptaccess="sameDomain" width="{width}" height="{height}" wmode="{wmode}"></embed></object>',
-    quicktime_markup: '<object classid="clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B" codebase="http://www.apple.com/qtactivex/qtplugin.cab" height="{height}" width="{width}"><param name="src" value="{path}"><param name="autoplay" value="{autoplay}"><param name="type" value="video/quicktime"><embed src="{path}" height="{height}" width="{width}" autoplay="{autoplay}" type="video/quicktime" pluginspage="http://www.apple.com/quicktime/download/"></embed></object>',
-    iframe_markup: '<iframe src ="{path}" width="{width}" height="{height}" frameborder="no"></iframe>',
-    inline_markup: '<div class="pp_inline">{content}</div>',
-    custom_markup: '',
-    social_tools: false
-  },
-  ppCaption2Title: true,
-
-  //----------------------------------
-  // イメージビューワー ( Highslide )
-  hsMark: 'a[rel=highslide],a[data-rel=highslide]',
-  hsConfig: // http://highslide.com/ref/hs.overrides
-  {
-    align: 'center',
-    transitions: ["fade"],
-    transitionDuration: 500,
-    dimmingOpacity: 0.75, // 背景を半透明グレーにする時に指定します
-    dimmingDuration: 0
-    //        outlineType : 'rounded-white'
-  },
-  hsLang: {
-    loadingText: ACMS.i18n('highslide.loading_text'),
-    loadingTitle: ACMS.i18n('highslide.loading_title'),
-    fullExpandTitle: ACMS.i18n('highslide.expand_title'),
-    restoreTitle: ACMS.i18n('highslide.restore_title')
-  },
-  hsArray: [
-    //    {
-    //        'mark'      : '',
-    //        'config'    : {}
-    //    }
-  ],
 
   //-----------------------
   // SmartPhoto
@@ -193,12 +99,12 @@ ACMS.Config({
       smartPhotoDismiss: 'smartphoto-dismiss',
       smartPhotoLoader: 'smartphoto-loader',
       smartPhotoLoaderWrap: 'smartphoto-loader-wrap',
-      smartPhotoImgClone: 'smartphoto-img-clone'
+      smartPhotoImgClone: 'smartphoto-img-clone',
     },
     message: {
       gotoNextImage: ACMS.i18n('smartphoto.goto_next_image'),
       gotoPrevImage: ACMS.i18n('smartphoto.goto_prev_image'),
-      closeDialog: ACMS.i18n('smartphoto.close_the_image_dialog')
+      closeDialog: ACMS.i18n('smartphoto.close_the_image_dialog'),
     },
     arrows: true,
     nav: true,
@@ -212,7 +118,7 @@ ACMS.Config({
     verticalGravity: false,
     useOrientationApi: false,
     useHistoryApi: true,
-    lazyAttribute: 'data-src'
+    lazyAttribute: 'data-src',
   },
 
   //----------------
@@ -230,7 +136,7 @@ ACMS.Config({
     linkClassName: 'scrollTo',
     anchorName: 'heading-$1',
     exceptClass: 'js-except',
-    levelLimit: 5
+    levelLimit: 5,
   },
 
   //-----------------------
@@ -257,7 +163,7 @@ ACMS.Config({
       showinfo: 1,
       start: 0,
       wmode: 'transparent',
-      theme: 'dark'
+      theme: 'dark',
     },
     ratio: '16:9',
     vimeo: {
@@ -275,7 +181,7 @@ ACMS.Config({
       portrait: true,
       title: true,
       width: null,
-      xhtml: false
+      xhtml: false,
     },
     allowFullScreen: true,
     animationSpeed: 300,
@@ -285,63 +191,13 @@ ACMS.Config({
       modalVideoBody: 'modal-video-body',
       modalVideoInner: 'modal-video-inner',
       modalVideoIframeWrap: 'modal-video-movie-wrap',
-      modalVideoCloseBtn: 'modal-video-close-btn'
+      modalVideoCloseBtn: 'modal-video-close-btn',
     },
     aria: {
       openMessage: ACMS.i18n('modal_video.aria_open_msg'),
-      dismissBtnMessage: ACMS.i18n('modal_video.dismiss_msg')
-    }
+      dismissBtnMessage: ACMS.i18n('modal_video.dismiss_msg'),
+    },
   },
-
-  //------
-  // exif
-  exif: {
-    captionEnable: "off",
-    saveData: "off",
-    requireField: ['FocalLength'],
-    captionFormat: '<%= Model %> (<%= FocalLength %>mm, f/<%= FNumber %>, <%= ExposureTime %>sec, ISO<%= ISOSpeedRatings %>) <%- ACMS.Library.Dayjs( DateTimeOriginal, "YYYY/MM/DD HH:mm") %>',
-    dataFormat: 'Model:<%= Model %>__FocalLength:<%= FocalLength %>__FNumber:<%= FNumber %>__ExposureTime:<%= ExposureTime %>__ISOSpeedRatings:<%= ISOSpeedRatings %>__DateTimeOriginal:<%= DateTimeOriginal %>'
-  },
-
-  //-----------------------
-  // adaptive image sizing
-  adaptiveImageMark: 'img.js-adaptive_image',
-  adaptiveImageSize: 500,
-
-  //------------
-  // biggerlink
-  biggerlinkMark: '.js-biggerlink',
-  biggerlinkConf: {
-    //        biggerclass:'bl-bigger', 	// class added to the first contained link and others that trigger it
-    //        hoverclass:'bl-hover', 		// class added to parent element on hover/focus
-    //        hoverclass2:'bl-hover2', 	// class added to parent element on hover/focus of other links
-    //        clickableclass:'bl-hot', 	// class added to parent element with behaviour
-    //        otherstriggermaster: true,	// will all links in containing biggerlink element trigger the first link
-    //        follow: 'auto'
-  },
-  biggerlinkArray: [
-    //    {
-    //        'mark'  : '',
-    //        'conf'  : {}
-    //    }
-  ],
-
-  //----------
-  // bxslider
-  bxsliderMark: '.js-bxslider',
-  bxsliderConf: {
-    mode: 'horizontal', // horizontal | vertical | fade
-    speed: 800,
-    captions: true,
-    auto: true,
-    pause: 6000
-  },
-  bxsliderArray: [
-    //    {
-    //        'mark'  : '',
-    //        'conf'  : {}
-    //    }
-  ],
 
   //-----------------------------
   // module setting popup window
@@ -350,7 +206,7 @@ ACMS.Config({
     width: 850,
     height: 500,
     autoclose: true,
-    autoreload: true
+    autoreload: true,
   },
 
   moduleManagementMark: '.js-module_management',
@@ -392,8 +248,18 @@ ACMS.Config({
     applyToParents: false,
     offset: 0,
     i18n: {
-      scrollable: ACMS.i18n("scrollhint.scrollable")
-    }
+      scrollable: ACMS.i18n('scrollhint.scrollable'),
+    },
+  },
+
+  //-----------------------
+  // アニメーション クラス付与
+  scrollAnimationMark: '.acms-entry img',
+  scrollAnimationConfig: {
+    delay: 0, // 遅延時間
+    animationClass: '', // アニメーションクラス名
+    inViewClass: 'in-view', // 発火時に付与するクラス名
+    repeat: false, // trueにすると、要素が画面内に入るたびにアニメーションが再生されます
   },
 
   //----------------
@@ -406,13 +272,13 @@ ACMS.Config({
   lazyLoadConfig: {
     rootMargin: '10px 0px', // syntax similar to that of CSS Margin
     threshold: 0.1, // ratio of element convergence
-    loaded: function(el) {
+    loaded: function (el) {
       el.addEventListener('load', function () {
         if (el.tagName === 'IMG') {
           var img = new Image();
           img.onload = function () {
             el.classList.add('loaded');
-          }
+          };
           img.src = el.getAttribute('src');
         } else {
           el.classList.add('loaded');
@@ -422,7 +288,7 @@ ACMS.Config({
         el.classList.add('loading');
       }, 100);
       ACMS.dispatchEvent('acmsLazyLoaded', el);
-    }
+    },
   },
 
   //----------------
@@ -436,7 +302,7 @@ ACMS.Config({
     widthAttr: 'data-width', // 幅指定のdata属性名
     pageAttr: 'data-page', // 表示するページ数のdata属性名
     lazyAttr: 'data-lazy', // lazy load するかどうか（1 or 0）のdata属性名
-    showBtnClass: 'acms-admin-block' // PDFのページ送りボタンがある場合につくクラス名
+    showBtnClass: 'acms-admin-block', // PDFのページ送りボタンがある場合につくクラス名
   },
 
   //---------
@@ -449,12 +315,12 @@ ACMS.Config({
       default: 'acms-cell-text-left',
       left: 'acms-cell-text-left',
       center: 'acms-cell-text-center',
-      right: 'acms-cell-text-right'
+      right: 'acms-cell-text-right',
     },
     btn: {
       group: 'acms-admin-btn-group acms-admin-btn-group-inline',
       item: 'acms-admin-btn',
-      itemActive: 'acms-admin-btn acms-admin-btn-active'
+      itemActive: 'acms-admin-btn acms-admin-btn-active',
     },
     icon: {
       alignLeft: 'acms-admin-icon-text-left',
@@ -465,20 +331,20 @@ ACMS.Config({
       split: 'acms-admin-icon-split',
       source: 'acms-admin-icon-source',
       td: '',
-      th: ''
-    }
+      th: '',
+    },
   },
   aTableSelector: [
     { label: ACMS.i18n('a_table.not_newline'), value: 'acms-cell-text-nowrap acms-admin-cell-text-nowrap' },
     { label: ACMS.i18n('a_table.bold'), value: 'acms-cell-text-bold acms-admin-cell-text-bold' },
     { label: ACMS.i18n('a_table.top_alignment'), value: 'acms-cell-text-top acms-admin-cell-text-top' },
     { label: ACMS.i18n('a_table.center_alignment'), value: 'acms-cell-text-middle acms-admin-cell-text-middle' },
-    { label: ACMS.i18n('a_table.bottom_alignment'), value: 'acms-cell-text-bottom acms-admin-cell-text-bottom' }
+    { label: ACMS.i18n('a_table.bottom_alignment'), value: 'acms-cell-text-bottom acms-admin-cell-text-bottom' },
   ],
   // テーブル自体にクラスを付与できます
   aTableOption: [
-    { label: ACMS.i18n("a_table.scrollhint_table"), value: 'js-table-unit-scroll-hint' },
-    { label: ACMS.i18n("a_table.scrollable_table"), value: 'acms-table-scrollable' }
+    { label: ACMS.i18n('a_table.scrollhint_table'), value: 'js-table-unit-scroll-hint' },
+    { label: ACMS.i18n('a_table.scrollable_table'), value: 'acms-table-scrollable' },
   ],
   aTableMessage: {
     mergeCells: ACMS.i18n('a_table.merge_cell'),
@@ -515,7 +381,7 @@ ACMS.Config({
     remove: ACMS.i18n('navigation.remove'),
     label: ACMS.i18n('navigation.label'),
     onRemove: ACMS.i18n('navigation.on_remove'),
-    onFirstUpdate: ACMS.i18n('navigation.on_first_update')
+    onFirstUpdate: ACMS.i18n('navigation.on_first_update'),
   },
 
   bannerEditMark: '#js-banner-edit',
@@ -526,7 +392,6 @@ ACMS.Config({
 
   //----------
   // LiteEditor
-  LiteEditorFeature: true,
   LiteEditorUseEmojiPicker: true, //スマホの場合は強制的にfalseになります。
   LiteEditorEmojiPickerLabel: '<i class="lite-editor-emoji-font lite-editor-emoji-font-smile" aria-hidden="true"></i>',
   LiteEditorMark: '.js-lite-editor-field',
@@ -543,7 +408,7 @@ ACMS.Config({
       LiteEditorBtn: 'acms-admin-btn',
       LiteEditorBtnActive: 'acms-admin-btn acms-admin-btn-active',
       LiteEditorBtnClose: '',
-      LiteEditorTooltipInput: 'acms-admin-form-width-full'
+      LiteEditorTooltipInput: 'acms-admin-form-width-full',
     },
     btnPosition: 'bottom',
     escapeNotRegisteredTags: false,
@@ -557,14 +422,19 @@ ACMS.Config({
       linkUrl: ACMS.i18n('lite_editor.link_url'),
       linkLabel: ACMS.i18n('lite_editor.link_label'),
       targetBlank: ACMS.i18n('lite_editor.target'),
-      targetBlankLabel: ACMS.i18n('lite_editor.target_label')
+      targetBlankLabel: ACMS.i18n('lite_editor.target_label'),
     },
     btnOptions: [
-      { label: ACMS.i18n("lite_editor.link"), tag: 'a', className: '', sampleText: ACMS.i18n("lite_editor.link_sample_txt") },
-      { label: ACMS.i18n("lite_editor.em"), tag: 'em', className: '', sampleText: ' ' },
-      { label: ACMS.i18n("lite_editor.strong"), tag: 'strong', className: '', sampleText: ' ' }
+      {
+        label: ACMS.i18n('lite_editor.link'),
+        tag: 'a',
+        className: '',
+        sampleText: ACMS.i18n('lite_editor.link_sample_txt'),
+      },
+      { label: ACMS.i18n('lite_editor.em'), tag: 'em', className: '', sampleText: ' ' },
+      { label: ACMS.i18n('lite_editor.strong'), tag: 'strong', className: '', sampleText: ' ' },
       // { label: '下線', tag: 'u', className: '', sampleText: ' '},
-    ]
+    ],
   },
 
   //----------
@@ -575,11 +445,13 @@ ACMS.Config({
     var headings = [];
     for (var num = headingStart; num <= headingEnd; num++) {
       var name = 'H' + num;
-      headings.push(new Extensions['Heading' + num]({
-        tagName: name,
-        customName: name,
-        icon: icons['Heading' + num + 'Icon']
-      }));
+      headings.push(
+        new Extensions['Heading' + num]({
+          tagName: name,
+          customName: name,
+          icon: icons['Heading' + num + 'Icon'],
+        })
+      );
     }
     return headings;
   },
@@ -587,45 +459,39 @@ ACMS.Config({
   SmartBlockUnitMaxHeight: 650,
   SmartBlockTitlePlaceholder: ACMS.i18n('rich_editor.titlePlaceholder'),
   SmartBlockConf: function (Extensions, target, icons) {
-    return [].concat(
-      [
-        new Extensions.Paragraph()
-      ],
-      ACMS.Config.SmartBlockHeadingConf(Extensions, target, icons),
-      [
-        new Extensions.ListItem(),
-        new Extensions.BulletList(),
-        new Extensions.OrderedList(),
-        new Extensions.Blockquote(),
-        new Extensions.Media({
-          className: 'column-media-center',
-          imgClassName: 'columnImageCenter',
-          imgFullClassName: 'columnImage',
-          captionClassName: 'caption'
-        }),
-        new Extensions.Emphasis({
-          schema: {
-            group: 'mark',
-            parseDOM: [{ tag: 'strong' }],
-            toDOM: function() {
-              return ['strong', 0]
-            }
-          }
-        }),
-        new Extensions.Underline(),
-        new Extensions.Strike(),
-        new Extensions.Link(),
-        new Extensions.MoveDown(),
-        new Extensions.MoveUp(),
-        new Extensions.Trash(),
-        new Extensions.DefaultKeys(),
-        new Extensions.DefaultPlugins({
-          placeholder: ACMS.i18n('rich_editor.placeholder')
-        })
-      ]
-    );
+    return [].concat([new Extensions.Paragraph()], ACMS.Config.SmartBlockHeadingConf(Extensions, target, icons), [
+      new Extensions.ListItem(),
+      new Extensions.BulletList(),
+      new Extensions.OrderedList(),
+      new Extensions.Blockquote(),
+      new Extensions.Media({
+        className: 'column-media-center',
+        imgClassName: 'columnImageCenter',
+        imgFullClassName: 'columnImage',
+        captionClassName: 'caption',
+      }),
+      new Extensions.Emphasis({
+        schema: {
+          group: 'mark',
+          parseDOM: [{ tag: 'strong' }],
+          toDOM: function () {
+            return ['strong', 0];
+          },
+        },
+      }),
+      new Extensions.Underline(),
+      new Extensions.Strike(),
+      new Extensions.Link(),
+      new Extensions.MoveDown(),
+      new Extensions.MoveUp(),
+      new Extensions.Trash(),
+      new Extensions.DefaultKeys(),
+      new Extensions.DefaultPlugins({
+        placeholder: ACMS.i18n('rich_editor.placeholder'),
+      }),
+    ]);
   },
-  SmartBlockReplace: function(Extensions) {
+  SmartBlockReplace: function (Extensions) {
     // eg.
     // return [
     //  new Extensions.Paragraph({
@@ -635,18 +501,52 @@ ACMS.Config({
     return [];
   },
   SmartBlockRemoves: [], // eg.["Underline", "Link"],
-  SmartBlockAdds: function(Extensions) {
+  SmartBlockAdds: function (Extensions) {
     // eg.
     // return [
     //   new Extensions.Table(), // テーブルブロックを表示
     //   new Extensions.Code(), // コードブロックを表示
     // ]
-    return []
+    return [];
   },
   SmartBlockMark: '.js-smartblock,.js-paper-editor',
   SmartBlockTitleMark: '.js-smartblock-title,.js-paper-editor-title',
   SmartBlockBodyMark: '.js-smartblock-body,.js-paper-editor-body',
   SmartBlockEditMark: '.js-smartblock-edit,.js-paper-editor-edit',
+
+  //--------------
+  // Block Editor
+  blockEditorMark: '.js-block-editor',
+  blockEditorConfig: {
+    setMainImageMark: '.js-block-editor-set-main-image',
+    tableScrollableWrapperClass: 'acms-table-scrollable',
+    tableScrollableClass: 'js-table-unit-scroll-hint',
+    /**
+     * BlockEditorコンポーネントに渡されるprops
+     */
+    editorProps: {
+      editorProps: {
+        attributes: {
+          /**
+           * @description この値を変更するときは、system/src/scss/global/_variables.scss の$entry-classも変更すること
+           */
+          class: 'acms-entry',
+        },
+      },
+    },
+  },
+
+  //--------------
+  // Unit Editor
+  unitEditorMark: '#js-unit-editor',
+  unitInplaceEditorMark: '#js-unit-inplace-editor',
+
+  //--------------
+  // Unit Form Editor
+  unitFormEditorMark: '#js-unit-form-editor',
+  unitFormEditorItemMark: '.acms-admin-unit',
+  unitFormEditorItemHeadMark: '.acms-admin-unit-toolbar',
+  unitFormEditorItemBodyMark: '.acms-admin-unit-content',
 
   //---------
   mediaAdminMark: '#js-media-edit',
@@ -656,8 +556,128 @@ ACMS.Config({
     [16, 9],
     [4, 3],
     [3, 4],
-    [1, 1]
+    [1, 1],
   ],
+
+  //--------
+  // Entry Admin
+
+  /**
+   * @typedef {import("./src/features/entry/types").EntryType } EntryType
+   * @typedef {import("./src/features/entry/hooks/use-entry-admin-actions").GetActionsContext} EntryAdminGetActionsContext
+   * @typedef {import("./src/features/entry/hooks/use-entry-admin-bulk-actions").GetBulkActionsContext} EntryAdminGetBulkActionsContext
+   * @typedef {import("./src/features/entry/hooks/use-entry-admin-menus").GetMenusContext} EntryAdminGetMenusContext
+   */
+
+  /**
+   * エントリー管理画面の設定オブジェクト
+   * @typedef {Object} EntryAdminConfig
+   * @property {number} linkMaxLength - リンク先URLの最大表示文字数
+   * @property {function(DataviewGetValues<EntryType>): DataviewGetValues<EntryType>} getValues - カスタムカラムの値を取得する関数をカスタマイズする関数
+   * @property {DataviewGetValuesOptions<EntryType>} getValuesOptions - カスタムカラムの値を取得する関数のオプション
+   * @property {function(DataviewAction<EntryType>[], EntryAdminGetActionsContext): DataviewAction<EntryType>[]} getActions - 各行のアクションをカスタマイズする関数
+   * @property {function(DataviewBulkAction<EntryType>[], EntryAdminGetBulkActionsContext): DataviewBulkAction<EntryType>[]} getBulkActions - 一括操作のアクションをカスタマイズする関数
+   * @property {function(DataviewMenu<EntryType>[], EntryAdminGetMenusContext): DataviewMenu<EntryType>[]} getMenus - メニューをカスタマイズする関数
+   * @property {function(DataviewColumn<EntryType>[]): DataviewColumn<EntryType>[]} getColumns - 表示するカラムをカスタマイズする関数
+   */
+
+  /**
+   * エントリー管理画面のHTML要素と紐づけるCSSセレクター
+   * @type {string}
+   */
+  entryAdminMark: '#js-entry-admin',
+
+  /**
+   * エントリー一括変更選択画面のHTML要素と紐づけるCSSセレクター
+   * @type {string}
+   */
+  entryBulkChangeSelectMark: '#js-entry-bulk-change-select',
+
+  /**
+   * @type {EntryAdminConfig}
+   */
+  entryAdminConfig: {
+    linkMaxLength: 25,
+    // getValues: function (getValues) {
+    //   return {
+    //     ...getValues,
+    //     text: function (info) {
+    //       // override text getValues
+    //     }
+    //   }
+    // },
+    getValuesOptions: {
+      // formatText: (value) => {
+      //   // something to text format
+      // },
+      // formatTextarea: (value) => {
+      //   // something to textarea format
+      // },
+      // formatNumber: (value) => {
+      //   // something to number format
+      // },
+      // formatDate: (value) => {
+      //   // something to date format
+      // },
+      // formatFileName: (value) => {
+      //   // something to file name format
+      // },
+    },
+    getActions: function (actions) {
+      return actions;
+    },
+    getBulkActions: function (bulkActions) {
+      return bulkActions;
+    },
+    getMenus: function (menus) {
+      return menus;
+    },
+    getColumns: function (columns) {
+      return columns;
+    },
+  },
+
+  //--------
+  // Module Admin
+
+  /**
+   * @typedef { import("./src/features/module/types").ModuleType } ModuleType
+   * @typedef {import("./src/features/module/hooks/use-module-admin-actions").GetActionsContext} ModuleAdminGetActionsContext
+   * @typedef {import("./src/features/module/hooks/use-module-admin-bulk-actions").GetBulkActionsContext} ModuleAdminGetBulkActionsContext
+   * @typedef {import("./src/features/module/hooks/use-module-admin-menus").GetMenusContext} ModuleAdminGetMenusContext
+   */
+
+  /**
+   * モジュール管理画面のHTML要素と紐づけるCSSセレクター
+   * @type {string}
+   */
+  moduleAdminMark: '#js-module-admin',
+  /**
+   * モジュール管理画面の設定オブジェクト
+   * @typedef {Object} ModuleAdminConfig
+   * @property {function(DataviewAction<ModuleType>[], ModuleAdminGetActionsContext): DataviewAction<ModuleType>[]} getActions - 各行のアクションをカスタマイズする関数
+   * @property {function(DataviewBulkAction<ModuleType>[], ModuleAdminGetBulkActionsContext): DataviewBulkAction<ModuleType>[]} getBulkActions - 一括操作のアクションをカスタマイズする関数
+   * @property {function(DataviewMenu<ModuleType>[], ModuleAdminGetMenusContext): DataviewMenu<ModuleType>[]} getMenus - メニューをカスタマイズする関数
+   * @property {function(DataviewColumn<ModuleType>[]): DataviewColumn<ModuleType>[]} getColumns - 表示するカラムをカスタマイズする関数
+   */
+
+  /**
+   * @type {ModuleAdminConfig}
+   */
+  moduleAdminConfig: {
+    getActions: function (actions) {
+      return actions;
+    },
+    getBulkActions: function (bulkActions) {
+      return bulkActions;
+    },
+    getMenus: function (menus) {
+      return menus;
+    },
+    getColumns: function (columns) {
+      return columns;
+    },
+  },
 
   //--------
   // select2
@@ -667,25 +687,16 @@ ACMS.Config({
 
   quickSearchFeature: true,
   quickSearchCommand: ['command + k', 'ctrl + k'],
-  //----------
-  // autoHeight
-  autoHeightMark: '.js-autoheight',
-  autoHeightConfArray: [
-    {
-      '.column3': '3', // クラス名と高さを揃えるコンテンツ数
-      '.column2': '2'
-    }
-  ],
 
   //-------------
   // autoHeightR
   autoHeightRMark: '.js-autoheight-r',
   autoHeightRConf: {
     style: 'height',
-    element: '',       // 高さのスタイルを適応するクラス（空の場合はautoHeightRMarkの要素に適応）
+    element: '', // 高さのスタイルを適応するクラス（空の場合はautoHeightRMarkの要素に適応）
     offset: 0,
     parent: 'parent', // parent : autoHeightRMarkクラスの一個上の要素 or 指定した要素
-    list: ''        // 実際に並んでいる要素のクラスを指定（指定してない場合、autoHeightRMarkの一個上の要素）
+    list: '', // 実際に並んでいる要素のクラスを指定（指定してない場合、autoHeightRMarkの一個上の要素）
   },
   autoHeightRArray: [
     //    {
@@ -696,7 +707,7 @@ ACMS.Config({
 
   //--------------------
   // 日付選択カレンダー
-  dpicMark: 'input:text[name$=date]:not(.js-datepicker2), .js-datepicker', // セレクタの指し示す要素をクリックで日付選択カレンダーを利用出来ます
+  dpicMark: '.js-datepicker', // セレクタの指し示す要素をクリックで日付選択カレンダーを利用出来ます
   dpicConfig: {
     closeText: ACMS.i18n('datepic.close'),
     prevText: ACMS.i18n('datepic.prev'),
@@ -714,7 +725,7 @@ ACMS.Config({
       ACMS.i18n('datepic.month.sep'),
       ACMS.i18n('datepic.month.oct'),
       ACMS.i18n('datepic.month.nov'),
-      ACMS.i18n('datepic.month.dec')
+      ACMS.i18n('datepic.month.dec'),
     ],
     monthNamesShort: [
       ACMS.i18n('datepic.month.jan'),
@@ -728,7 +739,7 @@ ACMS.Config({
       ACMS.i18n('datepic.month.sep'),
       ACMS.i18n('datepic.month.oct'),
       ACMS.i18n('datepic.month.nov'),
-      ACMS.i18n('datepic.month.dec')
+      ACMS.i18n('datepic.month.dec'),
     ],
     dayNames: [
       ACMS.i18n('datepic.week.sun'),
@@ -737,7 +748,7 @@ ACMS.Config({
       ACMS.i18n('datepic.week.wed'),
       ACMS.i18n('datepic.week.thu'),
       ACMS.i18n('datepic.week.fri'),
-      ACMS.i18n('datepic.week.sat')
+      ACMS.i18n('datepic.week.sat'),
     ],
     dayNamesShort: [
       ACMS.i18n('datepic.week_short.sun'),
@@ -746,7 +757,7 @@ ACMS.Config({
       ACMS.i18n('datepic.week_short.wed'),
       ACMS.i18n('datepic.week_short.thu'),
       ACMS.i18n('datepic.week_short.fri'),
-      ACMS.i18n('datepic.week_short.sat')
+      ACMS.i18n('datepic.week_short.sat'),
     ],
     dayNamesMin: [
       ACMS.i18n('datepic.week_min.sun'),
@@ -755,12 +766,12 @@ ACMS.Config({
       ACMS.i18n('datepic.week_min.wed'),
       ACMS.i18n('datepic.week_min.thu'),
       ACMS.i18n('datepic.week_min.fri'),
-      ACMS.i18n('datepic.week_min.sat')
+      ACMS.i18n('datepic.week_min.sat'),
     ],
     dateFormat: 'yy-mm-dd',
     firstDay: 0,
     isRTL: false,
-    constrainInput: false
+    constrainInput: false,
   },
   dpicArray: [
     //    {
@@ -771,15 +782,15 @@ ACMS.Config({
   flatDatePicker: '.js-datepicker2',
   flatDatePickerConfig: {
     allowInput: true,
-    dateFormat: 'Y-m-d'
+    dateFormat: 'Y-m-d',
   },
   flatTimePicker: '.js-timepicker',
   flatTimePickerConfig: {
     allowInput: true,
     enableTime: true,
     noCalendar: true,
-    dateFormat: "H:i:S",
-    time_24hr: true
+    dateFormat: 'H:i:S',
+    time_24hr: true,
   },
   //-----------
   // accordion
@@ -788,7 +799,7 @@ ACMS.Config({
     active: null,
     animated: 'slide', // ( 'slide' | 'fade' | '' )
     heightStyle: 'content',
-    collapsible: true
+    collapsible: true,
   },
   accordionArray: [
     //    {
@@ -807,7 +818,7 @@ ACMS.Config({
       //opacity : 'toggle', // クロスフェード
       //height  : 'toggle', // 縦スライド
       //duration: 'fast' // ( 'fast' | 'normal' | 'slow' | '' )
-    }
+    },
   },
   tabsArray: [
     //    {
@@ -822,7 +833,7 @@ ACMS.Config({
   acmsTabsConfig: {
     tabClass: 'js-acms_tab',
     activeClass: 'js-acms_tab-active',
-    readyMark: '.js-ready-acms_tabs' // e.g. window.document.location.hash
+    readyMark: '.js-ready-acms_tabs', // e.g. window.document.location.hash
   },
   acmsTabsArray: [
     //    {
@@ -835,7 +846,7 @@ ACMS.Config({
   // acms alert close
   acmsAlertCloseMark: '.js-acms-alert-close',
   acmsAlertCloseConfig: {
-    target: '.acms-admin-alert, .acms-alert'
+    target: '.acms-admin-alert, .acms-alert',
   },
   acmsAlertCloseArray: [
     //    {
@@ -847,13 +858,12 @@ ACMS.Config({
   //-------
   // fader
   faderMark: '.js-fader',
-  faderStorageMark: '.js-fader-storage',
   faderConfig: {
     initial: 'hide', // ( 'hide' | 'show' )
     effect: 'fade', // ( 'fade' | 'slide' | '' )
     speed: 'fast', // ( 'fast' | 'slow' )
     activeClass: 'js-fader-active',
-    readyMark: '.js-ready-fader' // e.g. window.document.location.hash
+    readyMark: '.js-ready-fader', // e.g. window.document.location.hash
   },
   faderArray: [
     //    {
@@ -862,31 +872,24 @@ ACMS.Config({
     //    }
   ],
 
-  //--------
-  // toggle
-  toggleMark: '.js-toggle',
-  toggleConfig: {
+  //-------
+  // admin fader
+  adminFaderMark: '.js-admin-fader',
+  adminFaderConfig: {
+    initial: 'hide', // ( 'hide' | 'show' )
+    effect: 'fade', // ( 'fade' | 'slide' | '' )
     speed: 'fast', // ( 'fast' | 'slow' )
-    readyMark: '.js-ready-toggle',
-    hideMark: '.js-hide-toggle',
-    toggleHead: '.toggle-head'
+    activeClass: 'js-admin-fader-active',
   },
-  toggleArray: [
-    //    {
-    //        'mark'    : '',
-    //        'config'  : {}
-    //    }
-  ],
 
   externalFormSubmitButton: '.js-external-form-btn',
-  blankSubmitBtn: '.js-blank-submit-btn',
 
   //-----------------------
   // タイトルの編集
   editInplateTitleMark: '.entryTitle,.entry-title',
 
   //-----------------------------------
-  // エントリーの位置情報編集時のデフォルト
+  // 位置情報編集時のデフォルト
   adminLocationDefaultLat: '35.185574',
   adminLocationDefaultLng: '136.899066',
   adminLocationDefaultZoom: '10',
@@ -900,8 +903,6 @@ ACMS.Config({
   // 静的グーグルマップの動的化
   s2dMark: '[class^="column-map-"]>img:not(.js-s2d-ready)',
   s2dReadyMark: 'img.js-s2d-ready',
-  s2dMaxSize: 640,
-  s2dPinShadowImg: 'http://maps.google.co.jp/mapfiles/ms/icons/msmarker.shadow.png',
   s2dRegion: 'JP',
   s2dStyle: [
     // {
@@ -925,10 +926,6 @@ ACMS.Config({
     // }
   ],
   streetViewMark: '.js-street-view',
-
-  //-----------
-  // swfobject
-  swfoMark: '.swfobject', // パラメータが指定されたdl要素をflashに置き換えます。
 
   //--------------
   // 離脱時アラート
@@ -961,14 +958,14 @@ ACMS.Config({
   //--------------------
   // オフキャンバス
   offcanvas: {
-    'fixedHeaderMark': '.js-offcanvas-header',
-    'openBtnMark': '.js-offcanvas-btn',//offcanvasを開くボタンのクラス
-    'openBtnRMark': '.js-offcanvas-btn-r',//offcanvasを右方向に開くボタンのクラス
-    'openBtnLMark': '.js-offcanvas-btn-l',//offcanvasを左方向に開くボタンのクラス
-    'closeBtnMark': '.js-offcanvas-close',//offcanvasを閉じるボタンのクラス
-    'offcanvasMark': '.js-offcanvas',//offcanvasが適応されるエリアのクラス
-    'breakpoint': 767, //max-widthで指定,'all'を指定すると全画面,
-    'throttleTime': 100
+    fixedHeaderMark: '.js-offcanvas-header',
+    openBtnMark: '.js-offcanvas-btn', //offcanvasを開くボタンのクラス
+    openBtnRMark: '.js-offcanvas-btn-r', //offcanvasを右方向に開くボタンのクラス
+    openBtnLMark: '.js-offcanvas-btn-l', //offcanvasを左方向に開くボタンのクラス
+    closeBtnMark: '.js-offcanvas-close', //offcanvasを閉じるボタンのクラス
+    offcanvasMark: '.js-offcanvas', //offcanvasが適応されるエリアのクラス
+    breakpoint: 767, //max-widthで指定,'all'を指定すると全画面,
+    throttleTime: 100,
   },
   //--------------------
   // スクロール時の追随
@@ -981,7 +978,7 @@ ACMS.Config({
     breakpoint: 767,
     condition: function () {
       return true;
-    }
+    },
   },
   //--------------------
   // プレビュー機能の設定
@@ -989,81 +986,81 @@ ACMS.Config({
   previewDeviceHistoryKey: {
     preview: 'acms-preview-history-device', // プレビュー時
     approval: 'acms-approval-preview-history-device', // 承認プレビュー時
-    timemachine: 'acms-timemachine-preview-history-device' // タイムマシン時
+    timemachine: 'acms-timemachine-preview-history-device', // タイムマシン時
   },
   previewDevices: [
     {
-      name: 'iPhone 6/7/8',
-      ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
-      width: 375,
-      height: 667,
+      name: 'iPhone 16',
+      ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+      width: 393,
+      height: 852,
       resizable: false,
-      hasFrame: true
+      hasFrame: true,
     },
     {
-      name: 'iPhone 6/7/8 Plus',
-      ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
-      width: 414,
-      height: 736,
+      name: 'iPhone 16 Pro Max',
+      ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+      width: 440,
+      height: 956,
       resizable: false,
-      hasFrame: true
+      hasFrame: true,
     },
     {
-      name: 'iPhone 5/SE',
-      ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
-      width: 320,
-      height: 568,
-      resizable: false,
-      hasFrame: true
-    },
-    {
-      name: 'iPhone X',
-      ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
+      name: 'iPhone 13 mini',
+      ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
       width: 375,
       height: 812,
       resizable: false,
-      hasFrame: false
+      hasFrame: true,
+    },
+    {
+      name: 'iPhone SE',
+      ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+      width: 375,
+      height: 667,
+      resizable: false,
+      hasFrame: true,
+    },
+    {
+      name: 'Android FHD+',
+      ua: 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36',
+      width: 412,
+      height: 917,
+      resizable: false,
+      hasFrame: true,
     },
     {
       name: 'iPad',
-      ua: 'Mozilla/5.0 (iPad; CPU OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
-      width: 768,
-      height: 1024,
+      ua: 'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+      width: 820,
+      height: 1180,
       resizable: false,
-      hasFrame: true
+      hasFrame: true,
     },
     {
-      name: 'HUAWEI P20 Lite',
-      ua: 'Mozilla/5.0 (Linux; Android 8.0.0;HWV32 Build/HUAWEI-HWV32)AppleWebKit/537.36(KHTML,like Gecko) Chrome/64.0.3282.137 Mobile Safari/537.36',
-      width: 360,
-      height: 760,
+      name: 'iPad mini',
+      ua: 'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+      width: 744,
+      height: 1133,
       resizable: false,
-      hasFrame: false
+      hasFrame: true,
     },
     {
-      name: 'Galaxy S9+ SCV39',
-      ua: 'Mozilla/5.0 (Linux; Android 8.0.0; SCV39 Build/16NW) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/7.0 Chrome/59.0.3071.125 Mobile Safari/537.36',
-      width: 360,
-      height: 740,
+      name: 'iPad Pro 13',
+      ua: 'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+      width: 1032,
+      height: 1376,
       resizable: false,
-      hasFrame: false
-    },
-    {
-      name: 'Xperia XZ2',
-      ua: 'Mozilla/5.0 (Linux; Android 8.0.0; SOV37 Build/51.1.C.0.374) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.137 Mobile Safari/537.36',
-      width: 360,
-      height: 720,
-      resizable: false,
-      hasFrame: false
+      hasFrame: true,
     },
     {
       name: 'PC',
       ua: 'none',
-      width: 1366,
-      height: 768,
+      width: 1400,
+      height: 900,
       resizable: true,
-      hasFrame: false
-    }
+      hasFrame: false,
+    },
   ],
   // テキストの自動選択
   clickSelectionInputTextMark: ':text.url, textarea.js-click-selection, :text.js-click-selection', // セレクタの示す要素をクリックするとテキストが選択状態になります。
@@ -1072,10 +1069,6 @@ ACMS.Config({
   // イメージのロールオーバー
   rolloverImgMark: 'img.js-rollover, img.imgover', // セレクタの示す要素をホバーするとイメージがロールオーバーします。
   rolloverImgSuffix: '_o', // ロールオーバー時のファイル名に付けられる接尾辞です。例) banner.jpg -> banner_o.jpg
-
-  //----------------
-  // ユニットの幅修正
-  unitFixAlign: 'on', // on, off
 
   //--------------------
   // ユニットグループの整列
@@ -1114,21 +1107,31 @@ ACMS.Config({
   //-----------
   // validator
   validatorFormMark: 'form.js-validator',
-  validatorResultClass: 'validator-result-',
-  validatorOkClass: 'valid',
-  validatorNgClass: 'invalid',
-
-  //------------
-  // eval value
-  inputEvalValueMark: '.js-input-eval_value',
-
-  //--------
-  // select
-  select2textMark: '.js-select_2text',
-
-  //-------------------
-  // observe file size
-  observeFileSizeMark: '.js-observeFileSize',
+  validatorOptions: {
+    resultClassName: 'validator-result-',
+    okClassName: 'valid',
+    ngClassName: 'invalid',
+    shouldScrollOnSubmitFailed: true,
+    shouldFocusOnSubmitFailed: true,
+    onInvalid: (results, element) => {
+      ACMS.dispatchEvent('acmsFormInvalid', element, { results });
+    },
+    onValid: (results, element) => {
+      ACMS.dispatchEvent('acmsFormValid', element, { results });
+    },
+    onValidated: (results, element) => {
+      ACMS.dispatchEvent('acmsFormValidated', element, { results });
+    },
+    onSubmitFailed: (results, form) => {
+      ACMS.Dispatch.Utility.unloadAlert(window.document, ACMS.Config.unloadAlertMark, true);
+      ACMS.dispatchEvent('acmsValidateFailed', form, { results });
+    },
+    shouldValidate: 'onBlur',
+    shouldRevalidate: 'onChange',
+    shouldValidateOnSubmit: true,
+    formnovalidateAttr: 'data-acms-formnovalidate',
+    customRules: {},
+  },
 
   //--------------
   // resize image
@@ -1164,13 +1167,15 @@ ACMS.Config({
   postIncludeOffset: 60,
   postIncludeReadyDelay: 0,
   postIncludeIntervalTime: 20000,
-  postIncludeArray: [{
-    //        'mark'           : '.js-post_include-original',
-    //        'type'           : 'submit',
-    //        'method'         : 'swap',
-    //        'effect'         : 'slide',
-    //        'effectSpeed'    : 'slow'
-  }],
+  postIncludeArray: [
+    {
+      //        'mark'           : '.js-post_include-original',
+      //        'type'           : 'submit',
+      //        'method'         : 'swap',
+      //        'effect'         : 'slide',
+      //        'effectSpeed'    : 'slow'
+    },
+  ],
 
   //---------------------
   // link match location
@@ -1186,35 +1191,18 @@ ACMS.Config({
   linkMatchLocationCategoryClass: 'stay',
   linkMatchLocationEntryClass: 'stay',
   linkMatchLocationContainClass: 'stay',
-  linkMatchLocationArray: [{
-    //        'mark'  : '.js-link_match_location-original',
-    //        'type'  : 'part', //( 'part' | 'full' | 'blog' | 'category' | 'entry' )
-    //        'class' : 'current'
-  }],
-
-  //---------
-  // viewing
-  viewingMark: 'a.js-viewing-receptor', // 1.3.0 未満のバージョンからアップデートする場合には 'a' と指定してください。
-  viewingId: 'viewing',
-  viewingClass: 'viewing',
-  viewingEraseMark: 'a.js-viewing-erase', // 'a:not(.js-viewing-indelible)', v3.1: デフォルトでaタグを削除しないように修正
-  viewingReplacement: '',
-  viewingRemoveAttr: ['href', 'charset', 'type', 'hreflang', 'rel', 'rev', 'target'],
-  viewingNonTarget: ['block', 'inline-block', 'flex', 'inline-flex', 'grid', 'inline-grid', 'table', 'table-row', 'list-item'],
+  linkMatchLocationArray: [
+    {
+      //        'mark'  : '.js-link_match_location-original',
+      //        'type'  : 'part', //( 'part' | 'full' | 'blog' | 'category' | 'entry' )
+      //        'class' : 'current'
+    },
+  ],
 
   //--------------------
   // link outside blank
   linkOutsideBlankMark: 'a:not([target]):not([href^="javascript"]):not([href^="tel"])', // 外部リンクを新しいウィンドウで開きます。このセレクタで指定される要素に対してのみ処理対象となります
   linkOutsideAppendAttr: 'noopener noreferrer', //外部リンクに付与する属性
-
-  //------------------------------
-  // link https disabler, enabler
-  // 暗号化を利用したhttps通信時に通常のリンクがhttps://になってしまうものをhttp://に書き換えます。
-  linkHttpsDisablerMark: 'off', // 'a:not([rel*="https"]),a:not([data-rel*="https"])',
-  // a:not([rel*="https"]) というセレクタが設定されている場合はrel属性に"https"と指定されているリンクは書き換えを行わずにhttps://のままになります。
-  linkHttpsEnablerMark: 'off', // 'a[rel*="https"],a[data-rel*="https"]',
-  // 通常のhttp通信時にセレクタに該当するアンカーをhttps://から始まるURLに書き換えます。
-  linkHttpsNoRewriteMark: '.js-link_no_rewrite',
 
   //--------------------
   // adminTableSortable
@@ -1223,7 +1211,6 @@ ACMS.Config({
   //--------------------
   // fieldgroupSortable
   fieldgroupSortableMark: '.js-fieldgroup-sortable',
-  fieldgroupSortableMarkForm: '.js-fieldgroup-sortable-form',
   fieldgroupSortableItemMark: '.sortable-item', // fieldgroupSortableMarkの指し示す要素の子要素である必要があります。
   fieldgroupSortableItemHandleMark: '.item-handle', // fieldgroupSortableItemMarkの指し示す要素の子要素である必要があります。
   fieldgroupSortableItemDeleteMark: '.item-delete', // fieldgroupSortableItemMarkの指し示す要素の子要素である必要があります。
@@ -1234,30 +1221,16 @@ ACMS.Config({
   fieldgroupSortableItemOverflowMessage1: ACMS.i18n('field_group_sortable.overflow_msg1'), // 最大登録数を超えた時のメッセージの前半。（前半と後半の間に最大数が入ります）
   fieldgroupSortableItemOverflowMessage2: ACMS.i18n('field_group_sortable.overflow_msg2'), // 最大登録数を超えた時のメッセージの後半。（前半と後半の間に最大数が入ります）
 
-  //----------------------
-  // innerFieldgroupList
-  innerFieldgroupListMark: '.js-inner-fieldgroup-list',
-  innerFieldgroupListTemplateMask: '.inner-template',
-  innerFieldgroupListDeleteMask: '.inner-delete',
-  innerFieldgroupListInputMask: '.inner-input',
-  innerFieldgroupListInsertMark: '.inner-insert',
-  innerFieldgroupListItemMask: '.inner-item',
-
   //--------------
   // web storage
   webStorage: 'on',
-  webStorageType: 'local',      // local or session
-  webStorageCapacity: 'limitless',  // one or limitless
+  webStorageType: 'local', // local or session
+  webStorageCapacity: 'limitless', // one or limitless
   webStorageInterval: 2000,
-
-  //-----------------
-  // banEnterSubmit
-  banEnterSubmitMask: '.js-ban-enter-submit',
 
   //-------
   // ready
   readyFocusMark: ':input.js-ready-focus',
-  readyScrollMark: '.js-ready-scroll',
 
   //-------
   // hover
@@ -1269,11 +1242,6 @@ ACMS.Config({
   zebraMark: '.js-zebra',
   zebraOddClass: 'odd',
   zebraEvenClass: 'even',
-
-  //-------------
-  // placeholder
-  placeholderMark: '.js-placeholder',
-  placeholderColor: 'silver',
 
   //--------------------
   // incremental search
@@ -1290,14 +1258,6 @@ ACMS.Config({
   // input count up
   countupMark: '.js-countup',
   countupMarkOver: 'acms-admin-text-danger',
-
-  //----------------------
-  // external form button
-  externalFormButtonMark: '.js-external_submit',
-
-  //-----------
-  // copyright
-  copyrightMark: 'a#copyright, #copyright a'
 });
 
 //--------------
@@ -1306,210 +1266,309 @@ ACMS.Config.Admin = {
   //--------------
   // arg guidance
   argGuidance: {
-    'Entry_Body': ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page', 'order'],
-    'Entry_List': ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page', 'order'],
-    'Entry_Photo': ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page', 'order'],
-    'Entry_Headline': ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page', 'order'],
-    'Entry_Summary': ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page', 'order'],
-    'Entry_ArchiveList': ['bid', 'cid', 'keyword', 'tag', 'field_'],
-    'Entry_TagRelational': ['bid', 'cid', 'eid', 'keyword', 'field_', 'start', 'end'],
-    'Entry_Continue': ['eid'],
-    'Entry_Field': ['eid'],
-    'Entry_Calendar': ['bid', 'cid', 'start'],
+    Entry_Body: ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page', 'order'],
+    Entry_List: ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page', 'order'],
+    Entry_Photo: ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page', 'order'],
+    Entry_Headline: ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page', 'order'],
+    Entry_Summary: ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page', 'order'],
+    Entry_ArchiveList: ['bid', 'cid', 'keyword', 'tag', 'field_'],
+    Entry_TagRelational: ['bid', 'cid', 'eid', 'keyword', 'field_', 'start', 'end'],
+    Entry_Continue: ['eid'],
+    Entry_Field: ['eid'],
+    Entry_Calendar: ['bid', 'cid', 'start'],
 
-    'Entry_GeoList': ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page'],
+    Entry_GeoList: ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page'],
 
-    'Admin_Entry_Autocomplete': ['bid', 'uid', 'cid', 'keyword', 'tag', 'field_', 'start', 'end'],
+    Admin_Entry_Autocomplete: ['bid', 'uid', 'cid', 'keyword', 'tag', 'field_', 'start', 'end'],
 
-    'Unit_List': ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page', 'order'],
+    Unit_List: ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page', 'order'],
 
-    'Category_List': ['bid', 'cid', 'keyword', 'field_', 'start', 'end'],
-    'Category_EntryList': ['bid', 'uid', 'cid', 'keyword', 'tag', 'field_', 'start', 'end'],
-    'Category_GeoList': ['bid', 'cid', 'keyword', 'field_'],
-    'Category_EntrySummary': ['bid', 'uid', 'cid', 'keyword', 'tag', 'field_', 'start', 'end'],
-    'Category_Field': ['cid'],
+    Category_List: ['bid', 'cid', 'keyword', 'field_', 'start', 'end'],
+    Category_EntryList: ['bid', 'uid', 'cid', 'keyword', 'tag', 'field_', 'start', 'end'],
+    Category_GeoList: ['bid', 'cid', 'keyword', 'field_'],
+    Category_EntrySummary: ['bid', 'uid', 'cid', 'keyword', 'tag', 'field_', 'start', 'end'],
+    Category_Field: ['cid'],
 
-    'User_Profile': ['bid', 'uid'],
-    'User_Field': ['uid'],
-    'User_Search': ['bid', 'uid', 'keyword', 'field_', 'page'],
-    'User_GeoList': ['bid', 'uid', 'keyword', 'field_', 'page'],
+    User_Profile: ['bid', 'uid'],
+    User_Field: ['uid'],
+    User_Search: ['bid', 'uid', 'keyword', 'field_', 'page'],
+    User_GeoList: ['bid', 'uid', 'keyword', 'field_', 'page'],
 
-    'Blog_Field': ['bid'],
-    'Blog_ChildList': ['bid', 'keyword', 'field_'],
-    'Blog_GeoList': ['bid', 'keyword', 'field_'],
+    Blog_Field: ['bid'],
+    Blog_ChildList: ['bid', 'keyword', 'field_'],
+    Blog_GeoList: ['bid', 'keyword', 'field_'],
 
-    'Tag_Cloud': ['bid', 'cid', 'eid', 'field_', 'start', 'end'],
-    'Tag_Filter': ['bid', 'cid', 'field_', 'tag'],
+    Tag_Cloud: ['bid', 'cid', 'eid', 'field_', 'start', 'end'],
+    Tag_Filter: ['bid', 'cid', 'field_', 'tag'],
 
-    'Calendar_Month': ['bid', 'cid', 'start', 'end'],
-    'Calendar_Year': ['bid', 'cid', 'start'],
+    Calendar_Month: ['bid', 'cid', 'start', 'end'],
+    Calendar_Year: ['bid', 'cid', 'start'],
 
-    'Links': [],
-    'Banner': [],
-    'Media_Banner': [],
-    'Navigation': [],
-    'Topicpath': ['bid', 'cid', 'eid'],
+    Links: [],
+    Banner: [],
+    Media_Banner: [],
+    Navigation: [],
+    Topicpath: ['bid', 'cid', 'eid'],
 
-    'Comment_Body': ['eid'],
-    'Comment_List': ['bid'],
+    Comment_Body: ['eid'],
+    Comment_List: ['bid'],
 
-    'Trackback_Body': ['eid'],
-    'Trackback_List': ['bid'],
+    Json_2Tpl: [],
+    Feed_Rss2: ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'start', 'end'],
+    Feed_ExList: [],
+    Sitemap: [''],
+    Ogp: [],
 
-    'Json_2Tpl': [],
-    'Feed_Rss2': ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'start', 'end'],
-    'Feed_ExList': [],
-    'Sitemap': [''],
-    'Ogp': [],
+    Shop_Cart_List: [],
+    Case_Time: [],
 
-    'Shop_Cart_List': [],
-    'Case_Time': [],
+    Alias_List: ['bid'],
 
-    'Alias_List': ['bid'],
+    Field_ValueList: ['bid', 'field_'],
 
-    'Field_ValueList': ['bid', 'field_'],
+    Form2_Unit: ['eid'],
 
-    'Form2_Unit': ['eid'],
+    Plugin_Schedule: ['bid'],
+    Schedule: ['bid'],
 
-    'Plugin_Schedule': ['bid'],
-    'Schedule': ['bid']
+    V2_Entry_Summary: ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page', 'order'],
+    V2_Entry_Body: ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page', 'order'],
+    V2_Entry_ArchiveList: ['bid', 'cid', 'keyword', 'tag', 'field_'],
+    V2_Entry_TagRelational: ['bid', 'cid', 'eid', 'keyword', 'field_', 'start', 'end'],
+    V2_Entry_MoreContent: ['eid'],
+    V2_Entry_UnitList: ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page', 'order'],
+    V2_Entry_GeoList: ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page'],
+    V2_Category_Tree: ['bid', 'cid', 'keyword', 'field_', 'start', 'end', 'order'],
+    V2_Category_EntrySummary: ['bid', 'uid', 'cid', 'keyword', 'tag', 'field_', 'start', 'end'],
+    V2_Category_GeoList: ['bid', 'cid', 'keyword', 'field_', 'page'],
+    V2_Media_Banner: [],
+    V2_Blog_Field: ['bid'],
+    V2_Entry_Field: ['eid'],
+    V2_Category_Field: ['cid'],
+    V2_User_Field: ['uid'],
+    V2_Module_Field: [],
+    V2_Field_ValueList: ['bid', 'field_'],
+    V2_Links: [],
+    V2_Navigation: [],
+    V2_Tag_Filter: ['bid', 'cid', 'field_', 'tag'],
+    V2_Tag_Cloud: ['bid', 'cid', 'eid', 'field_', 'start', 'end'],
+    V2_Topicpath: ['bid', 'cid', 'eid'],
+    V2_User_Search: ['bid', 'uid', 'keyword', 'field_', 'page'],
+    V2_User_GeoList: ['bid', 'uid', 'keyword', 'field_', 'page'],
+    V2_Blog_ChildList: ['bid', 'keyword', 'field_'],
+    V2_Blog_GeoList: ['bid', 'keyword', 'field_'],
+    V2_Json2Tpl: [],
+    V2_Ogp: [],
+    V2_Sitemap: [],
+    V2_Calendar: ['bid', 'cid', 'start'],
+    V2_CalendarYear: ['bid', 'cid', 'start'],
+    V2_Schedule: ['bid', 'start'],
+    V2_GlobalVars: [],
   },
 
   //--------------
   // axis guidance
   axisGuidance: {
-    'Entry_Body': ['bid_axis', 'cid_axis'],
-    'Entry_List': ['bid_axis', 'cid_axis'],
-    'Entry_Photo': ['bid_axis', 'cid_axis'],
-    'Entry_Headline': ['bid_axis', 'cid_axis'],
-    'Entry_Summary': ['bid_axis', 'cid_axis'],
-    'Entry_ArchiveList': ['bid_axis', 'cid_axis'],
-    'Entry_TagRelational': ['bid_axis', 'cid_axis'],
-    'Entry_Continue': [],
-    'Entry_Field': [],
-    'Entry_Calendar': ['bid_axis', 'cid_axis'],
+    Entry_Body: ['bid_axis', 'cid_axis'],
+    Entry_List: ['bid_axis', 'cid_axis'],
+    Entry_Photo: ['bid_axis', 'cid_axis'],
+    Entry_Headline: ['bid_axis', 'cid_axis'],
+    Entry_Summary: ['bid_axis', 'cid_axis'],
+    Entry_ArchiveList: ['bid_axis', 'cid_axis'],
+    Entry_TagRelational: ['bid_axis', 'cid_axis'],
+    Entry_Continue: [],
+    Entry_Field: [],
+    Entry_Calendar: ['bid_axis', 'cid_axis'],
 
-    'Entry_GeoList': ['bid_axis', 'cid_axis'],
+    Entry_GeoList: ['bid_axis', 'cid_axis'],
 
-    'Admin_Entry_Autocomplete': ['bid_axis', 'cid_axis'],
+    Admin_Entry_Autocomplete: ['bid_axis', 'cid_axis'],
 
-    'Unit_List': ['bid_axis', 'cid_axis'],
+    Unit_List: ['bid_axis', 'cid_axis'],
 
-    'Category_List': ['cid_axis'],
-    'Category_EntryList': [],
-    'Category_EntrySummary': ['bid_axis', 'cid_axis'],
-    'Category_Field': [],
+    Category_List: ['cid_axis'],
+    Category_EntryList: [],
+    Category_EntrySummary: ['bid_axis', 'cid_axis'],
+    Category_Field: [],
+    Category_GeoList: [],
 
-    'User_Profile': [],
-    'User_Field': [],
-    'User_Search': ['bid_axis'],
+    User_Profile: [],
+    User_Field: [],
+    User_Search: ['bid_axis'],
+    User_GeoList: [],
 
-    'Blog_Field': [],
-    'Blog_ChildList': [],
+    Blog_Field: [],
+    Blog_ChildList: [],
+    Blog_GeoList: [],
 
-    'Tag_Cloud': ['bid_axis', 'cid_axis'],
-    'Tag_Filter': ['bid_axis', 'cid_axis'],
+    Tag_Cloud: ['bid_axis', 'cid_axis'],
+    Tag_Filter: ['bid_axis', 'cid_axis'],
 
-    'Calendar_Month': ['bid_axis', 'cid_axis'],
-    'Calendar_Year': ['bid_axis', 'cid_axis'],
+    Calendar_Month: ['bid_axis', 'cid_axis'],
+    Calendar_Year: ['bid_axis', 'cid_axis'],
 
-    'Links': [],
-    'Banner': [],
-    'Media_Banner': [],
-    'Navigation': [],
-    'Topicpath': ['bid_axis', 'cid_axis'],
+    Links: [],
+    Banner: [],
+    Media_Banner: [],
+    Navigation: [],
+    Topicpath: ['bid_axis', 'cid_axis'],
 
-    'Comment_Body': [],
-    'Comment_List': [],
+    Comment_Body: [],
+    Comment_List: [],
 
-    'Trackback_Body': [],
-    'Trackback_List': [],
+    Json_2Tpl: [],
+    Feed_Rss2: ['bid_axis', 'cid_axis'],
+    Feed_ExList: [],
+    Sitemap: ['bid_axis', 'cid_axis'],
+    Ogp: [],
 
-    'Json_2Tpl': [],
-    'Feed_Rss2': ['bid_axis', 'cid_axis'],
-    'Feed_ExList': [],
-    'Sitemap': ['bid_axis', 'cid_axis'],
-    'Ogp': [],
+    Shop_Cart_List: [],
+    Case_Time: [],
 
-    'Shop_Cart_List': [],
-    'Case_Time': [],
+    Alias_List: [],
 
-    'Alias_List': [],
+    Field_ValueList: ['bid_axis'],
 
-    'Field_ValueList': ['bid_axis'],
+    Form2_Unit: [],
 
-    'Form2_Unit': [],
+    Plugin_Schedule: [],
+    Schedule: [],
 
-    'Plugin_Schedule': [],
-    'Schedule': []
+    V2_Entry_Summary: ['bid_axis', 'cid_axis'],
+    V2_Entry_Body: ['bid_axis', 'cid_axis'],
+    V2_Entry_ArchiveList: ['bid_axis', 'cid_axis'],
+    V2_Entry_TagRelational: ['bid_axis', 'cid_axis'],
+    V2_Entry_MoreContent: [],
+    V2_Entry_UnitList: ['bid_axis', 'cid_axis'],
+    V2_Entry_GeoList: ['bid_axis', 'cid_axis'],
+    V2_Category_Tree: ['cid_axis'],
+    V2_Category_EntrySummary: ['cid_axis'],
+    V2_Category_GeoList: [],
+    V2_Media_Banner: [],
+    V2_Blog_Field: [],
+    V2_Entry_Field: [],
+    V2_Category_Field: [],
+    V2_User_Field: [],
+    V2_Module_Field: [],
+    V2_Field_ValueList: ['bid_axis'],
+    V2_Links: [],
+    V2_Navigation: [],
+    V2_Tag_Filter: ['bid_axis', 'cid_axis'],
+    V2_Tag_Cloud: ['bid_axis', 'cid_axis'],
+    V2_Topicpath: ['bid_axis', 'cid_axis'],
+    V2_User_Search: ['bid_axis'],
+    User_GeoList: [],
+    V2_Blog_ChildList: [],
+    V2_Blog_GeoList: [],
+    V2_Json2Tpl: [],
+    V2_Ogp: [],
+    V2_Sitemap: ['bid_axis', 'cid_axis'],
+    V2_Calendar: ['bid_axis', 'cid_axis'],
+    V2_CalendarYear: ['bid_axis', 'cid_axis'],
+    V2_Schedule: [],
+    V2_GlobalVars: [],
   },
 
   //--------------------
   // multi arg guidance
   multiArgGuidance: {
-    'Entry_Body': ['bid', 'uid', 'cid', 'eid'],
-    'Entry_List': ['bid', 'uid', 'cid', 'eid'],
-    'Entry_Photo': ['bid', 'uid', 'cid', 'eid'],
-    'Entry_Headline': ['bid', 'uid', 'cid', 'eid'],
-    'Entry_Summary': ['bid', 'uid', 'cid', 'eid'],
-    'Entry_ArchiveList': ['bid', 'uid', 'cid', 'eid'],
-    'Entry_TagRelational': ['cid'],
-    'Entry_Continue': [],
-    'Entry_Field': ['bid', 'uid', 'cid', 'eid'],
-    'Entry_Calendar': [],
+    Entry_Body: ['bid', 'uid', 'cid', 'eid'],
+    Entry_List: ['bid', 'uid', 'cid', 'eid'],
+    Entry_Photo: ['bid', 'uid', 'cid', 'eid'],
+    Entry_Headline: ['bid', 'uid', 'cid', 'eid'],
+    Entry_Summary: ['bid', 'uid', 'cid', 'eid'],
+    Entry_ArchiveList: [],
+    Entry_TagRelational: ['cid'],
+    Entry_Continue: [],
+    Entry_Field: ['bid', 'uid', 'cid', 'eid'],
+    Entry_Calendar: [],
 
-    'Entry_GeoList': ['bid', 'uid', 'cid'],
+    Entry_GeoList: ['bid', 'uid', 'cid'],
 
-    'Admin_Entry_Autocomplete': ['bid', 'uid', 'cid', 'eid'],
+    Admin_Entry_Autocomplete: ['bid', 'uid', 'cid', 'eid'],
 
-    'Unit_List': [],
+    Unit_List: [],
 
-    'Category_List': [],
-    'Category_EntryList': [],
-    'Category_EntrySummary': [],
-    'Category_Field': [],
+    Category_List: [],
+    Category_EntryList: [],
+    Category_EntrySummary: [],
+    Category_Field: [],
+    Category_GeoList: [],
 
-    'User_Profile': [],
-    'User_Field': [],
-    'User_Search': [],
+    User_Profile: [],
+    User_Field: [],
+    User_Search: [],
+    User_GeoList: [],
 
-    'Blog_Field': [],
-    'Blog_ChildList': [],
+    Blog_Field: [],
+    Blog_ChildList: [],
+    Blog_GeoList: [],
 
-    'Tag_Cloud': ['bid', 'cid'],
-    'Tag_Filter': ['bid', 'cid'],
+    Tag_Cloud: ['bid', 'cid'],
+    Tag_Filter: ['bid', 'cid'],
 
-    'Calendar_Month': [],
-    'Calendar_Year': [],
+    Calendar_Month: [],
+    Calendar_Year: [],
 
-    'Links': [],
-    'Banner': [],
-    'Media_Banner': [],
-    'Navigation': [],
-    'Topicpath': [],
+    Links: [],
+    Banner: [],
+    Media_Banner: [],
+    Navigation: [],
+    Topicpath: [],
 
-    'Comment_Body': [],
-    'Comment_List': [],
+    Comment_Body: [],
+    Comment_List: [],
 
-    'Trackback_Body': [],
-    'Trackback_List': [],
+    Json_2Tpl: [],
+    Feed_Rss2: [],
+    Feed_ExList: [],
+    Sitemap: [],
+    Ogp: [],
 
-    'Json_2Tpl': [],
-    'Feed_Rss2': [],
-    'Feed_ExList': [],
-    'Sitemap': [],
-    'Ogp': [],
+    Shop_Cart_List: [],
+    Case_Time: [],
 
-    'Shop_Cart_List': [],
-    'Case_Time': [],
+    Alias_List: [],
 
-    'Alias_List': [],
+    Field_ValueList: [],
 
-    'Field_ValueList': [],
+    Form2_Unit: [],
 
-    'Form2_Unit': [],
+    Plugin_Schedule: [],
+    Schedule: [],
 
-    'Plugin_Schedule': [],
-    'Schedule': []
-  }
+    V2_Entry_Summary: ['bid', 'uid', 'cid', 'eid'],
+    V2_Entry_Body: ['bid', 'uid', 'cid', 'eid'],
+    V2_Entry_ArchiveList: [],
+    V2_Entry_TagRelational: ['cid'],
+    V2_Entry_MoreContent: [],
+    V2_Entry_UnitList: [],
+    V2_Entry_GeoList: ['bid', 'uid', 'cid'],
+    V2_Category_Tree: [],
+    V2_Category_EntrySummary: [],
+    V2_Category_GeoList: [],
+    V2_Media_Banner: [],
+    V2_Blog_Field: [],
+    V2_Entry_Field: [],
+    V2_Category_Field: [],
+    V2_User_Field: [],
+    V2_Module_Field: [],
+    V2_Field_ValueList: [],
+    V2_Links: [],
+    V2_Navigation: [],
+    V2_Tag_Filter: ['bid', 'cid'],
+    V2_Tag_Cloud: ['bid', 'cid'],
+    V2_Topicpath: [],
+    V2_User_Search: [],
+    V2_User_GeoList: [],
+    V2_Blog_ChildList: [],
+    V2_Blog_GeoList: [],
+    V2_Json2Tpl: [],
+    V2_Ogp: [],
+    V2_Sitemap: [],
+    V2_Calendar: [],
+    V2_CalendarYear: [],
+    V2_Schedule: [],
+    V2_GlobalVars: [],
+  },
 };

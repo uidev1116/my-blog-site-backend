@@ -59,7 +59,7 @@ class ACMS_POST_Comment_Insert extends ACMS_POST_Comment
         $DB = DB::singleton(dsn());
         if (!empty($replyId)) {
             if (!$pt = ACMS_RAM::commentRight($replyId)) {
-                die();
+                die500();
             }
             $pid    = $replyId;
 

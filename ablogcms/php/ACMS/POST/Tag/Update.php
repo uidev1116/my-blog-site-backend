@@ -46,8 +46,9 @@ class ACMS_POST_Tag_Update extends ACMS_POST
         $SQL->setGroup('tag_entry_id');
         $SQL->setHaving(SQL::newOpr('tag_entry_id', 2, '>=', null, 'COUNT'));
         $q = $SQL->get(dsn());
+        $statement = $DB->query($q, 'exec');
 
-        if ($DB->query($q, 'fetch') && ($row = $DB->fetch($q))) {
+        if ($statement && ($row = $DB->next($statement))) {
             do {
                 $eid = intval($row['tag_entry_id']);
                 $Del = SQL::newDelete('tag');
@@ -55,7 +56,7 @@ class ACMS_POST_Tag_Update extends ACMS_POST
                 $Del->addWhereOpr('tag_entry_id', $eid);
                 $Del->addWhereOpr('tag_blog_id', BID);
                 $DB->query($Del->get(dsn()), 'exec');
-            } while ($row = $DB->fetch($q));
+            } while ($row = $DB->next($statement));
         }
 
         $SQL = SQL::newUpdate('tag');

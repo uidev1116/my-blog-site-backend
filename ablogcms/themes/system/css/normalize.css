@@ -307,4 +307,6 @@ template {
 [hidden] {
   display: none;
 }
-
+[role=button] {
+  cursor: pointer;
+}

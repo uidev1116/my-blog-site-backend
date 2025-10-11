@@ -109,7 +109,7 @@ class ACMS_GET_Approval_Notification extends ACMS_GET
             $approval['url'] = acmsLink([
                 'bid'           => $row['approval_blog_id'],
                 'eid'           => $row['notification_entry_id'],
-                'tpl'           => 'ajax/revision-preview.html',
+                'tpl'           => 'ajax/revision/preview.html',
                 'query'         => [
                     'rvid'  => $row['notification_rev_id'],
                 ],

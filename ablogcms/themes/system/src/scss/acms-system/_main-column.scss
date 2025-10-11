@@ -1,4 +1,3 @@
-@use 'sass:math';
 @use '../global/common' as global;
 
 // ------------------------------
@@ -8,18 +7,31 @@
 #acms-admin-main {
   z-index: global.zIndex(acms-main);
   height: 100%;
-  padding-right: math.div(global.$grid-space, 2);
-  padding-right: calc((#{global.$grid-space} / 2) + constant(safe-area-inset-right));
-  padding-left: math.div(global.$grid-space, 2);
+  padding: 0;
+}
+
+.acms-nav + #acms-admin-main {
+  padding-right: calc(global.$grid-space / 2);
+  padding-right: calc((global.$grid-space / 2) + constant(safe-area-inset-right));
+  padding-left: calc(global.$grid-space / 2);
 }
 
 #main {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-height: 100vh;
   padding-top: 20px;
   padding-bottom: 20px;
 }
 
-@media screen and (min-width: global.$breakpoint-md-min) {
-  #acms-admin-main {
+#main #admin-main {
+  position: relative;
+  flex: 1 1 auto;
+}
+
+@include global.media-breakpoint-up(md) {
+  .acms-nav + #acms-admin-main {
     padding: 0 20px 0 245px;
     padding: 0 calc(30px + constant(safe-area-inset-right)) 0 20px;
   }

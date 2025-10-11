@@ -21,13 +21,22 @@
 
         @include("/_member/parts/error.html")
 
-        <div class="validator-result-{pass:validator#auth} acms-alert acms-alert-danger"><!--T-->ユーザーIDまたはパスワードが違います。<!--/T--></div>
-        <div class="validator-result-{recovery:validator#auth} acms-alert acms-alert-danger"><!--T-->正しいリカバリーコードを入力してください。<!--/T--></div>
-        <div class="validator-result-{mail:validator#lock} acms-alert acms-alert-danger">
+        <!-- BEGIN_IF [{pass:validator#auth}/eq/0] -->
+        <div role="alert" class="acms-alert acms-alert-danger">
+          <!--T-->ユーザーIDまたはパスワードが違います。<!--/T-->
+        </div>
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{recovery:validator#auth}/eq/0] -->
+        <div role="alert" class="acms-alert acms-alert-danger">
+          <!--T-->正しいリカバリーコードを入力してください。<!--/T-->
+        </div>
+        <!-- END_IF -->
+        <!-- BEGIN_IF [{mail:validator#lock}/eq/0] -->
+        <div role="alert" class="acms-alert acms-alert-danger">
           <!--T--><!--$1-->{trialNumber}<!--/$1-->回ログインに失敗したため、アカウントがロックされました。<!--/T-->
           <!--T--><!--$1-->{lockTime}<!--/$1-->分後にもう一度試してください。<!--/T-->
         </div>
-
+        <!-- END_IF -->
         <!-- BEGIN notSuccessful -->
         <label for="input-text-mail" class="acms-member-form-label"><!--T-->ユーザーID<!--/T--> / <!--T-->メールアドレス<!--/T--></label>
         <input type="text" name="mail" value="{mail}" id="input-text-mail" class="acms-form-large acms-form-block acms-form-width-full validator-result-{pass:validator#auth}" placeholder="" autocomplete="username" />
@@ -49,9 +58,9 @@
     </div>
     <!-- BEGIN notSuccessful -->
     <div class="acms-member-main-box-bottom">
-      <div class="acms-grid">
-        <p class="acms-col-6 acms-margin-none"><a href="%{BLOG_URL}%{SIGNIN_SEGMENT}/" class="acms-btn-flat acms-btn-block"><!--T-->サインインページに移動<!--/T--></a></p>
-        <p class="acms-col-6 acms-margin-none"><a href="%{BLOG_URL}" class="acms-btn-flat acms-btn-block"><!--T-->サイトに戻る<!--/T--></a></p>
+      <div class="acms-cssgrid">
+        <p class="acms-g-col-6 acms-m-0"><a href="%{BLOG_URL}%{SIGNIN_SEGMENT}/" class="acms-btn-flat acms-btn-block"><!--T-->サインインページに移動<!--/T--></a></p>
+        <p class="acms-g-col-6 acms-m-0"><a href="%{BLOG_URL}" class="acms-btn-flat acms-btn-block"><!--T-->サイトに戻る<!--/T--></a></p>
       </div>
     </div>
     <!-- END notSuccessful -->

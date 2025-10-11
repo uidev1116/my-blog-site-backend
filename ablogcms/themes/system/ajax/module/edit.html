@@ -115,28 +115,25 @@
 
               <input type="hidden" class="getMid" value="%{mid}" />
 
-              <ul class="js-acms_admin_tabs"><!-- BEGIN_IF [{editStatus}/eq/update] -->
-                <li><a href="#acms_box2">表示設定</a></li><!-- END_IF -->
+              <ul class="js-acms_admin_tabs">
+                <!-- BEGIN_IF [{editStatus}/eq/update] -->
+                <li><a href="#acms_box2">表示設定</a></li>
+                <!-- END_IF -->
                 <li><a href="#acms_box1">条件設定</a></li>
                 <li><a href="#acms_box3">カスタム設定</a></li>
               </ul>
 
-              <div id="acms_box1" class="acms-admin-tabs-panel anchorFix">
-                <div class="acms-admin-padding-small">
+              <div id="acms_box1" class="acms-admin-tabs-panel">
                 @include("/include/module/edit.html")
-                </div>
               </div>
 
-              <div id="acms_box3" class="acms-admin-tabs-panel anchorFix">
-                <div class="acms-admin-padding-small">
+              <div id="acms_box3" class="acms-admin-tabs-panel">
                 @include("/admin/module/field.html")
-                </div>
               </div>
 
               <!-- BEGIN_IF [{editStatus}/eq/update] -->
               <!-- END_MODULE Admin_Module_Edit -->
-              <div id="acms_box2" class="acms-admin-tabs-panel anchorFix">
-                <div class="acms-admin-padding-small">
+              <div id="acms_box2" class="acms-admin-tabs-panel">
                 <!-- BEGIN_IF [%{ADMIN_PATH_MID}/eq/config/banner] -->
                   <!-- BEGIN_MODULE Admin_Config_Banner -->
                   @include("/admin/%{ADMIN_PATH_MID}_body.html")
@@ -147,8 +144,8 @@
                   <!-- BEGIN_MODULE Admin_InjectTemplate id="admin-module-config-%{MODULE_NAME}" --><!-- END_MODULE Admin_InjectTemplate -->
                   <!-- END_MODULE Admin_Config -->
                 <!-- END_IF -->
-                </div>
-              </div><!-- END_IF -->
+              </div>
+              <!-- END_IF -->
             </div>
           </form>
           <iframe name="js-ajaxPostData" width="0" height="0" frameborder="0"></iframe>

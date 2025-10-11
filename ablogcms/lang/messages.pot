@@ -1011,7 +1011,7 @@ msgstr ""
 msgid "ライセンス未購入"
 msgstr ""
 
-msgid "登録されているユーザー数が上限を超えているため、ラインセンスが無効になっています。"
+msgid "登録されているユーザー数が上限を超えているため、ライセンスが無効になっています。"
 msgstr ""
 
 msgid "ライセンスのドメインと違うため、ライセンスが無効になっています。"
@@ -1312,9 +1312,6 @@ msgid "なし"
 msgstr ""
 
 msgid "全て"
-msgstr ""
-
-msgid "番目までのカラムを抜粋"
 msgstr ""
 
 msgid "インデキシング"
@@ -3620,31 +3617,6 @@ msgstr ""
 msgid "チェックをするとカスタムフィールドを出力できます。"
 msgstr ""
 
-#: themes/system/admin/config/column-definition.html
-msgid "{actualLabel}"
-msgstr ""
-
-msgid "{group.label}"
-msgstr ""
-
-msgid "グループ2"
-msgstr ""
-
-msgid "画像の編集"
-msgstr ""
-
-msgid "メディアID"
-msgstr ""
-
-msgid "拡大表示"
-msgstr ""
-
-msgid "サイズ "
-msgstr ""
-
-msgid "テンプレート"
-msgstr ""
-
 #: themes/system/admin/config/comment/body_body.html
 msgid "表示形式"
 msgstr ""
@@ -3786,7 +3758,7 @@ msgstr ""
 msgid "モードは半角英字で入力して下さい。（image-mobile）"
 msgstr ""
 
-msgid "モードの指定が重複しています。一意なモード名を半角英字で入力してください。"
+msgid "ユニットメニューのモードが重複しています。一意なモード名を半角英字で入力してください。"
 msgstr ""
 
 msgid "ユニット追加ボタンのボタン名を設定します。"
@@ -5880,18 +5852,6 @@ msgstr ""
 msgid "プロパティ情報を保存しました"
 msgstr ""
 
-msgid "メタ情報"
-msgstr ""
-
-msgid "このサイトの meta name=&quot;keywords&quot; の内容として使用できます。「,（カンマ）」で区切ることで複数登録することができます。この入力内容は、グローバル変数の&#37;&#123;META_KEYWORDS}で表示できます。"
-msgstr ""
-
-msgid "説明 ( ディスクリプション ) "
-msgstr ""
-
-msgid "このサイトの meta name=&quot;description&quot; の内容として使用できます。この入力内容は、グローバル変数の&#37;&#123;META_DESCRIPTION}で表示できます。"
-msgstr ""
-
 msgid "ウェブサービス"
 msgstr ""
 
@@ -6348,13 +6308,6 @@ msgstr ""
 msgid "最終ログイン日時 ( 降順 )"
 msgstr ""
 
-#: themes/system/admin/entry/add.html
-msgid "ユニット追加"
-msgstr ""
-
-msgid "現在の変更が破棄されます、よろしいですか？"
-msgstr ""
-
 #: themes/system/admin/entry/bulk-change/confirm.html
 msgid "変換内容"
 msgstr ""
@@ -6458,13 +6411,6 @@ msgid "一括編集をするエントリーを少なくとも１つ選択する�
 msgstr ""
 
 msgid "実行する一括操作を少なくとも１つ選択する必要があります。"
-msgstr ""
-
-#: themes/system/admin/entry/edit-field.html
-msgid "カスタムフィールドを保存しました"
-msgstr ""
-
-msgid "カスタムフィールドを保存"
 msgstr ""
 
 #: themes/system/admin/entry/editor.html
@@ -6719,35 +6665,7 @@ msgstr ""
 msgid "その他のツール"
 msgstr ""
 
-msgid "N-gramインデックスの付与"
-msgstr ""
-
 msgid "既存エントリーへのタグ追加"
-msgstr ""
-
-#: themes/system/admin/fix/ngram.html
-msgid "n-gramインデックス"
-msgstr ""
-
-msgid "n-gramインデックスを付与しました。"
-msgstr ""
-
-msgid "N-gramインデックスとは"
-msgstr ""
-
-msgid "既存コンテンツにN-gramインデックスを付与します。文字列を指定した文字数(gram)で切り分けることで検索用のキーを生成します。<br>この処理を実行した後に、config.system.yamlなどからngramを有効にすると、サイト内検索の内部処理が変更されます。"
-msgstr ""
-
-msgid "private/config.system.yamlのngramの値と同じ（標準は2）である必要があります。"
-msgstr ""
-
-msgid "N-gramを入力して下さい"
-msgstr ""
-
-msgid "N-gramインデックスを付与"
-msgstr ""
-
-msgid "N-gramインデックスを付与します。よろしいですか？"
 msgstr ""
 
 #: themes/system/admin/fix/replacement.html
@@ -7786,6 +7704,9 @@ msgstr ""
 msgid "idをコードに変換してインポートします。ルール毎の設定はインポートされません。"
 msgstr ""
 
+msgid "同じモジュールIDが既に存在する場合、既存のデータは削除され、インポートしたデータに置き換えられます。"
+msgstr ""
+
 #: themes/system/admin/module/index.html
 msgid "モジュールID管理"
 msgstr ""
@@ -7861,7 +7782,7 @@ msgstr ""
 msgid "非推奨: スケジュール"
 msgstr ""
 
-msgid "コメント・トラックバック"
+msgid "コメント"
 msgstr ""
 
 msgid "RSS・FLASH・JSON"
@@ -8247,7 +8168,7 @@ msgid "土"
 msgstr ""
 
 #: themes/system/admin/rule/index.html
-msgid "ルールの一覧を更新しました。"
+msgid "ルール一覧を更新しました。"
 msgstr ""
 
 msgid "ルールがありません。"
@@ -8544,9 +8465,6 @@ msgstr ""
 msgid "タグ詳細"
 msgstr ""
 
-msgid "トラックバック管理"
-msgstr ""
-
 msgid "ユーザー管理"
 msgstr ""
 
@@ -8566,12 +8484,6 @@ msgid "ロール管理"
 msgstr ""
 
 msgid "N-gramインデックス"
-msgstr ""
-
-msgid "トラックバック本文"
-msgstr ""
-
-msgid "トラックバックリスト"
 msgstr ""
 
 msgid "コンフィグのエクスポート"
@@ -9414,20 +9326,6 @@ msgstr ""
 msgid "ユーザ名 / コード"
 msgstr ""
 
-#: themes/system/ajax/edit/category-add-form.html
-msgid "スコープ"
-msgstr ""
-
-#: themes/system/ajax/emoji-edit.html
-msgid "リンク挿入"
-msgstr ""
-
-msgid "強調1"
-msgstr ""
-
-msgid "強調2"
-msgstr ""
-
 #: themes/system/ajax/module/list.html
 msgid "モジュール選択"
 msgstr ""
@@ -9447,7 +9345,7 @@ msgstr ""
 msgid "サイドバーからモジュールを選択すると、プレビューが表示されます"
 msgstr ""
 
-#: themes/system/ajax/revision-index-list.html
+#: themes/system/ajax/revision/list.html
 msgid "バージョンがありません。"
 msgstr ""
 
@@ -9472,7 +9370,7 @@ msgstr ""
 msgid "承認前"
 msgstr ""
 
-#: themes/system/ajax/revision-preview.html
+#: themes/system/ajax/revision/preview.html
 msgid "編集ページ"
 msgstr ""
 

@@ -6,13 +6,7 @@ class ACMS_POST_Entry_Index_User extends ACMS_POST
     {
         $userId = intval($this->Post->get('uid'));
         $userBlogId = ACMS_RAM::userBlog($userId);
-        if (enableApproval(BID, CID)) {
-            $this->Post->setMethod('entry', 'operative', sessionWithApprovalAdministrator(BID, CID));
-        } elseif (roleAvailableUser()) {
-            $this->Post->setMethod('entry', 'operative', roleAuthorization('entry_edit', BID));
-        } else {
-            $this->Post->setMethod('entry', 'operative', sessionWithCompilation());
-        }
+        $this->Post->setMethod('entry', 'operative', Entry::canBulkUserChange(BID, CID));
         $this->Post->setMethod('checks', 'required');
         $this->Post->setMethod('entry', 'uidIsNull', 1
             && $userId > 0

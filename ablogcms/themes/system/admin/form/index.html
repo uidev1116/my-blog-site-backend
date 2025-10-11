@@ -8,8 +8,10 @@
 	</div>
 </header>
 
-<!-- BEGIN refresh -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after">×</button><!--T-->フォームID一覧を更新しました<!--/T--></p><!-- END refresh -->
+@include("/admin/include/action-result.html", {
+  "successMessage": "<!--T-->フォームID一覧を更新しました。<!--/T-->",
+  "errorMessage": "<!--T-->フォームID一覧の更新に失敗しました。<!--/T-->"
+})
 
 <!-- BEGIN_IF [<!-- BEGIN index#notFound -->1<!-- END index#notFound -->/neq/1/_or_/%{CURRENT_ROOT}/neq//bid/%{BID}/admin/%{ADMIN}] -->
 <div class="acms-admin-filter">
@@ -110,24 +112,8 @@
 		</tbody>
 	</table>
 </div>
-<div class="acms-admin-grid">
-	<div class="acms-admin-col-md-6 acms-admin-col-sm-12">
-		<!-- BEGIN pager:veil -->
-		<div class="acms-admin-pager-container">
-			<ul class="acms-admin-pager"><!-- BEGIN backLink -->
-				<li class="prev"><a href="{url}">&laquo;&nbsp;<!--T-->前へ<!--/T--></a></li><!-- END backLink --><!-- BEGIN page:loop -->
-				<li{pageCurAttr}[raw]><span><!-- BEGIN link#front --><a href="{url}"><!-- END link#front -->{page}<!-- BEGIN link#rear --></a><!-- END link#rear --></span></li><!-- END page:loop --><!-- BEGIN lastPage:veil -->
-				<li class="last"><a href="{lastPageUrl}">...{lastPage}</a></li><!-- END lastPage:veil --><!-- BEGIN forwardLink -->
-				<li class="next"><a href="{url}"><!--T-->次へ<!--/T-->&nbsp;&raquo;</a></li><!-- END forwardLink -->
-			</ul>
-		</div>
-		<!-- END pager:veil -->
-	</div>
-	<div class="acms-admin-col-md-6 acms-admin-col-sm-12">
-		<div class="acms-admin-itemsAmount-container">
-			<p>{itemsFrom}<!--T-->件<!--/T--> - {itemsTo}<!--T-->件<!--/T--> / <!--T-->全<!--/T-->{itemsAmount}<!--T-->件<!--/T--></p>
-		</div>
-	</div>
+<div class="acms-admin-cssgrid acms-admin-mt-5">
+	@include("/admin/include/pagination.html")
 </div>
 <!-- END index -->
 <!-- END_IF -->

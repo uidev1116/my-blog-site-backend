@@ -1,11 +1,6 @@
 @use 'global/common' as global;
 
 // ------------------------------
-// 変数
-// ------------------------------
-@import 'global/variables-fonts';
-
-// ------------------------------
 // focused image
 // ------------------------------
 .js-focused-image:not(.js-lazy-load) {
@@ -105,16 +100,16 @@
   }
 }
 
-.js-acms-expanding .js-smartblock-edit {
-  max-width: 780px;
+.js-acms-expanding .smartblock-container {
+  max-width: 780px !important;
   margin: 0 auto;
 }
 
-.ProseMirror figure.empty-node .caption {
+.smartblock-container .ProseMirror figure.empty-node .caption {
   position: relative;
 }
 
-.ProseMirror figure.empty-node .caption::before {
+.smartblock-container .ProseMirror figure.empty-node .caption::before {
   height: 0;
   color: global.$acms-color-gray70;
   content: 'キャプションを入力してください';
@@ -178,4 +173,27 @@ img.js-lazy-load {
 .js-lazy-load.is-movie {
   background: global.$acms-lazy-load-bg url('/themes/system/images/marker/icon-lazy-load-movie.svg') no-repeat center /
     40px 40px;
+}
+
+// ------------------------------
+// Validator
+// ------------------------------
+
+/* 通常は非表示 */
+.validator-result-,
+.validator-result-1,
+.v-result-,
+.v-result-1 {
+  display: none;
+}
+
+/* 問題発生時には表示 */
+.validator-result-0,
+.v-result-error,
+.v-result-0 {
+  display: block;
+}
+
+.error-text {
+  color: global.$acms-color-caution-text;
 }

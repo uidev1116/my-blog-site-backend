@@ -45,17 +45,26 @@ abstract class Base
 
     /**
      * @param string $path
-     * @param null $suffix
+     * @param null|string $suffix
      *
      * @return string
      */
     public function mbBasename($path, $suffix = null)
     {
+        if ($path === '') {
+            return $path;
+        }
         $tmp = preg_split('/[\/\\\\]/', $path);
+        if ($tmp === false) {
+            throw new \RuntimeException('Failed to split path: ' . $path);
+        }
         $res = end($tmp);
         if ($suffix && strlen($suffix)) {
             $suffix = preg_quote($suffix);
             $res = preg_replace("/({$suffix})$/u", "", $res);
+        }
+        if (!is_string($res)) {
+            throw new \RuntimeException('Failed to get basename from path: ' . $path);
         }
         return $res;
     }
@@ -65,11 +74,12 @@ abstract class Base
      *
      * @return string
      */
-    protected function convertStrToLocal($path)
+    protected function convertStrToLocal($path): string
     {
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
             if ($charset = mb_detect_encoding($path, 'UTF-8, EUC-JP, SJIS-win, SJIS')) {
-                return mb_convert_encoding($path, "CP932", $charset);
+                $convertPath = mb_convert_encoding($path, "CP932", $charset);
+                return $convertPath ? $convertPath : $path;
             }
         }
         return $path;

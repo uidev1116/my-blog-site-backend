@@ -6,16 +6,40 @@ import { AxiosResponse } from 'axios';
 import 'rc-slider/assets/index.css';
 
 import { Component, createRef } from 'react';
+import { Grid, GridItem } from '@components/grid';
 import { MediaItem, MediaAjaxConfig, MediaViewFileType, MediaTag } from '../../types';
 import axiosLib from '../../../../lib/axios';
 import { formatBytes, parseQuery } from '../../../../utils';
-import { findAncestor } from '../../../../lib/dom';
+import {
+  Menu,
+  MenuList,
+  MenuTrigger,
+  MenuDivider,
+  MenuItemCheckbox,
+  MenuItemRadioGroup,
+  MenuItemRadio,
+  MenuPopover,
+} from '../../../../components/dropdown-menu';
+import { Pagination, PaginationRoot, PaginationSummary } from '../../../../components/pagination/pagination';
+import {
+  Filter,
+  FilterBody,
+  FilterContent,
+  FilterDetailButton,
+  FilterFooter,
+  FilterGroup,
+  FilterGroupTitle,
+  FilterInner,
+  FilterItem,
+  FilterItemLabel,
+} from '../../../../components/filter';
 import * as actions from '../../stores/actions';
-import Notify from '../../../../components/notify/notify';
-import Splash from '../../../../components/splash/splash';
 import ConditionalWrap from '../../../../components/conditional-wrap/conditional-wrap';
 import RichSelect from '../../../../components/rich-select/rich-select';
 import CreatableSelect from '../../../../components/rich-select/creatable-select';
+import { notify } from '../../../../lib/notify';
+import VisuallyHidden from '../../../../components/visually-hidden';
+import { pending } from '../../../../lib/pending';
 
 /* eslint react/default-props-match-prop-types: 0 */
 /* eslint camelcase: 0 */
@@ -47,13 +71,15 @@ interface Menu {
   blogname: boolean;
 }
 
+type SortDirection = 'asc' | 'desc';
+
 interface OrderActive {
-  media_title: string;
-  media_last_modified: string;
-  media_datetime?: string;
-  media_path: string;
-  media_size: string;
-  media_filesize?: string;
+  media_title: SortDirection;
+  media_last_modified: SortDirection;
+  media_datetime?: SortDirection;
+  media_path: SortDirection;
+  media_size: SortDirection;
+  media_filesize: SortDirection;
 }
 
 type DisplayStyle = 'table' | 'list';
@@ -72,17 +98,14 @@ interface MediaListState {
   labels: MediaTag[];
   selectedLabels: MediaTag[];
   style: DisplayStyle;
-  tagAdded: boolean;
   oldItemId: string | null;
   items: MediaItem[];
   limit: number;
   displayPage: number;
   filteredOptions: MediaTag[];
-  dropdown: boolean;
-  orderDropdown: boolean;
   fileext: string;
   owner: boolean;
-  deleting: boolean;
+  blogAxis: boolean;
   filetype: MediaViewFileType;
 }
 
@@ -111,6 +134,7 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
         media_last_modified: 'desc',
         media_path: 'asc',
         media_size: 'asc',
+        media_filesize: 'asc',
       },
       menu: {
         image: true,
@@ -136,16 +160,13 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
       labels: [],
       items: props.items,
       filteredOptions: [],
-      deleting: false,
       style: 'table',
       editMode: '',
       filetype: props.filetype ? props.filetype : 'all',
       fileext: 'all',
       owner: false,
-      tagAdded: false,
+      blogAxis: false,
       oldItemId: null,
-      dropdown: false,
-      orderDropdown: false,
     };
     this.listRef = createRef<HTMLFormElement>();
   }
@@ -178,7 +199,7 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
         tpl: 'ajax/edit/media-edit.json',
         bid: ACMS.Config.bid,
         Query: {
-          cache: new Date().getTime(),
+          cache: new Date().getTime().toString(),
         },
       },
       false
@@ -257,7 +278,7 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
     }
   }
 
-  removeImgs() {
+  async removeImgs() {
     if (!confirm(ACMS.i18n('media.remove_media_confirm'))) {
       return;
     }
@@ -267,34 +288,35 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
     const fd = new FormData(this.listRef.current);
     fd.append('ACMS_POST_Media_Index_Delete', 'true');
     fd.append('formToken', window.csrfToken);
-    this.setState({
-      deleting: true,
-    });
-    $.ajax({
-      url: ACMS.Library.acmsLink({ bid: ACMS.Config.bid }),
-      type: 'POST',
-      data: fd,
-      processData: false,
-      contentType: false,
-    }).then(() => {
-      this.fetchMediaList();
-      this.setState({
-        deleting: false,
+    const end = pending.splash(ACMS.i18n('media.deleting_media'));
+    try {
+      await $.ajax({
+        url: ACMS.Library.acmsLink({ bid: ACMS.Config.bid }),
+        type: 'POST',
+        data: fd,
+        processData: false,
+        contentType: false,
       });
-    });
+      notify.info(ACMS.i18n('media.remove_media_success'));
+      this.fetchMediaList();
+    } catch {
+      notify.danger(ACMS.i18n('media.remove_media_error'));
+    } finally {
+      end();
+    }
   }
 
   setOrder(target: keyof OrderActive) {
     const { state } = this;
     const { order } = state;
-    const AscOrDesc = order[target] === 'asc' ? 'desc' : 'asc';
+    const sortDirection = this.getNextSortDirection(target);
     this.setState(
       {
         ...state,
         orderActive: target,
         order: {
           ...order,
-          [target]: AscOrDesc,
+          [target]: sortDirection,
         },
       },
       () => {
@@ -346,7 +368,7 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
   }
 
   fetchMediaList(config: MediaAjaxConfig = {}) {
-    const { year, month, limit, filetype, fileext, owner } = this.state;
+    const { year, month, limit, filetype, fileext, owner, blogAxis } = this.state;
     const { actions, selectedTags: labels } = this.props;
     const order = this.getOrder();
     const tag = labels.reduce((accumulator, current) => {
@@ -362,6 +384,7 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
       filetype,
       fileext,
       owner,
+      blogAxis,
     };
     if (year && month) {
       override.date = `${year}/${month}`;
@@ -379,15 +402,20 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
     }
   }
 
-  getThClassName(th: keyof OrderActive) {
+  getIsSorted(th: keyof OrderActive): false | SortDirection {
     const { order, orderActive } = this.state;
     if (orderActive === th) {
       if (order[orderActive] === 'asc') {
-        return '-asc';
+        return 'asc';
       }
-      return '-desc';
+      return 'desc';
     }
-    return '';
+    return false;
+  }
+
+  getNextSortDirection(th: keyof OrderActive): SortDirection {
+    const { order } = this.state;
+    return order[th] === 'asc' ? 'desc' : 'asc';
   }
 
   changeStyle(style: DisplayStyle) {
@@ -419,7 +447,7 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
           tpl: 'ajax/edit/media-tag.json',
           bid: ACMS.Config.bid,
           Query: {
-            cache: new Date().getTime(),
+            cache: new Date().getTime().toString(),
           },
         },
         false
@@ -501,17 +529,19 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
     fd.append('tags', tags);
     fd.append('ACMS_POST_Media_Index_Tags', 'true');
     fd.append('formToken', window.csrfToken);
-    await $.ajax({
-      url: ACMS.Library.acmsLink({ bid: ACMS.Config.bid }),
-      data: fd,
-      type: 'POST',
-      processData: false,
-      contentType: false,
-    });
-    this.setState({
-      tagAdded: true,
-    });
-    this.fetchMediaList();
+    try {
+      await $.ajax({
+        url: ACMS.Library.acmsLink({ bid: ACMS.Config.bid }),
+        data: fd,
+        type: 'POST',
+        processData: false,
+        contentType: false,
+      });
+      notify.info(ACMS.i18n('media.add_tags_to_media_success'));
+      this.fetchMediaList();
+    } catch {
+      notify.danger(ACMS.i18n('media.add_tags_to_media_error'));
+    }
   }
 
   getFileStyle = (item: MediaItem): React.CSSProperties => {
@@ -571,7 +601,7 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
   }
 
   componentDidUpdate(prevProps: MediaListProps) {
-    const { style, scale, order, orderActive, limit, filterMenuOpened, owner } = this.state;
+    const { style, scale, order, orderActive, limit, filterMenuOpened, owner, blogAxis } = this.state;
     localStorage.setItem(
       'acms-media-list',
       JSON.stringify({
@@ -582,6 +612,7 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
         limit,
         filterMenuOpened,
         owner,
+        blogAxis,
       })
     );
 
@@ -604,7 +635,7 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
         this.setItem({ media_id: mid });
       }
     }
-    const { style, scale, order, orderActive, limit, filterMenuOpened, owner } = JSON.parse(storage);
+    const { style, scale, order, orderActive, limit, filterMenuOpened, owner, blogAxis } = JSON.parse(storage);
     this.setState(
       {
         style,
@@ -614,6 +645,7 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
         limit,
         filterMenuOpened,
         owner,
+        blogAxis,
       },
       () => {
         this.fetchMediaList();
@@ -670,56 +702,6 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
     }));
   };
 
-  showDropdownMenu = () => {
-    this.setState(
-      {
-        dropdown: true,
-      },
-      () => {
-        document.addEventListener('click', this.closeDropdownMenu, { capture: true });
-      }
-    );
-  };
-
-  closeDropdownMenu = (e: MouseEvent) => {
-    if (findAncestor(e.target, '.acms-admin-dropdown-menu')) {
-      return;
-    }
-    this.setState(
-      {
-        dropdown: false,
-      },
-      () => {
-        document.removeEventListener('click', this.closeDropdownMenu, { capture: true });
-      }
-    );
-  };
-
-  showOrderDropdown = () => {
-    this.setState(
-      {
-        orderDropdown: true,
-      },
-      () => {
-        document.addEventListener('click', this.closeOrderDropdown, { capture: true });
-      }
-    );
-  };
-
-  closeOrderDropdown = (e: MouseEvent) => {
-    if (findAncestor(e.target, '.acms-admin-dropdown-menu')) {
-      return;
-    }
-    this.setState(
-      {
-        orderDropdown: false,
-      },
-      () => {
-        document.removeEventListener('click', this.closeOrderDropdown, { capture: true });
-      }
-    );
-  };
-
   toggleMenu(menuItem: keyof Menu) {
     const { menu } = this.state;
     const newMenu = { ...menu, [menuItem]: !menu[menuItem] };
@@ -728,39 +710,22 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
     });
   }
 
-  startPage() {
-    return this.props.config.page - this.state.displayPage > 0 ? this.props.config.page - this.state.displayPage : 1;
-  }
-
-  endPage() {
-    return this.props.config.page + this.state.displayPage < this.props.lastPage
-      ? this.props.config.page + this.state.displayPage
-      : this.props.lastPage;
-  }
-
-  pages() {
-    return [...Array(this.endPage() + 1).keys()].slice(this.startPage());
-  }
-
   render() {
-    const { mode, lastPage, config, archives, tags, total, items, selectedTags, extensions } = this.props;
+    const { mode, config, archives, tags, total, items, selectedTags, extensions } = this.props;
 
     const { years, months } = this.getArchives(archives);
 
     const { page, keyword } = config;
     const {
       style,
-      deleting,
       editMode,
       scale,
-      dropdown,
-      orderDropdown,
       selectedLabels,
-      tagAdded,
       items: stateItems,
       limit,
       menu,
       owner,
+      blogAxis,
       order,
       orderActive,
       oldItemId,
@@ -773,20 +738,17 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
 
     return (
       <StyledMediaList>
-        <div className="acms-admin-filter">
-          <div className="acms-admin-form">
-            <div className="acms-admin-filter-body">
-              <div className="acms-admin-filter-group">
-                <p className="acms-admin-filter-label">{ACMS.i18n('media.filter_search')}</p>
+        <div id="media-filter-form" role="search" className="acms-admin-form">
+          <Filter>
+            <FilterBody>
+              <FilterGroup>
+                <FilterGroupTitle>{ACMS.i18n('media.filter_search')}</FilterGroupTitle>
+                <FilterContent fit>
+                  <FilterItem>
+                    <FilterItemLabel htmlFor="filter-date">{ACMS.i18n('media.created_date')}</FilterItemLabel>
 
-                <div className="acms-admin-filter-content acms-admin-filter-content-fit">
-                  <div className="acms-admin-filter-item">
-                    <label className="acms-admin-filter-item-name" htmlFor="filter-date">
-                      {ACMS.i18n('media.created_date')}：
-                    </label>
-
-                    <div className="acms-admin-filter-just">
-                      <div className="acms-admin-filter-just-item acms-admin-margin-right-mini">
+                    <div style={{ display: 'flex' }}>
+                      <div className="acms-admin-inline-block acms-admin-margin-right-mini">
                         <select
                           id="filter-date"
                           className="acms-admin-margin-right-mini"
@@ -802,8 +764,12 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
                           ))}
                         </select>
                       </div>
-                      <div className="acms-admin-filter-just-item">
+                      <VisuallyHidden asChild>
+                        <label htmlFor="filter-date-month">{ACMS.i18n('media.month')}</label>
+                      </VisuallyHidden>
+                      <div className="acms-admin-inline-block">
                         <select
+                          id="filter-date-month"
                           onChange={(e) => {
                             this.onDateChange(e.target.value, 'month');
                           }}
@@ -817,12 +783,10 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
                         </select>
                       </div>
                     </div>
-                  </div>
+                  </FilterItem>
 
-                  <div className="acms-admin-filter-item acms-admin-filter-item-full">
-                    <label htmlFor="filter-tag" className="acms-admin-filter-item-name">
-                      {ACMS.i18n('media.tag')}
-                    </label>
+                  <FilterItem full>
+                    <FilterItemLabel htmlFor="filter-tag">{ACMS.i18n('media.tag')}</FilterItemLabel>
                     <div className="acms-admin-form-width-medium">
                       <RichSelect<MediaTag, true>
                         isMulti
@@ -838,38 +802,34 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
                         inputId="filter-tag"
                       />
                     </div>
-                  </div>
-                </div>
-              </div>
+                  </FilterItem>
+                </FilterContent>
+              </FilterGroup>
 
               {filterMenuOpened && (
                 <div id="search-detail">
-                  <div className="acms-admin-filter-inner">
-                    <div className="acms-admin-filter-group">
-                      <p className="acms-admin-filter-label">{ACMS.i18n('media.detailed_condition')}</p>
-                      <div className="acms-admin-filter-content">
-                        <div className="acms-admin-filter-item acms-admin-filter-item-full">
-                          <label className="acms-admin-filter-item-name" htmlFor="filter-file-name">
-                            {ACMS.i18n('media.file_name')}
-                          </label>
+                  <FilterInner>
+                    <FilterGroup>
+                      <FilterGroupTitle>{ACMS.i18n('media.detailed_condition')}</FilterGroupTitle>
+                      <FilterContent>
+                        <FilterItem full>
+                          <FilterItemLabel htmlFor="filter-keyword">{ACMS.i18n('media.keyword')}</FilterItemLabel>
                           <input
                             type="text"
-                            placeholder={ACMS.i18n('media.search_by_filename')}
-                            id="filter-file-name"
+                            placeholder={ACMS.i18n('media.search_by_keyword')}
+                            id="filter-keyword"
                             className="acms-admin-form-width-full"
                             value={keyword}
                             onInput={this.onKeywordInput.bind(this)}
                           />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="acms-admin-filter-group">
-                      <p className="acms-admin-filter-label">{ACMS.i18n('media.narrow_down')}</p>
-                      <div className="acms-admin-filter-content">
-                        <div className="acms-admin-filter-item">
-                          <label className="acms-admin-filter-item-name" htmlFor="filter-sort">
-                            {ACMS.i18n('media.number_of_items')}
-                          </label>
+                        </FilterItem>
+                      </FilterContent>
+                    </FilterGroup>
+                    <FilterGroup>
+                      <FilterGroupTitle>{ACMS.i18n('media.narrow_down')}</FilterGroupTitle>
+                      <FilterContent>
+                        <FilterItem>
+                          <FilterItemLabel htmlFor="filter-sort">{ACMS.i18n('media.number_of_items')}</FilterItemLabel>
                           <select id="filter-sort" value={limit} onChange={this.onChangeDisplayNumber.bind(this)}>
                             <option value="5">5</option>
                             <option value="10">10</option>
@@ -880,11 +840,9 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
                             <option value="200">200</option>
                             <option value="300">300</option>
                           </select>
-                        </div>
-                        <div className="acms-admin-filter-item">
-                          <label className="acms-admin-filter-item-name" htmlFor="filter-type">
-                            {ACMS.i18n('media.type')}
-                          </label>
+                        </FilterItem>
+                        <FilterItem>
+                          <FilterItemLabel htmlFor="filter-type">{ACMS.i18n('media.type')}</FilterItemLabel>
                           <select
                             id="filter-type"
                             disabled={this.props.filetype !== 'all'}
@@ -899,11 +857,9 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
                             <option value="image">{ACMS.i18n('media.image')}</option>
                             <option value="file">{ACMS.i18n('media.file')}</option>
                           </select>
-                        </div>
-                        <div className="acms-admin-filter-item">
-                          <label htmlFor="filter-ext" className="acms-admin-filter-item-name">
-                            {ACMS.i18n('media.extension')}
-                          </label>
+                        </FilterItem>
+                        <FilterItem>
+                          <FilterItemLabel htmlFor="filter-ext">{ACMS.i18n('media.extension')}</FilterItemLabel>
                           <select
                             id="filter-ext"
                             onChange={(e) => {
@@ -920,9 +876,9 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
                                 </option>
                               ))}
                           </select>
-                        </div>
-                        <div className="acms-admin-filter-item">
-                          <label htmlFor="filter-owner" className="acms-admin-form-checkbox acms-admin-margin-none">
+                        </FilterItem>
+                        <FilterItem>
+                          <label htmlFor="filter-owner" className="acms-admin-form-checkbox acms-admin-m-0">
                             <input
                               id="filter-owner"
                               type="checkbox"
@@ -936,51 +892,69 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
                             <i className="acms-admin-ico-checkbox" />
                             {ACMS.i18n('media.owner')}
                           </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                        </FilterItem>
+                        {ACMS.Config.sbid !== ACMS.Config.bid && (
+                          <FilterItem>
+                            <label htmlFor="filter-blog-axis" className="acms-admin-form-checkbox acms-admin-m-0">
+                              <input
+                                id="filter-blog-axis"
+                                type="checkbox"
+                                checked={blogAxis}
+                                onChange={(e) => {
+                                  this.setState({
+                                    blogAxis: e.target.checked,
+                                  });
+                                }}
+                              />
+                              <i className="acms-admin-ico-checkbox" />
+                              {ACMS.i18n('media.blog_axis')}
+                            </label>
+                          </FilterItem>
+                        )}
+                      </FilterContent>
+                    </FilterGroup>
+                  </FilterInner>
                 </div>
               )}
-            </div>
-          </div>
-          <div className="acms-admin-filter-footer">
-            <button
-              type="button"
-              className="acms-admin-btn acms-admin-btn-info acms-admin-btn-search"
-              onClick={() => {
-                this.fetchMediaList();
-              }}
-            >
-              {ACMS.i18n('media.search')}
-            </button>
+            </FilterBody>
+            <FilterFooter>
+              <button
+                type="button"
+                className="acms-admin-btn acms-admin-btn-info acms-admin-btn-search"
+                onClick={() => {
+                  this.fetchMediaList();
+                }}
+              >
+                {ACMS.i18n('media.search')}
+              </button>
 
-            <p className="acms-admin-filter-detail-btn">
-              <a
-                href="#search-detail"
+              <FilterDetailButton
+                type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   this.setState({
                     filterMenuOpened: !filterMenuOpened,
                   });
                 }}
+                aria-expanded={filterMenuOpened}
+                aria-controls="search-detail"
               >
-                <span className="acms-admin-icon-arrow-right" />
                 {ACMS.i18n('media.detailed_search')}
-              </a>
-            </p>
-          </div>
+              </FilterDetailButton>
+            </FilterFooter>
+          </Filter>
         </div>
+
         <div className="acms-admin-media-action-group">
           <div className="acms-admin-media-action-item acms-admin-media-action-item-fix">
-            <div className="acms-admin-btn-group acms-admin-media-action-display-switch" style={{ padding: '0px' }}>
+            <div className="acms-admin-btn-group acms-admin-media-action-display-switch" role="group">
               <button
                 type="button"
                 className={classnames('acms-admin-btn', {
                   'acms-admin-btn-active': style === 'table',
                 })}
                 onClick={this.changeStyle.bind(this, 'table')}
-                disabled={style === 'table'}
+                aria-pressed={style === 'table'}
                 aria-label={ACMS.i18n('media.display_switch_list')}
               >
                 <i className="acms-admin-icon-list" />
@@ -991,7 +965,7 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
                   'acms-admin-btn-active': style === 'list',
                 })}
                 onClick={this.changeStyle.bind(this, 'list')}
-                disabled={style === 'list'}
+                aria-pressed={style === 'list'}
                 aria-label={ACMS.i18n('media.display_switch_grid')}
               >
                 <i className="acms-admin-icon-grid" />
@@ -1001,211 +975,121 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
             <div className="acms-admin-media-action-sort-select-wrap">
               <div className="acms-admin-media-action-sort-select">
                 {style === 'table' && (
-                  <button
-                    type="button"
-                    className="acms-admin-btn"
-                    onClick={this.showDropdownMenu}
-                    aria-label={ACMS.i18n('media.open_config_menu')}
-                  >
-                    <i className="acms-admin-icon-config" />
-                  </button>
-                )}
-                {dropdown && (
-                  <ul className="acms-admin-dropdown-menu" style={{ display: 'block', minWidth: '160px' }}>
-                    <li style={{ padding: '5px' }}>
-                      <label className="acms-admin-form-checkbox">
-                        <input
-                          type="checkbox"
-                          onChange={() => {
-                            this.toggleMenu('image');
-                          }}
+                  <Menu closeOnSelect={false}>
+                    <MenuTrigger className="acms-admin-btn" aria-label={ACMS.i18n('media.open_config_menu')}>
+                      <i className="acms-admin-icon-config" aria-hidden="true" />
+                    </MenuTrigger>
+                    <MenuPopover>
+                      <MenuList>
+                        <MenuItemCheckbox
+                          value="image"
                           checked={menu.image}
-                        />
-                        <i className="acms-admin-ico-checkbox" />
-                        {ACMS.i18n('media.image2')}
-                      </label>
-                    </li>
-                    <li style={{ padding: '5px' }}>
-                      <label className="acms-admin-form-checkbox">
-                        <input
-                          type="checkbox"
-                          onChange={() => {
-                            this.toggleMenu('id');
+                          onCheckedChange={(event) => {
+                            this.toggleMenu(event.detail.value as keyof Menu);
                           }}
+                        >
+                          {ACMS.i18n('media.image2')}
+                        </MenuItemCheckbox>
+                        <MenuItemCheckbox
+                          value="id"
                           checked={menu.id}
-                        />
-                        <i className="acms-admin-ico-checkbox" />
-                        ID
-                      </label>
-                    </li>
-                    <li style={{ padding: '5px' }}>
-                      <label className="acms-admin-form-checkbox">
-                        <input
-                          type="checkbox"
-                          onChange={() => {
-                            this.toggleMenu('filename');
+                          onCheckedChange={(event) => {
+                            this.toggleMenu(event.detail.value as keyof Menu);
                           }}
+                        >
+                          ID
+                        </MenuItemCheckbox>
+                        <MenuItemCheckbox
+                          value="filename"
                           checked={menu.filename}
-                        />
-                        <i className="acms-admin-ico-checkbox" />
-                        {ACMS.i18n('media.file_name')}
-                      </label>
-                    </li>
-                    <li style={{ padding: '5px' }}>
-                      <label className="acms-admin-form-checkbox">
-                        <input
-                          type="checkbox"
-                          onChange={() => {
-                            this.toggleMenu('tag');
+                          onCheckedChange={(event) => {
+                            this.toggleMenu(event.detail.value as keyof Menu);
                           }}
+                        >
+                          {ACMS.i18n('media.file_name')}
+                        </MenuItemCheckbox>
+                        <MenuItemCheckbox
+                          value="tag"
                           checked={menu.tag}
-                        />
-                        <i className="acms-admin-ico-checkbox" />
-                        {ACMS.i18n('media.tag')}
-                      </label>
-                    </li>
-                    <li style={{ padding: '5px' }}>
-                      <label className="acms-admin-form-checkbox">
-                        <input
-                          type="checkbox"
-                          onChange={() => {
-                            this.toggleMenu('last_modified');
+                          onCheckedChange={(event) => {
+                            this.toggleMenu(event.detail.value as keyof Menu);
                           }}
+                        >
+                          {ACMS.i18n('media.tag')}
+                        </MenuItemCheckbox>
+                        <MenuItemCheckbox
+                          value="last_modified"
                           checked={menu.last_modified}
-                        />
-                        <i className="acms-admin-ico-checkbox" />
-                        {ACMS.i18n('media.updated_date')}
-                      </label>
-                    </li>
-                    <li style={{ padding: '5px' }}>
-                      <label className="acms-admin-form-checkbox">
-                        <input
-                          type="checkbox"
-                          onChange={() => {
-                            this.toggleMenu('upload_datetime');
+                          onCheckedChange={(event) => {
+                            this.toggleMenu(event.detail.value as keyof Menu);
                           }}
+                        >
+                          {ACMS.i18n('media.updated_date')}
+                        </MenuItemCheckbox>
+                        <MenuItemCheckbox
+                          value="upload_datetime"
                           checked={menu.upload_datetime}
-                        />
-                        <i className="acms-admin-ico-checkbox" />
-                        {ACMS.i18n('media.created_date')}
-                      </label>
-                    </li>
-                    <li style={{ padding: '5px' }}>
-                      <label className="acms-admin-form-checkbox">
-                        <input
-                          type="checkbox"
-                          onChange={() => {
-                            this.toggleMenu('filesize');
+                          onCheckedChange={(event) => {
+                            this.toggleMenu(event.detail.value as keyof Menu);
                           }}
+                        >
+                          {ACMS.i18n('media.created_date')}
+                        </MenuItemCheckbox>
+                        <MenuItemCheckbox
+                          value="filesize"
                           checked={menu.filesize}
-                        />
-                        <i className="acms-admin-ico-checkbox" />
-                        {ACMS.i18n('media.file_size')}
-                      </label>
-                    </li>
-                    <li style={{ padding: '5px' }}>
-                      <label className="acms-admin-form-checkbox">
-                        <input
-                          type="checkbox"
-                          onChange={() => {
-                            this.toggleMenu('blogname');
+                          onCheckedChange={(event) => {
+                            this.toggleMenu(event.detail.value as keyof Menu);
                           }}
+                        >
+                          {ACMS.i18n('media.file_size')}
+                        </MenuItemCheckbox>
+                        <MenuItemCheckbox
+                          value="blogname"
                           checked={menu.blogname}
-                        />
-                        <i className="acms-admin-ico-checkbox" />
-                        {ACMS.i18n('media.blog_name')}
-                      </label>
-                    </li>
-                  </ul>
+                          onCheckedChange={(event) => {
+                            this.toggleMenu(event.detail.value as keyof Menu);
+                          }}
+                        >
+                          {ACMS.i18n('media.blog_name')}
+                        </MenuItemCheckbox>
+                      </MenuList>
+                    </MenuPopover>
+                  </Menu>
                 )}
               </div>
 
               <div className="acms-admin-media-action-sort-select" style={{ position: 'relative' }}>
-                <button type="button" className="acms-admin-select-btn" onClick={this.showOrderDropdown.bind(this)}>
-                  {this.getOrderSelectBtnLabel()}
-                </button>
-                {orderDropdown && (
-                  <ul className="acms-admin-dropdown-menu" style={{ display: 'block', minWidth: '160px' }}>
-                    <li style={{ padding: '5px' }}>
-                      <label className="acms-admin-form-radio">
-                        <input
-                          type="radio"
-                          checked={orderActive === 'media_title'}
-                          onChange={() => {
-                            this.checkOrder('media_title');
-                          }}
-                        />
-                        <i className="acms-admin-ico-radio" />
-                        {ACMS.i18n('media.title')}
-                      </label>
-                    </li>
-                    <li style={{ padding: '5px' }}>
-                      <label className="acms-admin-form-radio">
-                        <input
-                          type="radio"
-                          checked={orderActive === 'media_last_modified'}
-                          onChange={() => {
-                            this.checkOrder('media_last_modified');
-                          }}
-                        />
-                        <i className="acms-admin-ico-radio" />
-                        {ACMS.i18n('media.updated_date')}
-                      </label>
-                    </li>
-                    <li style={{ padding: '5px' }}>
-                      <label className="acms-admin-form-radio">
-                        <input
-                          type="radio"
-                          checked={orderActive === 'media_datetime'}
-                          onChange={() => {
-                            this.checkOrder('media_datetime');
-                          }}
-                        />
-                        <i className="acms-admin-ico-radio" />
-                        {ACMS.i18n('media.created_date')}
-                      </label>
-                    </li>
-                    <li style={{ padding: '5px' }}>
-                      <label className="acms-admin-form-radio">
-                        <input
-                          type="radio"
-                          checked={orderActive === 'media_filesize'}
-                          onChange={() => {
-                            this.checkOrder('media_filesize');
-                          }}
-                        />
-                        <i className="acms-admin-ico-radio" />
-                        {ACMS.i18n('media.file_size')}
-                      </label>
-                    </li>
-                    <li style={{ padding: '5px', borderTop: '1px solid #EEE' }}>
-                      <label className="acms-admin-form-radio">
-                        <input
-                          type="radio"
-                          checked={order[orderActive] === 'asc'}
-                          onChange={() => {
-                            this.checkAscDesc('asc');
-                          }}
-                        />
-                        <i className="acms-admin-ico-radio" />
-                        {ACMS.i18n('media.asc')}
-                      </label>
-                    </li>
-                    <li style={{ padding: '5px' }}>
-                      <label className="acms-admin-form-radio">
-                        <input
-                          type="radio"
-                          checked={order[orderActive] === 'desc'}
-                          onChange={() => {
-                            this.checkAscDesc('desc');
-                          }}
-                        />
-                        <i className="acms-admin-ico-radio" />
-                        {ACMS.i18n('media.desc')}
-                      </label>
-                    </li>
-                  </ul>
-                )}
+                <Menu closeOnSelect={false}>
+                  <MenuTrigger type="button" className="acms-admin-select-btn">
+                    {this.getOrderSelectBtnLabel()}
+                  </MenuTrigger>
+                  <MenuPopover>
+                    <MenuList>
+                      <MenuItemRadioGroup
+                        value={orderActive}
+                        onValueChange={(event) => {
+                          this.checkOrder(event.detail.value as keyof OrderActive);
+                        }}
+                      >
+                        <MenuItemRadio value="media_title">{ACMS.i18n('media.title')}</MenuItemRadio>
+                        <MenuItemRadio value="media_last_modified">{ACMS.i18n('media.updated_date')}</MenuItemRadio>
+                        <MenuItemRadio value="media_datetime">{ACMS.i18n('media.created_date')}</MenuItemRadio>
+                        <MenuItemRadio value="media_filesize">{ACMS.i18n('media.file_size')}</MenuItemRadio>
+                      </MenuItemRadioGroup>
+                      <MenuDivider />
+                      <MenuItemRadioGroup
+                        value={order[orderActive]}
+                        onValueChange={(event) => {
+                          this.checkAscDesc(event.detail.value as SortDirection);
+                        }}
+                      >
+                        <MenuItemRadio value="asc">{ACMS.i18n('media.asc')}</MenuItemRadio>
+                        <MenuItemRadio value="desc">{ACMS.i18n('media.desc')}</MenuItemRadio>
+                      </MenuItemRadioGroup>
+                    </MenuList>
+                  </MenuPopover>
+                </Menu>
               </div>
             </div>
           </div>
@@ -1214,17 +1098,7 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
             {style === 'list' && (
               <div className="acms-admin-media-action-range">
                 <span style={{ display: 'inline-flex', width: '100%', alignItems: 'center' }}>
-                  <span
-                    style={{
-                      display: 'block',
-                      whiteSpace: 'nowrap',
-                      marginRight: '10px',
-                      fontSize: '13px',
-                    }}
-                    className="acms-admin-hide-visually"
-                  >
-                    {ACMS.i18n('media.display_size')}
-                  </span>
+                  <VisuallyHidden>{ACMS.i18n('media.display_size')}</VisuallyHidden>
                   <i
                     className="acms-admin-icon-unit-image"
                     style={{ fontSize: '12px', color: '#777777', marginRight: '10px' }}
@@ -1247,22 +1121,30 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
 
             {style === 'list' && (
               <div className="acms-admin-media-action-select-all">
-                <label onChange={this.toggleAllCheck.bind(this)} className="acms-admin-media-grid-checkbox-wrap">
-                  <div
+                <button
+                  type="button"
+                  onClick={this.toggleAllCheck.bind(this)}
+                  className="acms-admin-media-grid-checkbox-wrap"
+                >
+                  <span
                     className={classnames('acms-admin-media-grid-checkbox', {
                       selected: toggleAll,
                     })}
+                    aria-hidden="true"
                   />
-                  <input type="checkbox" />
                   {ACMS.i18n('media.select_all')}
-                </label>
+                </button>
               </div>
             )}
           </div>
 
           <div className="acms-admin-form-group acms-admin-media-action-item acms-admin-media-action-item-left">
             <div className="acms-admin-form">
+              <VisuallyHidden asChild>
+                <label htmlFor="media-action-select">{ACMS.i18n('media.select')}</label>
+              </VisuallyHidden>
               <select
+                id="media-action-select"
                 className="acms-admin-margin-right-mini"
                 value={editMode}
                 onChange={(e) => {
@@ -1335,13 +1217,13 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
           >
             <div className="acms-admin-table-scroll-xs acms-admin-table-scroll-sm acms-admin-table-scroll-md">
               <table className="adminTable acms-admin-table-admin acms-admin-table-hover acms-admin-media-table">
-                <thead className="acms-admin-table-heading acms-admin-media-heading">
+                <thead className="acms-admin-table-heading">
                   <tr>
                     <th className="acms-admin-media-row-check acms-admin-table-nowrap">
                       {mode === 'edit' && (
                         <label // eslint-disable-line jsx-a11y/label-has-associated-control
                           htmlFor="checkAll"
-                          className="acms-admin-form-checkbox acms-admin-margin-none"
+                          className="acms-admin-form-checkbox acms-admin-m-0"
                           onChange={this.toggleAllCheck.bind(this)}
                         >
                           <input id="checkAll" type="checkbox" />
@@ -1357,41 +1239,95 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
                     {menu.id && <th className="acms-admin-media-row-id acms-admin-table-nowrap">ID</th>}
                     {menu.filename && (
                       <th
-                        onClick={this.setOrder.bind(this, 'media_title')}
-                        className={`acms-admin-media-row-title ${this.getThClassName('media_title')}`}
+                        className="acms-admin-media-row-title"
+                        aria-sort={
+                          this.getIsSorted('media_title')
+                            ? `${this.getIsSorted('media_title') as SortDirection}ending`
+                            : undefined
+                        }
                       >
-                        {ACMS.i18n('media.file_name')}
+                        <button
+                          type="button"
+                          className="acms-admin-th-sort-btn"
+                          onClick={this.setOrder.bind(this, 'media_title')}
+                          data-next-sort={`${this.getNextSortDirection('media_title')}ending`}
+                        >
+                          {ACMS.i18n('media.file_name')}
+                          <span className="acms-admin-th-sort-btn-icon" />
+                          <VisuallyHidden>
+                            {ACMS.i18n(`table.label.sort.${this.getIsSorted('media_title') || 'none'}`)}
+                          </VisuallyHidden>
+                        </button>
                       </th>
                     )}
                     {menu.tag && <th className="acms-admin-media-row-tag">{ACMS.i18n('media.tag')}</th>}
                     {menu.last_modified && (
                       <th
-                        onClick={this.setOrder.bind(this, 'media_last_modified')}
-                        className={`acms-admin-media-row-date acms-admin-table-nowrap ${this.getThClassName(
-                          'media_last_modified'
-                        )}`}
+                        className="acms-admin-media-row-date acms-admin-table-nowrap"
+                        aria-sort={
+                          this.getIsSorted('media_last_modified')
+                            ? `${this.getIsSorted('media_last_modified') as SortDirection}ending`
+                            : undefined
+                        }
                       >
-                        {ACMS.i18n('media.updated_date')}
+                        <button
+                          type="button"
+                          className="acms-admin-th-sort-btn"
+                          onClick={this.setOrder.bind(this, 'media_last_modified')}
+                          data-next-sort={`${this.getNextSortDirection('media_last_modified')}ending`}
+                        >
+                          {ACMS.i18n('media.updated_date')}
+                          <span className="acms-admin-th-sort-btn-icon" />
+                          <VisuallyHidden>
+                            {ACMS.i18n(`table.label.sort.${this.getIsSorted('media_last_modified') || 'none'}`)}
+                          </VisuallyHidden>
+                        </button>
                       </th>
                     )}
                     {menu.upload_datetime && (
                       <th
-                        onClick={this.setOrder.bind(this, 'media_datetime')}
-                        className={`acms-admin-media-row-date acms-admin-table-nowrap ${this.getThClassName(
-                          'media_datetime'
-                        )}`}
+                        className="acms-admin-media-row-date acms-admin-table-nowrap"
+                        aria-sort={
+                          this.getIsSorted('media_datetime')
+                            ? `${this.getIsSorted('media_datetime') as SortDirection}ending`
+                            : undefined
+                        }
                       >
-                        {ACMS.i18n('media.created_date')}
+                        <button
+                          type="button"
+                          className="acms-admin-th-sort-btn"
+                          onClick={this.setOrder.bind(this, 'media_datetime')}
+                          data-next-sort={`${this.getNextSortDirection('media_datetime')}ending`}
+                        >
+                          {ACMS.i18n('media.created_date')}
+                          <span className="acms-admin-th-sort-btn-icon" />
+                          <VisuallyHidden>
+                            {ACMS.i18n(`table.label.sort.${this.getIsSorted('media_datetime') || 'none'}`)}
+                          </VisuallyHidden>
+                        </button>
                       </th>
                     )}
                     {menu.filesize && (
                       <th
-                        onClick={this.setOrder.bind(this, 'media_filesize')}
-                        className={`acms-admin-media-row-size acms-admin-table-nowrap ${this.getThClassName(
-                          'media_filesize'
-                        )}`}
+                        className="acms-admin-media-row-size acms-admin-table-nowrap"
+                        aria-sort={
+                          this.getIsSorted('media_filesize')
+                            ? `${this.getIsSorted('media_filesize') as SortDirection}ending`
+                            : undefined
+                        }
                       >
-                        {ACMS.i18n('media.file_size')}
+                        <button
+                          type="button"
+                          className="acms-admin-th-sort-btn"
+                          onClick={this.setOrder.bind(this, 'media_filesize')}
+                          data-next-sort={`${this.getNextSortDirection('media_filesize')}ending`}
+                        >
+                          {ACMS.i18n('media.file_size')}
+                          <span className="acms-admin-th-sort-btn-icon" />
+                          <VisuallyHidden>
+                            {ACMS.i18n(`table.label.sort.${this.getIsSorted('media_filesize') || 'none'}`)}
+                          </VisuallyHidden>
+                        </button>
                       </th>
                     )}
                     {menu.blogname && <th className="acms-admin-media-row-blogname">{ACMS.i18n('media.blog_name')}</th>}
@@ -1417,7 +1353,7 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
                         {item.media_editable}
                         {(mode !== 'edit' || item.media_editable) && (
                           // eslint-disable-next-line jsx-a11y/label-has-associated-control
-                          <label className="acms-admin-form-checkbox acms-admin-margin-none">
+                          <label className="acms-admin-form-checkbox acms-admin-m-0">
                             <input
                               type="checkbox"
                               name="checks[]"
@@ -1539,6 +1475,10 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
                     }
                   }}
                   onKeyDown={(e) => {
+                    // フォーカス中の要素が自分自身だけの場合のみ処理
+                    if (e.currentTarget !== document.activeElement) {
+                      return; // 子要素にフォーカスがあれば無視
+                    }
                     if (e.key === 'Enter' || e.key === ' ') {
                       if (e.shiftKey && oldItemId !== null) {
                         this.toggleCheckFrom(oldItemId, item);
@@ -1581,6 +1521,7 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
                           type="button"
                           className="acms-admin-media-edit-btn acms-admin-media-edit-list-btn"
                           onClick={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
                             this.setItem(item);
                           }}
@@ -1595,110 +1536,26 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
               </div>
             ))}
           </div>
-          <div className="acms-admin-itemsAmount-container">
-            <p>
-              {(page - 1) * limit + 1}
-              {ACMS.i18n('media.items')} -{page * limit > total ? total : page * limit}
-              {ACMS.i18n('media.items')} /{ACMS.i18n('media.all')}
-              {total}
-              {ACMS.i18n('media.items')}
-            </p>
-          </div>
-          <div className="acms-admin-pager-container">
-            {lastPage > 1 && (
-              <ul className="acms-admin-pager">
-                {page > 1 && (
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        this.fetchMediaList({
-                          page: page - 1,
-                        });
-                      }}
-                    >
-                      «&nbsp;
-                      {ACMS.i18n('media.prev')}
-                    </button>
-                  </li>
-                )}
-                {this.startPage() > 1 && (
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        this.fetchMediaList({
-                          page: 1,
-                        });
-                      }}
-                    >
-                      1
-                    </button>
-                  </li>
-                )}
-                {this.startPage() > 1 && <li>...</li>}
-                {this.pages().map((i) => (
-                  <li
-                    className={classnames({
-                      cur: i === page,
-                    })}
-                    key={i.toString()}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        this.fetchMediaList({
-                          page: i,
-                        });
-                      }}
-                    >
-                      {i}
-                    </button>
-                  </li>
-                ))}
-                {lastPage > this.endPage() && <li>...</li>}
-                {lastPage > this.endPage() && (
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        this.fetchMediaList({
-                          page: lastPage,
-                        });
-                      }}
-                    >
-                      {lastPage}
-                    </button>
-                  </li>
-                )}
-                {lastPage > page && (
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        this.fetchMediaList({
-                          page: page + 1,
-                        });
-                      }}
-                    >
-                      {ACMS.i18n('media.next')}
-                      &nbsp;»
-                    </button>
-                  </li>
-                )}
-              </ul>
-            )}
-          </div>
-          {deleting && <Splash message={ACMS.i18n('media.deleting_media')} />}
-          <Notify
-            message={ACMS.i18n('media.add_tags_to_media_confirm')}
-            show={tagAdded}
-            onFinish={() => {
-              this.setState({
-                tagAdded: false,
-              });
-            }}
-          />
+          <Grid className="acms-admin-margin-top-medium">
+            <PaginationRoot
+              page={page}
+              pageSize={limit}
+              total={Math.ceil(total / limit)}
+              totalItems={total}
+              onChange={(page) =>
+                this.fetchMediaList({
+                  page,
+                })
+              }
+            >
+              <GridItem col={{ md: 6, xs: 12 }}>
+                <Pagination />
+              </GridItem>
+              <GridItem col={{ md: 6, xs: 12 }}>
+                <PaginationSummary />
+              </GridItem>
+            </PaginationRoot>
+          </Grid>
         </div>
       </StyledMediaList>
     );

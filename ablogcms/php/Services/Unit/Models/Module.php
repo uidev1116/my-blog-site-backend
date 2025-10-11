@@ -3,12 +3,49 @@
 namespace Acms\Services\Unit\Models;
 
 use Acms\Services\Unit\Contracts\Model;
+use Acms\Services\Unit\Contracts\AlignableUnitInterface;
+use Acms\Traits\Unit\AlignableUnitTrait;
 use Acms\Services\Unit\Contracts\ExportEntry;
 use Acms\Services\Facades\Template as TemplateHelper;
 use Template;
 
-class Module extends Model implements ExportEntry
+/**
+ * @phpstan-type ModuleAttributes array{mid: int|null, tpl: string}
+ * @extends \Acms\Services\Unit\Contracts\Model<ModuleAttributes>
+ */
+class Module extends Model implements AlignableUnitInterface, ExportEntry
 {
+    use AlignableUnitTrait;
+
+    /**
+     * ユニットの独自データ
+     * @var ModuleAttributes
+     */
+    private $attributes = [
+        'mid' => null,
+        'tpl' => '',
+    ];
+
+    /**
+     * @inheritDoc
+     */
+    public function getAttributes()
+    {
+        return [
+            ...$this->attributes,
+            'mid' => $this->getField1() !== '' ? (int) $this->getField1() : null,
+            'tpl' => $this->getField2(),
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setAttributes($attributes): void
+    {
+        $this->attributes = $attributes;
+    }
+
     /**
      * エントリーのエクスポートでエクスポートするアセットを返却
      *
@@ -32,31 +69,35 @@ class Module extends Model implements ExportEntry
     /**
      * エントリーのエクスポートでエクスポートするモジュールIDを返却
      *
-     * @return int[]
+     * @inheritDoc
      */
-    public function exportModuleIds(): array
+    public function exportModuleId(): ?int
     {
-        return array_map('intval', $this->explodeUnitData($this->getField1()));
+        $moduleId = (int) $this->getField1();
+        if ($moduleId <= 0) {
+            return null;
+        }
+        return $moduleId;
     }
 
     /**
      * ユニットタイプを取得
      *
-     * @return string
+     * @inheritDoc
      */
-    public function getUnitType(): string
+    public static function getUnitType(): string
     {
         return 'module';
     }
 
     /**
-     * ユニットが画像タイプか取得
+     * ユニットラベルを取得
      *
-     * @return bool
+     * @inheritDoc
      */
-    public function getIsImageUnit(): bool
+    public static function getUnitLabel(): string
     {
-        return false;
+        return gettext('モジュール');
     }
 
     /**
@@ -73,18 +114,16 @@ class Module extends Model implements ExportEntry
     }
 
     /**
-     * POSTデータからユニット独自データを抽出
-     *
-     * @param array $post
-     * @param bool $removeOld
-     * @param bool $isDirectEdit
-     * @return void
+     * @inheritDoc
      */
-    public function extract(array $post, bool $removeOld = true, bool $isDirectEdit = false): void
+    public function extract(array $request): void
     {
-        $id = $this->getTempId();
-        $this->setField1($post["module_mid_{$id}"] ?? '');
-        $this->setField2($post["module_tpl_{$id}"] ?? '');
+        $id = $this->getId();
+        if (is_null($id)) {
+            throw new \LogicException('Unit ID must be set before calling extract');
+        }
+        $this->setField1($request["module_mid_{$id}"] ?? '');
+        $this->setField2($request["module_tpl_{$id}"] ?? '');
     }
 
     /**
@@ -94,7 +133,7 @@ class Module extends Model implements ExportEntry
      */
     public function canSave(): bool
     {
-        if (empty($this->getField1())) {
+        if ($this->getField1() === '') {
             return false;
         }
         return true;
@@ -149,7 +188,7 @@ class Module extends Model implements ExportEntry
     public function render(Template $tpl, array $vars, array $rootBlock): void
     {
         $mid = (int) $this->getField1();
-        if (empty($mid)) {
+        if ($mid === 0) {
             return;
         }
         $template = $this->getField2();
@@ -157,8 +196,7 @@ class Module extends Model implements ExportEntry
         $name = $module->get('name');
         $identifier = $module->get('identifier');
         $vars['view'] = TemplateHelper::spreadModule($name, $identifier, $template);
-        $vars['attr'] = $this->getAttr();
-        $vars['align'] = $this->getAlign();
+        $vars['align'] = $this->getAlign()->value;
 
         $tpl->add(array_merge(['unit#' . $this->getType()], $rootBlock), $vars);
     }
@@ -173,19 +211,6 @@ class Module extends Model implements ExportEntry
      */
     public function renderEdit(Template $tpl, array $vars, array $rootBlock): void
     {
-        $mid = (int) $this->getField1();
-        $template = $this->getField2();
-        $vars += [
-            'mid' => $mid,
-            'tpl' => $template,
-        ];
-        if (!empty($mid)) {
-            $module = loadModule($mid);
-            $name = $module->get('name');
-            $identifier = $module->get('identifier');
-            $vars['view'] = TemplateHelper::spreadModule($name, $identifier, $template);
-        }
-        $tpl->add(array_merge([$this->getUnitType()], $rootBlock), $vars);
     }
 
     /**
@@ -197,7 +222,7 @@ class Module extends Model implements ExportEntry
     {
         return [
             'mid' => $this->getField1(),
-            'tpl' => $this->getField2(),
+            'tpl' => $this->getField2()
         ];
     }
 }

@@ -3,16 +3,29 @@
 namespace Acms\Services\Unit\Contracts;
 
 use Template;
+use Acms\Services\Unit\Constants\UnitAlign;
+use Acms\Services\Unit\Constants\UnitStatus;
+use Acms\Services\Unit\Contracts\AlignableUnitInterface;
 
+/**
+ * @template T of array<string, mixed>
+ */
 abstract class Model
 {
     use \Acms\Traits\Unit\UnitModelTrait;
+    use \Acms\Traits\Unit\UnitConfigTrait;
 
     /**
      * ユニットID
-     * @var int|null
+     * @var non-empty-string|null
      */
     private $id;
+
+    /**
+     * ユニットの親ID
+     * @var non-empty-string|null
+     */
+    private $parentId;
 
     /**
      * エントリーID
@@ -21,7 +34,7 @@ abstract class Model
     private $entryId;
 
     /**
-     * revision id
+     * エントリーのリビジョンID
      * @var int|null
      */
     private $revId;
@@ -34,15 +47,11 @@ abstract class Model
 
     /**
      * sort
-     * @var int
+     * @var positive-int
      */
     private $sort = 1;
 
-    /**
-     * 配置
-     * @var string
-     */
-    private $align = '';
+
 
     /**
      * タイプ
@@ -51,22 +60,17 @@ abstract class Model
     private $type = '';
 
     /**
-     * 属性
-     * @var string
-     */
-    private $attr = '';
-
-    /**
-     * グループ
+     * ユニットグループ
+     * @deprecated ユニットグループは非推奨です。
      * @var string
      */
     private $group = '';
 
     /**
-     * サイズ
-     * @var string
+     * ステータス
+     * @var UnitStatus
      */
-    private $size = '';
+    private $status = UnitStatus::OPEN;
 
     /**
      * フィールド1
@@ -117,30 +121,6 @@ abstract class Model
     private $field8 = '';
 
     /**
-     * Eager Load されたメディアデータ
-     * @var array
-     */
-    private $eagerLoadedMedia = [];
-
-    /**
-     * テンプレートのinputを識別するための一時ID
-     * @var string
-     */
-    private $tempId = '';
-
-    /**
-     * 編集アクション
-     * @var string
-     */
-    private $editAction = '';
-
-    /**
-     * メイン画像ユニットID
-     * @var int|null
-     */
-    private $primaryImageUnitId = null;
-
-    /**
      * コンストラクター
      */
     public function __construct()
@@ -152,14 +132,14 @@ abstract class Model
      *
      * @return string
      */
-    abstract public function getUnitType(): string;
+    abstract public static function getUnitType(): string;
 
     /**
-     * ユニットが画像タイプか取得
+     * ユニットラベルを取得
      *
-     * @return bool
+     * @return string
      */
-    abstract public function getIsImageUnit(): bool;
+    abstract public static function getUnitLabel(): string;
 
     /**
      * ユニットのデフォルト値をセット
@@ -171,14 +151,12 @@ abstract class Model
     abstract public function setDefault(string $configKeyPrefix, int $configIndex): void;
 
     /**
-     * POSTデータからユニット独自データを抽出
+     * リクエストデータからユニット独自データを抽出
      *
-     * @param array $post
-     * @param bool $removeOld
-     * @param bool $isDirectEdit
+     * @param array $request
      * @return void
      */
-    abstract public function extract(array $post, bool $removeOld = true, bool $isDirectEdit = false): void;
+    abstract public function extract(array $request): void;
 
     /**
      * 保存できるユニットか判断
@@ -242,12 +220,30 @@ abstract class Model
      */
     abstract protected function getLegacy(): array;
 
+
+    /**
+     * ユニットの独自データを取得
+     * ユニットの独自データをHTMLから抽出する場合はHTML文字列を返却する
+     *
+     * @return T
+     */
+    abstract public function getAttributes();
+
+    /**
+     * ユニットの独自データを設定
+     * ユニットの独自データをHTMLから抽出する場合はHTML文字列を設定する
+     *
+     * @param T $attributes
+     * @return void
+     */
+    abstract public function setAttributes($attributes): void;
+
     /**
      * id getter
      *
-     * @return int|null
+     * @return non-empty-string|null
      */
-    public function getId(): ?int
+    public function getId(): ?string
     {
         return $this->id;
     }
@@ -255,12 +251,36 @@ abstract class Model
     /**
      * id setter
      *
-     * @param int $id
+     * @param non-empty-string $id
      * @return void
      */
-    public function setId(int $id): void
+    public function setId(string $id): void
     {
+        if ($this->id) {
+            throw new \InvalidArgumentException('id is already set');
+        }
         $this->id = $id;
+    }
+
+    /**
+     * parent id getter
+     *
+     * @return non-empty-string|null
+     */
+    public function getParentId(): ?string
+    {
+        return $this->parentId;
+    }
+
+    /**
+     * parent id setter
+     *
+     * @param non-empty-string|null $parentId
+     * @return void
+     */
+    public function setParentId(?string $parentId): void
+    {
+        $this->parentId = $parentId;
     }
 
     /**
@@ -297,10 +317,10 @@ abstract class Model
     /**
      * revision id setter
      *
-     * @param int $revId
+     * @param int|null $revId
      * @return void
      */
-    public function setRevId(int $revId): void
+    public function setRevId(?int $revId): void
     {
         $this->revId = $revId;
     }
@@ -329,7 +349,7 @@ abstract class Model
     /**
      * sort getter
      *
-     * @return int
+     * @return positive-int
      */
     public function getSort(): int
     {
@@ -339,7 +359,7 @@ abstract class Model
     /**
      * sort setter
      *
-     * @param int $sort
+     * @param positive-int $sort
      * @return void
      */
     public function setSort(int $sort): void
@@ -347,26 +367,7 @@ abstract class Model
         $this->sort = $sort;
     }
 
-    /**
-     * align getter
-     *
-     * @return string
-     */
-    public function getAlign(): string
-    {
-        return $this->align;
-    }
 
-    /**
-     * align setter
-     *
-     * @param string $align
-     * @return void
-     */
-    public function setAlign(string $align): void
-    {
-        $this->align = $align;
-    }
 
     /**
      * type getter
@@ -390,66 +391,71 @@ abstract class Model
     }
 
     /**
-     * attr getter
-     *
-     * @return string
-     */
-    public function getAttr(): string
-    {
-        return $this->attr;
-    }
-
-    /**
-     * attr setter
-     *
-     * @param string $attr
-     * @return void
-     */
-    public function setAttr(string $attr): void
-    {
-        $this->attr = $attr;
-    }
-
-    /**
      * group getter
      *
+     * @deprecated ユニットグループは非推奨です。
      * @return string
      */
     public function getGroup(): string
     {
+        if (config('unit_group') !== 'on') {
+            return '';
+        }
+        if ($this instanceof ParentUnit) {
+            // 親になるユニットは、ユニットグループを設定できない
+            return '';
+        }
         return $this->group;
     }
 
     /**
      * group setter
      *
+     * @deprecated ユニットグループは非推奨です。
      * @param string $group
      * @return void
      */
     public function setGroup(string $group): void
     {
+        if (config('unit_group') !== 'on') {
+            return;
+        }
+        if ($this instanceof ParentUnit) {
+            // 親になるユニットは、ユニットグループを設定できない
+            return;
+        }
         $this->group = $group;
     }
 
     /**
-     * size getter
+     * status getter
      *
-     * @return string
+     * @return UnitStatus
      */
-    public function getSize(): string
+    public function getStatus(): UnitStatus
     {
-        return $this->size;
+        return $this->status;
     }
 
     /**
-     * size setter
+     * status setter
      *
-     * @param string $size
+     * @param UnitStatus $status
      * @return void
      */
-    public function setSize(string $size): void
+    public function setStatus(UnitStatus $status): void
     {
-        $this->size = $size;
+        $this->status = $status;
+    }
+
+    /**
+     * 非表示ユニットかどうか
+     *
+     * @return bool
+     */
+    public function isHidden(): bool
+    {
+        return $this->status === UnitStatus::CLOSE;
     }
 
     /**
@@ -621,87 +627,13 @@ abstract class Model
     }
 
     /**
-     * 一時ID getter
+     * unit name getter
      *
      * @return string
      */
-    public function getTempId(): string
+    public function getName(): string
     {
-        return $this->tempId;
-    }
-
-    /**
-     * 一時ID setter
-     *
-     * @param string $tempId
-     * @return void
-     */
-    public function setTempId(string $tempId): void
-    {
-        $this->tempId = $tempId;
-    }
-
-    /**
-     * edit action getter
-     *
-     * @return string
-     */
-    public function getEditAction(): string
-    {
-        return $this->editAction;
-    }
-
-    /**
-     * edit action setter
-     *
-     * @param string $editAction
-     * @return void
-     */
-    public function setEditAction(string $editAction): void
-    {
-        $this->editAction = $editAction;
-    }
-
-    /**
-     * eager loaded media getter
-     *
-     * @return array
-     */
-    public function getEagerLoadedMedia(): array
-    {
-        return $this->eagerLoadedMedia;
-    }
-
-    /**
-     * eager loaded media setter
-     *
-     * @param array $media
-     * @return void
-     */
-    public function setEagerLoadedMedia(array $media): void
-    {
-        $this->eagerLoadedMedia = $media;
-    }
-
-    /**
-     * primary image unit id getter
-     *
-     * @return int|null
-     */
-    public function getPrimaryImageUnitId(): ?int
-    {
-        return $this->primaryImageUnitId;
-    }
-
-    /**
-     * primary image unit id setter
-     *
-     * @param int|null $unitId
-     * @return void
-     */
-    public function setPrimaryImageUnitId(?int $unitId): void
-    {
-        $this->primaryImageUnitId = $unitId;
+        return $this->getUnitNameTrait($this->getType());
     }
 
     /**
@@ -713,12 +645,20 @@ abstract class Model
      */
     public function create(string $addType, int $configIndex): void
     {
-        $this->setTempId(uniqueString());
-        $this->setAlign(config('column_def_add_' . $addType . '_align', '', $configIndex));
-        $this->setGroup(config('column_def_add_' . $addType . '_group', '', $configIndex));
-        $this->setAttr(config('column_def_add_' . $addType . '_attr', '', $configIndex));
-        $this->setSize(config('column_def_add_' . $addType . '_size', '', $configIndex));
-        $this->setEditAction(config('column_def_add_' . $addType . '_edit', '', $configIndex));
+        if (config('unit_group') === 'on') {
+            $this->setGroup(config('column_def_add_' . $addType . '_group', '', $configIndex));
+        }
+        if ($this instanceof AttrableUnitInterface) {
+            $this->setAttr(config('column_def_add_' . $addType . '_attr', '', $configIndex));
+        }
+        if ($this instanceof AlignableUnitInterface) {
+            $align = config('column_def_add_' . $addType . '_align', '', $configIndex);
+            $this->setAlign(UnitAlign::tryFrom($align) ?? UnitAlign::CENTER);
+        }
+        if ($this instanceof SizeableUnitInterface) {
+            $size = config('column_def_add_' . $addType . '_size', '', $configIndex);
+            $this->setSize($size);
+        }
         $this->setDefault($this->getUnitDefaultConfigKeyPrefix('add', $addType), $configIndex);
     }
 
@@ -730,14 +670,24 @@ abstract class Model
      */
     public function createDefault(int $configIndex): void
     {
-        $this->setTempId(uniqueString());
-        $this->setSort($configIndex + 1);
-        $this->setAlign(config('column_def_insert_align', 'auto', $configIndex));
-        $this->setGroup(config('column_def_insert_group', '', $configIndex));
-        $this->setAttr(config('column_def_insert_attr', '', $configIndex));
-        $this->setSize(config('column_def_insert_size', '', $configIndex));
-        $this->setEditAction(config('column_def_insert_edit', '', $configIndex));
-        $this->setDefault($this->getUnitDefaultConfigKeyPrefix('insert', $this->getUnitType()), $configIndex);
+        $sort = $configIndex + 1;
+        assert($sort > 0);
+        $this->setSort($sort);
+        if (config('unit_group') === 'on') {
+            $this->setGroup(config('column_def_insert_group', '', $configIndex));
+        }
+        if ($this instanceof AlignableUnitInterface) {
+            $align = config('column_def_insert_align', '', $configIndex);
+            $this->setAlign(UnitAlign::tryFrom($align) ?? UnitAlign::CENTER);
+        }
+        if ($this instanceof AttrableUnitInterface) {
+            $this->setAttr(config('column_def_insert_attr', '', $configIndex));
+        }
+        if ($this instanceof SizeableUnitInterface) {
+            $size = config('column_def_insert_size', '', $configIndex);
+            $this->setSize($size);
+        }
+        $this->setDefault($this->getUnitDefaultConfigKeyPrefix('insert', static::getUnitType()), $configIndex);
     }
 
     /**
@@ -748,16 +698,48 @@ abstract class Model
      */
     public function load(array $record)
     {
-        $this->id = (int) $record['column_id'];
-        $this->revId = (int) ($record['column_rev_id'] ?? 0);
-        $this->entryId = (int) $record['column_entry_id'];
-        $this->blogId = (int) $record['column_blog_id'];
-        $this->sort = (int) $record['column_sort'];
-        $this->align = $record['column_align'];
+        $id = (string) $record['column_id'];
+        if ($id === '') {
+            throw new \InvalidArgumentException('column_id is required');
+        }
+        $this->id = $id;
+        $revId = isset($record['column_rev_id']) ? (int) $record['column_rev_id'] : null;
+        if (is_int($revId) && $revId < 1) {
+            throw new \InvalidArgumentException('column_rev_id must be greater than 0');
+        }
+        $this->revId = $revId;
+        $entryId = (int) $record['column_entry_id'];
+        if ($entryId < 1) {
+            throw new \InvalidArgumentException('column_entry_id must be greater than 0');
+        }
+        $this->entryId = $entryId;
+        $blogId = (int) $record['column_blog_id'];
+        if ($blogId < 1) {
+            throw new \InvalidArgumentException('column_blog_id must be greater than 0');
+        }
+        $this->blogId = $blogId;
+
+        $sort = (int) $record['column_sort'];
+        if ($sort < 1) {
+            throw new \InvalidArgumentException('column_sort must be greater than 0');
+        }
+        $this->sort = $sort;
+
+        $this->parentId = $record['column_parent_id'];
         $this->type = $record['column_type'];
-        $this->attr = $record['column_attr'];
+        if ($this instanceof AlignableUnitInterface) {
+            $this->setAlign(UnitAlign::tryFrom($record['column_align']) ?? UnitAlign::CENTER);
+        }
+        if ($this instanceof \Acms\Services\Unit\Contracts\AttrableUnitInterface) {
+            $this->setAttr($record['column_attr']);
+        }
+        if ($this instanceof \Acms\Services\Unit\Contracts\AnkerUnitInterface) {
+            $this->setAnker($record['column_anker']);
+        }
         $this->group = $record['column_group'];
-        $this->size = $record['column_size'];
+        if ($this instanceof \Acms\Services\Unit\Contracts\SizeableUnitInterface) {
+            $this->setSize($record['column_size']);
+        }
         $this->field1 = $record['column_field_1'];
         $this->field2 = $record['column_field_2'];
         $this->field3 = $record['column_field_3'];
@@ -766,6 +748,22 @@ abstract class Model
         $this->field6 = $record['column_field_6'];
         $this->field7 = $record['column_field_7'];
         $this->field8 = $record['column_field_8'];
+        $this->status = UnitStatus::tryFrom($record['column_status'] ?? 'open') ?? UnitStatus::OPEN;
+        $this->onLoad($record);
+
+        if ($this instanceof \Acms\Services\Unit\Contracts\ProcessExtender) {
+            $this->extendOnLoad(); // ロード時に拡張処理を行う
+        }
+    }
+
+    /**
+     * ユニットロード時に拡張処理を行う
+     *
+     * @param array $record
+     * @return void
+     */
+    public function onLoad(array $record): void
+    {
     }
 
     /**
@@ -773,86 +771,29 @@ abstract class Model
      *
      * @param int $eid
      * @param int $bid
-     * @param bool $isRevision
      * @param int|null $rvid
-     * @param int $offset
-     * @return int
+     * @return void
      */
-    public function save(int $eid, int $bid, bool $isRevision, ?int $rvid, int $offset): int
+    public function save(int $eid, int $bid, ?int $rvid): void
     {
-        $unitId = $this->getId();
-        if (empty($unitId)) {
-            // 新規ユニットIDを発行
-            $unitId = $this->generateNewIdTrait();
-            $this->setId($unitId);
+        if (!enableRevision()) {
+            // リビジョン機能が有効でない場合はリビジョンIDをnullに設定
+            $rvid = null;
         }
-        // ソートを更新
-        $sort = $this->getSort() - $offset;
-        $this->updateSortNumberTrait($sort, $eid, $bid, $isRevision, $rvid);
+        $unitId = $this->getId();
+        if (is_null($unitId)) {
+            throw new \LogicException('unit id is required to save');
+        }
         // データセット
-        $this->setSort($sort);
         $this->setEntryId($eid);
         $this->setBlogId($bid);
-        if ($isRevision && $rvid) {
-            $this->setRevId($rvid);
-        }
+        $this->setRevId($rvid);
+
         // ユニットを保存
-        $this->insertDataTrait($this, $isRevision);
+        $this->insertDataTrait($this, $rvid !== null && $rvid > 0);
 
-        return $unitId;
-    }
-
-    /**
-     * ユニットのデータを結合する
-     *
-     * @param string[]|string $data
-     * @return string
-     */
-    public function implodeUnitData($data)
-    {
-        if (is_array($data)) {
-            $data = str_replace(':acms_unit_delimiter:', ':acms-unit-delimiter:', $data);
-            $data = implode(':acms_unit_delimiter:', $data);
-        }
-        if (preg_match('/^(:acms_unit_delimiter:)+$/', $data)) {
-            $data = '';
-        }
-        return $data;
-    }
-
-    /**
-     * ユニットのデータを分割する
-     *
-     * @param mixed $data
-     * @return array
-     */
-    public function explodeUnitData($data): array
-    {
-        if (is_string($data)) {
-            $data = explode(':acms_unit_delimiter:', $data);
-        }
-        if (is_array($data)) {
-            return $data;
-        }
-        return [$data];
-    }
-
-    /**
-     * ユニットのデータを多言語ユニットを考慮して整形する
-     *
-     * @param mixed $data
-     * @param array &$vars
-     * @param string $name
-     */
-    public function formatMultiLangUnitData($data, &$vars = [], $name = '')
-    {
-        $dataAry = $this->explodeUnitData($data);
-        foreach ($dataAry as $u => $var) {
-            $var = str_replace(':acms-unit-delimiter:', ':acms_unit_delimiter:', $var);
-            $suffix = (string) ($u === 0 ? '' : $u + 1);
-            $vars["{$name}{$suffix}"] = $var;
-            $vars["{$name}{$suffix}:checked#{$var}"] = config('attr_checked');
-            $vars["{$name}{$suffix}:selected#{$var}"] = config('attr_selected');
+        if ($this instanceof \Acms\Services\Unit\Contracts\ProcessExtender) {
+            $this->extendOnSave(); // 保存時時に拡張処理を行う
         }
     }
 
@@ -867,12 +808,23 @@ abstract class Model
         $data = [
             'clid' => $this->getId(),
             'type' => $this->getType(),
-            'align' => $this->getAlign(),
             'sort' => $this->getSort(),
-            'group' => $this->getGroup(),
-            'attr' => $this->getAttr(),
-            'size' => $this->getSize(),
         ];
+        if (config('unit_group') === 'on') {
+            $data['group'] = $this->getGroup();
+        }
+        if ($this instanceof \Acms\Services\Unit\Contracts\SizeableUnitInterface) {
+            $data['size'] = $this->getSize();
+        }
+        if ($this instanceof \Acms\Services\Unit\Contracts\AttrableUnitInterface) {
+            $data['attr'] = $this->getAttr();
+        }
+        if ($this instanceof \Acms\Services\Unit\Contracts\AlignableUnitInterface) {
+            $data['align'] = $this->getAlign()->value;
+        }
+        if ($this instanceof \Acms\Services\Unit\Contracts\AnkerUnitInterface) {
+            $data['anker'] = $this->getAnker();
+        }
         $data += $this->getLegacy();
 
         return $data;
@@ -891,5 +843,25 @@ abstract class Model
             return "column_def_add_{$addType}_";
         }
         return 'column_def_insert_';
+    }
+
+    /**
+     * ユニットのデータを保存する前に拡張処理を行う
+     *
+     * @param \SQL_Insert $sql
+     * @param bool $isRevision
+     * @return void
+     * @param-out \SQL_Insert $sql
+     */
+    public function extendInsertQuery(\SQL_Insert &$sql, bool $isRevision): void
+    {
+    }
+
+    public function __clone()
+    {
+        if ($this->id !== null) {
+            $newId = $this->generateNewIdTrait();
+            $this->id = $newId;
+        }
     }
 }

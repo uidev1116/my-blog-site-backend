@@ -30,8 +30,10 @@ class ACMS_GET_Comment_List extends ACMS_GET
         );
         $SQL->setLimit(intval(config('comment_list_limit')));
 
-        $q  = $SQL->get(dsn());
-        if (!$DB->query($q, 'fetch') or !($row = $DB->fetch($q))) {
+        $q = $SQL->get(dsn());
+        $statement = $DB->query($q, 'exec');
+
+        if (!$statement || !($row = $DB->next($statement))) {
             return '';
         }
         do {
@@ -59,7 +61,7 @@ class ACMS_GET_Comment_List extends ACMS_GET
             }
             $vars   += $this->buildDate(strtotime($row['comment_datetime']), $Tpl, 'comment:loop');
             $Tpl->add('comment:loop', $vars);
-        } while ($row = $DB->fetch($q));
+        } while ($row = $DB->next($statement));
 
         return $Tpl->get();
     }

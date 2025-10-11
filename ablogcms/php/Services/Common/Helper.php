@@ -3,17 +3,21 @@
 namespace Acms\Services\Common;
 
 use Acms\Services\Facades\Database as DB;
-use Acms\Services\Facades\Storage;
+use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\PrivateStorage;
+use Acms\Services\Facades\PublicStorage;
 use Acms\Services\Facades\Entry;
 use Acms\Services\Facades\Image;
 use Acms\Services\Facades\Cache;
+use Acms\Services\Facades\Config;
 use Acms\Services\Facades\Media;
 use Acms\Services\Facades\Logger as AcmsLogger;
 use Acms\Services\Facades\RichEditor;
 use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Session;
-use phpseclib\Crypt\AES;
-use phpseclib\Crypt\Random;
+use Acms\Services\Facades\Login;
+use phpseclib3\Crypt\AES;
+use phpseclib3\Crypt\Random;
 use cebe\markdown\MarkdownExtra;
 use SQL;
 use Tpl;
@@ -28,6 +32,7 @@ use ACMS_RAM;
 use ACMS_Hook;
 use Exception;
 use RuntimeException;
+use DOMDocument;
 
 class Helper
 {
@@ -73,6 +78,34 @@ class Helper
     private $previousSalt = null;
 
     /**
+     * アプリの固定ソルト
+     *
+     * @var string|null
+     */
+    private $appSalt = null;
+
+    /**
+     * V2モジュールかどうか判定用のフラグ
+     *
+     * @var bool
+     */
+    private $isV2Module = false;
+
+    /**
+     * 強制的にV1ビルドを行うかどうかのフラグ
+     *
+     * @var bool
+     */
+    private $isForceV1Build = false;
+
+    /**
+     * メディアの配信URL
+     *
+     * @var string
+     */
+    private $mediaDeliveryUrl = '';
+
+    /**
      * Constructor
      */
     public function __construct()
@@ -83,6 +116,295 @@ class Helper
         $this->Get =& $app->getGetParameter();
         $this->Post =& $app->getPostParameter();
         $this->cacheField = Cache::field();
+
+        $mediaDeliveryUrl = env('ASSETS_DELIVERY_URL', '');
+        if (!!$mediaDeliveryUrl) {
+            $this->mediaDeliveryUrl = rtrim($mediaDeliveryUrl, '/');
+        }
+    }
+
+    /**
+     * V2モジュールとして実行中か判定
+     *
+     * @return boolean
+     */
+    public function isV2Module(): bool
+    {
+        return $this->isV2Module;
+    }
+
+    /**
+     * 強制的にV1ビルドを行うか判定
+     *
+     *
+     * @return boolean
+     */
+    public function isForceV1Build(): bool
+    {
+        return $this->isForceV1Build;
+    }
+
+    /**
+     * V2モジュールとして実行中か設定
+     *
+     * @param boolean $isV2Module
+     * @return void
+     */
+    public function setV2Module(bool $isV2Module): void
+    {
+        $this->isV2Module = $isV2Module;
+    }
+
+    /**
+     * 強制的にV1ビルドを行うか設定
+     *
+     * @param boolean $isForceV1Build
+     * @return void
+     */
+    public function setForceV1Build(bool $isForceV1Build): void
+    {
+        $this->isForceV1Build = $isForceV1Build;
+    }
+
+    /**
+     * メディアの配信先URLを書き換え
+     *
+     * @param string $url
+     * @return string
+     */
+    public function replaceDeliveryUrl(string $url): string
+    {
+        if (!$this->mediaDeliveryUrl) {
+            return $url;
+        }
+        $mediaDeliveryUrl = rtrim($this->mediaDeliveryUrl, '/');
+        // 安全にディレクトリ名を正規表現化（前後の / を吸収）
+        $dirs = implode('|', array_map(
+            fn($d) => preg_quote(trim($d, '/'), '~'),
+            [MEDIA_LIBRARY_DIR, ARCHIVES_DIR]
+        ));
+        // 例: https://mydomain.com/hoge/media/... や /hoge/media/... もOK
+        // 末尾の ?query や #hash も保持
+        // 先行する任意のサブディレクトリは「ターゲットDIRではない」ことを保証してスキップ
+        // その後で "/(media|archives)/..." を $1 にキャプチャ。?query と #hash は $2
+        $pattern = '~(?:https?://[^/]+)?(?:(?:/(?!' . $dirs . ')(?:[^/?#]+))*)'  // 前置きパス（ただし target dir ではない）
+            . '(/(?:' . $dirs . ')/[^?#\s"\']*)' // ← ここからを置換対象として $1
+            . '([?#][^\s"\']*)?' // クエリ/ハッシュ（任意）
+            . '~iu';
+        $replacement = $mediaDeliveryUrl . '$1$2';
+
+        return preg_replace($pattern, $replacement, $url) ?? $url;
+    }
+
+    /**
+     * メディアの配信先URLを書き換え（全て）
+     *
+     * @param string $html
+     * @return string
+     */
+    public function replaceDeliveryUrlAll(string $html): string
+    {
+        if (!$this->mediaDeliveryUrl) {
+            return $html;
+        }
+
+        // 1) 単一URL属性（href/src/poster/data-src/data-original）
+        $attrPattern = '~\b(href|content|src|poster|data-src|data-original)\s*=\s*(["\'])(.*?)\2~i';
+        $html = preg_replace_callback($attrPattern, function ($m) {
+            [$full, $attr, $q, $val] = $m;
+
+            // javascript:, mailto:, data: はスキップ
+            if (preg_match('~^(?:javascript:|mailto:|data:)~iu', $val)) {
+                return $full;
+            }
+            $new = $this->replaceDeliveryUrl($val);
+            return $attr . '=' . $q . $new . $q;
+        }, $html) ?? $html;
+
+        // 2) srcset（複数URL: "url size, url size, ..."）
+        $srcsetPattern = '~\bsrcset\s*=\s*(["\'])(.*?)\1~iu';
+        $html = preg_replace_callback($srcsetPattern, function ($m) {
+            $q = $m[1];
+            $list = $m[2];
+
+            $items = array_map('trim', explode(',', $list));
+            $items = array_map(function ($item) {
+                // "URL [descriptor]" に分解（descriptor は省略可）
+                // 先頭の1トークンをURLとみなす
+                if ($item === '') {
+                    return $item;
+                }
+                $parts = preg_split('/\s+/', $item, 2);
+                $url = $parts[0];
+                $desc = $parts[1] ?? '';
+                $url = $this->replaceDeliveryUrl($url);
+                return trim($url . ' ' . $desc);
+            }, $items);
+
+            return 'srcset=' . $q . implode(', ', $items) . $q;
+        }, $html) ?? $html;
+
+        // 3) style属性の url(...)
+        $styleAttrPattern = '~\bstyle\s*=\s*(["\'])(.*?)\1~is';
+        $html = preg_replace_callback($styleAttrPattern, function ($m) {
+            $q = $m[1];
+            $css = $m[2];
+            $css = preg_replace_callback('~url\(\s*(["\']?)([^)\'"]+)\1\s*\)~iu', function ($n) {
+                $u = $n[2];
+                // data: はスキップ
+                if (preg_match('~^data:~i', $u)) {
+                    return $n[0];
+                }
+                $u = $this->replaceDeliveryUrl($u);
+                return 'url(' . $u . ')';
+            }, $css) ?? $css;
+            return 'style=' . $q . $css . $q;
+        }, $html) ?? $html;
+
+        return $html;
+    }
+
+    /**
+     * 絶対URLに変換
+     *
+     * @param string $path
+     * @param string $offset
+     * @param bool $force
+     * @return string
+     */
+    public function toAbsoluteUrl(string $path, string $offset = '', bool $force = false): string
+    {
+        if (!$path) {
+            return '';
+        }
+        if (!$this->isRelativeUrl($path, $force)) {
+            return $path; // 既に絶対URLの場合はそのまま返す
+        }
+        $baseUrl = rtrim(BASE_URL, '/');
+        $offset = trim($offset, '/');
+
+        // 絶対パスの場合は $baseUrl をドメイン部分までに限定する
+        if (str_starts_with($path, '/')) {
+            $parts = parse_url(BASE_URL);
+            $baseUrl = $parts['scheme'] . '://' . $parts['host'];
+            if (isset($parts['port'])) {
+                $baseUrl .= ':' . $parts['port'];
+            }
+        }
+        $path = ltrim($path, '/');
+
+        if (!$force && !isApiBuild()) {
+            $baseUrlParts = parse_url($baseUrl);
+            $baseUrlPath = ($baseUrlParts['path'] ?? '');
+            $baseUrlQuery = isset($baseUrlParts['query']) ? '?' . $baseUrlParts['query'] : '';
+            $baseUrl = rtrim($baseUrlPath . $baseUrlQuery);
+        }
+
+        if ($offset !== '') {
+            return "{$baseUrl}/{$offset}/{$path}";
+        }
+        return "{$baseUrl}/{$path}";
+    }
+
+    /**
+     * V2モジュール、V2APIビルド時に、URLを絶対URLに変換
+     * それ以外はそのままのURLを返す
+     *
+     * @param string $path
+     * @param string $offset
+     * @return string
+     */
+    public function resolveUrl($path, $offset = ''): string
+    {
+        if (isApiBuildOrV2Module()) {
+            $newPath = $this->toAbsoluteUrl(Media::urlencode($path), $offset);
+            return $this->replaceDeliveryUrl($newPath);
+        }
+        return Media::urlencode($this->replaceDeliveryUrl($path));
+    }
+
+    /**
+     * HTML内の相対URLを絶対URLに変換
+     *
+     * @param string $html
+     * @param string $baseUrl
+     * @return string
+     */
+    public function convertRelativeUrlsToAbsolute(string $html, string $baseUrl): string
+    {
+        $baseUrl = rtrim($baseUrl, '/');
+
+        if (!isApiBuild()) {
+            $baseUrlParts = parse_url($baseUrl);
+            $baseUrlPath = ($baseUrlParts['path'] ?? '');
+            $baseUrlQuery = isset($baseUrlParts['query']) ? '?' . $baseUrlParts['query'] : '';
+            $baseUrl = rtrim($baseUrlPath . $baseUrlQuery);
+        } else {
+            $parts = parse_url($baseUrl);
+            $baseUrl = $parts['scheme'] . '://' . $parts['host'];
+            if (isset($parts['port'])) {
+                $baseUrl .= ':' . $parts['port'];
+            }
+        }
+
+        libxml_use_internal_errors(true);
+        $doc = new DOMDocument('1.0', 'UTF-8');
+        $doc->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+
+        $tags = [
+            ['tag' => 'img', 'attr' => 'src'],
+            ['tag' => 'a', 'attr' => 'href'],
+            ['tag' => 'video',  'attr' => 'src'],
+            ['tag' => 'source', 'attr' => 'src'],
+            ['tag' => 'link',   'attr' => 'href'],
+            // ['tag' => 'script', 'attr' => 'src'],
+        ];
+
+        foreach ($tags as $entry) {
+            $elements = $doc->getElementsByTagName($entry['tag']);
+            foreach ($elements as $el) {
+                $attrValue = $el->getAttribute($entry['attr']);
+                if ($this->isRelativeUrl($attrValue)) {
+                    $el->setAttribute($entry['attr'], $baseUrl . '/' . ltrim($attrValue, '/'));
+                }
+            }
+        }
+        $innerHTML = '';
+        foreach ($doc->childNodes as $node) {
+            $innerHTML .= $doc->saveHTML($node);
+        }
+        // 不要なXML宣言を除去
+        $innerHTML = str_ireplace('<?xml encoding="UTF-8">', '', $innerHTML);
+        libxml_clear_errors();
+
+        return $innerHTML;
+    }
+
+    /**
+     * URLが相対URLかどうかを判定
+     *
+     * @param string $url
+     * @param bool $force ビルド方式など考慮せず、絶対URLでないかを判定する場合はtrue
+     * @return bool
+     */
+    private function isRelativeUrl(string $url, bool $force = false): bool
+    {
+        $isRelative = !preg_match('#^(https?:)?//#', $url) && strpos($url, 'data:') !== 0;
+        if ($force || isApiBuild()) {
+            return $isRelative; // APIビルドでは、相対URLを許可しない
+        }
+        return $isRelative && strpos($url, '/') !== 0;
+    }
+
+    /**
+     * 暗号化キーを取得
+     *
+     * @return string
+     */
+    private function getEncryptKey(): string
+    {
+        // 必ず16/24/32バイトに揃える（ここでは32バイトに統一）
+        return hash('sha256', $this->getAppSalt(), true);
     }
 
     /**
@@ -90,8 +412,8 @@ class Helper
      */
     public function getEncryptIv()
     {
-        $cipher = new AES();
-        $cipher->setKey(PASSWORD_SALT_1);
+        $cipher = new AES('cbc');
+        $cipher->setKey($this->getEncryptKey());
 
         return Random::string(($cipher->getBlockLength() >> 3));
     }
@@ -103,8 +425,8 @@ class Helper
      */
     public function encrypt($string, $iv)
     {
-        $cipher = new AES();
-        $cipher->setKey(PASSWORD_SALT_1);
+        $cipher = new AES('cbc');
+        $cipher->setKey($this->getEncryptKey());
         $cipher->setIV($iv);
 
         return base64_encode($cipher->encrypt($string));
@@ -117,8 +439,8 @@ class Helper
      */
     public function decrypt($cipherText, $iv)
     {
-        $cipher = new AES();
-        $cipher->setKey(PASSWORD_SALT_1);
+        $cipher = new AES('cbc');
+        $cipher->setKey($this->getEncryptKey());
         $cipher->setIV($iv);
 
         return $cipher->decrypt(base64_decode($cipherText)); // @phpstan-ignore-line
@@ -134,22 +456,31 @@ class Helper
         $sql = SQL::newSelect('sequence');
         $item = DB::query($sql->get(dsn()), 'row');
 
-        if (!$item || !array_key_exists('sequence_current_salt', $item) || !array_key_exists('sequence_previous_salt', $item)) {
+        if (!$item || !array_key_exists('sequence_current_salt', $item) || !array_key_exists('sequence_previous_salt', $item) || !array_key_exists('sequence_app_salt', $item)) {
             $this->currentSalt = PASSWORD_SALT_1;
             $this->previousSalt = PASSWORD_SALT_2;
+            $this->appSalt = PASSWORD_SALT_1;
             AcmsLogger::error('データベースがアップデートされていません。管理画面の更新メニューからDBをアップデートください。');
             return;
         }
         $currentSalt = $item['sequence_current_salt'] ?? null;
         $previousSalt = $item['sequence_previous_salt'] ?? null;
+        $appSalt = $item['sequence_app_salt'] ?? null;
         $updatedAt = strtotime($item['sequence_salt_updated_at'] ?? '2000-01-01 00:00:00');
 
+        if ($appSalt === null) {
+            $appSalt = "base64:" . base64_encode(random_bytes(32));
+            $sql = SQL::newUpdate('sequence');
+            $sql->addUpdate('sequence_app_salt', $appSalt);
+            DB::query($sql->get(dsn()), 'exec');
+        }
         if ($currentSalt === null || $previousSalt === null) {
             $currentSalt = "base64:" . base64_encode(random_bytes(32));
             $previousSalt = "base64:" . base64_encode(random_bytes(32));
             $sql = SQL::newUpdate('sequence');
             $sql->addUpdate('sequence_current_salt', $currentSalt);
             $sql->addUpdate('sequence_previous_salt', $previousSalt);
+            $sql->addUpdate('sequence_app_salt', $appSalt);
             $sql->addUpdate('sequence_salt_updated_at', date('Y-m-d H:i:s', REQUEST_TIME));
             DB::query($sql->get(dsn()), 'exec');
         } elseif ((REQUEST_TIME - $updatedAt) > (60 * 60 * 24)) {
@@ -163,6 +494,7 @@ class Helper
         }
         $this->currentSalt = $currentSalt;
         $this->previousSalt = $previousSalt;
+        $this->appSalt = $appSalt;
     }
 
     /**
@@ -183,6 +515,16 @@ class Helper
     public function getPreviousSalt(): string
     {
         return $this->previousSalt ??  base64_encode(random_bytes(32));
+    }
+
+    /**
+     * アプリの固定ソルトを取得
+     *
+     * @return string
+     */
+    public function getAppSalt(): string
+    {
+        return $this->appSalt ??  base64_encode(random_bytes(32));
     }
 
     /**
@@ -218,7 +560,7 @@ class Helper
             $out .= ' ';
         }
 
-        header("HTTP/1.1 301");
+        $this->setSafeHeadersWithoutCache(301);
         header("Content-Length: " . strlen($out));
         header("Connection: close");
         header("Location: " . $url);
@@ -286,6 +628,19 @@ class Helper
     }
 
     /**
+     * キャッシュ無効で安全なレスポンスヘッダーを組み立てます。
+     *
+     * @return void
+     */
+    public function setSafeHeadersWithoutCache(int $code = 200, string $mime = 'text/html'): void
+    {
+        http_response_code($code);
+        header("Content-type: {$mime}; charset=" . config('charset', 'UTF-8'));
+        $this->addSecurityHeader();
+        $this->clientCacheHeader(true);
+    }
+
+    /**
      * CSRFトークンを生成
      *
      * @return string
@@ -298,8 +653,14 @@ class Helper
         }
         $token = $session->get('formToken');
         if (empty($token)) {
+            $session->regenerate();
             $token = uniqueString();
             $session->set('formToken', $token);
+
+            // 同時ログイン判定のための、クライアント情報を更新
+            if (SUID) {
+                Login::updateSessionClientInfo(SUID);
+            }
         }
         $session->set('formTokenExpireAt', (REQUEST_TIME + (60 * 60 * 6))); // CSRFトークンを更新間隔を6時間に設定
         $session->save();
@@ -315,9 +676,9 @@ class Helper
      */
     public function addCsrfToken($tpl)
     {
-        $tpl = preg_replace('@(<input\s+type="hidden"\s+name="formUniqueToken"\s+value="[^"]+">)@i', '', $tpl);
-        $tpl = preg_replace('@(<input\s+type="hidden"\s+name="formToken"\s+value="[^"]+">)@i', '', $tpl);
-        $tpl = preg_replace('@(<meta\\s+name="csrf-token"\s+content="[^"]+">)@i', '', $tpl);
+        $tpl = preg_replace('@(<input\s+type="hidden"\s+name="formUniqueToken"\s+value="[^"]+">)@i', '', $tpl) ?? $tpl;
+        $tpl = preg_replace('@(<input\s+type="hidden"\s+name="formToken"\s+value="[^"]+">)@i', '', $tpl) ?? $tpl;
+        $tpl = preg_replace('@(<meta\\s+name="csrf-token"\s+content="[^"]+">)@i', '', $tpl) ?? $tpl;
 
         // ログアウト時 && POSTリクエストではない && ログインページでない && フォームじゃない && コメントフォームじゃない 時 は session start しない（Set-Cookie しない）CDNなどのキャッシュのため
         if (
@@ -329,8 +690,11 @@ class Helper
             && strpos($tpl, 'ACMS_POST_Form_') === false
             && strpos($tpl, 'ACMS_POST_Comment_') === false
             && strpos($tpl, 'ACMS_POST_Shop') === false
+            && strpos($tpl, 'ACMS_POST_Download') === false
             && strpos($tpl, 'ACMS_POST_2GET_Ajax') === false
             && strpos($tpl, 'check-csrf-token') === false
+            && strpos($tpl, 'hx-get') === false
+            && strpos($tpl, 'hx-post') === false
             && ACMS_RAM::blogStatus(BID) !== 'secret'
             && (!CID || ACMS_RAM::categoryStatus(CID) !== 'secret')
         ) {
@@ -345,6 +709,14 @@ class Helper
         $tpl = preg_replace('@(?=<\s*/\s*form[^\w]*>)@i', '<input type="hidden" name="formToken" value="' . $token . '">' . "\n", $tpl);
         // meta に token の埋め込み
         $tpl = preg_replace('@(?=<\s*/\s*head[^\w]*>)@i', '<meta name="csrf-token" content="' . $token . '">', $tpl);
+
+        // htmx用 hx-push-url ヘッダーの埋め込み
+        if ($tpl && strpos($tpl, config('htmx_ss_push_url_mark', 'data-acms-hx-push-url')) !== false) {
+            $displayUrl = acmsLink([
+                'tpl' => '',
+            ], true, true, false, false);
+            header("HX-Push-Url: {$displayUrl}");
+        }
 
         return $tpl;
     }
@@ -475,13 +847,20 @@ class Helper
      */
     public function getMailTxt($path, $field, $charset = null)
     {
-        if (empty($path)) {
+        if (!$path) {
             return '';
         }
         try {
-            $tpl = Storage::get($path, THEMES_DIR);
-            $charset = detectEncode($tpl);
-            $tpl = mb_convert_encoding($tpl, 'UTF-8', $charset);
+            $tpl = LocalStorage::get($path, THEMES_DIR);
+            if ($tpl === false) {
+                return '';
+            }
+            if ($charset = detectEncode($tpl)) {
+                $tpl = mb_convert_encoding($tpl, 'UTF-8', $charset);
+            }
+            if ($tpl === false) {
+                return '';
+            }
             return $this->getMailTxtFromTxt($tpl, $field);
         } catch (\Exception $e) {
             AcmsLogger::warning('メールテンプレートを取得できませんでした', [
@@ -502,11 +881,11 @@ class Helper
         try {
             global $extend_section_stack;
             $extend_section_stack = [];
+            $acmsTplEngine = Application::make('template.acms');
             $txt = buildVarBlocks($txt, true);
-            $txt = spreadTemplate(setGlobalVars($txt));
-            if (isTemplateCacheEnabled()) {
-                $txt = setGlobalVars($txt);
-            }
+
+            $acmsTplEngine->loadFromString($txt, '/', config('theme'), BID);
+            $txt = $acmsTplEngine->getTemplate();
             $tpl = build($txt, Field_Validation::singleton('post'), true);
             $extend_section_stack = [];
 
@@ -531,6 +910,7 @@ class Helper
      *   smtp-port?: string,
      *   smtp-user?: string,
      *   smtp-pass?: string,
+     *   smtp-verify-peer?: string,
      *   mail_from?: string,
      *   sendmail_path?: string,
      *   additional_headers?: string,
@@ -538,7 +918,7 @@ class Helper
      *   smtp-google-user?: string
      * } $argConfig
      *
-     * @return non-empty-array<'additional_headers'|'mail_from'|'sendmail_path'|'smtp-google'|'smtp-google-user'|'smtp-host'|'smtp-pass'|'smtp-port'|'smtp-user',
+     * @return non-empty-array<'additional_headers'|'mail_from'|'sendmail_path'|'smtp-google'|'smtp-google-user'|'smtp-host'|'smtp-pass'|'smtp-verify-peer'|'smtp-port'|'smtp-user',
      *   string
      * >
      */
@@ -552,6 +932,7 @@ class Helper
                 'mail_smtp-port' => 'smtp-port',
                 'mail_smtp-user' => 'smtp-user',
                 'mail_smtp-pass' => 'smtp-pass',
+                'mail_smtp-verify_peer' => 'smtp-verify-peer',
                 'mail_from' => 'mail_from',
                 'mail_sendmail_path' => 'sendmail_path',
                 'mail_google_smtp' => 'smtp-google',
@@ -580,27 +961,14 @@ class Helper
      *
      * @return string
      */
-    public function genPass($len)
+    public function genPass(int $len): string
     {
-        $pass = '';
-        for ($i = 0; $i < $len; $i++) {
-            switch (rand(0, 5)) {
-                case 0: // 0-9
-                    if (!$i) {
-                        $pass .= chr(rand(48, 57));
-                        break;
-                    }
-                    $pass .= chr(rand(97, 122));
-                    break;
-                case 1: // A-Z
-                case 2:
-                    $pass .= chr(rand(65, 90));
-                    break;
-                default: // a-z
-                    $pass .= chr(rand(97, 122));
-            }
+        if ($len < 3) {
+            throw new RuntimeException('Length must be >= 3');
         }
-        return $pass;
+        $byteLength = (int) ceil($len / 2); // 16進なので半分のバイト数
+        assert($byteLength > 0); // PHPStan に 1以上と保証
+        return substr(bin2hex(random_bytes($byteLength)), 0, $len);
     }
 
     /**
@@ -648,15 +1016,16 @@ class Helper
         $sql->addWhereOpr('field_search', 'on');
         $sql->addWhereOpr('field_eid', $eid);
         $q = $sql->get(dsn());
+        $statement = DB::query($q, 'exec');
 
         $field = [];
-        if (DB::query($q, 'fetch') && ($row = DB::fetch($q))) {
+        if ($statement && ($row = DB::next($statement))) {
             do {
                 if (!isset($field[$row['field_key']])) {
                     $field[$row['field_key']] = [];
                 }
                 $field[$row['field_key']][] = $row['field_value'];
-            } while ($row = DB::fetch($q));
+            } while ($row = DB::next($statement));
         }
 
         if (HOOK_ENABLE) {
@@ -674,7 +1043,6 @@ class Helper
             ]
         );
 
-        $text = fulltextUnitData($text);
         $fulltext = preg_replace('/\s+/u', ' ', strip_tags($text))
         . "\x0d\x0a\x0a\x0d" . preg_replace('/\s+/u', ' ', strip_tags($metaText))
             ;
@@ -704,15 +1072,16 @@ class Helper
         $SQL->addWhereOpr('field_search', 'on');
         $SQL->addWhereOpr('field_uid', $uid);
         $q = $SQL->get(dsn());
+        $statement = DB::query($q, 'exec');
 
         $field = [];
-        if (DB::query($q, 'fetch') && ($row = DB::fetch($q))) {
+        if ($statement && ($row = DB::next($statement))) {
             do {
                 if (!isset($field[$row['field_key']])) {
                     $field[$row['field_key']] = [];
                 }
                 $field[$row['field_key']][] = $row['field_value'];
-            } while ($row = DB::fetch($q));
+            } while ($row = DB::next($statement));
         }
 
         if (HOOK_ENABLE) {
@@ -751,15 +1120,16 @@ class Helper
         $SQL->addWhereOpr('field_search', 'on');
         $SQL->addWhereOpr('field_cid', $cid);
         $q = $SQL->get(dsn());
+        $statement = DB::query($q, 'exec');
 
         $field = [];
-        if (DB::query($q, 'fetch') && ($row = DB::fetch($q))) {
+        if ($statement && ($row = DB::next($statement))) {
             do {
                 if (!isset($field[$row['field_key']])) {
                     $field[$row['field_key']] = [];
                 }
                 $field[$row['field_key']][] = $row['field_value'];
-            } while ($row = DB::fetch($q));
+            } while ($row = DB::next($statement));
         }
 
         if (HOOK_ENABLE) {
@@ -798,15 +1168,16 @@ class Helper
         $SQL->addWhereOpr('field_search', 'on');
         $SQL->addWhereOpr('field_bid', $bid);
         $q = $SQL->get(dsn());
+        $statement = DB::query($q, 'exec');
 
         $field = [];
-        if (DB::query($q, 'fetch') && ($row = DB::fetch($q))) {
+        if ($statement && ($row = DB::next($statement))) {
             do {
                 if (!isset($field[$row['field_key']])) {
                     $field[$row['field_key']] = [];
                 }
                 $field[$row['field_key']][] = $row['field_value'];
-            } while ($row = DB::fetch($q));
+            } while ($row = DB::next($statement));
         }
 
         if (HOOK_ENABLE) {
@@ -863,16 +1234,26 @@ class Helper
      * @param string $fileName
      * @param string|boolean $extension // 指定すると、Content-Disposition: inline になります。
      * @param boolean $remove
+     * @param \Acms\Services\Storage\Contracts\Filesystem $storage
      * @return never
      */
-    public function download($path, $fileName, $extension = false, $remove = false)
+    public function download($path, $fileName, $extension = false, $remove = false, $storage = null)
     {
+        if (empty($storage)) {
+            $storage = LocalStorage::getInstance();
+            assert($storage instanceof \Acms\Services\Storage\Filesystem);
+        }
         $fileNameEncode = urlencode($fileName);
-        $size = filesize($path);
-        if ($extension) {
+        $size = $storage->getFileSize($path);
+        $stream = $storage->readStream($path);
+        if (empty($stream)) {
+            throw new RuntimeException('ファイルが見つかりません。');
+        }
+        $meta = stream_get_meta_data($stream);
+
+        if ($extension && $meta['seekable']) {
             $inlineExtensions = configArray('media_inline_download_extension');
             $mime = false;
-            $fp = fopen($path, "rb");
 
             foreach ($inlineExtensions as $i => $value) {
                 if ($extension == $value) {
@@ -904,7 +1285,7 @@ class Helper
                 // 実際に送信するコンテンツ長: 終了位置 - 開始位置 + 1
                 $size = $end - $start + 1;
                 // ファイルポインタを開始位置まで移動
-                fseek($fp, $start);
+                fseek($stream, $start);
             }
             header('Content-Length: ' . $size);
 
@@ -913,9 +1294,9 @@ class Helper
             }
 
             if ($size) {
-                echo fread($fp, $size);
+                echo fread($stream, $size);
             }
-            fclose($fp);
+            fclose($stream);
         } else {
             header("Content-Disposition: attachment; filename=\"$fileName\"; filename*=UTF-8''$fileNameEncode");
             if (strpos(UA, 'MSIE')) {
@@ -928,10 +1309,11 @@ class Helper
             while (ob_get_level() > 0) {
                 ob_end_clean();
             }
-            readfile($path);
+            fpassthru($stream);
+            fclose($stream);
         }
         if ($remove) {
-            Storage::remove($path);
+            $storage->remove($path);
         }
         die();
     }
@@ -939,8 +1321,8 @@ class Helper
     /**
      * カスタムフィールドキャッシュの削除
      *
-     * @param 'bid' | 'uid' | 'cid' | 'mid' | 'eid' $type
-     * @param int $id
+     * @param 'bid'|'uid'|'cid'|'mid'|'eid'|'unit_id' $type
+     * @param ($type is 'unit_id' ? string : int) $id
      * @param int|null $rvid
      */
     public function deleteFieldCache($type, $id, $rvid = null)
@@ -952,11 +1334,14 @@ class Helper
             $cacheCid = $type === 'cid' ? $id : '';
             $cacheMid = $type === 'mid' ? $id : '';
             $cacheEid = $type === 'eid' ? $id : '';
+            $cacheUnitId = $type === 'unit_id' ? $id : '';
         }
-        $cacheKey = "cache-field-bid_$cacheBid-uid_$cacheUid-cid_$cacheCid-mid_$cacheMid-eid_$cacheEid-rvid_$rvid-";
+        $cacheKey = "cache-field-bid_{$cacheBid}-uid_{$cacheUid}-cid_{$cacheCid}-mid_{$cacheMid}-eid_{$cacheEid}-unitId_{$cacheUnitId}-rvid_{$rvid}-";
 
-        $this->cacheField->forget($cacheKey . '0');
-        $this->cacheField->forget($cacheKey . '1');
+        $this->cacheField->forget("{$cacheKey}0-v1");
+        $this->cacheField->forget("{$cacheKey}1-v1");
+        $this->cacheField->forget("{$cacheKey}0-v2");
+        $this->cacheField->forget("{$cacheKey}1-v2");
     }
 
     public function flushCache()
@@ -967,8 +1352,8 @@ class Helper
     /**
      * カスタムフィールドの削除
      *
-     * @param string $type
-     * @param int $id
+     * @param 'bid'|'uid'|'cid'|'mid'|'eid'|'unit_id' $type
+     * @param ($type is 'unit_id' ? string : int) $id
      * @param int|null $rvid
      * @param int|null $blogId
      * @return void
@@ -977,7 +1362,7 @@ class Helper
     {
         $this->deleteFieldCache($type, $id, $rvid);
 
-        if ($type === 'eid' && $rvid) {
+        if (in_array($type, ['eid', 'unit_id'], true) && $rvid) {
             $sql = SQL::newDelete('field_rev');
             $sql->addWhereOpr('field_eid', $id);
             $sql->addWhereOpr('field_rev_id', $rvid);
@@ -1002,13 +1387,18 @@ class Helper
      * @param null|int $bid
      * @param null|int $uid
      * @param null|int $cid
+     * @param null|int $mid
      * @param null|int $eid
+     * @param null|string $unitId
+     * @param null|int $rvid
+     * @param bool $rewrite
      * @return Field
      */
-    public function loadField($bid = null, $uid = null, $cid = null, $mid = null, $eid = null, $rvid = null, $rewrite = false)
+    public function loadField($bid = null, $uid = null, $cid = null, $mid = null, $eid = null, $unitId = null, $rvid = null, $rewrite = false)
     {
-        $cacheKey = "cache-field-bid_$bid-uid_$uid-cid_$cid-mid_$mid-eid_$eid-rvid_$rvid-";
+        $cacheKey = "cache-field-bid_{$bid}-uid_{$uid}-cid_{$cid}-mid_{$mid}-eid_{$eid}-unitId_{$unitId}-rvid_{$rvid}-";
         $cacheKey .= ($rewrite ? '1' : '0');
+        $cacheKey .= (isApiBuildOrV2Module() ? '-v2' : '-v1');
 
         $cacheItem = $this->cacheField->getItem($cacheKey);
         if ($cacheItem && $cacheItem->isHit()) {
@@ -1020,24 +1410,25 @@ class Helper
         }
         $Field = new Field();
         if (
-            1
-            && is_null($bid)
-            && is_null($uid)
-            && is_null($cid)
-            && is_null($eid)
-            && is_null($mid)
+            is_null($bid) &&
+            is_null($uid) &&
+            is_null($cid) &&
+            is_null($eid) &&
+            is_null($mid) &&
+            is_null($unitId)
         ) {
             return $Field;
         }
         $DB = DB::singleton(dsn());
-        if ($rvid && $eid) {
-            $SQL    = SQL::newSelect('field_rev');
+        if ($rvid && ($eid || $unitId)) {
+            $SQL = SQL::newSelect('field_rev');
             $SQL->addWhereOpr('field_rev_id', $rvid);
         } else {
-            $SQL    = SQL::newSelect('field');
+            $SQL = SQL::newSelect('field');
         }
         $SQL->addSelect('field_key');
         $SQL->addSelect('field_value');
+        $SQL->addSelect('field_type');
         $SQL->addSelect('field_search');
         if (!is_null($bid)) {
             $SQL->addWhereOpr('field_bid', $bid);
@@ -1054,31 +1445,35 @@ class Helper
         if (!is_null($mid)) {
             $SQL->addWhereOpr('field_mid', $mid);
         }
+        if (!is_null($unitId)) {
+            $SQL->addWhereOpr('field_unit_id', $unitId);
+        }
         $SQL->setOrder('field_sort');
         $q  = $SQL->get(dsn());
-        $DB->query($q, 'fetch');
+        $statement = $DB->query($q, 'exec');
 
         $mediaList = [];
         $mediaIds = [];
         $useMediaField = [];
-        while ($row = $DB->fetch($q)) {
-            $fixPaht    = '';
-            $fd         = $row['field_key'];
+        while ($row = $DB->next($statement)) {
+            $fixPaht = '';
+            $fd = $row['field_key'];
             if (strpos($fd, '@media') !== false) {
                 $fdSource = substr($fd, 0, -6);
                 $mediaIds[] = intval($row['field_value']);
                 $useMediaField[] = $fdSource;
             }
-            $Field->addField($row['field_key'], $fixPaht . $row['field_value']);
-            $Field->setMeta($row['field_key'], 'search', $row['field_search'] === 'on');
+            $Field->addField($fd, $fixPaht . $row['field_value']);
+            $Field->setMeta($fd, 'search', $row['field_search'] === 'on');
+            $Field->setMeta($fd, 'type', $row['field_type']);
         }
         if ($mediaIds) {
             $DB = DB::singleton(dsn());
             $SQL = SQL::newSelect('media');
             $SQL->addWhereIn('media_id', $mediaIds);
             $q  = $SQL->get(dsn());
-            $DB->query($q, 'fetch');
-            while ($media = $DB->fetch($q)) {
+            $statement = $DB->query($q, 'exec');
+            while ($media = $DB->next($statement)) {
                 $mid = intval($media['media_id']);
                 $mediaList[$mid] = $media;
             }
@@ -1094,8 +1489,8 @@ class Helper
     /**
      * カスタムフィールドの保存
      *
-     * @param string $type
-     * @param int $id
+     * @param 'bid'|'uid'|'cid'|'mid'|'eid'|'unit_id' $type
+     * @param ($type is 'unit_id' ? string : int) $id
      * @param Field|null $Field
      * @param Field|null $deleteField
      * @param int|null $rvid
@@ -1124,7 +1519,7 @@ class Helper
             1
             && enableRevision()
             && $rvid
-            && $type == 'eid'
+            && in_array($type, ['eid', 'unit_id'], true)
         ) {
             $tableName = 'field_rev';
             if (Entry::isNewVersion()) {
@@ -1132,7 +1527,7 @@ class Helper
             }
         }
 
-        $SQL    = SQL::newDelete($tableName);
+        $SQL = SQL::newDelete($tableName);
         $SQL->addWhereOpr('field_' . $type, $id);
         if ($tableName  === 'field_rev') {
             $SQL->addWhereOpr('field_rev_id', $rvid);
@@ -1148,6 +1543,17 @@ class Helper
         $DB->query($SQL->get(dsn()), 'exec');
 
         if (!empty($Field)) {
+            $sql = SQL::newBulkInsert($tableName);
+            $sql->addColumn('field_key');
+            $sql->addColumn('field_value');
+            $sql->addColumn('field_type');
+            $sql->addColumn('field_sort');
+            $sql->addColumn('field_search');
+            $sql->addColumn('field_' . $type);
+            $sql->addColumn('field_blog_id');
+            if ($tableName  === 'field_rev') {
+                $sql->addColumn('field_rev_id');
+            }
             foreach ($Field->listFields() as $fd) {
                 // copy revision
                 if ($asNewVersion) {
@@ -1167,10 +1573,10 @@ class Helper
                                 $Field->delete($base . '@squarePath');
                                 $set = true;
                             }
-                            if (Storage::isFile(ARCHIVES_DIR . $path)) {
+                            if (PublicStorage::isFile(ARCHIVES_DIR . $path)) {
                                 $info       = pathinfo($path);
                                 $dirname    = empty($info['dirname']) ? '' : $info['dirname'] . '/';
-                                Storage::makeDirectory($ARCHIVES_DIR_TO . $dirname);
+                                PublicStorage::makeDirectory($ARCHIVES_DIR_TO . $dirname);
                                 $ext        = empty($info['extension']) ? '' : '.' . $info['extension'];
                                 $newPath    = $dirname . uniqueString() . $ext;
 
@@ -1183,18 +1589,18 @@ class Helper
                                 $newTinyPath    = otherSizeImagePath($newPath, 'tiny');
                                 $newSquarePath  = otherSizeImagePath($newPath, 'square');
 
-                                Storage::copy($path, $ARCHIVES_DIR_TO . $newPath);
-                                Storage::copy($largePath, $ARCHIVES_DIR_TO . $newLargePath);
-                                Storage::copy($tinyPath, $ARCHIVES_DIR_TO . $newTinyPath);
-                                Storage::copy($squarePath, $ARCHIVES_DIR_TO . $newSquarePath);
+                                PublicStorage::copy($path, $ARCHIVES_DIR_TO . $newPath);
+                                PublicStorage::copy($largePath, $ARCHIVES_DIR_TO . $newLargePath);
+                                PublicStorage::copy($tinyPath, $ARCHIVES_DIR_TO . $newTinyPath);
+                                PublicStorage::copy($squarePath, $ARCHIVES_DIR_TO . $newSquarePath);
 
-                                if (!Storage::isReadable($newLargePath)) {
+                                if (!PublicStorage::isReadable($newLargePath)) {
                                     $newLargePath = '';
                                 }
-                                if (!Storage::isReadable($newTinyPath)) {
+                                if (!PublicStorage::isReadable($newTinyPath)) {
                                     $newTinyPath = '';
                                 }
-                                if (!Storage::isReadable($newSquarePath)) {
+                                if (!PublicStorage::isReadable($newSquarePath)) {
                                     $newSquarePath = '';
                                 }
                                 $Field->add($fd, $newPath);
@@ -1210,20 +1616,31 @@ class Helper
                         }
                     }
                 }
-
                 foreach ($Field->getArray($fd, true) as $i => $val) {
-                    $SQL    = SQL::newInsert($tableName);
-                    $SQL->addInsert('field_key', $fd);
-                    $SQL->addInsert('field_value', $val);
-                    $SQL->addInsert('field_sort', $i + 1);
-                    $SQL->addInsert('field_search', $Field->getMeta($fd, 'search') ? 'on' : 'off');
-                    $SQL->addInsert('field_' . $type, $id);
-                    $SQL->addInsert('field_blog_id', $targetBid);
-                    if ($tableName  === 'field_rev') {
-                        $SQL->addInsert('field_rev_id', $rvid);
+                    $fieldTypeValue = null;
+                    if (preg_match('/@(html|media|title)$/', $fd, $match)) {
+                        $fieldTypeValue = $match[1];
                     }
-                    $DB->query($SQL->get(dsn()), 'exec');
+                    if ($fieldType = $Field->getMeta($fd, 'type')) {
+                        $fieldTypeValue = $fieldType;
+                    }
+                    $data = [
+                        'field_key' => $fd,
+                        'field_value' => $val,
+                        'field_type' => $fieldTypeValue,
+                        'field_sort' => $i + 1,
+                        'field_search' => $Field->getMeta($fd, 'search') ? 'on' : 'off',
+                        'field_' . $type => $id,
+                        'field_blog_id' => $targetBid,
+                    ];
+                    if ($tableName  === 'field_rev') {
+                        $data['field_rev_id'] = $rvid;
+                    }
+                    $sql->addInsert($data);
                 }
+            }
+            if ($sql->hasData()) {
+                $DB->query($sql->get(dsn()), 'exec');
             }
         }
         return true;
@@ -1318,7 +1735,10 @@ class Helper
         }
 
         if ($takeover = $this->Post->get($scp . ':takeover')) {
-            $Field->overload(acmsUnserialize($takeover));
+            $takeoverField = acmsUnserialize($takeover);
+            if ($takeoverField instanceof Field) {
+                $Field->overload($takeoverField);
+            }
             $this->Post->delete($scp . ':takeover');
         }
 
@@ -1358,7 +1778,17 @@ class Helper
                 $fd = $match[1];
                 $aryVal = [];
                 foreach ($Field->getArray($fd) as $val) {
-                    $aryVal[] = mb_convert_kana($val, $this->Post->get($metaFd), 'UTF-8');
+                    $mode = $this->Post->get($metaFd);
+                    if (preg_match('/^[rRnNaAsSkKhHcCV]+$/', $mode)) {
+                        $aryVal[] = mb_convert_kana($val, $mode, 'UTF-8');
+                    } else {
+                        AcmsLogger::warning('converterのモードが不正です', [
+                            'field' => $fd,
+                            'value' => $val,
+                            'mode' => $mode,
+                        ]);
+                        $aryVal[] = '';
+                    }
                 }
                 $Field->setField($fd, $aryVal);
                 $this->Post->delete($metaFd);
@@ -1380,6 +1810,8 @@ class Helper
                     foreach ($Field->getArray($fd) as $mediaValue) {
                         $Field->addField($fd . '@media', $mediaValue);
                     }
+                } elseif ($type === 'block-editor') {
+                    $Field->setMeta($fd, 'type', 'block-editor');
                 } elseif ($type === 'paper-editor' || $type === 'rich-editor') {
                     foreach ($Field->getArray($fd) as $editorValue) {
                         $Field->addField($fd . '@html', RichEditor::render($editorValue));
@@ -1585,7 +2017,7 @@ class Helper
                             // IE6, 7あたりはContent-Typeのほかにファイルの中身も評価してしまう
                             // 偽装テキストを読み込んだときに、HTML with JavaScriptとして実行されてしまう可能性がある
                             // 参考: http://www.tokumaru.org/d/20071210.html
-                            if (!($xy = Storage::getImageSize($tmp_name))) {
+                            if (!($xy = LocalStorage::getImageSize($tmp_name))) {
                                 continue;
                             }
 
@@ -1605,7 +2037,7 @@ class Helper
                             // dirname, basename, extension
                             if (!empty($c['filename'])) {
                                 if (!preg_match('@((?:[^/]*/)*)((?:[^.]*\.)*)(.*)$@', sprintf('%03d', BID) . '/' . $c['filename'], $match)) {
-                                    trigger_error('unknown', E_USER_ERROR);
+                                    throw new \RuntimeException('アップロードファイルのパス解析に失敗しました。');
                                 }
 
                                 $extension  = !empty($match[3]) ? $match[3]
@@ -1616,7 +2048,7 @@ class Helper
                             } else {
                                 $extension = !empty($c['extension'])
                                     ? $c['extension'] : Image::detectImageExtenstion($xy['mime']);
-                                $dirname    = Storage::archivesDir();
+                                $dirname    = PublicStorage::archivesDir();
                                 $basename   = uniqueString() . '.' . $extension;
                             }
 
@@ -1633,18 +2065,18 @@ class Helper
                             $normalPath = $ARCHIVES_DIR . $normal;
 
                             // ファイル名が重複している場合はファイル名を変更する
-                            $normalPath = Storage::uniqueFilePath($normalPath);
+                            $normalPath = PublicStorage::uniqueFilePath($normalPath);
                             $normal = mb_substr($normalPath, strlen($ARCHIVES_DIR));
-                            $basename = Storage::mbBasename($normalPath);
+                            $basename = PublicStorage::mbBasename($normalPath);
 
                             Image::copyImage($tmp_name, $normalPath, $c['width'], $c['height'], $c['size'], $angle);
 
-                            if ($xy = Storage::getImageSize($normalPath)) {
+                            if ($xy = PublicStorage::getImageSize($normalPath)) {
                                 $data[$fd . '@path']  = $normal;
                                 $data[$fd . '@x']     = $xy[0];
                                 $data[$fd . '@y']     = $xy[1];
                                 $data[$fd . '@alt']   = $c['alt'];
-                                $data[$fd . '@fileSize'] = filesize($normalPath);
+                                $data[$fd . '@fileSize'] = PublicStorage::getFileSize($normalPath);
 
                                 $processingMediaFiles[] = [
                                     'path'  => $normalPath,
@@ -1657,15 +2089,15 @@ class Helper
                             if (!empty($c['largeWidth']) or !empty($c['largeHeight']) or !empty($c['largeSize'])) {
                                 $large     = $dirname . 'large-' . $basename;
                                 $largePath = $ARCHIVES_DIR . $large;
-                                if (!Storage::exists($largePath)) {
+                                if (!PublicStorage::exists($largePath)) {
                                     Image::copyImage($tmp_name, $largePath, $c['largeWidth'], $c['largeHeight'], $c['largeSize'], $angle);
                                 }
-                                if ($xy = Storage::getImageSize($largePath)) {
+                                if ($xy = PublicStorage::getImageSize($largePath)) {
                                     $data[$fd . '@largePath'] = $large;
                                     $data[$fd . '@largeX']    = $xy[0];
                                     $data[$fd . '@largeY']    = $xy[1];
                                     $data[$fd . '@largeAlt']  = $c['alt'];
-                                    $data[$fd . '@largeFileSize']  = filesize($largePath);
+                                    $data[$fd . '@largeFileSize']  = PublicStorage::getFileSize($largePath);
 
                                     $processingMediaFiles[] = [
                                         'path'  => $normalPath,
@@ -1678,15 +2110,15 @@ class Helper
                             if (!empty($c['tinyWidth']) or !empty($c['tinyHeight']) or !empty($c['tinySize'])) {
                                 $tiny     = $dirname . 'tiny-' . $basename;
                                 $tinyPath = $ARCHIVES_DIR . $tiny;
-                                if (!Storage::exists($tinyPath)) {
+                                if (!PublicStorage::exists($tinyPath)) {
                                     Image::copyImage($tmp_name, $tinyPath, $c['tinyWidth'], $c['tinyHeight'], $c['tinySize'], $angle);
                                 }
-                                if ($xy = Storage::getImageSize($tinyPath)) {
+                                if ($xy = PublicStorage::getImageSize($tinyPath)) {
                                     $data[$fd . '@tinyPath']  = $tiny;
                                     $data[$fd . '@tinyX']     = $xy[0];
                                     $data[$fd . '@tinyY']     = $xy[1];
                                     $data[$fd . '@tinyAlt']   = $c['alt'];
-                                    $data[$fd . '@tinyFileSize']  = filesize($tinyPath);
+                                    $data[$fd . '@tinyFileSize']  = PublicStorage::getFileSize($tinyPath);
 
                                     $processingMediaFiles[] = [
                                         'path'  => $normalPath,
@@ -1708,15 +2140,15 @@ class Helper
                                     $squareSize = $c['squareSize'];
                                 }
 
-                                if (!Storage::exists($squarePath)) {
+                                if (!PublicStorage::exists($squarePath)) {
                                     Image::copyImage($tmp_name, $squarePath, $squareSize, $squareSize, $squareSize, $angle);
                                 }
-                                if ($xy = Storage::getImageSize($squarePath)) {
+                                if ($xy = PublicStorage::getImageSize($squarePath)) {
                                     $data[$fd . '@squarePath']  = $square;
                                     $data[$fd . '@squareX']     = $xy[0];
                                     $data[$fd . '@squareY']     = $xy[1];
                                     $data[$fd . '@squareAlt']   = $c['alt'];
-                                    $data[$fd . '@squareFileSize']  = filesize($squarePath);
+                                    $data[$fd . '@squareFileSize']  = PublicStorage::getFileSize($squarePath);
 
                                     $processingMediaFiles[] = [
                                         'path'  => $normalPath,
@@ -1740,15 +2172,15 @@ class Helper
                             // normal
                             $normal = $c['old'];
                             $normalPath = $ARCHIVES_DIR . $normal;
-                            if ($xy = Storage::getImageSize($normalPath)) {
+                            if ($xy = PublicStorage::getImageSize($normalPath)) {
                                 $data[$fd . '@path']  = $normal;
                                 $data[$fd . '@x']     = $xy[0];
                                 $data[$fd . '@y']     = $xy[1];
                                 $data[$fd . '@alt']   = $c['alt'];
-                                $data[$fd . '@fileSize'] = filesize($normalPath);
+                                $data[$fd . '@fileSize'] = PublicStorage::getFileSize($normalPath);
 
                                 if (!preg_match('@((?:[^/]*/)*)((?:[^.]*\.)*)(.*)$@', $normal, $match)) {
-                                    trigger_error('unknown', E_USER_ERROR);
+                                    throw new \RuntimeException('既存ファイルのパス解析に失敗しました。');
                                 }
                                 $extension  = $match[3];
                                 $dirname    = $match[1];
@@ -1758,36 +2190,36 @@ class Helper
                                 // large
                                 $large     = $dirname . 'large-' . $basename;
                                 $largePath = $ARCHIVES_DIR . $large;
-                                if ($xy = Storage::getImageSize($largePath)) {
+                                if ($xy = PublicStorage::getImageSize($largePath)) {
                                     $data[$fd . '@largePath'] = $large;
                                     $data[$fd . '@largeX']    = $xy[0];
                                     $data[$fd . '@largeY']    = $xy[1];
                                     $data[$fd . '@largeAlt']  = $c['alt'];
-                                    $data[$fd . '@largeFileSize']  = filesize($largePath);
+                                    $data[$fd . '@largeFileSize']  = PublicStorage::getFileSize($largePath);
                                 }
 
                                 //------
                                 // tiny
                                 $tiny     = $dirname . 'tiny-' . $basename;
                                 $tinyPath = $ARCHIVES_DIR . $tiny;
-                                if ($xy = Storage::getImageSize($tinyPath)) {
+                                if ($xy = PublicStorage::getImageSize($tinyPath)) {
                                     $data[$fd . '@tinyPath']  = $tiny;
                                     $data[$fd . '@tinyX']     = $xy[0];
                                     $data[$fd . '@tinyY']     = $xy[1];
                                     $data[$fd . '@tinyAlt']   = $c['alt'];
-                                    $data[$fd . '@tinyFileSize']  = filesize($tinyPath);
+                                    $data[$fd . '@tinyFileSize']  = PublicStorage::getFileSize($tinyPath);
                                 }
 
                                 //------
                                 // square
                                 $square   = $dirname . 'square-' . $basename;
                                 $squarePath = $ARCHIVES_DIR . $square;
-                                if ($xy = Storage::getImageSize($squarePath)) {
+                                if ($xy = PublicStorage::getImageSize($squarePath)) {
                                     $data[$fd . '@squarePath']  = $square;
                                     $data[$fd . '@squareX']     = $xy[0];
                                     $data[$fd . '@squareY']     = $xy[1];
                                     $data[$fd . '@squareAlt']   = $c['alt'];
-                                    $data[$fd . '@squareFileSize']  = filesize($squarePath);
+                                    $data[$fd . '@squareFileSize']  = PublicStorage::getFileSize($squarePath);
                                 }
 
 
@@ -1955,7 +2387,7 @@ class Helper
                         // delete ( 指定削除 continue )
                         if ('delete' === $c['edit'] && !empty($c['old']) && $secretCheck && !$isProcessing) {
                             if (!Entry::isNewVersion()) {
-                                Storage::remove($ARCHIVES_DIR . $c['old']);
+                                PublicStorage::remove($ARCHIVES_DIR . $c['old']);
                                 if (HOOK_ENABLE) {
                                     $Hook = ACMS_Hook::singleton();
                                     $Hook->call('mediaDelete', $ARCHIVES_DIR . $c['old']);
@@ -1981,6 +2413,9 @@ class Helper
                             // 文字コードが判別不能な文字列をバイナリとみなす
                             if ('on' == config('file_prohibit_textfile')) {
                                 $fp = fopen($c['_tmp_name'], 'rb');
+                                if ($fp === false) {
+                                    continue;
+                                }
                                 $readedLine = 0;
                                 $sampleLine = 1000;
                                 $sample = '';
@@ -2014,7 +2449,7 @@ class Helper
 
                             if (!empty($c['filename'])) {
                                 if (!preg_match('@((?:[^/]*/)*)((?:[^.]*\.)*)(.*)$@', sprintf('%03d', BID) . '/' . $c['filename'], $match)) {
-                                    trigger_error('unknown', E_USER_ERROR);
+                                    throw new \RuntimeException('アップロードファイルのパス解析に失敗しました。');
                                 }
 
                                 // @filenameオプションの拡張子
@@ -2031,7 +2466,7 @@ class Helper
                                 $basename   = !empty($match[2]) ? $match[2] . $extension      // basenameは実ファイルの拡張子とする
                                                                 : uniqueString() . '.' . $extension;
                             } else {
-                                $dirname    = Storage::archivesDir();
+                                $dirname    = PublicStorage::archivesDir();
                                 $basename   = uniqueString() . '.' . $extension;
                             }
 
@@ -2061,12 +2496,12 @@ class Helper
                                     )
 
                                 // 保存先ディレクトリの再帰的作成
-                                and Storage::makeDirectory($ARCHIVES_DIR . $dirname)
+                                and PublicStorage::makeDirectory($ARCHIVES_DIR . $dirname)
                             ) {
                                 //---------------------------
                                 // delete ( 古いファイルの削除 )
                                 if (!empty($c['old']) && !$isProcessing && !Entry::isNewVersion()) {
-                                    Storage::remove($ARCHIVES_DIR . $c['old']);
+                                    PublicStorage::remove($ARCHIVES_DIR . $c['old']);
                                     if (HOOK_ENABLE) {
                                         $Hook = ACMS_Hook::singleton();
                                         $Hook->call('mediaDelete', $ARCHIVES_DIR . $c['old']);
@@ -2080,10 +2515,11 @@ class Helper
                                 Entry::addUploadedFiles($path); // 新規バージョンとして作成する時にファイルをCOPYするかの判定に利用
 
                                 // 重複対応
-                                $realpath = Storage::uniqueFilePath($realpath);
+                                $realpath = PublicStorage::uniqueFilePath($realpath);
                                 $path = mb_substr($realpath, strlen($ARCHIVES_DIR));
-
-                                Storage::copy($tmp_name, $realpath);
+                                if ($content = file_get_contents($tmp_name)) {
+                                    PublicStorage::put($realpath, $content);
+                                }
 
                                 $processingMediaFiles[] = [
                                     'path'  => $realpath,
@@ -2097,10 +2533,10 @@ class Helper
                                 //-----
                                 // set
                                 $_path  = $path;
-                                $_name  = Storage::mbBasename($realpath);
+                                $_name  = PublicStorage::mbBasename($realpath);
                                 $_orginal_name = $c['_name'];
                                 $_download_name = $c['downloadName'];
-                                $_size  = filesize($realpath);
+                                $_size  = PublicStorage::getFileSize($realpath);
                                 $_secret = md5($fd . '@' . $path);
                                 continue;
                             } else {
@@ -2152,7 +2588,7 @@ class Helper
         // search
         foreach ($Field->listFields() as $fd) {
             // topic-fix_field_search: Field::getがnullを返さなくなっていたので，無指定時の戻りを擬似定数に変更して対処
-            $s  = $this->Post->get($fd . ':search', '__NOT_SPECIFIED__');
+            $s = $this->Post->get($fd . ':search', '__NOT_SPECIFIED__');
             if ($s === '__NOT_SPECIFIED__') {
                 if (is_int(strpos($fd, '@'))) {
                     $s  = '0';
@@ -2160,7 +2596,7 @@ class Helper
                     $s  = '1';
                 }
             }
-            $Field->setMeta($fd, 'search', !empty($s));
+            $Field->setMeta($fd, 'search', $s !== '0');
             $this->Post->deleteField($fd . ':search');
         }
 
@@ -2180,6 +2616,9 @@ class Helper
         jsModule('offset', DIR_OFFSET);
         jsModule('jsDir', JS_DIR);
         jsModule('themesDir', '/' . DIR_OFFSET . THEMES_DIR);
+        jsModule('ARCHIVES_DIR', $this->replaceDeliveryUrl('/' . DIR_OFFSET . ARCHIVES_DIR));
+        jsModule('MEDIA_ARCHIVES_DIR', $this->replaceDeliveryUrl('/' . DIR_OFFSET . MEDIA_LIBRARY_DIR));
+        jsModule('MEDIA_STORAGE_DIR', MEDIA_STORAGE_DIR);
         jsModule('bid', BID);
         jsModule('aid', AID);
         jsModule('uid', UID);
@@ -2199,7 +2638,7 @@ class Helper
         jsModule('fulltimeSSL', (SSL_ENABLE and FULLTIME_SSL_ENABLE) ? 1 : 0);
         jsModule('v', md5(VERSION));
         jsModule('dbCharset', DB_CONNECTION_CHARSET);
-        jsModule('auth', ACMS_RAM::userAuth(SUID));
+        jsModule('auth', getAuthConsideringRole(SUID) ?: '');
 
         jsModule('umfs', ini_get('upload_max_filesize'));
         jsModule('pms', ini_get('post_max_size'));
@@ -2211,6 +2650,9 @@ class Helper
         jsModule('urlPreviewExpire', config('url_preview_expire'));
         jsModule('timemachinePreviewDefaultDevice', config('timemachine_preview_default_device'));
         jsModule('timemachinePreviewHasHistoryDevice', config('timemachine_preview_has_history_device'));
+        jsModule('fileiconDir', '/' . DIR_OFFSET . config('file_icon_dir'));
+        jsModule('entryEditPageType', config('entry_edit_page_type'));
+        jsModule('unitAlignVersion', config('unit_align_version', 'v2'));
 
         if ($Session->get('timemachine_datetime')) {
             jsModule('timeMachineMode', 'true');
@@ -2227,7 +2669,7 @@ class Helper
         jsModule('multiDomain', '0');
         if (defined('LICENSE_OPTION_PLUSDOMAIN') && intval(LICENSE_OPTION_PLUSDOMAIN) > 0) {
             $SQL = SQL::newSelect('blog');
-            $SQL->setSelect('DISTINCT blog_domain', 'domains', null, 'COUNT');
+            $SQL->setSelect(SQL::newFunction('blog_domain', 'DISTINCT'), 'domains', null, 'COUNT');
             $domain_num = DB::query($SQL->get(dsn()), 'one');
             if (intval($domain_num) > 1) {
                 jsModule('multiDomain', '1');
@@ -2236,7 +2678,7 @@ class Helper
 
         //----------
         // category
-        if ($cid = CID) {
+        if ($cid = CID) { // @phpstan-ignore-line
             $ccds   = [ACMS_RAM::categoryCode($cid)];
             while ($cid = ACMS_RAM::categoryParent($cid)) {
                 if ('on' == ACMS_RAM::categoryIndexing($cid)) {
@@ -2260,16 +2702,39 @@ class Helper
             jsModule('cache', uniqueString());
         }
 
+        // url segments
+        jsModule('segments', getRoutingSegments());
+
+        // auth
+        if (Login::isLoggedIn() && Login::isAuthRequiredPage()) {
+            // キャッシュが効くページでは利用できないため、ログイン済みかつ管理ページのみ
+            jsModule('suid', SUID);
+            jsModule('sbid', SBID);
+        }
+
+        // config set
+        jsModule('configSetId', Config::getCurrentConfigSetId());
+        jsModule('themeSetId', Config::getCurrentThemeSetId());
+        jsModule('editorSetId', Config::getCurrentEditorSetId());
+
+        // limit
+        $limitOptions = configArray('admin_limit_option');
+        $defaultLimit = $limitOptions[config('admin_limit_default')];
+        jsModule('limitOptions', $limitOptions);
+        jsModule('defaultLimit', $defaultLimit);
+
+        // ダイレクト編集のためのデータをセットする
+        jsModule('editInplace', Entry::isDirectEditEnabled() ? 'on' : 'off');
+
+        // debug mode
+        jsModule('isDebugMode', isDebugMode() ? '1' : '0');
+
         $jsModules  = [];
         foreach (jsModule() as $key => $value) {
-            if (empty($value)) {
-                continue;
-            }
             if ($key === 'domains') {
                 $value = implode(',', $value);
             }
-            $value = htmlspecialchars($value, ENT_QUOTES);
-            $jsModules[] = $key . (!is_bool($value) ? '=' . $value : '');
+            $jsModules[$key] = $value;
         }
 
         return $jsModules;
@@ -2283,15 +2748,21 @@ class Helper
      */
     public function isSafeUrl($url)
     {
-        if (0 !== strpos($url, 'http')) {
-            return true;
+        $parsed = parse_url($url);
+        if ($parsed === false) {
+            return false;
         }
+        // スキームが http or https であること
+        if (!in_array($parsed['scheme'] ?? '', ['http', 'https'], true)) {
+            return false;
+        }
+        // ホストが自サービスのドメインであること
         $sql = SQL::newSelect('blog');
-        $sql->setSelect('DISTINCT blog_domain');
+        $sql->setSelect('blog_domain', null, null, 'DISTINCT');
         $domains = DB::query($sql->get(dsn()), 'list');
 
         $sql = SQL::newSelect('alias');
-        $sql->setSelect('DISTINCT alias_domain');
+        $sql->setSelect('alias_domain', null, null, 'DISTINCT');
         $domains = array_merge($domains, DB::query($sql->get(dsn()), 'list'));
 
         $host = parse_url($url, PHP_URL_HOST);
@@ -2308,7 +2779,9 @@ class Helper
     public function responseJson($data)
     {
         header('Content-Type: application/json; charset=utf-8');
-        echo(json_encode($data));
+        $this->addSecurityHeader();
+        $this->clientCacheHeader(true);
+        echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         die();
     }
 
@@ -2317,7 +2790,7 @@ class Helper
      */
     public function logLockPost($lockKey)
     {
-        if (empty($lockKey)) {
+        if (!$lockKey) {
             return;
         }
         $sql = SQL::newInsert('lock_source');
@@ -2381,7 +2854,7 @@ class Helper
             if ($remoteAddr) {
                 $sql->addWhereOpr('lock_source_address', REMOTE_ADDR);
             }
-            DB::query($sql->get(dsn()), 'exec'); // @phpstan-ignore-line
+            DB::query($sql->get(dsn()), 'exec');
             return false;
         }
         $sql = SQL::newDelete('lock');
@@ -2389,12 +2862,12 @@ class Helper
         if ($remoteAddr) {
             $sql->addWhereOpr('lock_address', REMOTE_ADDR);
         }
-        DB::query($sql->get(dsn()), 'exec'); // @phpstan-ignore-line
+        DB::query($sql->get(dsn()), 'exec');
 
         // １ヶ月前のログは削除
         $sql = SQL::newDelete('lock_source');
         $sql->addWhereOpr('lock_source_datetime', date('Y-m-d H:i:s', REQUEST_TIME - 2764800), '<');
-        DB::query($sql->get(dsn()), 'exec'); // @phpstan-ignore-line
+        DB::query($sql->get(dsn()), 'exec');
 
         return true;
     }
@@ -2409,31 +2882,35 @@ class Helper
     }
 
     /**
-     * @param false $noCache
+     * セキュリティヘッダーを追加
+     *
+     * @param bool $noCache
+     * @return void
      */
-    public function clientCacheHeader($noCache = false)
+    public function clientCacheHeader(bool $noCache = false): void
     {
         $cacheExpireClient = intval(config('cache_expire_client'));
         if (
-            1
-            && !ACMS_POST
-            && ('200' == substr(httpStatusCode(), 0, 3))
-            && !ACMS_SID
-            && $cacheExpireClient > 0
-            && !$noCache
+            (!defined('ACMS_POST') || !ACMS_POST) &&
+            ('200' == substr(httpStatusCode(), 0, 3)) &&
+            (!defined('ACMS_SID') || !ACMS_SID) && // @phpstan-ignore-line
+            $cacheExpireClient > 0 &&
+            !$noCache
         ) {
-            header('Cache-Control: public, max-age=' . $cacheExpireClient);
-            header('Last-Modified: ' . getRFC2068Time(REQUEST_TIME));
-            header('Expires: ' . getRFC2068Time(REQUEST_TIME + $cacheExpireClient));
-        } elseif (
-            0
-            || ACMS_POST
-            || ('200' !== substr(httpStatusCode(), 0, 3))
-            || ACMS_SID
-            || $noCache
-        ) {
+            if (config('disable_browser_cache', 'on') === 'off') {
+                // ブラウザにキャッシュさせる場合
+                header('Cache-Control: public, max-age=' . $cacheExpireClient);
+                header('Last-Modified: ' . getRFC2068Time(REQUEST_TIME));
+                header('Expires: ' . getRFC2068Time(REQUEST_TIME + $cacheExpireClient));
+            } else {
+                // 中間キャッシュ（CDNなど）にはキャッシュさせるが、ブラウザにはキャッシュさせない場合
+                header('Cache-Control: public, no-cache, s-maxage=' . $cacheExpireClient);
+                header('Expires: 0');
+                header('Pragma: no-cache');
+            }
+        } else {
             header('Cache-Control: no-store, max-age=0'); // HTTP/1.1
-            header('Pragma: no-cache'); // HTTP/1.0
+            header('Pragma: no-cache'); // HTTP/1.0 レガシー対応
             header('Expires: 0');
         }
     }
@@ -2528,6 +3005,25 @@ class Helper
     }
 
     /**
+     * 指定されたテーマの継承テーマ・システムテーマすべてのテーマの配列を取得
+     *
+     * @param string $theme
+     * @return string[]
+     */
+    public function getInheritedThemes(string $theme): array
+    {
+        $themes = [];
+        $theme = trim($theme, '@');
+        $themes[] = $theme;
+        while ($pos = strpos($theme, '@')) {
+            $theme = substr($theme, $pos + 1);
+            $themes[] = $theme;
+        }
+        $themes[] = 'system';
+        return array_unique($themes);
+    }
+
+    /**
      * MIMEタイプをパスから取得
      *
      * @param string $path
@@ -2536,9 +3032,63 @@ class Helper
     public function getMimeType(string $path)
     {
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        if ($finfo === false) {
+            return false; // ファイル情報を取得できない場合はfalseを返す
+        }
         $mimeType = finfo_file($finfo, $path);
         finfo_close($finfo);
 
         return $mimeType;
+    }
+
+    /**
+     * プライベートストレージの設定がローカルかどうか
+     *
+     * @return boolean
+     */
+    public function isLocalPrivateStorage(): bool
+    {
+        return get_class(LocalStorage::getInstance()) === get_class(PrivateStorage::getInstance());
+    }
+
+    /**
+     * パブリックストレージの設定がローカルかどうか
+     *
+     * @return boolean
+     */
+    public function isLocalPublicStorage(): bool
+    {
+        return get_class(LocalStorage::getInstance()) === get_class(PublicStorage::getInstance());
+    }
+
+    /**
+     * ローカルのディレクトリをS3などのリモートストレージにアップロード
+     *
+     * @param string $from
+     * @param string $to
+     * @param boolean $isPublic
+     * @return void
+     */
+    public function uploadAssetDirectory(string $from, string $to, bool $isPublic): void
+    {
+        $uploadStorage = $isPublic ? PublicStorage::getInstance() : PrivateStorage::getInstance();
+        if (!LocalStorage::isDirectory($from)) {
+            return;
+        }
+        $uploadStorage->makeDirectory($to);
+        $dir = opendir($from);
+        if ($dir === false) {
+            return;
+        }
+        while (false !== ($file = readdir($dir))) {
+            if ($file !== '.' && $file !== '..') {
+                if (LocalStorage::isDirectory($from . '/' . $file)) {
+                    $this->uploadAssetDirectory($from . '/' . $file, $to . '/' . $file, $isPublic);
+                } elseif ($content =  LocalStorage::get($from . '/' . $file)) {
+                    $uploadStorage->put($to . '/' . $file, $content);
+                }
+            }
+        }
+        closedir($dir);
     }
 }

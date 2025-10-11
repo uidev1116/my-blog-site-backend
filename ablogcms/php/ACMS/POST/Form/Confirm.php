@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\PublicStorage;
+
 class ACMS_POST_Form_Confirm extends ACMS_POST_Form
 {
     function post()
@@ -44,7 +46,7 @@ class ACMS_POST_Form_Confirm extends ACMS_POST_Form
      */
     function modifyAttachedFile(&$Field)
     {
-        Storage::makeDirectory(ARCHIVES_DIR . config('mail_attachment_temp_dir'));
+        PublicStorage::makeDirectory(ARCHIVES_DIR . config('mail_attachment_temp_dir'));
 
         foreach ($Field->listFields() as $fd) {
             $pathInfo = $this->getAttachedFilePath($Field, $fd);
@@ -58,8 +60,8 @@ class ACMS_POST_Form_Confirm extends ACMS_POST_Form
             $fieldpath  = $pathInfo['fieldpath'];
             $fdname     = $pathInfo['fdname'];
 
-            if (Storage::copy($realpath, $temppath)) {
-                Storage::remove($realpath);
+            if (PublicStorage::copy($realpath, $temppath)) {
+                PublicStorage::remove($realpath);
 
                 $Field->set($fd, $fieldpath);
                 $Field->set($fdname . '@secret', md5($fdname . '@' . $fieldpath));

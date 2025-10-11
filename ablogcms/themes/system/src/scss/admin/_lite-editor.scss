@@ -1,0 +1,16 @@
+@use '../global/common' as global;
+
+/* ------------------------------
+ LiteEditor
+------------------------------- */
+
+/**
+ * overflow-wrap / word-break / line-break については以下を参考にしています。
+ * https://ics.media/entry/240411/
+ */
+.lite-editor,
+.lite-editor-source {
+  word-break: normal; /* 単語の分割はデフォルトに依存 */
+  overflow-wrap: anywhere; /* 収まらない場合に折り返す */
+  line-break: strict; /* 禁則処理を厳格に適用 */
+}

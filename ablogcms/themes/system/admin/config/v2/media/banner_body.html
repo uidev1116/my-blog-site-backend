@@ -1,0 +1,40 @@
+<!-- BEGIN_MODULE Admin_Config_Media_Banner -->
+<!-- BEGIN_IF [{notice_mess}/nem/] -->
+<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span><button class="js-acms-alert-close acms-admin-alert-icon-after">×</button>Banner <!--T-->設定を保存しました<!--/T--></p><!-- END_IF -->
+
+<table class="adminTable acms-admin-table-admin-edit">
+  <tr>
+    <th><!--T-->表示順<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->バナーが表示される順番を表示順かランダムかを選びます。<!--/T-->"></i></th>
+    <td>
+      <select name="media_banner_order" class="js-select2">
+        <option value="sort-asc"{media_banner_order:selected#sort-asc}><!--T-->表示順 ( 昇順 )<!--/T--></option>
+        <option value="sort-desc"{media_banner_order:selected#sort-desc}><!--T-->表示順 ( 降順 )<!--/T--></option>
+        <option value="random"{media_banner_order:selected#random}><!--T-->ランダム<!--/T--></option>
+      </select>
+      <input type="hidden" name="config[]" value="media_banner_order" />
+    </td>
+  </tr>
+  <tr>
+    <th><!--T-->表示数<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->バナーが表示される数です。空白または数値でない場合、全件表示されます。<!--/T-->"></i></th>
+    <td>
+      <input type="text" name="media_banner_limit" value="{media_banner_limit}" size="5" />
+      <input type="hidden" name="config[]" value="media_banner_limit" />
+    </td>
+  </tr>
+</table>
+<h2 class="acms-admin-admin-title2">バナーデータ</h2>
+<script type="text/template" id="js-banner-json">
+{media_banner_json}[escvars]
+</script>
+<input type="hidden" value="{media_banner_label_attr1}" class="js-label-attr1" />
+<input type="hidden" value="{media_banner_label_attr2}" class="js-label-attr2" />
+<input type="hidden" value="{media_banner_hide_attr1}" class="js-hide-attr1" />
+<input type="hidden" value="{media_banner_hide_attr2}" class="js-hide-attr2" />
+<input type="hidden" value="{media_banner_tooltip_attr1}" class="js-tooltip-attr1" />
+<input type="hidden" value="{media_banner_tooltip_attr2}" class="js-tooltip-attr2" />
+<div id="js-banner-edit"></div>
+<!-- BEGIN_MODULE Admin_Rule_Name -->
+<input type="hidden" name="rid" value="{rid}" /><!-- END_MODULE Admin_Rule_Name --><!-- BEGIN_MODULE Admin_Module_Name -->
+<input type="hidden" name="mid" value="{mid}" /><!-- END_MODULE Admin_Module_Name --><!-- BEGIN_MODULE Admin_Config_Set_Name -->
+<input type="hidden" name="setid" value="{setid}" /><!-- END_MODULE Admin_Config_Set_Name -->
+<!-- END_MODULE Admin_Config_Media_Banner -->

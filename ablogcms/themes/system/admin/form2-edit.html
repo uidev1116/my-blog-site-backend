@@ -1,0 +1,35 @@
+<div>
+  <!-- BEGIN_IF [<!-- BEGIN_MODULE Admin_Messages -->{message}<!-- END_MODULE Admin_Messages -->/eq/failure] -->
+  <div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+    <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+    <!--T-->保存に失敗しました。<!--/T-->
+    <button
+      type="button"
+      class="js-acms-alert-close acms-admin-alert-icon-after"
+      aria-label="アラートを閉じる"
+    >
+      ×
+    </button>
+  </div>
+  <!-- END_IF -->
+
+  <!-- BEGIN_IF [<!-- BEGIN_MODULE Admin_Messages -->{message}<!-- END_MODULE Admin_Messages -->/neq/failure/_and_/%{success}/eq/1] -->
+  <div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+    <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+    <!--T-->保存しました。<!--/T-->
+    <button
+      type="button"
+      class="js-acms-alert-close acms-admin-alert-icon-after"
+      aria-label="アラートを閉じる"
+    >
+      ×
+    </button>
+  </div>
+  <!-- END_IF -->
+
+  <div>
+    <section>
+      @include("/admin/form2/edit.html")
+    </section>
+  </div>
+</div>

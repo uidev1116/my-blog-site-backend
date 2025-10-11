@@ -23,7 +23,7 @@ class Helper
         // フォーマットチェック | ドメイン・IP・localhostのいずれか
         if (
             !preg_match(
-                '@^([a-zA-Z0-9]+[a-zA-Z0-9-]*(?<=[a-zA-Z0-9])\.)+[a-zA-Z]+[a-zA-Z0-9-]*(?<=[a-zA-Z0-9])\.?$|' .
+                '@^([a-z0-9]+[a-z0-9-]*(?<=[a-z0-9])\.)+[a-z]+[a-z0-9-]*(?<=[a-z0-9])\.?$|' .
                 '^(?:\d{1,3}\.){3}\d{1,3}$|' .
                 '^localhost$@',
                 $domain,
@@ -227,5 +227,18 @@ class Helper
         $SQL->setLimit(1);
 
         return !$DB->query($SQL->get(dsn()), 'one');
+    }
+
+    /**
+     * 指定したブログが子孫ブログを持っているか
+     * @param int $blogId
+     * @return bool
+     */
+    public function hasDescendantBlogs(int $blogId): bool
+    {
+        if (1 < ACMS_RAM::blogRight($blogId) - ACMS_RAM::blogLeft($blogId)) {
+            return true;
+        }
+        return false;
     }
 }
