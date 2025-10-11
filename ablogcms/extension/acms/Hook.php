@@ -2,8 +2,7 @@
 
 namespace Acms\Custom;
 
-use Acms\Plugins\ApiPreview\Domain\ValueObjects\Previewkey;
-use App;
+use Acms\Services\Facades\Application;
 
 /**
  * ユーザー定義のHookを設定します。
@@ -15,7 +14,9 @@ class Hook
      */
     public function init()
     {
-        new \Acms\Plugins\ApiPreview\ServiceProvider();
+        if (class_exists('\Acms\Plugins\ApiPreview\ServiceProvider')) {
+            new \Acms\Plugins\ApiPreview\ServiceProvider();
+        }
     }
 
     /**
@@ -32,8 +33,10 @@ class Hook
      */
     public function afterAuthenticate()
     {
-        $previewService = App::make('api-preview.service.preview');
-        $previewService->processPreview();
+        if (Application::exists('api-preview.service.preview')) {
+            $previewService = Application::make('api-preview.service.preview');
+            $previewService->processPreview();
+        }
     }
 
     /**
