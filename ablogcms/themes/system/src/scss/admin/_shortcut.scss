@@ -12,16 +12,16 @@
 }
 
 .acms-shortcut-heading {
-  margin: 0;
   padding: 14px 0;
+  margin: 0;
   color: global.$acms-color-black;
 
   @include global.font-size(14);
 }
 
 .acms-shortcut-list {
-  margin: 0;
   padding: 0;
+  margin: 0;
   list-style: none;
   border-top: 1px solid global.$acms-color-system-gray40;
 }
@@ -48,11 +48,11 @@
 
 .acms-shortcut-key {
   display: grid;
+  place-content: center;
   min-width: 20px;
   height: 20px;
   padding: 4px;
   font-family: global.$acms-admin-font-family;
   background: global.$acms-color-system-gray20;
   border-radius: global.$acms-form-border-radius;
-  place-content: center;
 }

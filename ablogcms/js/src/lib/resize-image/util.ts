@@ -270,13 +270,19 @@ export default class ResizeImageUtil {
     drawInfo: DrawInfo
   ): HTMLCanvasElement {
     const ctx = canvas.getContext('2d')!;
+    // 高品質補間を有効化
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     const { rad, dx, dy } = drawInfo;
     const diff = 0.5;
 
     if (image.width * diff > destinationSize.width) {
       // スムーズ処理を入れて、リサイズ
-      const oc = document.createElement('canvas');
-      const octx = oc.getContext('2d')!;
+      let oc = document.createElement('canvas');
+      let octx = oc.getContext('2d')!;
+      // 高品質補間を有効化
+      octx.imageSmoothingEnabled = true;
+      octx.imageSmoothingQuality = 'high';
 
       // step 1 we reduce the image to half by using an off-screen canvas
       oc.width = image.width * diff;
@@ -288,9 +294,19 @@ export default class ResizeImageUtil {
 
       // step 2 reuses the off-screen canvas and draws the image reduced to half again
       while (width * diff > destinationSize.width) {
-        octx.drawImage(oc, 0, 0, width, height, 0, 0, width * diff, height * diff);
-        width *= diff;
-        height *= diff;
+        const tmp = document.createElement('canvas');
+        tmp.width = Math.max(Math.floor(width * diff), destinationSize.width);
+        tmp.height = Math.max(Math.floor(height * diff), destinationSize.height);
+
+        const tmpCtx = tmp.getContext('2d')!;
+        tmpCtx.imageSmoothingEnabled = true;
+        tmpCtx.imageSmoothingQuality = 'high';
+        tmpCtx.drawImage(oc, 0, 0, width, height, 0, 0, tmp.width, tmp.height);
+
+        oc = tmp;
+        octx = tmpCtx;
+        width = oc.width;
+        height = oc.height;
       }
       // step 3 we draw once more to main canvas, again reduced to half but to the final size
       if (drawInfo.rad !== 0) {

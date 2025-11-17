@@ -520,9 +520,6 @@
     "remove_file": "Remove the file",
     "error": {
       "unknown": "An unknown error occurred."
-    },
-    "validate_message": {
-      "alt_maxlength": "Please enter within 150 characters."
     }
   },
   "media_banner": {

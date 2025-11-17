@@ -607,17 +607,18 @@
         </tr>
         <tr>
           <th>
-            <!--T-->テーマカラー<!--/T-->
+            <!--T-->管理画面のテーマカラー<!--/T-->
             <i
               class="acms-admin-icon-tooltip js-acms-tooltip-hover"
-              data-acms-tooltip="<!--T-->ブログのテーマカラーを16進数で設定します。<!--/T-->"
+              data-acms-tooltip="<!--T-->管理画面のテーマカラーを16進数で設定します。<!--/T-->"
             ></i>
           </th>
           <td>
             <input
-              class="blog_theme_color acms-admin-float-left acms-admin-margin-bottom-small"
-              type="text"
+              type="color"
+              class="js-acms-theme-color-picker"
               name="blog_theme_color"
+              id="blog_theme_color"
               value="{blog_theme_color}"
               placeholder="#FF0000"
             />
@@ -625,15 +626,7 @@
               type="hidden"
               name="config[]"
               value="blog_theme_color"
-            />&nbsp;
-            <button
-              type="button"
-              class="js-acms-color-picker acms-admin-btn-admin"
-              data-target="[name='blog_theme_color']"
-              data-theme-color-select="true"
-            >
-              <!--T-->色を選択<!--/T-->
-            </button>
+            />
           </td>
         </tr>
         <!-- BEGIN_IF [%{RBID}/eq/%{BID}] -->

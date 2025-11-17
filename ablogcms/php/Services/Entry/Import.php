@@ -7,6 +7,7 @@ use DB;
 use ACMS_Filter;
 use Acms\Services\Facades\Common;
 use Acms\Services\Facades\BlockEditor;
+use Acms\Services\Facades\Application;
 use Symfony\Component\Yaml\Yaml;
 
 class Import
@@ -22,7 +23,7 @@ class Import
     protected $bid;
 
     /**
-     * @var int|null
+     * @var int
      */
     protected $uid;
 
@@ -62,11 +63,22 @@ class Import
     protected $userSort = 0;
 
     /**
+     * @var \Acms\Services\Entry\EntryRepository $entryRepository
+     */
+    protected $entryRepository;
+
+    /**
      * Import constructor
      */
     public function __construct()
     {
-        $this->uid = SUID;
+        /** @var int|null $sessionUserId */
+        $sessionUserId = SUID;
+        if ($sessionUserId === null) {
+            throw new \LogicException('You must be logged in to perform this action.');
+        }
+        $this->uid = $sessionUserId;
+        $this->entryRepository = Application::make('entry.repository');
     }
 
     /**
@@ -88,20 +100,9 @@ class Import
         $this->errors = [];
         $this->entryStatus = $status;
 
-        $sql = SQL::newSelect('entry');
-        $sql->setSelect('entry_sort');
-        $sql->addWhereOpr('entry_blog_id', $this->bid);
-        $sql->setOrder('entry_sort', 'DESC');
-        $sql->setLimit(1);
-        $this->entrySort = intval(DB::query($sql->get(dsn()), 'one')) + 1;
+        $this->entrySort = $this->entryRepository->nextSort($this->bid);
 
-        $sql    = SQL::newSelect('entry');
-        $sql->setSelect('entry_user_sort');
-        $sql->addWhereOpr('entry_user_id', $this->uid);
-        $sql->addWhereOpr('entry_blog_id', $this->bid);
-        $sql->setOrder('entry_user_sort', 'DESC');
-        $sql->setLimit(1);
-        $this->userSort = intval(DB::query($sql->get(dsn()), 'one')) + 1;
+        $this->userSort = $this->entryRepository->nextUserSort($this->uid, $this->bid);
 
         $this->registerNewIDs();
 
@@ -229,13 +230,7 @@ class Import
                 $value = $this->entryStatus;
             }
         } elseif ($field === 'entry_category_sort') {
-            $sql = SQL::newSelect('entry');
-            $sql->setSelect('entry_category_sort');
-            $sql->addWhereOpr('entry_category_id', $record['entry_category_id']);
-            $sql->addWhereOpr('entry_blog_id', $this->bid);
-            $sql->setOrder('entry_category_sort', 'DESC');
-            $sql->setLimit(1);
-            $value = intval(DB::query($sql->get(dsn()), 'one')) + 1;
+            $value = $this->entryRepository->nextCategorySort($record['entry_category_id'], $this->bid);
         } elseif ($field === 'entry_code' && !empty($value)) {
             $sql = SQL::newSelect('entry');
             $sql->setSelect('entry_id');

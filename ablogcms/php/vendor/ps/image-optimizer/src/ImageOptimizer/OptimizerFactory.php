@@ -20,7 +20,7 @@ class OptimizerFactory
     private $executableFinder;
     private $logger;
 
-    public function __construct(array $options = [], LoggerInterface $logger = null)
+    public function __construct(array $options = [], ?LoggerInterface $logger = null)
     {
         $this->executableFinder = new ExecutableFinder();
         $this->logger = $logger ?: new NullLogger();

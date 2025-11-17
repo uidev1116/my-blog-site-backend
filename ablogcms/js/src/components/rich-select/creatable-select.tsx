@@ -24,6 +24,9 @@ const CreatableSelect = <Option, IsMulti extends boolean, Group extends GroupBas
       ...components,
     }}
     className={classnames('acms-admin-rich-select', className)}
+    classNames={{
+      menuPortal: () => 'acms-admin-rich-select-menu-portal',
+    }}
     styles={
       {
         ...stylesConfig,

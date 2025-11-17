@@ -24,6 +24,9 @@ const AsyncSelect = <Option, IsMulti extends boolean, Group extends GroupBase<Op
       ...components,
     }}
     className={classnames('acms-admin-rich-select', className)}
+    classNames={{
+      menuPortal: () => 'acms-admin-rich-select-menu-portal',
+    }}
     styles={
       {
         ...stylesConfig,

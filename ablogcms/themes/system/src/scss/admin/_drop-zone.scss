@@ -26,8 +26,8 @@
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  margin: auto;
   padding: 30px;
+  margin: auto;
   text-align: center;
   border: 3px dashed transparent;
 }
@@ -46,16 +46,16 @@
 .acms-drop-zone .acms-drop-zone-file-selector-btn {
   width: 120px;
   margin: 10px 0;
-  color: global.$acms-color-black;
   font-weight: bold;
   line-height: 30px;
+  color: global.$acms-color-black;
   text-align: center;
+  appearance: none;
   background-color: global.$acms-color-gray10;
   border: none;
   border-radius: 3px;
   box-shadow: 0 0 0 1px rgb(0 0 0 / 10%);
   transition: background-color 0.3s;
-  appearance: none;
 
   &:hover {
     background-color: global.$acms-color-gray40;

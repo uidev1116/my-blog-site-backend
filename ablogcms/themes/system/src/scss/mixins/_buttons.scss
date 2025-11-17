@@ -16,10 +16,11 @@
 ) {
   $self: &;
 
+  box-sizing: border-box;
   display: inline-flex;
+  column-gap: $column-gap;
   align-items: center;
   justify-content: center;
-  box-sizing: border-box;
   min-height: $min-height;
   padding: $padding;
   font-weight: $font-weight;
@@ -27,9 +28,8 @@
   text-align: center;
   text-decoration: none;
   vertical-align: middle;
-  column-gap: $column-gap;
-  border-radius: $border-radius;
   cursor: pointer;
+  border-radius: $border-radius;
   transition:
     background-color 0.2s,
     border-color 0.2s;
@@ -150,8 +150,8 @@
 
   &:active[disabled],
   &#{$self}-active[disabled] {
-    opacity: 1;
     filter: alpha(opacity=1);
+    opacity: 1;
   }
 
   // disabled

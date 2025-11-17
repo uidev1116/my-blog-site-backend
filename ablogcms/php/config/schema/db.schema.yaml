@@ -654,14 +654,14 @@
     Extra:
   column_field_2:
     Field: column_field_2
-    Type: varchar(255)
+    Type: longtext
     'Null': NO
     Key:
     Default:
     Extra:
   column_field_3:
     Field: column_field_3
-    Type: varchar(255)
+    Type: longtext
     'Null': NO
     Key:
     Default:
@@ -809,14 +809,14 @@
     Extra:
   column_field_2:
     Field: column_field_2
-    Type: varchar(255)
+    Type: longtext
     'Null': NO
     Key:
     Default:
     Extra:
   column_field_3:
     Field: column_field_3
-    Type: varchar(255)
+    Type: longtext
     'Null': NO
     Key:
     Default:
@@ -2523,7 +2523,7 @@
     Extra:
   media_field_1:
     Field: media_field_1
-    Type: varchar(255)
+    Type: longtext
     'Null': NO
     Key:
     Default:
@@ -2537,7 +2537,7 @@
     Extra:
   media_field_3:
     Field: media_field_3
-    Type: varchar(255)
+    Type: longtext
     'Null': NO
     Key:
     Default:

@@ -74,8 +74,8 @@
 
   ul:not(.acms-dropdown-menu),
   ul:not(.js-acms-dropdown-menu) {
-    margin: 0;
     padding: 0 8px;
+    margin: 0;
     list-style: none;
   }
 
@@ -145,18 +145,18 @@ ul.acms-dropdown-menu > li,
     $self: &;
 
     position: relative;
+    box-sizing: border-box;
     display: flex;
     gap: 4px;
     align-items: center;
-    box-sizing: border-box;
     width: 100%;
     padding: var(--acms-dropdown-menu-item-padding);
     color: global.$acms-color-black;
+    appearance: none;
+    cursor: pointer;
     background: transparent;
     border: 0;
-    cursor: pointer;
     transition: background 0.2s;
-    appearance: none;
 
     &:link:not([aria-disabled='true']),
     &:visited:not([aria-disabled='true']) {
@@ -191,8 +191,8 @@ ul.acms-dropdown-menu > li,
 
     &[aria-disabled='true'] {
       color: global.$acms-color-system-gray40;
-      cursor: default;
       pointer-events: none;
+      cursor: default;
 
       .acms-dropdown-menu-item-command {
         color: global.$acms-color-system-gray40;
@@ -218,9 +218,9 @@ ul.acms-dropdown-menu > li,
     .acms-dropdown-menu-checked,
     .acms-dropdown-menu-chevron {
       position: absolute;
+      inset-inline-end: var(--acms-dropdown-menu-item-padding);
       top: 50%;
       transform: translateY(-50%);
-      inset-inline-end: var(--acms-dropdown-menu-item-padding);
     }
   }
 }
@@ -244,8 +244,8 @@ ul.acms-dropdown-menu > li,
 .acms-dropdown-menu > [role='group'] {
   .acms-dropdown-menu-group-title {
     display: block;
-    margin-bottom: 4px;
     padding: 0 4px 8px;
+    margin-bottom: 4px;
     color: global.$acms-color-gray70;
     border-bottom: 0;
 
@@ -261,8 +261,8 @@ ul.acms-dropdown-menu > li,
 .acms-dropdown-menu-popover {
   .acms-divider {
     height: 1px;
-    margin: 12px 0;
     padding: 0;
+    margin: 12px 0;
     background-color: global.$acms-color-gray40;
     border: none;
   }
@@ -280,8 +280,8 @@ ul.acms-dropdown-menu > li,
   align-items: center;
   justify-content: center;
   margin-left: auto;
-  color: global.$acms-color-system-gray80;
   line-height: 1;
+  color: global.$acms-color-system-gray80;
 
   @include global.font-size(12);
 }

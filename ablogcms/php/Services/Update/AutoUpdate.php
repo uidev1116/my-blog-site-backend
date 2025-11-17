@@ -41,9 +41,9 @@ class AutoUpdate
             if (!$this->checkForUpdates()) {
                 return; // 更新バージョンがない
             }
-            /** @var \Acms\Services\Update\Lock $lockService */
+            /** @var \Acms\Services\Common\Lock $lockService */
             $lockService = Application::make('update.lock');
-            if ($lockService->isProcessing()) {
+            if ($lockService->isLocked()) {
                 return; // すでにアップデート中
             }
             $this->update($lockService);
@@ -124,10 +124,10 @@ class AutoUpdate
     /**
      * アップデートを実行
      *
-     * @param \Acms\Services\Update\Lock $lockService
+     * @param \Acms\Services\Common\Lock $lockService
      * @return void
      */
-    protected function update(Lock $lockService): void
+    protected function update($lockService): void
     {
         Common::backgroundRedirect(HTTP_REQUEST_URL);
 

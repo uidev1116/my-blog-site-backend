@@ -22,11 +22,12 @@
   min-height: var.$acms-form-height;
   padding: $padding;
   padding-right: var.$acms-form-select-padding-right;
-  color: $text-color;
   line-height: $line-height;
+  color: $text-color;
   text-align: $text-align;
   text-decoration: none;
   vertical-align: middle;
+  appearance: none;
   background: url(#{var.$acms-form-select}) right center;
   background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSI1IiB2aWV3Qm94PSIwIDAgMTggNSI+PGc+PGc+PHBhdGggZmlsbD0ibm9uZSIgZD0iTTAgMGgxOHY1SDB6Ii8+PHBhdGggZmlsbD0iIzk5OSIgZD0iTTQuMjIgMGg0LjIyTDYuMzMgMi41IDQuMjIgNSAyLjExIDIuNSAwIDBoNC4yMnoiLz48L2c+PC9nPjwvc3ZnPg==')
     right center;
@@ -35,7 +36,6 @@
   border: var.$acms-form-select-border;
   border-radius: $border-radius;
   transition: all 0.2s;
-  appearance: none;
 
   @include fontSize.font-size($font-size);
 

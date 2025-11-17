@@ -1,9 +1,9 @@
 @use 'global/common' as global;
 
 @font-face {
-  font-weight: normal;
   font-family: acms-fonts;
   font-style: normal;
+  font-weight: normal;
   src: url(#{global.$acms-font + 'acms-fonts.eot'});
   src:
     url(#{global.$acms-font + 'acms-fonts.eot'}) format('embedded-opentype'),
@@ -15,20 +15,20 @@
 .acms-icon,
 [class*='acms-icon-'] {
   display: inline-block;
-  font-weight: normal;
   font-family: acms-fonts;
   font-style: normal;
+  font-weight: normal;
   line-height: 1;
-  text-transform: none;
   text-decoration: inherit;
+  text-transform: none;
   speak: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 .acms-icon-large {
-  color: #999;
   font-size: 16px;
+  color: #999;
 }
 
 .acms-icon-contract-arrow {

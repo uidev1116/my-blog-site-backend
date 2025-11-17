@@ -38,6 +38,7 @@ class Tree extends Base
             'categoryOrder' => $this->order ?: $config->get('category_list_order'),
             'displayCategoryWithoutEntry' => $config->get('category_list_amount_zero') === 'on',
             'displayEntryCount' => $config->get('category_list_amount') === 'on',
+            'countEntryInSubcategories' => $config->get('category_list_count_entries_in_subcategories') === 'on',
             'categoryDisplayDepth' => (int) $config->get('category_list_level', 99),
             'searchTarget' => $config->get('category_list_field_search'),
             'displayCategoryField' => $config->get('category_list_field') === 'on',
@@ -68,7 +69,8 @@ class Tree extends Base
             $this->start,
             $this->end,
             $this->config['searchTarget'],
-            $this->config['categoryDisplayIndexingOnly']
+            $this->config['categoryDisplayIndexingOnly'],
+            $this->config['countEntryInSubcategories']
         );
         $all = Database::query($categoryQuery->get(dsn()), 'all');
         if (empty($all)) {

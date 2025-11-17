@@ -52,19 +52,51 @@ class CategoryHelper extends BaseHelper
      * @param string|null $end
      * @param 'entry'|'category' $searchType
      * @param bool $indexing
+     * @param bool $countEntryInSubcategories
      * @return SQL_Select
      */
-    public function buildCategoryListQuery(int $bid, ?int $cid, string $categoryAxis, ?string $keyword, ?Field_Search $field, ?string $start, ?string $end, string $searchType, bool $indexing): SQL_Select
+    public function buildCategoryListQuery(int $bid, ?int $cid, string $categoryAxis, ?string $keyword, ?Field_Search $field, ?string $start, ?string $end, string $searchType, bool $indexing, bool $countEntryInSubcategories): SQL_Select
     {
-        $sql = SQL::newSelect('category');
-        $sql->addSelect('category_id');
-        $sql->addSelect('category_code');
-        $sql->addSelect('category_name');
-        $sql->addSelect('category_parent');
-        $sql->addSelect('category_left');
-        $sql->addSelect('category_indexing');
-        $sql->addLeftJoin('entry', 'entry_category_id', 'category_id');
-        $sql->addLeftJoin('blog', 'blog_id', 'category_blog_id');
+        $sql = SQL::newSelect('category', 'c');
+        $sql->addSelect('category_id', null, 'c');
+        $sql->addSelect('category_code', null, 'c');
+        $sql->addSelect('category_name', null, 'c');
+        $sql->addSelect('category_parent', null, 'c');
+        $sql->addSelect('category_left', null, 'c');
+        $sql->addSelect('category_indexing', null, 'c');
+        if ($countEntryInSubcategories) {
+            $sql->addSelect(SQL::newOpr(
+                SQL::newFunction(SQL::newFunction('main.entry_id', 'DISTINCT'), 'COUNT'),
+                SQL::newFunction(SQL::newFunction('sub.entry_id', 'DISTINCT'), 'COUNT'),
+                '+'
+            ), 'category_entry_amount');
+        } else {
+            $sql->addSelect(SQL::newFunction(SQL::newFunction('main.entry_id', 'DISTINCT'), 'COUNT'), 'category_entry_amount');
+        }
+        $sql->addLeftJoin('blog', 'blog_id', 'category_blog_id', 'b', 'c');
+
+        $mainEntry = SQL::newSelect('entry');
+        $mainEntry->addSelect('entry_id', null);
+        $mainEntry->addSelect('entry_category_id', null);
+        ACMS_Filter::entrySession($mainEntry);
+        if ($start && $end) {
+            ACMS_Filter::entrySpan($mainEntry, $start, $end);
+        }
+        $mainEntry->addWhereOpr('entry_blog_id', $bid);
+        $sql->addLeftJoin($mainEntry, 'entry_category_id', 'category_id', 'main', 'c');
+
+        if ($countEntryInSubcategories) {
+            $subEntry = SQL::newSelect('entry');
+            $subEntry->addSelect('entry_id', null);
+            $subEntry->addSelect('entry_category_id', null);
+            ACMS_Filter::entrySession($subEntry);
+            if ($start && $end) {
+                ACMS_Filter::entrySpan($subEntry, $start, $end);
+            }
+            $subEntry->addWhereOpr('entry_blog_id', $bid);
+            $sql->addLeftJoin('entry_sub_category', 'entry_sub_category_id', 'category_id', 'esc', 'c');
+            $sql->addLeftJoin($subEntry, 'entry_id', 'entry_sub_category_eid', 'sub', 'esc');
+        }
 
         ACMS_Filter::blogTree($sql, $bid, 'ancestor-or-self');
         if ($cid) {
@@ -76,7 +108,7 @@ class CategoryHelper extends BaseHelper
         }
         if ($field) {
             if ($searchType === 'entry') {
-                ACMS_Filter::entryField($sql, $field);
+                ACMS_Filter::entryField($sql, $field, 'main');
             } else {
                 ACMS_Filter::categoryField($sql, $field);
             }
@@ -92,18 +124,12 @@ class CategoryHelper extends BaseHelper
         $where->addWhereOpr('category_scope', 'global', '=', 'OR');
         $sql->addWhere($where);
 
-        $where = SQL::newWhere();
-        ACMS_Filter::entrySession($where);
-        if ($start && $end) {
-            ACMS_Filter::entrySpan($where, $start, $end);
-        }
-        $where->addWhereOpr('entry_blog_id', $bid);
-
-        $case = SQL::newCase();
-        $case->add($where, 1);
-        $case->setElse('NULL');
-        $sql->addSelect($case, 'category_entry_amount', null, 'count');
-        $sql->setGroup('category_id');
+        $sql->addGroup('category_id', 'c');
+        $sql->addGroup('category_code', 'c');
+        $sql->addGroup('category_name', 'c');
+        $sql->addGroup('category_parent', 'c');
+        $sql->addGroup('category_left', 'c');
+        $sql->addGroup('category_indexing', 'c');
 
         return $sql;
     }

@@ -26,12 +26,12 @@ class ACMS_GET_Member_Admin_Login extends ACMS_GET_Member_Signin
     }
 
     /**
-     * メール認証によるサインイン
+     * メール認証による管理ログイン
      *
      * @param Template $tpl
      * @return void
      */
-    protected function emailAuthSingin(Template $tpl): void
+    protected function emailAuth(Template $tpl): void
     {
         $data = [];
 
@@ -69,5 +69,30 @@ class ACMS_GET_Member_Admin_Login extends ACMS_GET_Member_Signin
             $tpl->add('expired');
             AcmsLogger::notice('有効期限切れのURLのため、メール認証管理ログインに失敗しました', Common::exceptionArray($e, $data));
         }
+    }
+
+    /**
+     * メール認証によるサインインを試行するかどうかを判定
+     *
+     * @return bool
+     */
+    protected function shouldTryEmailAuth(): bool
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            return false;
+        }
+        if (!defined('IS_SYSTEM_LOGIN_PAGE')) {
+            return false;
+        }
+        if (IS_SYSTEM_LOGIN_PAGE !== 1) {
+            return false;
+        }
+        if (!$this->isAuthUrl()) {
+            return false;
+        }
+        if (config('email-auth-login') !== 'on') {
+            return false;
+        }
+        return true;
     }
 }

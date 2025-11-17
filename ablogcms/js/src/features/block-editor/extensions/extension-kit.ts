@@ -30,7 +30,7 @@ import {
   LinkButton,
   MediaUpload,
   CustomMark,
-  UnwrapList,
+  CustomConvertBlock,
 } from '.';
 
 export const ExtensionKit = () => {
@@ -68,7 +68,7 @@ export const ExtensionKit = () => {
     Underline,
     MediaUpload,
     CustomMark,
-    UnwrapList,
+    CustomConvertBlock,
     ImageBlock,
     FileBlock,
     LinkButton,

@@ -5,12 +5,12 @@
 ------------------------------ */
 
 @include global.editor-style('blockquote') {
-  line-height: 1.7;
-  border: 0 solid global.$acms-color-black;
-  border-inline-start-width: 2px;
   padding-inline-start: 1rem;
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
   margin-inline: 0; /* リセット用 */
+  line-height: 1.7;
+  border: 0 solid global.$acms-color-black;
+  border-inline-start-width: 2px;
 
   @include global.font-size(14);
 

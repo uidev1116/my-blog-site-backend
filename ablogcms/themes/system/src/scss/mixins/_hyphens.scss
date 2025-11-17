@@ -1,5 +1,5 @@
 // 単語途中での改行方法を指定
 @mixin hyphens($mode: auto) {
-  word-wrap: break-word;
   hyphens: $mode;
+  word-wrap: break-word;
 }

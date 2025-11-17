@@ -51,27 +51,27 @@
 
   /* 引用ユニットテキスト */
   .acms-embed-link-title {
-    margin: 0 0 0.5rem;
     padding: 0;
-    color: global.$acms-color-black;
+    margin: 0 0 0.5rem;
     line-height: 1.4;
+    color: global.$acms-color-black;
 
     @include global.font-size(16);
   }
 
   .acms-embed-link-site-name {
-    margin: 0;
     padding: 0;
+    margin: 0;
     color: global.$acms-color-black;
 
     @include global.font-size(12);
   }
 
   .acms-embed-link-description {
-    margin: 0.5rem 0 0;
     padding: 0;
-    color: global.$acms-color-black;
+    margin: 0.5rem 0 0;
     line-height: 1.6;
+    color: global.$acms-color-black;
 
     @include global.font-size(14);
   }

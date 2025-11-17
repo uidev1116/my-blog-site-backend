@@ -18,14 +18,26 @@ class ACMS_CorrectorBody
         return json_encode($txt, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS);
     }
 
-    public function nl2br($txt)
+    /**
+     * 改行文字をHTMLの<br />タグに変換
+     *
+     * @param string|null $txt
+     * @return string
+     */
+    public function nl2br($txt): string
     {
-        return nl2br($txt);
+        return nl2br($txt ?? '');
     }
 
-    public function nl2br4html($txt)
+    /**
+     * 改行文字をHTMLの<br>タグに変換
+     *
+     * @param string|null $txt
+     * @return string
+     */
+    public function nl2br4html($txt): string
     {
-        return nl2br($txt, false);
+        return nl2br($txt ?? '', false);
     }
 
     public function delnl($txt)

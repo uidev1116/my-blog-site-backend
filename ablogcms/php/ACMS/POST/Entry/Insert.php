@@ -11,9 +11,6 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
      */
     public function post()
     {
-        $this->unitRepository = Application::make('unit-repository');
-        assert($this->unitRepository instanceof \Acms\Services\Unit\Repository);
-
         $insertedResponse = $this->insert();
         $redirect = $this->Post->get('redirect');
 
@@ -56,9 +53,7 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
         $this->fix($postEntry);
         $customFieldCollection = [];
         $eid = DB::query(SQL::nextval('entry_id', dsn()), 'seq');
-        if (!($cid = $postEntry->get('category_id'))) {
-            $cid = null;
-        }
+        $cid = is_numeric($postEntry->get('category_id')) ? intval($postEntry->get('category_id')) : null;
         // バリデート
         $code = $this->insertValidate($postEntry, $eid, $cid);
 
@@ -170,7 +165,6 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
             'eid' => $eid,
             'cid' => $cid,
             'ecd' => $code,
-            'ccd' => ACMS_RAM::categoryCode($cid),
             'trash' => $postEntry->get('status'),
             'success' => 1,
         ];
@@ -183,12 +177,7 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
      */
     protected function getEntrySort()
     {
-        $SQL = SQL::newSelect('entry');
-        $SQL->setSelect('entry_sort');
-        $SQL->addWhereOpr('entry_blog_id', BID);
-        $SQL->setOrder('entry_sort', 'DESC');
-        $SQL->setLimit(1);
-        return intval(DB::query($SQL->get(dsn()), 'one')) + 1;
+        return $this->entryRepository->nextSort(BID);
     }
 
     /**
@@ -198,13 +187,12 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
      */
     protected function getUserSort()
     {
-        $SQL = SQL::newSelect('entry');
-        $SQL->setSelect('entry_user_sort');
-        $SQL->addWhereOpr('entry_user_id', SUID);
-        $SQL->addWhereOpr('entry_blog_id', BID);
-        $SQL->setOrder('entry_user_sort', 'DESC');
-        $SQL->setLimit(1);
-        return intval(DB::query($SQL->get(dsn()), 'one')) + 1;
+        /** @var int|null $sessionUserId */
+        $sessionUserId = SUID;
+        if ($sessionUserId === null) {
+            throw new \LogicException('You must be logged in to perform this action.');
+        }
+        return $this->entryRepository->nextUserSort($sessionUserId, BID);
     }
 
     /**
@@ -214,13 +202,7 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
      */
     protected function getCategorySort($cid)
     {
-        $SQL = SQL::newSelect('entry');
-        $SQL->setSelect('entry_category_sort');
-        $SQL->addWhereOpr('entry_category_id', $cid);
-        $SQL->addWhereOpr('entry_blog_id', BID);
-        $SQL->setOrder('entry_category_sort', 'DESC');
-        $SQL->setLimit(1);
-        return intval(DB::query($SQL->get(dsn()), 'one')) + 1;
+        return $this->entryRepository->nextCategorySort($cid, BID);
     }
 
     /**

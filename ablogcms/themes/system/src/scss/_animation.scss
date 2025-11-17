@@ -72,8 +72,8 @@
   .acms-slide-left,
   .acms-slide-bottom,
   .acms-slide-right {
-    transform: translateX(0) translateY(0);
     opacity: 1;
+    transform: translateX(0) translateY(0);
   }
 }
 
@@ -81,60 +81,60 @@
 
 /* 上からスライド */
 .acms-slide-top {
-  transform: translateX(0) translateY(global.$acms-slide-top);
   opacity: 0;
   transition:
     opacity global.$acms-slide-opacity-speed,
     transform global.$acms-slide-transform-speed cubic-bezier(0.165, 0.84, 0.44, 1);
+  transform: translateX(0) translateY(global.$acms-slide-top);
 
   .active & {
-    transform: translateX(0) translateY(0);
     opacity: 1;
+    transform: translateX(0) translateY(0);
     will-change: opacity, transform;
   }
 }
 
 /* 下からスライド */
 .acms-slide-bottom {
-  transform: translateX(0) translateY(global.$acms-slide-bottom);
   opacity: 0;
   transition:
     opacity global.$acms-slide-opacity-speed,
     transform global.$acms-slide-transform-speed cubic-bezier(0.165, 0.84, 0.44, 1);
+  transform: translateX(0) translateY(global.$acms-slide-bottom);
 
   .active & {
-    transform: translateX(0) translateY(0);
     opacity: 1;
+    transform: translateX(0) translateY(0);
     will-change: opacity, transform;
   }
 }
 
 /* 左からスライド */
 .acms-slide-left {
-  transform: translateX(global.$acms-slide-left) translateY(0);
   opacity: 0;
   transition:
     opacity global.$acms-slide-opacity-speed,
     transform global.$acms-slide-transform-speed cubic-bezier(0.165, 0.84, 0.44, 1);
+  transform: translateX(global.$acms-slide-left) translateY(0);
 
   .active & {
-    transform: translateX(0) translateY(0);
     opacity: 1;
+    transform: translateX(0) translateY(0);
     will-change: opacity, transform;
   }
 }
 
 /* 右からスライド */
 .acms-slide-right {
-  transform: translateX(global.$acms-slide-right);
   opacity: 0;
   transition:
     opacity global.$acms-slide-opacity-speed,
     transform global.$acms-slide-transform-speed cubic-bezier(0.165, 0.84, 0.44, 1);
+  transform: translateX(global.$acms-slide-right);
 
   .active & {
-    transform: translateX(0);
     opacity: 1;
+    transform: translateX(0);
     will-change: opacity, transform;
   }
 }
@@ -143,8 +143,8 @@
 // 拡大
 // hoverしたときに拡大する
 .acms-zoom-in {
-  transform: scale(global.$acms-slide-zoom-in-default);
   transition: transform global.$acms-zoom-transform-speed;
+  transform: scale(global.$acms-slide-zoom-in-default);
 
   &:hover {
     transform: scale(global.$acms-slide-zoom-in-hover);
@@ -154,16 +154,16 @@
 
 // 拡大しながら表示する
 .acms-zoom-in-show {
-  transform: scale(global.$acms-slide-zoom-in-show);
   opacity: 0;
   transition:
     opacity global.$acms-zoom-opacity-speed,
     transform global.$acms-zoom-transform-speed;
+  transform: scale(global.$acms-slide-zoom-in-show);
 
   .active &,
   &.active {
-    transform: scale(global.$acms-slide-zoom-in-default);
     opacity: 1;
+    transform: scale(global.$acms-slide-zoom-in-default);
     will-change: opacity, transform;
   }
 }
@@ -171,8 +171,8 @@
 // 縮小
 // hoverしたときに縮小する
 .acms-zoom-out {
-  transform: scale(global.$acms-slide-zoom-out-default);
   transition: transform global.$acms-zoom-transform-speed;
+  transform: scale(global.$acms-slide-zoom-out-default);
 
   &:hover {
     transform: scale(global.$acms-slide-zoom-out-hover);
@@ -182,16 +182,16 @@
 
 // 縮小しながら表示する
 .acms-zoom-out-show {
-  transform: scale(global.$acms-slide-zoom-out-show);
   opacity: 0;
   transition:
     opacity global.$acms-zoom-opacity-speed,
     transform global.$acms-zoom-transform-speed;
+  transform: scale(global.$acms-slide-zoom-out-show);
 
   .active &,
   &.active {
-    transform: scale(global.$acms-slide-zoom-out-default);
     opacity: 1;
+    transform: scale(global.$acms-slide-zoom-out-default);
     will-change: opacity, transform;
   }
 }
@@ -200,8 +200,8 @@
 .no-js {
   .acms-zoom-in-show,
   .acms-zoom-out-show {
-    transform: scale(1);
     opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -209,24 +209,24 @@
 //上
 .acms-popup-top-child {
   .acms-popup-child {
-    transform: translateX(0) translateY(0);
     transition: transform global.$acms-popup-down-speed;
+    transform: translateX(0) translateY(0);
   }
 
   &:hover .acms-popup-child {
-    transform: translateX(0) translateY(global.$acms-popup-top);
     transition: transform global.$acms-popup-up-speed;
+    transform: translateX(0) translateY(global.$acms-popup-top);
     will-change: transform;
   }
 }
 
 .acms-popup-top {
-  transform: translateX(0) translateY(0);
   transition: transform global.$acms-popup-down-speed;
+  transform: translateX(0) translateY(0);
 
   &:hover {
-    transform: translateX(0) translateY(global.$acms-popup-top);
     transition: transform global.$acms-popup-up-speed;
+    transform: translateX(0) translateY(global.$acms-popup-top);
     will-change: transform;
   }
 }
@@ -234,24 +234,24 @@
 //右
 .acms-popup-right-child {
   .acms-popup-child {
-    transform: translateX(0) translateY(0);
     transition: transform global.$acms-popup-down-speed;
+    transform: translateX(0) translateY(0);
   }
 
   &:hover .acms-popup-child {
-    transform: translateX(global.$acms-popup-right) translateY(0);
     transition: transform global.$acms-popup-up-speed;
+    transform: translateX(global.$acms-popup-right) translateY(0);
     will-change: transform;
   }
 }
 
 .acms-popup-right {
-  transform: translateX(0) translateY(0);
   transition: transform global.$acms-popup-down-speed;
+  transform: translateX(0) translateY(0);
 
   &:hover {
-    transform: translateX(global.$acms-popup-right) translateY(0);
     transition: transform global.$acms-popup-up-speed;
+    transform: translateX(global.$acms-popup-right) translateY(0);
     will-change: transform;
   }
 }
@@ -259,24 +259,24 @@
 //下
 .acms-popup-bottom-child {
   .acms-popup-child {
-    transform: translateX(0) translateY(0);
     transition: transform global.$acms-popup-down-speed;
+    transform: translateX(0) translateY(0);
   }
 
   &:hover .acms-popup-child {
-    transform: translateX(0) translateY(global.$acms-popup-bottom);
     transition: transform global.$acms-popup-up-speed;
+    transform: translateX(0) translateY(global.$acms-popup-bottom);
     will-change: transform;
   }
 }
 
 .acms-popup-bottom {
-  transform: translateX(0) translateY(0);
   transition: transform global.$acms-popup-down-speed;
+  transform: translateX(0) translateY(0);
 
   &:hover {
-    transform: translateX(0) translateY(global.$acms-popup-bottom);
     transition: transform global.$acms-popup-up-speed;
+    transform: translateX(0) translateY(global.$acms-popup-bottom);
     will-change: transform;
   }
 }
@@ -284,24 +284,24 @@
 //左
 .acms-popup-left-child {
   .acms-popup-child {
-    transform: translateX(0) translateY(0);
     transition: transform global.$acms-popup-down-speed;
+    transform: translateX(0) translateY(0);
   }
 
   &:hover .acms-popup-child {
-    transform: translateX(global.$acms-popup-left) translateY(0);
     transition: transform global.$acms-popup-up-speed;
+    transform: translateX(global.$acms-popup-left) translateY(0);
     will-change: transform;
   }
 }
 
 .acms-popup-left {
-  transform: translateX(0) translateY(0);
   transition: transform global.$acms-popup-down-speed;
+  transform: translateX(0) translateY(0);
 
   &:hover {
-    transform: translateX(global.$acms-popup-left) translateY(0);
     transition: transform global.$acms-popup-up-speed;
+    transform: translateX(global.$acms-popup-left) translateY(0);
     will-change: transform;
   }
 }
@@ -354,13 +354,13 @@
   .acms-slide-left,
   .acms-slide-bottom,
   .acms-slide-right {
-    transform: translateX(0) translateY(0);
     opacity: 1;
+    transform: translateX(0) translateY(0);
   }
 
   .acms-zoom-in-show,
   .acms-zoom-out-show {
-    transform: scale(1);
     opacity: 1;
+    transform: scale(1);
   }
 }

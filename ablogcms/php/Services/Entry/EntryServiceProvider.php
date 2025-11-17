@@ -4,6 +4,7 @@ namespace Acms\Services\Entry;
 
 use Acms\Contracts\ServiceProvider;
 use Acms\Services\Container;
+use Acms\Services\Common\Lock as CommonLock;
 
 class EntryServiceProvider extends ServiceProvider
 {
@@ -25,6 +26,10 @@ class EntryServiceProvider extends ServiceProvider
                 config('entry_lock_alert_only', 'off'),
                 config('entry_lock_expire', 48)
             );
+        });
+        $container->singleton('entry.repository', \Acms\Services\Entry\EntryRepository::class);
+        $container->singleton('entry.import.csv-lock', function () {
+            return new CommonLock(CACHE_DIR . 'entry-import-csv-lock');
         });
     }
 

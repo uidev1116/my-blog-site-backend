@@ -13,8 +13,8 @@
       max-width: 100%;
       overflow: hidden;
       color: var(--acms-block-editor-neutral-500);
-      white-space: nowrap;
       text-overflow: ellipsis;
+      white-space: nowrap;
       pointer-events: none;
     }
   }
@@ -78,9 +78,9 @@
 
   .node-linkButton.is-empty .is-empty {
     position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
-    inset: 0;
 
     &::before {
       left: 15px;

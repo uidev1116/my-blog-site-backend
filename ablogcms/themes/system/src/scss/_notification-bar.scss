@@ -16,10 +16,10 @@
   padding: 10px;
   color: var(--acms-notification-bar-color);
   text-align: center;
+  touch-action: none;
+  visibility: hidden;
   background: var(--acms-notification-bar-bg-color);
   border-radius: 0;
-  visibility: hidden;
-  touch-action: none;
 
   @include global.font-size(13);
 }

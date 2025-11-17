@@ -337,7 +337,9 @@ const AuditLogDetailModal = ({ buttons }: AuditLogDetailModalProps) => {
       isOpen={isOpen}
       onClose={() => {
         setIsOpen(false);
-        window.location.hash = '';
+        if ('history' in window) {
+          window.history.replaceState(null, '', location.pathname + location.search);
+        }
       }}
       className="acms-admin-logger-modal"
       size="large"

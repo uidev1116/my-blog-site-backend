@@ -18,14 +18,14 @@
 .link-button-block-link,
 .acms-admin-block-editor-file-link,
 .media-file-block[data-display-type='button'] a {
+  box-sizing: border-box;
   display: inline-flex;
   gap: 0.5rem;
-  box-sizing: border-box;
+  place-items: center;
   min-height: 40px;
   padding: 0.625rem 1.5rem;
   background-color: global.$acms-color-system-gray80;
   border-radius: calc(1px / 0); /* infinity */
-  place-items: center;
 
   &,
   &:link,

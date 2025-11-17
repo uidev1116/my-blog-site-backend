@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit83b845076f6a4f938a27e9b673c41d46
+class ComposerStaticInit69e47e8068554a138cd68cba6b4e0007
 {
     public static $files = array (
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
@@ -38,6 +38,7 @@ class ComposerStaticInit83b845076f6a4f938a27e9b673c41d46
         ),
         'c' => 
         array (
+            'cweagans\\Composer\\' => 18,
             'cebe\\markdown\\' => 14,
         ),
         'T' => 
@@ -160,6 +161,10 @@ class ComposerStaticInit83b845076f6a4f938a27e9b673c41d46
         'phpseclib3\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib',
+        ),
+        'cweagans\\Composer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/cweagans/composer-patches/src',
         ),
         'cebe\\markdown\\' => 
         array (
@@ -607,7 +612,9 @@ class ComposerStaticInit83b845076f6a4f938a27e9b673c41d46
         'Acms\\Services\\Common\\Helper' => __DIR__ . '/../../..' . '/php/Services/Common/Helper.php',
         'Acms\\Services\\Common\\HookFactory' => __DIR__ . '/../../..' . '/php/Services/Common/HookFactory.php',
         'Acms\\Services\\Common\\InjectTemplate' => __DIR__ . '/../../..' . '/php/Services/Common/InjectTemplate.php',
+        'Acms\\Services\\Common\\Lock' => __DIR__ . '/../../..' . '/php/Services/Common/Lock.php',
         'Acms\\Services\\Common\\Logger' => __DIR__ . '/../../..' . '/php/Services/Common/Logger.php',
+        'Acms\\Services\\Common\\MimeTypeValidator' => __DIR__ . '/../../..' . '/php/Services/Common/MimeTypeValidator.php',
         'Acms\\Services\\Common\\ValidatorFactory' => __DIR__ . '/../../..' . '/php/Services/Common/ValidatorFactory.php',
         'Acms\\Services\\Config\\ConfigServiceProvider' => __DIR__ . '/../../..' . '/php/Services/Config/ConfigServiceProvider.php',
         'Acms\\Services\\Config\\Export' => __DIR__ . '/../../..' . '/php/Services/Config/Export.php',
@@ -623,6 +630,7 @@ class ComposerStaticInit83b845076f6a4f938a27e9b673c41d46
         'Acms\\Services\\Database\\Engine\\PdoEngine' => __DIR__ . '/../../..' . '/php/Services/Database/Engine/PdoEngine.php',
         'Acms\\Services\\Database\\Logger' => __DIR__ . '/../../..' . '/php/Services/Database/Logger.php',
         'Acms\\Services\\Database\\Replication' => __DIR__ . '/../../..' . '/php/Services/Database/Replication.php',
+        'Acms\\Services\\Entry\\EntryRepository' => __DIR__ . '/../../..' . '/php/Services/Entry/EntryRepository.php',
         'Acms\\Services\\Entry\\EntryServiceProvider' => __DIR__ . '/../../..' . '/php/Services/Entry/EntryServiceProvider.php',
         'Acms\\Services\\Entry\\Exceptions\\NotFoundException' => __DIR__ . '/../../..' . '/php/Services/Entry/Exceptions/NotFoundException.php',
         'Acms\\Services\\Entry\\Export' => __DIR__ . '/../../..' . '/php/Services/Entry/Export.php',
@@ -682,6 +690,10 @@ class ComposerStaticInit83b845076f6a4f938a27e9b673c41d46
         'Acms\\Services\\Image\\Helper' => __DIR__ . '/../../..' . '/php/Services/Image/Helper.php',
         'Acms\\Services\\Image\\ImageServiceProvider' => __DIR__ . '/../../..' . '/php/Services/Image/ImageServiceProvider.php',
         'Acms\\Services\\Image\\ImagerOptimizer' => __DIR__ . '/../../..' . '/php/Services/Image/ImagerOptimizer.php',
+        'Acms\\Services\\License\\Exceptions\\LicenseActivationFailedException' => __DIR__ . '/../../..' . '/php/Services/License/Exceptions/LicenseActivationFailedException.php',
+        'Acms\\Services\\License\\Exceptions\\LicenseException' => __DIR__ . '/../../..' . '/php/Services/License/Exceptions/LicenseException.php',
+        'Acms\\Services\\License\\Exceptions\\LicenseNetworkException' => __DIR__ . '/../../..' . '/php/Services/License/Exceptions/LicenseNetworkException.php',
+        'Acms\\Services\\License\\Exceptions\\LicenseResponseException' => __DIR__ . '/../../..' . '/php/Services/License/Exceptions/LicenseResponseException.php',
         'Acms\\Services\\Logger\\Deprecated' => __DIR__ . '/../../..' . '/php/Services/Logger/Deprecated.php',
         'Acms\\Services\\Logger\\Filter' => __DIR__ . '/../../..' . '/php/Services/Logger/Filter.php',
         'Acms\\Services\\Logger\\Handler\\DatabaseHandler' => __DIR__ . '/../../..' . '/php/Services/Logger/Handler/DatabaseHandler.php',
@@ -832,7 +844,6 @@ class ComposerStaticInit83b845076f6a4f938a27e9b673c41d46
         'Acms\\Services\\Update\\Database\\Schema' => __DIR__ . '/../../..' . '/php/Services/Update/Database/Schema.php',
         'Acms\\Services\\Update\\Engine' => __DIR__ . '/../../..' . '/php/Services/Update/Engine.php',
         'Acms\\Services\\Update\\Exceptions\\RollbackException' => __DIR__ . '/../../..' . '/php/Services/Update/Exceptions/RollbackException.php',
-        'Acms\\Services\\Update\\Lock' => __DIR__ . '/../../..' . '/php/Services/Update/Lock.php',
         'Acms\\Services\\Update\\LoggerFactory' => __DIR__ . '/../../..' . '/php/Services/Update/LoggerFactory.php',
         'Acms\\Services\\Update\\Logger\\Auto' => __DIR__ . '/../../..' . '/php/Services/Update/Logger/Auto.php',
         'Acms\\Services\\Update\\Logger\\Web' => __DIR__ . '/../../..' . '/php/Services/Update/Logger/Web.php',
@@ -3460,6 +3471,9 @@ class ComposerStaticInit83b845076f6a4f938a27e9b673c41d46
         'cebe\\markdown\\tests\\MarkdownOLStartNumTest' => __DIR__ . '/..' . '/cebe/markdown/tests/MarkdownOLStartNumTest.php',
         'cebe\\markdown\\tests\\MarkdownTest' => __DIR__ . '/..' . '/cebe/markdown/tests/MarkdownTest.php',
         'cebe\\markdown\\tests\\ParserTest' => __DIR__ . '/..' . '/cebe/markdown/tests/ParserTest.php',
+        'cweagans\\Composer\\PatchEvent' => __DIR__ . '/..' . '/cweagans/composer-patches/src/PatchEvent.php',
+        'cweagans\\Composer\\PatchEvents' => __DIR__ . '/..' . '/cweagans/composer-patches/src/PatchEvents.php',
+        'cweagans\\Composer\\Patches' => __DIR__ . '/..' . '/cweagans/composer-patches/src/Patches.php',
         'phpseclib3\\Common\\Functions\\Strings' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/Common/Functions/Strings.php',
         'phpseclib3\\Crypt\\AES' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/Crypt/AES.php',
         'phpseclib3\\Crypt\\Blowfish' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/Crypt/Blowfish.php',
@@ -3801,10 +3815,10 @@ class ComposerStaticInit83b845076f6a4f938a27e9b673c41d46
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit83b845076f6a4f938a27e9b673c41d46::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit83b845076f6a4f938a27e9b673c41d46::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit83b845076f6a4f938a27e9b673c41d46::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit83b845076f6a4f938a27e9b673c41d46::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit69e47e8068554a138cd68cba6b4e0007::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit69e47e8068554a138cd68cba6b4e0007::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit69e47e8068554a138cd68cba6b4e0007::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit69e47e8068554a138cd68cba6b4e0007::$classMap;
 
         }, null, ClassLoader::class);
     }

@@ -148,8 +148,8 @@
 <!-- BEGIN unit#image -->
 @section(image-unit)
 <!-- 画像 -->
-<div class="column-image column-image-{align} align-{align}">
-  <div class="{display_size_class}" {display_size}[raw]>
+<div role="figure" class="column-image column-image-{align} align-{align}" aria-labelledby="image-caption-{utid}">
+  <div class="{display_size_class}" {display_size}[raw] <!-- BEGIN_IF [{display_size_class}{display_size}/em] --> style="width: {x}px; min-width: 0;"<!-- END_IF -->>
     <!-- BEGIN link#front --><!-- BEGIN_IF [{url}/nem/] -->
     <a href="{url}" {viewer}[raw] data-group="{link_eid}">
     <!-- END_IF --><!-- END link#front -->
@@ -169,7 +169,7 @@
     </a>
     <!-- END link#rear -->
     <!-- BEGIN_IF [{caption}[delnl]/nem] -->
-    <p class="caption">{caption}[raw|nl2br]</p>
+    <p id="image-caption-{utid}" class="caption">{caption}[raw|nl2br]</p>
     <!-- END_IF -->
   </div>
 </div>
@@ -179,7 +179,7 @@
 <!-- BEGIN unit#file -->
 @section(file-unit)
 <!-- ファイル -->
-<div class="column-file column-file-{align} align-{align}">
+<div role="figure" class="column-file column-file-{align} align-{align}" aria-labelledby="file-caption-{utid}">
   <div>
     <a href="%{HTTP_ROOT}{path}">
       <img
@@ -196,7 +196,7 @@
         decoding="async"
       >
     </a>
-    <!-- BEGIN_IF [{caption}[delnl]/nem] --><p class="caption">{caption}[raw|nl2br]</p><!-- END_IF -->
+    <!-- BEGIN_IF [{caption}[delnl]/nem] --><p id="file-caption-{utid}" class="caption">{caption}[raw|nl2br]</p><!-- END_IF -->
   </div>
 </div>
 @endsection
@@ -323,8 +323,8 @@
 <!-- BEGIN unit#eximage -->
 @section(eximage-unit)
 <!-- 画像URL -->
-<div class="column-eximage column-eximage-{align} align-{align}">
-  <div class="{display_size_class}" {display_size}[raw]>
+<div role="figure" class="column-eximage column-eximage-{align} align-{align}" aria-labelledby="eximage-caption-{utid}">
+  <div class="{display_size_class}" {display_size}[raw] <!-- BEGIN_IF [{display_size_class}{display_size}/em] --> style="width: {x}px; min-width: 0;"<!-- END_IF -->>
     <!-- BEGIN link#front -->
     <a href="{url}" {viewer}[raw] data-group="{link_eid}"><!-- END link#front -->
       <img
@@ -340,7 +340,7 @@
         decoding="async"
       ><!-- BEGIN link#rear -->
     </a><!-- END link#rear --><!-- BEGIN_IF [{caption}[delnl]/nem] -->
-    <p class="caption">{caption}[raw|nl2br]</p><!-- END_IF -->
+    <p id="eximage-caption-{utid}" class="caption">{caption}[raw|nl2br]</p><!-- END_IF -->
   </div>
 </div>
 @endsection
@@ -349,8 +349,8 @@
 <!-- BEGIN unit#media -->
 @section(media-unit)
 <!-- media -->
-<div class="column-media column-media-{align} align-{align}">
-  <div class="{display_size_class}" {display_size}[raw]>
+<div role="figure" class="column-media column-media-{align} align-{align}" aria-labelledby="media-caption-{utid}">
+  <div class="{display_size_class}" {display_size}[raw] <!-- BEGIN_IF [{display_size_class}{display_size}/em/_and_/{type}/re/^(image|svg)$] --> style="width: {rootWidth}px; min-width: 0;"<!-- END_IF -->>
     <!-- BEGIN type#image -->
     <!-- BEGIN link#front -->
     <a href="{url}" {viewer}[raw] data-group="{link_eid}">
@@ -371,7 +371,7 @@
     </a>
     <!-- END link#rear -->
     <!-- BEGIN_IF [{caption}[delnl]/nem] -->
-    <p class="caption">{caption}[raw|nl2br]</p>
+    <p id="media-caption-{image_utid}" class="caption">{caption}[raw|nl2br]</p>
     <!-- END_IF -->
     <!-- END type#image -->
     <!-- BEGIN type#svg -->
@@ -394,7 +394,7 @@
     </a>
     <!-- END link#rear -->
     <!-- BEGIN_IF [{caption}[delnl]/nem] -->
-    <p class="caption">{caption}[raw|nl2br]</p>
+    <p id="media-caption-{svg_utid}" class="caption">{caption}[raw|nl2br]</p>
     <!-- END_IF -->
     <!-- END type#svg -->
     <!-- BEGIN type#file -->
@@ -422,7 +422,7 @@
       <!-- END_IF -->
     </a>
     <!-- BEGIN_IF [{caption}[delnl]/nem] -->
-    <p class="caption">{caption}[raw|nl2br]</p>
+    <p id="media-caption-{file_utid}" class="caption">{caption}[raw|nl2br]</p>
     <!-- END_IF -->
     <!-- END type#file -->
   </div>

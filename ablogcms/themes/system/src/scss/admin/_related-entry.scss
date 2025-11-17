@@ -3,8 +3,8 @@
 .acms-related-table {
   width: 100% !important;
   margin: 0 0 10px !important;
-  border: none !important;
   border-collapse: collapse !important;
+  border: none !important;
 
   .acms-related-table-item > th,
   .acms-related-table-item > td {
@@ -20,8 +20,8 @@
 
   .acms-related-table-item > th:not(:empty) {
     padding: 7px 10px 0 !important;
-    white-space: nowrap;
     text-align: left;
+    white-space: nowrap;
   }
 
   .acms-related-table-item > td:not(:empty) {
@@ -45,8 +45,8 @@
 .acms-related-entry-list {
   display: flex;
   flex-flow: column nowrap;
-  margin: 0;
   padding: 0;
+  margin: 0;
   list-style: none;
 }
 

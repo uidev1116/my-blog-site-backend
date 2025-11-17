@@ -6,9 +6,9 @@ use Acms\Services\Update\Contracts\LoggerInterface;
 use Acms\Services\Update\Engine;
 use Acms\Services\Update\System\Download;
 use Acms\Services\Update\System\PlaceFile;
-use Acms\Services\Update\Lock;
 use Acms\Services\Update\System\CheckForUpdate;
 use Acms\Services\Update\Exceptions\RollbackException;
+use Acms\Services\Common\Lock;
 use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Database;
 use Acms\Services\Facades\LocalStorage;
@@ -32,11 +32,11 @@ class Update
     public function exec(LoggerInterface $logger, Lock $lockService, int $range = CheckForUpdate::PATCH_VERSION, bool $createSetup = true): void
     {
         $destDir = ARCHIVES_DIR . uniqueString() . '/';
-        $lockService->createLockFile();
 
         Database::setThrowException(true);
 
         try {
+            $lockService->tryLock();
             $logger->init();
 
             // アップデートパッケージを検証
@@ -67,6 +67,7 @@ class Update
             AcmsLogger::warning('アップデートに失敗しました。' . $e->getMessage(), Common::exceptionArray($e));
             $this->notify('failed', $e->getMessage());
         } finally {
+            $lockService->release();
             sleep(3);
             $logger->terminate();
         }
@@ -74,7 +75,6 @@ class Update
         Database::setThrowException(false);
         $logger->message(gettext('ダウンロードファイルを削除中...'), 0);
         $this->removeDirectory($destDir);
-        $lockService->removeLockFile();
 
         // opcodeキャッシュをリセット
         if (function_exists("opcache_reset")) {

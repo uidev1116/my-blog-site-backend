@@ -4,6 +4,7 @@ namespace Acms\Services\Export;
 
 use Acms\Contracts\ServiceProvider;
 use Acms\Services\Container;
+use Acms\Services\Common\Lock;
 
 class ExportServiceProvider extends ServiceProvider
 {
@@ -28,6 +29,10 @@ class ExportServiceProvider extends ServiceProvider
         $container->singleton('export-wxr', \Acms\Services\Export\Engines\WxrEngine::class);
 
         $container->singleton('export-helper', \Acms\Services\Export\Helper::class);
+
+        $container->singleton('export-wxr-lock', function () {
+            return new Lock(CACHE_DIR . 'export-wxr-lock');
+        });
     }
 
     /**

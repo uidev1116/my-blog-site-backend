@@ -112,8 +112,8 @@
 .smartblock-container .ProseMirror figure.empty-node .caption::before {
   height: 0;
   color: global.$acms-color-gray70;
-  content: 'キャプションを入力してください';
   pointer-events: none;
+  content: 'キャプションを入力してください';
 }
 
 .lite-editor-tooltip-wrap {
@@ -131,8 +131,8 @@
   height: 85%;
   min-height: 23px;
   margin-top: 1px;
-  color: global.$acms-color-system-gray80;
   font-size: 13px;
+  color: global.$acms-color-system-gray80;
   background: transparent;
   border: none;
   outline: none;
@@ -144,20 +144,20 @@
 // ------------------------------
 
 .js-lazy-load {
-  transform: translateY(30px);
   opacity: 0;
   transition:
     opacity 0.8s cubic-bezier(0.5, 0, 0, 1) 0.1s,
     transform 0.9s cubic-bezier(0.5, 0, 0, 1) 0.1s;
+  transform: translateY(30px);
 
   &.loading {
-    transform: translateY(0);
     opacity: 1;
+    transform: translateY(0);
   }
 
   @media print {
-    transform: translateY(0);
     opacity: 1;
+    transform: translateY(0);
   }
 }
 

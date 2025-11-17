@@ -111,9 +111,9 @@ export default class Tab {
     const panel = this._getTargetPanel(tab);
     if (this._enableHashNavigation() && panel && `#${panel.id}` !== location.hash) {
       const hash = panel.id;
-      // ブラウザのスクロール対策で一旦idを削除してからハッシュを設定する
-      panel.id = '';
-      location.hash = hash;
+      if ('history' in window) {
+        history.replaceState(null, '', `#${hash}`);
+      }
       panel.id = hash;
     }
   }

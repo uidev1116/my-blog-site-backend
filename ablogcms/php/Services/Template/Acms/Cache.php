@@ -38,10 +38,10 @@ class Cache
      *
      * @param string $path
      * @param string $theme
-     * @return ?string
+     * @return string
      * @throws Exception
      */
-    public function load(string $path, string $theme): ?string
+    public function load(string $path, string $theme): string
     {
         $this->systemCache = SystemCache::template();
 
@@ -59,7 +59,7 @@ class Cache
         if ($cacheItem && $cacheItem->isHit()) {
             return $cacheItem->get();
         }
-        return null;
+        return '';
     }
 
     /**

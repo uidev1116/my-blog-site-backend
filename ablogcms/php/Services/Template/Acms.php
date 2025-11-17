@@ -24,6 +24,11 @@ class Acms implements Template
     protected $postData;
 
     /**
+     * @var bool
+     */
+    protected $noBuildIF = false;
+
+    /**
      * @var AcmsTemplateEngine
      */
     protected $engine;
@@ -68,6 +73,11 @@ class Acms implements Template
         $this->postData = $data;
     }
 
+    public function setNoBuildIF(bool $noBuildIF): void
+    {
+        $this->noBuildIF = $noBuildIF;
+    }
+
     /**
      * パスからテンプレートをロード
      *
@@ -79,27 +89,29 @@ class Acms implements Template
     public function load(string $path, string $theme, int $bid): void
     {
         $templateCacheEnabled = $this->cache->isEnabled();
-        $tpl = null;
+        $tpl = '';
         if ($templateCacheEnabled) {
             // テンプレートキャッシュからテンプレートを取得
             $tpl = $this->cache->load($path, $theme);
+            $tpl = setGlobalVars($tpl);
+            if ($tpl !== '') {
+                $this->template = $tpl;
+                return;
+            }
         }
-        if (empty($tpl)) {
-            // テンプレートキャッシュがない場合、パスとテーマ設定からテンプレートを取得
-            $rootTpl = $this->resolver->resolvePath($path, $theme, '/');
-            $tpl = '<!--#include file="' . $rootTpl . '" vars=""-->';
-            $tpl = $this->engine->spreadTemplate($tpl, $theme, $bid, true, $templateCacheEnabled);
-            if (empty($tpl)) {
-                AcmsLogger::critical('テンプレート「' . htmlspecialchars(ROOT_TPL, ENT_QUOTES) . '」が存在しないため、ページを表示できません');
-                die500('テンプレート「' . htmlspecialchars(ROOT_TPL, ENT_QUOTES) . '」が存在しないため、ページを表示できません');
-            }
-            if ($templateCacheEnabled) {
-                $this->cache->put($tpl);
-            }
+        // テンプレートキャッシュがない場合、パスとテーマ設定からテンプレートを取得
+        $rootTpl = $this->resolver->resolvePath($path, $theme, '/');
+        $tpl = '<!--#include file="' . $rootTpl . '" vars=""-->';
+        $tpl = $this->engine->spreadTemplate($tpl, $theme, $bid, true, $templateCacheEnabled);
+        if ($tpl === '') {
+            AcmsLogger::critical('テンプレート「' . htmlspecialchars(ROOT_TPL, ENT_QUOTES) . '」が存在しないため、ページを表示できません');
+            die500('テンプレート「' . htmlspecialchars(ROOT_TPL, ENT_QUOTES) . '」が存在しないため、ページを表示できません');
         }
         if ($templateCacheEnabled) {
+            $this->cache->put($tpl);
             $tpl = setGlobalVars($tpl);
         }
+
         $this->template = $tpl;
     }
 
@@ -126,9 +138,7 @@ class Acms implements Template
      */
     public function render(): string
     {
-        $output = build($this->template, $this->postData);
-
-        return $output;
+        return $this->engine->render($this->template, $this->postData, $this->noBuildIF);
     }
 
     /**

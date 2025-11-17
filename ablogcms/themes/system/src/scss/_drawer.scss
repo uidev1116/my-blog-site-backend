@@ -110,14 +110,14 @@
 }
 
 .acms-drawer-hide {
-  margin-left: auto;
   padding: 0;
-  color: global.$acms-color-gray90;
+  margin-left: auto;
   font-size: 20px;
   line-height: 1;
+  color: global.$acms-color-gray90;
+  cursor: pointer;
   background: global.$acms-color-white;
   border: 1px solid transparent;
-  cursor: pointer;
 
   &:focus {
     border-color: global.$acms-btn-focus-border-color;

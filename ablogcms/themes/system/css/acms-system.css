@@ -278,8 +278,8 @@ a:active {
 }
 .fixed .acms_fix_bg_index {
   height: 32px;
-  margin-right: 0;
   padding: 10px 0;
+  margin-right: 0;
   background-color: #fff;
   box-shadow: 0 0 0 #fff;
 }
@@ -338,8 +338,8 @@ a:active {
 }
 /* ナビゲーションリンク */
 .acms-admin-navbar-admin-nav {
-  margin: 0 -10px;
   padding-left: 0;
+  margin: 0 -10px;
 }
 .acms-admin-navbar-admin-nav {
   font-size: 22px;
@@ -356,10 +356,10 @@ a:active {
 .acms-admin-navbar-admin-nav > li > a,
 .acms-admin-navbar-admin-nav > li > button {
   display: block;
-  margin: 0 auto;
   padding: 5px 0;
-  color: #fff;
+  margin: 0 auto;
   line-height: 1.2;
+  color: #fff;
   text-align: center;
   background: 0;
   border: 0;
@@ -417,14 +417,14 @@ a:active {
   display: block;
   width: 100%;
   padding: 20px 10px 20px 20px;
-  color: #333;
   font-weight: bold;
+  color: #333;
   text-align: left;
-  background: 0;
-  border: 0;
   -webkit-appearance: none;
      -moz-appearance: none;
           appearance: none;
+  background: 0;
+  border: 0;
 }
 
 .acms-admin-navbar-admin-nav > li > a:hover,
@@ -484,8 +484,8 @@ a:active {
 }
 
 .acms-admin-title-cms {
-  margin: 0;
   padding: 15px 0 20px;
+  margin: 0;
 }
 .acms-admin-title-cms {
   font-size: 26px;
@@ -503,10 +503,6 @@ a:active {
 .acms-admin-icon-logo.acms-admin-blog-color {
   display: block;
   color: #fff;
-}
-
-.js-acms-color-picker-target {
-  background-color: #dc4040;
 }
 
 .acms-admin-list-scroll {
@@ -553,8 +549,8 @@ a:active {
 
 .acms-admin-navbar-admin-nav-username {
   margin: 0 0 2px;
-  font-weight: bold;
   font-size: 12px;
+  font-weight: bold;
   overflow-wrap: break-word;
 }
 
@@ -574,9 +570,9 @@ a:active {
 
 .js-acms_fix_marker {
   z-index: 100004;
-  margin: 0 0 10px;
   padding-top: 5px;
   padding-bottom: 5px;
+  margin: 0 0 10px;
   background: #fff;
 }
 .js-acms_fix_marker.js-acms-tab-select {
@@ -632,16 +628,16 @@ a:active {
 }
 /* メインコンテンツボックス */
 .acms-admin-login-main-box {
-  margin-bottom: var(--login-space-section-y);
   padding-right: var(--login-space-container-x);
   padding-left: var(--login-space-container-x);
+  margin-bottom: var(--login-space-section-y);
 }
 
 /* ネガティブアクションボタンボックス */
 .acms-admin-login-main-box-bottom {
-  margin-top: var(--login-space-section-y);
   padding-right: var(--login-space-container-x);
   padding-left: var(--login-space-container-x);
+  margin-top: var(--login-space-section-y);
 }
 
 @media (min-width: 480px) {
@@ -697,17 +693,17 @@ a:active {
 .acms-admin-login-border-text-outer::before {
   position: absolute;
   left: 0;
-  margin: 10px 0 0;
   padding: 0 0 0 100%;
-  border-top: 1px solid var(--login-color-border-section);
+  margin: 10px 0 0;
   content: "";
+  border-top: 1px solid var(--login-color-border-section);
 }
 
 .acms-admin-login-border-text {
   position: relative;
   padding: 0 10px;
-  color: #333;
   line-height: 1.4;
+  color: #333;
   background: #fff;
 }
 .acms-admin-login-border-text {
@@ -722,9 +718,9 @@ a:active {
 /* 説明テキスト */
 .acms-admin-login-notice-text {
   margin: 20px 0;
-  color: #333;
   font-weight: bold;
   line-height: 1.4;
+  color: #333;
 }
 .acms-admin-login-notice-text {
   font-size: 13px;
@@ -764,10 +760,10 @@ a:active {
 /* フォームラベル */
 .acms-admin-login-form-label {
   display: block;
-  margin-top: 12px;
-  margin-bottom: 3px;
   /* legendタグスタイルリセット */
   padding: 0;
+  margin-top: 12px;
+  margin-bottom: 3px;
   line-height: 1.4;
   border: 0;
 }
@@ -783,9 +779,9 @@ a:active {
 /* 注意文 */
 .acms-admin-login-input-caution {
   margin: 6px 0 0;
-  color: var(--login-color-error);
   font-weight: bold;
   line-height: 1.4;
+  color: var(--login-color-error);
 }
 .acms-admin-login-input-caution {
   font-size: 13px;
@@ -821,10 +817,10 @@ a:active {
 /* ソーシャルログインボタン */
 .acms-admin-login-sns-btn-item .acms-admin-btn {
   position: relative;
+  box-sizing: border-box;
   display: flex;
   align-items: stretch;
   justify-content: flex-start;
-  box-sizing: border-box;
   height: var(--login-height-sns-btn);
   padding: 0;
   overflow: hidden;
@@ -834,9 +830,9 @@ a:active {
   position: absolute;
   inset: 0;
   z-index: 1;
+  content: "";
   background-color: transparent;
   transition: background-color 0.2s;
-  content: "";
 }
 .acms-admin-login-sns-btn-item .acms-admin-btn:hover::before {
   background-color: rgba(0, 0, 0, 0.1);
@@ -849,10 +845,10 @@ a:active {
 .acms-admin-login-sns-btn-icon-outer {
   position: relative;
   z-index: 2;
-  display: grid;
   box-sizing: border-box;
-  width: calc(var(--login-height-sns-btn) - var(--login-border-width-btn-sns) * 2);
+  display: grid;
   place-content: center;
+  width: calc(var(--login-height-sns-btn) - var(--login-border-width-btn-sns) * 2);
 }
 
 .acms-admin-login-sns-btn-icon {
@@ -868,8 +864,8 @@ a:active {
   flex: 1;
   align-items: center;
   justify-content: center;
-  border-left-width: var(--login-border-width-btn-sns);
   border-left-style: solid;
+  border-left-width: var(--login-border-width-btn-sns);
 }
 
 /* ソーシャルログインボタンのカラー変化
@@ -895,9 +891,6 @@ a:active {
 }
 
 /* Xログインボタン */
-.acms-admin-login-sns-btn-x {
-  /* Xのみダーク系のためhoverカラーを反転 */
-}
 .acms-admin-login-sns-btn-x, .acms-admin-login-sns-btn-x:hover, .acms-admin-login-sns-btn-x:focus, .acms-admin-login-sns-btn-x:active {
   color: #fff;
   background-color: #000;
@@ -905,6 +898,9 @@ a:active {
 }
 .acms-admin-login-sns-btn-x .acms-admin-login-sns-btn-text {
   border-color: rgba(255, 255, 255, 0.35);
+}
+.acms-admin-login-sns-btn-x {
+  /* Xのみダーク系のためhoverカラーを反転 */
 }
 .acms-admin-login-sns-btn-x.acms-admin-btn:hover::before {
   background-color: rgba(255, 255, 255, 0.25);
@@ -926,9 +922,9 @@ a:active {
 }
 
 #main {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
   min-height: 100vh;
   padding-top: 20px;
   padding-bottom: 20px;
@@ -980,10 +976,10 @@ a:active {
 
 .acms-admin-sidebar-alert {
   position: relative;
-  margin: 0;
   padding: 10px 10px 10px 15px;
-  color: #fff;
+  margin: 0;
   font-weight: bold;
+  color: #fff;
   background: #ce5769;
 }
 .acms-admin-sidebar-alert {
@@ -1028,8 +1024,8 @@ a:active {
 .acms-admin-sidebar-sp-list-item {
   display: table-cell;
   width: 33.3333333333%;
-  color: #333;
   font-weight: bold;
+  color: #333;
   text-align: center;
   vertical-align: middle;
   border-right: 1px solid #ccc;
@@ -1052,12 +1048,12 @@ a:active {
   height: 100%;
   padding: 10px 2px;
   color: inherit;
-  background-color: transparent;
-  border: 0;
-  cursor: pointer;
   -webkit-appearance: none;
      -moz-appearance: none;
           appearance: none;
+  cursor: pointer;
+  background-color: transparent;
+  border: 0;
 }
 .acms-admin-sidebar-sp-list-item a:hover,
 .acms-admin-sidebar-sp-list-item button:hover {
@@ -1089,8 +1085,8 @@ a:active {
 .acms-admin-sidebar-link a {
   padding: 20px 10px 20px 40px;
   padding-left: calc(10px + constant(safe-area-inset-left));
-  color: #333;
   font-weight: bold;
+  color: #333;
   text-indent: -12px;
   word-break: break-all;
   background: #fff;
@@ -1369,8 +1365,8 @@ a:active {
 }
 .acms-admin-system-topicpath {
   display: inline-block;
-  margin: 0;
   padding: 0;
+  margin: 0;
   list-style: none;
 }
 .acms-admin-system-topicpath {
@@ -1396,15 +1392,15 @@ a:active {
   height: 17px;
   margin-bottom: 3px;
   vertical-align: middle;
+  content: " ";
   background: url("../images/common/topicpath.svg") no-repeat center center;
   background-size: 25px 25px;
-  content: " ";
 }
 .acms-admin-system-topicpath .link {
   display: inline-block;
   padding: 10px 5px;
-  color: #333;
   line-height: 1;
+  color: #333;
 }
 .acms-admin-system-topicpath .link {
   font-size: 14px;
@@ -1428,8 +1424,8 @@ a:active {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  margin: 0 0 20px;
   padding: 5px 15px;
+  margin: 0 0 20px;
   background: #f1f1f1;
   border-radius: 3px;
 }
@@ -1468,8 +1464,8 @@ a:active {
 
 .acms-admin-text-ellipsis {
   overflow: hidden;
-  white-space: nowrap;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .acms-admin-text-ellipsis-table-cell {
@@ -1483,8 +1479,8 @@ a:active {
 
 .acms-admin-module-title-main {
   display: block;
-  clear: both;
   margin: 0 0 15px;
+  clear: both;
 }
 .acms-admin-module-title-main .acms-admin-module-title {
   margin: 0;
@@ -1493,8 +1489,8 @@ a:active {
 }
 
 .acms-admin-admin-title2 {
-  clear: both;
   padding: 0;
+  clear: both;
 }
 
 .acms-admin-admin-title2.acms-admin-margin-top-medium {
@@ -1523,8 +1519,8 @@ a:active {
 
 .argRefLeft .js-acms_tabs li a {
   display: block;
-  margin-bottom: 2px;
   padding: 3px;
+  margin-bottom: 2px;
   border: 1px solid silver;
   border-right: none;
 }

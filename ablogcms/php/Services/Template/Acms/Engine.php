@@ -40,6 +40,7 @@ class Engine
      */
     public function spreadTemplate(string $txt, string $theme, int $bid, bool $comment = true, bool $tplCache = false): string
     {
+        $txt = $this->protectVerbatim($txt);
         $res = '';
         $stack = [];
         $root = true;
@@ -101,6 +102,7 @@ class Engine
      */
     public function formatIncludeCode(string $tpl, bool $withTwig = false): string
     {
+        $tpl = $this->protectVerbatim($tpl);
         $tpl = (string) preg_replace(['/\{\{[^\{\}]+default\s*\([\'"]([^\)]+)[\'"]\)\s*\}\}/'], ['$1'], $tpl);
         $tpl = (string) preg_replace_callback([
             '@<!--[\t 　]*#[\t 　]*[include]{6,8}[\t 　]*(?:file|virtual)[\t 　]*=[\t 　"\']*([^"\'\n]+)[\t 　"\']*-->@',
@@ -124,8 +126,22 @@ class Engine
                 return '@begin_acms_vars@' . $m[1] . '@end_acms_vars@';
             }, $tpl);
         }
-
         return $tpl ?? '';
+    }
+
+    /**
+     * テンプレートをレンダリング
+     *
+     * @param string $string テンプレート文字列
+     * @param \Field_Validation $post フォームデータ
+     * @param bool $noBuildIF IFブロックを解決するかどうか
+     * @return string
+     */
+    public function render(string $string, \Field_Validation $post, bool $noBuildIF = false): string
+    {
+        $output = build($string, $post, $noBuildIF);
+        $output = $this->restoreVerbatim($output);
+        return $output;
     }
 
     /**
@@ -515,5 +531,27 @@ class Engine
             $html = $this->resolver->rewritePaths(Vite::generateHtml($entrypoints, $options), $theme, '/', $bid);
             return $html;
         }, $string) ?? $string;
+    }
+
+    /**
+     * verbatimブロックを保護（エスケープ）
+     *
+     * @param string $string
+     * @return string
+     */
+    private function protectVerbatim(string $string): string
+    {
+        return verbatim($string, true);
+    }
+
+    /**
+     * verbatimブロックを復元
+     *
+     * @param string $string
+     * @return string
+     */
+    private function restoreVerbatim(string $string): string
+    {
+        return verbatim($string, false);
     }
 }

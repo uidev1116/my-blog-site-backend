@@ -10,6 +10,11 @@
   flex-flow: column nowrap;
   gap: var(--acms-stack-spacing, 0.5rem);
   align-items: center;
+
+  > * {
+    /// @link https://zenn.dev/storehero/articles/31012c944ddb90
+    min-width: 0;
+  }
 }
 
 .acms-hstack {
@@ -17,4 +22,9 @@
   flex-flow: row nowrap;
   gap: var(--acms-stack-spacing, 0.5rem);
   align-items: center;
+
+  > * {
+    /// @link https://zenn.dev/storehero/articles/31012c944ddb90
+    min-width: 0;
+  }
 }

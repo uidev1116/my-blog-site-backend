@@ -187,7 +187,7 @@ class ACMS_GET_User_Search extends ACMS_GET
         // user:loop
         foreach ($users as $i => $row) {
             $vars = TemplateHelper::buildField(loadUserField(intval($row['user_id'])), $tpl);
-            $vars = [
+            $vars += [
                 'i' => $i,
                 'id' => (int) $row['user_id'],
                 'code' => $row['user_code'] ?? null,

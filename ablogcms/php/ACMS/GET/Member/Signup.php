@@ -55,7 +55,7 @@ class ACMS_GET_Member_Signup extends ACMS_GET_Member
         $data = [];
         $step = 'input';
 
-        if ($_SERVER['REQUEST_METHOD'] === 'GET' && $this->isAuthUrl()) {
+        if ($this->shouldTryEmailAuth()) {
             // メールアドレス認証画面
             $step = 'auth';
             $block = 'step#' . $step;
@@ -125,5 +125,30 @@ class ACMS_GET_Member_Signup extends ACMS_GET_Member
             throw new NotFoundException('Not found account.');
         }
         return $uid;
+    }
+
+    /**
+     * メール認証によるサインアップを試行するかどうかを判定
+     *
+     * @return bool
+     */
+    protected function shouldTryEmailAuth(): bool
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            return false;
+        }
+        if (!defined('IS_SYSTEM_SIGNUP_PAGE')) {
+            return false;
+        }
+        if (IS_SYSTEM_SIGNUP_PAGE !== 1) {
+            return false;
+        }
+        if (!$this->isAuthUrl()) {
+            return false;
+        }
+        if (config('subscribe_activation') !== 'on') {
+            return false;
+        }
+        return true;
     }
 }

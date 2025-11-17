@@ -15,7 +15,7 @@ namespace Acms\Services\Facades;
  * @method static void entryDelete(int $eid, bool $changeRevision = false) エントリーを削除
  * @method static void revisionDelete(int $eid) リビジョンを削除
  * @method static int|false changeRevision(int $rvid, int $eid, int $bid) リビジョンを変更
- * @method static void saveSubCategory(int $eid, int $masterCid, array $cids, ?int $bid = null, ?int $rvid = null) サブカテゴリーを保存
+ * @method static void saveSubCategory(int $eid, ?int $masterCid, array $cids, ?int $bid = null, ?int $rvid = null) サブカテゴリーを保存
  * @method static string[] getSubCategoryFromString(string $string, string $delimiter = ',') サブカテゴリーを文字列から配列に変換
  * @method static void saveRelatedEntries(int $eid, array $entryAry = [], int $rvid = null, array $typeAry = [], array $loadedTypes = []) 関連エントリーを保存
  * @method static int|false saveEntryRevision(int $eid, int $rvid, array $entryAry, string $type = '', string $memo = '') エントリーのリビジョンを保存

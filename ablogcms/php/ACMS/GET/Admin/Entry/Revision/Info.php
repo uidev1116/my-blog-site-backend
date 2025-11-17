@@ -15,6 +15,9 @@ class ACMS_GET_Admin_Entry_Revision_Info extends ACMS_GET_Admin_Entry_Revision
         }
         $Tpl = new Template($this->tpl, new ACMS_Corrector());
         $revision = $this->getRevision(EID, RVID);
+        if (!$revision) {
+            page404();
+        }
         $isReserve = strtotime($revision['entry_start_datetime']) > REQUEST_TIME;
         $vars = [];
 

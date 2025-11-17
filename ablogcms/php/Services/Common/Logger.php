@@ -48,6 +48,7 @@ class Logger
         }
         $this->json = new \stdClass();
         $this->json->processing = true;
+        $this->json->updatedAt = date('c');
         $this->json->success = false;
         $this->json->error = '';
         $this->json->inProcess = '';
@@ -196,6 +197,8 @@ class Logger
         if (!is_writable($this->destinationPath)) {
             return;
         }
+        $this->json->updatedAt = date('c');
+
         if ($json = json_encode($this->json)) {
             LocalStorage::put($this->destinationPath, $json);
         }

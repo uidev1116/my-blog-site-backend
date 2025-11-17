@@ -114,9 +114,9 @@
 /* 見出し
 ----------------------------- */
 .acms-entry h1:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
+  margin-block: calc(var(--unit-margin-top) + 0.923em) var(--unit-margin-bottom);
   font-weight: bold;
   line-height: 1.5;
-  margin-block: calc(var(--unit-margin-top) + 0.923em) var(--unit-margin-bottom);
 }
 .acms-entry h1:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
   font-size: 26px;
@@ -138,9 +138,9 @@
 }
 
 .acms-entry h2:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
+  margin-block: calc(var(--unit-margin-top) + 0.923em) var(--unit-margin-bottom);
   font-weight: bold;
   line-height: 1.5;
-  margin-block: calc(var(--unit-margin-top) + 0.923em) var(--unit-margin-bottom);
 }
 .acms-entry h2:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
   font-size: 22px;
@@ -162,9 +162,9 @@
 }
 
 .acms-entry h3:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
+  margin-block: calc(var(--unit-margin-top) + 0.667em) var(--unit-margin-bottom);
   font-weight: bold;
   line-height: 1.5;
-  margin-block: calc(var(--unit-margin-top) + 0.667em) var(--unit-margin-bottom);
 }
 .acms-entry h3:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
   font-size: 20px;
@@ -186,9 +186,9 @@
 }
 
 .acms-entry h4:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
+  margin-block: calc(var(--unit-margin-top) + 0.4em) var(--unit-margin-bottom);
   font-weight: bold;
   line-height: 1.5;
-  margin-block: calc(var(--unit-margin-top) + 0.4em) var(--unit-margin-bottom);
 }
 .acms-entry h4:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
   font-size: 16px;
@@ -210,9 +210,9 @@
 }
 
 .acms-entry h5:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
+  margin-block: calc(var(--unit-margin-top) + 0.25em) var(--unit-margin-bottom);
   font-weight: bold;
   line-height: 1.7;
-  margin-block: calc(var(--unit-margin-top) + 0.25em) var(--unit-margin-bottom);
 }
 .acms-entry h5:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
   font-size: 14px;
@@ -234,9 +234,9 @@
 }
 
 .acms-entry h6:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
+  margin-block: calc(var(--unit-margin-top) + 0.25em) var(--unit-margin-bottom);
   font-weight: bold;
   line-height: 1.7;
-  margin-block: calc(var(--unit-margin-top) + 0.25em) var(--unit-margin-bottom);
 }
 .acms-entry h6:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
   font-size: 14px;
@@ -260,8 +260,8 @@
 /* 本文
 ----------------------------- */
 .acms-entry p:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
-  line-height: 1.7;
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+  line-height: 1.7;
 }
 .acms-entry p:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
   font-size: 14px;
@@ -285,13 +285,13 @@
 /* リスト
 ----------------------------- */
 .acms-entry ul:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
+  padding-inline-start: 1.5rem;
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
   list-style: disc;
-  padding-inline-start: 1.5rem;
 }
 .acms-entry ul:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) li {
-  line-height: 1.7;
   margin-block-start: 0.5em;
+  line-height: 1.7;
 }
 .acms-entry ul:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) li {
   font-size: 14px;
@@ -309,9 +309,9 @@
   margin-block: 0;
 }
 .acms-entry ul:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) li ul {
+  padding-inline-start: 1.75rem;
   margin-block: 0.5em 0;
   list-style: circle;
-  padding-inline-start: 1.75rem;
 }
 .acms-entry ul:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) li ul ul {
   list-style: square;
@@ -329,13 +329,13 @@
 
 /* 番号付きリスト */
 .acms-entry ol:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
+  padding-inline-start: 1.5rem;
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
   list-style-type: decimal;
-  padding-inline-start: 1.5rem;
 }
 .acms-entry ol:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) li {
-  line-height: 1.7;
   margin-block-start: 0.5em;
+  line-height: 1.7;
 }
 .acms-entry ol:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) li {
   font-size: 14px;
@@ -353,9 +353,9 @@
   margin-block: 0;
 }
 .acms-entry ol:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) li ol {
+  padding-inline-start: 1.75rem;
   margin-block: 0.5em 0;
   list-style-type: lower-alpha;
-  padding-inline-start: 1.75rem;
 }
 .acms-entry ol:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) li ol ol {
   list-style-type: lower-roman;
@@ -377,8 +377,8 @@
   gap: 0.5em;
   padding-block: 1em;
   padding-inline-start: 0;
-  line-height: 1.7;
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+  line-height: 1.7;
   border: 0 solid currentcolor;
   border-block-start-width: 1px;
   border-block-end-width: 1px;
@@ -416,13 +416,13 @@
 .acms-entry pre:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
   max-width: 100%;
   padding: 1rem;
+  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
   overflow: auto;
-  color: #333; /* 閲覧側画面の文字色はライブラリに依存 */
   line-height: 1.7;
+  color: #333; /* 閲覧側画面の文字色はライブラリに依存 */
   background-color: #f1f1f1;
   border: 1px solid #c2c2ce;
   border-radius: 0.375rem; /* 6px */
-  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
 }
 .acms-entry pre:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
   font-size: 14px;
@@ -435,8 +435,8 @@
 .acms-entry pre:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) code {
   /* リセット用 */
   padding: 0;
-  color: inherit;
   font-size: inherit;
+  color: inherit;
   background-color: inherit;
   border: none;
   box-shadow: none;
@@ -753,9 +753,9 @@
 ------------------------------ */
 /* レイアウト */
 :where(.acms-entry) :where([data-type=columns]) {
+  box-sizing: border-box;
   display: grid;
   grid-auto-flow: column;
-  box-sizing: border-box;
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
 }
 :where(.acms-entry) :where([data-type=columns]).layout-two-column {
@@ -816,14 +816,12 @@
  引用
 ------------------------------ */
 .acms-entry blockquote:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
-  line-height: 1.7;
-  border: 0 solid #333;
-  border-inline-start-width: 2px;
   padding-inline-start: 1rem;
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
   margin-inline: 0; /* リセット用 */
-  /* ブロックエディター調整：リセット用 */
-  /* ブロックエディター調整 */
+  line-height: 1.7;
+  border: 0 solid #333;
+  border-inline-start-width: 2px;
 }
 .acms-entry blockquote:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
   font-size: 14px;
@@ -833,8 +831,14 @@
     font-size: 14px;
   }
 }
+.acms-entry blockquote:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
+  /* ブロックエディター調整：リセット用 */
+}
 .acms-entry blockquote:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) > * {
   margin-block: 0;
+}
+.acms-entry blockquote:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) {
+  /* ブロックエディター調整 */
 }
 .acms-entry blockquote:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) * + * {
   margin-block-start: 1rem;
@@ -843,10 +847,12 @@
   color: #006dd9;
   text-decoration: underline;
   transition: color 0.2s linear;
-  /* 中に画像が入っているリンクの時 */
 }
 .acms-entry blockquote:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) a:hover {
   color: color-mix(in srgb, #06c 80%, black);
+}
+.acms-entry blockquote:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) a {
+  /* 中に画像が入っているリンクの時 */
 }
 .acms-entry blockquote:not(:where([class~=not-editor-style], [class~=not-editor-style] *)) a:has(img) {
   display: inline-block;
@@ -876,14 +882,14 @@
 .link-button-block-link,
 .acms-admin-block-editor-file-link,
 .media-file-block[data-display-type=button] a {
+  box-sizing: border-box;
   display: inline-flex;
   gap: 0.5rem;
-  box-sizing: border-box;
+  place-items: center;
   min-height: 40px;
   padding: 0.625rem 1.5rem;
   background-color: #595963;
   border-radius: calc(infinity * 1px); /* infinity */
-  place-items: center;
 }
 .acms-admin-block-editor-link-button-link, .acms-admin-block-editor-link-button-link:link, .acms-admin-block-editor-link-button-link:visited,
 .link-button-block-link,
@@ -963,8 +969,6 @@
 [class*=column-embed] {
   container-type: inline-size;
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
-  /* 引用ユニット画像 */
-  /* 引用ユニットテキスト */
 }
 [class*=column-embed] a.acms-embed-link {
   display: flex;
@@ -991,6 +995,9 @@
     background-color: #e5e5e5;
   }
 }
+[class*=column-embed] {
+  /* 引用ユニット画像 */
+}
 [class*=column-embed] .acms-embed-link-image-container {
   flex-shrink: 0;
   width: 100%;
@@ -1005,11 +1012,14 @@
   width: 100%;
   height: auto;
 }
+[class*=column-embed] {
+  /* 引用ユニットテキスト */
+}
 [class*=column-embed] .acms-embed-link-title {
-  margin: 0 0 0.5rem;
   padding: 0;
-  color: #333;
+  margin: 0 0 0.5rem;
   line-height: 1.4;
+  color: #333;
 }
 [class*=column-embed] .acms-embed-link-title {
   font-size: 16px;
@@ -1020,8 +1030,8 @@
   }
 }
 [class*=column-embed] .acms-embed-link-site-name {
-  margin: 0;
   padding: 0;
+  margin: 0;
   color: #333;
 }
 [class*=column-embed] .acms-embed-link-site-name {
@@ -1033,10 +1043,10 @@
   }
 }
 [class*=column-embed] .acms-embed-link-description {
-  margin: 0.5rem 0 0;
   padding: 0;
-  color: #333;
+  margin: 0.5rem 0 0;
   line-height: 1.6;
+  color: #333;
 }
 [class*=column-embed] .acms-embed-link-description {
   font-size: 14px;
@@ -1057,8 +1067,8 @@
 .media-file-block[data-display-type=icon],
 [class*=column-media]:has(a[href*=media-download], a[href*=storage]),
 [class*=column-file] {
-  font-size: 0; /* Descender space 対策 */
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+  font-size: 0; /* Descender space 対策 */
   text-align: center;
 }
 
@@ -1225,8 +1235,8 @@
   min-width: 100px;
   padding: 10px;
   line-height: 1.5;
-  white-space: normal;
   text-align: left;
+  white-space: normal;
   vertical-align: top;
   border: 1px solid #c2c2ce;
 }
@@ -1288,8 +1298,8 @@
 .acms-table-scrollable td,
 .js-table-unit-scroll-hint th,
 .js-table-unit-scroll-hint td {
-  white-space: nowrap;
   word-break: keep-all;
+  white-space: nowrap;
 }
 
 /* ------------------------------

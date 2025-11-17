@@ -6,8 +6,8 @@
 
 #adminBox,
 .acms-box {
-  margin-bottom: 20px;
   padding: 10px;
+  margin-bottom: 20px;
   background-color: global.$edit-entry-bg-color-base;
   border: solid 1px global.$edit-entry-bg-color-dark;
 
@@ -40,9 +40,9 @@
 // エントリー編集ボックス
 
 .acms-btn-action-group {
-  clear: both;
-  margin-block: 10px;
   padding: 10px;
+  margin-block: 10px;
+  clear: both;
   background-color: global.$edit-entry-bg-color-base;
   border: solid 1px global.$edit-entry-bg-color-dark;
 }

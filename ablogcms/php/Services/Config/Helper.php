@@ -171,7 +171,7 @@ class Helper
             $SQL = SQL::newDelete('config');
             if (preg_match('/^banner-(.*)@(.*)$/', $fd, $match)) {
                 $fd = 'banner-%@' . $match[2];
-                $SQL->addWhere('config_key LIKE \'' . $fd . '\'');
+                $SQL->addWhereOpr('config_key', $fd, 'LIKE');
             } else {
                 $SQL->addWhereOpr('config_key', $fd);
             }

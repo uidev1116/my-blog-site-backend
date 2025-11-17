@@ -34,4 +34,4 @@ export { LinkButton } from './LinkButton';
 export { Columns, Column } from './MultiColumn';
 export { MediaUpload } from './MediaUpload';
 export { CustomMark } from './CustomMark';
-export { UnwrapList } from './UnwrapList';
+export { CustomConvertBlock } from './CustomConvertBlock';

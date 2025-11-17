@@ -4,6 +4,7 @@ namespace Acms\Modules\Get\Helpers\Entry;
 
 use Acms\Modules\Get\Helpers\BaseHelper;
 use Acms\Services\Facades\Application;
+use Acms\Services\Facades\Preview;
 use Acms\Services\Unit\Contracts\Model;
 use Acms\Services\Unit\UnitCollection;
 use Exception;
@@ -247,6 +248,16 @@ class EntryBodyHelper extends BaseHelper
      */
     public function canEditEntry(int $bid, int $uid, int $eid): bool
     {
+        if (Preview::isPreviewMode()) {
+            return false;
+        }
+        if (timemachineMode()) {
+            return false;
+        }
+
+        if (defined('LAYOUT_EDIT') && LAYOUT_EDIT === 'ON') {
+            return false;
+        }
         // ロール機能を利用している場合
         if (roleAvailableUser()) {
             // 全エントリーの編集権限があるか、自分のエントリー編集権限がある場合

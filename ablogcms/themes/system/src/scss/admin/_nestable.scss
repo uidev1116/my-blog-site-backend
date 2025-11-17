@@ -2,13 +2,13 @@
 
 @keyframes nested-item-added {
   from {
-    transform: translateY(-5px);
     opacity: 0;
+    transform: translateY(-5px);
   }
 
   to {
-    transform: translateY(0);
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -19,8 +19,9 @@
 .acms-nested-item {
   display: flex;
   flex-direction: column;
-  margin-bottom: 5px;
+  row-gap: 10px;
   padding: 6px;
+  margin-bottom: 5px;
   font-size: 13px;
   background-color: global.$acms-color-gray20;
   border-radius: 2px;
@@ -30,7 +31,6 @@
   animation-name: nested-item-added;
   animation-duration: 0.3s;
   animation-timing-function: ease-out;
-  row-gap: 10px;
 }
 
 .acms-nested-item-inner {

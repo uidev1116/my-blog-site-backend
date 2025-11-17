@@ -41,8 +41,8 @@ class ACMS_GET_Member_Signin extends ACMS_GET_Member
         /**
          * メール認証によるサインイン
          */
-        if ($_SERVER['REQUEST_METHOD'] === 'GET' && $this->isAuthUrl()) {
-            $this->emailAuthSingin($tpl);
+        if ($this->shouldTryEmailAuth()) {
+            $this->emailAuth($tpl);
         }
 
         /**
@@ -91,7 +91,7 @@ class ACMS_GET_Member_Signin extends ACMS_GET_Member
      * @param Template $tpl
      * @return void
      */
-    protected function emailAuthSingin(Template $tpl): void
+    protected function emailAuth(Template $tpl): void
     {
         $data = [];
 
@@ -129,5 +129,30 @@ class ACMS_GET_Member_Signin extends ACMS_GET_Member
             $tpl->add('expired');
             AcmsLogger::notice('有効期限切れのURLのため、メール認証サインインに失敗しました', Common::exceptionArray($e, $data));
         }
+    }
+
+    /**
+     * メール認証によるサインインを試行するかどうかを判定
+     *
+     * @return bool
+     */
+    protected function shouldTryEmailAuth(): bool
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            return false;
+        }
+        if (!defined('IS_SYSTEM_SIGNIN_PAGE')) {
+            return false;
+        }
+        if (IS_SYSTEM_SIGNIN_PAGE !== 1) {
+            return false;
+        }
+        if (!$this->isAuthUrl()) {
+            return false;
+        }
+        if (config('email-auth-signin') !== 'on') {
+            return false;
+        }
+        return true;
     }
 }

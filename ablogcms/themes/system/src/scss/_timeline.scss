@@ -12,8 +12,8 @@
     position: absolute;
     width: global.$timeline-line-width;
     height: 100%;
-    background: global.$timeline-line-color;
     content: '';
+    background: global.$timeline-line-color;
   }
 }
 
@@ -51,8 +51,8 @@
 }
 
 .acms-timeline-panel {
-  margin: global.$timeline-panel-margin;
   padding: global.$timeline-panel-padding;
+  margin: global.$timeline-panel-margin;
   border: global.$timeline-panel-border;
 
   [class*='acms-icon'] {

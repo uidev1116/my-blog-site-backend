@@ -60,13 +60,11 @@ abstract class Api
      */
     protected function exec(array $apiInfo): void
     {
-        $cache = false;
         try {
             $this->validateAddress();
             $this->validateReferrer();
             $this->validateApiKey();
             $json = $this->buildResponse($apiInfo);
-            $cache = true;
         } catch (ApiKeyException $e) {
             $this->logging($e, $apiInfo);
             httpStatusCode('401 Unauthorized');
@@ -95,7 +93,7 @@ abstract class Api
                 'path' => REQUEST_PATH,
             ]);
         }
-        $this->response($json, $cache);
+        $this->response($json);
     }
 
     /**
@@ -112,23 +110,22 @@ abstract class Api
             'message' => $message,
             'path' => REQUEST_PATH,
         ]);
-        $this->response($json, false);
+        $this->response($json);
     }
 
     /**
      * レスポンス
      * @param string $json
-     * @param bool $cache
      * @return never
      */
-    protected function response(string $json, $cache = true): void
+    protected function response(string $json): void
     {
         header(PROTOCOL . ' ' . httpStatusCode());
         header("Content-Type: application/json; charset=utf-8");
         header('X-Robots-Tag: noindex');
         $this->addAllowOriginHeader();
         Common::addSecurityHeader();
-        Common::clientCacheHeader();
+        Common::clientCacheHeader(true);
 
         $responseBody = gzencode($json);
         if (ZIP_USE) {
@@ -137,9 +134,6 @@ abstract class Api
             echo $responseBody;
         } else {
             echo gzdecode($responseBody);
-        }
-        if ($cache) {
-            Common::saveCache(CHID, $responseBody, 'application/json');
         }
         die();
     }

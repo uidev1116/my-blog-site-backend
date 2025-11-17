@@ -168,7 +168,8 @@ class Logger
             'processList' => $this->processList,
             'current' => $this->current,
             'errorList' => $this->errors,
-            'removedFiles' => $this->removedFiles
+            'removedFiles' => $this->removedFiles,
+            'updatedAt' => date('c'),
         ];
     }
 }

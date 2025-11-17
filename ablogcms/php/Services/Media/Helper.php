@@ -10,6 +10,7 @@ use Acms\Services\Facades\PublicStorage;
 use Acms\Services\Facades\PrivateStorage;
 use Acms\Services\Facades\Common;
 use Acms\Services\Unit\UnitCollection;
+use Acms\Services\Common\MimeTypeValidator;
 use SQL;
 use SQL_Select;
 use ACMS_RAM;
@@ -1548,19 +1549,15 @@ class Helper
         if (!is_uploaded_file($src)) {
             throw new RuntimeException('不正なアップロードを検知しました');
         }
-        if (
-            !in_array(
-                $extension,
-                array_merge(
-                    ['svg', 'SVG'],
-                    configArray('file_extension_document'),
-                    configArray('file_extension_archive'),
-                    configArray('file_extension_movie'),
-                    configArray('file_extension_audio')
-                ),
-                true
-            )
-        ) {
+        $allowedExtensions = array_merge(
+            ['svg'],
+            configArray('file_extension_document'),
+            configArray('file_extension_archive'),
+            configArray('file_extension_movie'),
+            configArray('file_extension_audio')
+        );
+        $mimeValidator = new MimeTypeValidator();
+        if (!$mimeValidator->validateAllowedByContent($src, $allowedExtensions)) {
             throw new RuntimeException('許可されていないファイルです');
         }
         if ($isPublicStorage) {

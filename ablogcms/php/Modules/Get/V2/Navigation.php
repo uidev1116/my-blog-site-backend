@@ -23,6 +23,10 @@ class Navigation extends Base
         $data = [];
         foreach ($labels as $i => $label) {
             $id = $i + 1;
+            // 公開チェックが外れている場合はスキップ
+            if ($config->get('navigation_publish', 'off', $i) !== 'on') {
+                continue;
+            }
             $pid = (int) $config->get('navigation_parent', 0, $i);
             $mediaData = null;
             if ($mediaId = (int) $config->get('navigation_media', null, $i)) {

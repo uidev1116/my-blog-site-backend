@@ -22,13 +22,13 @@
   display: inline-block;
   max-width: var(--acms-tooltip-max-width);
   padding: var(--acms-tooltip-padding-y) var(--acms-tooltip-padding-x);
-  color: var(--acms-tooltip-color);
   font-weight: normal;
   line-height: var(--acms-tooltip-line-height);
-  white-space: normal;
+  color: var(--acms-tooltip-color);
   text-align: var(--acms-tooltip-text-align);
   word-break: break-all;
   overflow-wrap: anywhere;
+  white-space: normal;
   background: var(--acms-tooltip-bg-color);
   border-radius: var(--acms-tooltip-border-radius);
   opacity: var(--acms-tooltip-opacity);
@@ -60,8 +60,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: global.$acms-color-system-gray40;
   line-height: 1;
+  color: global.$acms-color-system-gray40;
 
   @include global.font-size(12);
 }

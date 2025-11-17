@@ -94,9 +94,9 @@ class ACMS_GET_Admin_Update extends ACMS_GET_Admin
      */
     protected function isUpdating()
     {
-        /** @var \Acms\Services\Update\Lock $lockService */
+        /** @var \Acms\Services\Common\Lock $lockService */
         $lockService = Application::make('update.lock');
-        if ($lockService->isProcessing()) {
+        if ($lockService->isLocked()) {
             return true;
         }
         return false;

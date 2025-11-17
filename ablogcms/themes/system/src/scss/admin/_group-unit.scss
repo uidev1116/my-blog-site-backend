@@ -13,10 +13,10 @@
 
   &::before {
     position: absolute;
-    display: block;
-    border-left: 2px solid var(--acms-group-unit-level-color);
-    content: '';
     inset: 16px 0;
+    display: block;
+    content: '';
+    border-left: 2px solid var(--acms-group-unit-level-color);
   }
 }
 
@@ -71,8 +71,8 @@
     display: block;
     width: 9px;
     height: 2px;
-    background-color: var(--acms-group-unit-level-color);
     content: '';
+    background-color: var(--acms-group-unit-level-color);
   }
 }
 

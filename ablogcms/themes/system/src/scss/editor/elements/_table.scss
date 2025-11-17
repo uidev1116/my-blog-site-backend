@@ -12,8 +12,8 @@
     min-width: 100px;
     padding: global.$acms-table-cell-padding;
     line-height: 1.5;
-    white-space: normal;
     text-align: left;
+    white-space: normal;
     vertical-align: top;
     border: global.$acms-table-border-width global.$acms-table-border-style global.$acms-color-system-gray40;
 
@@ -68,7 +68,7 @@
 .js-table-unit-scroll-hint {
   th,
   td {
-    white-space: nowrap;
     word-break: keep-all; // 横スクロールするテーブルの時は常時テキスト折り返しなし
+    white-space: nowrap;
   }
 }

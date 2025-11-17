@@ -346,20 +346,6 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
                               className="acms-admin-form-width-full"
                               placeholder={item && item.media_alt ? `${item.media_alt}` : ''}
                               maxRows={4}
-                              data-validator={`media_alt_${id}`}
-                            />
-
-                            <div data-validator-label={`media_alt_${id}-v-maxlength`} className="validator-result-1">
-                              <p className="error-text acms-admin-m-0">
-                                <span className="acms-admin-icon acms-admin-icon-attention" />
-                                {ACMS.i18n('media.validate_message.alt_maxlength')}
-                              </p>
-                            </div>
-                            <input
-                              type="hidden"
-                              name={`media_alt_${id}:v#maxlength`}
-                              id={`media_alt_${id}-v-maxlength`}
-                              value="150"
                             />
                           </td>
                         </tr>

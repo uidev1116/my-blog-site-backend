@@ -12,6 +12,7 @@ use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Facades\Entry;
 use Acms\Services\Unit\Services\File\FileDataExtractor;
 use Acms\Services\Unit\Services\File\FileManager;
+use Acms\Services\Common\MimeTypeValidator;
 use Acms\Traits\Unit\AlignableUnitTrait;
 use Acms\Traits\Unit\AnkerUnitTrait;
 use Acms\Traits\Unit\UnitMultiLangTrait;
@@ -381,21 +382,21 @@ class File extends Model implements AssetProvider, StaticExport, ExportEntry, Al
                 if (!isset($vars['old' . $fx])) {
                     continue;
                 }
-                $path   = $vars['old' . $fx];
+                $path = $vars['old' . $fx];
                 $vars['basename' . $fx] = LocalStorage::mbBasename($path);
 
-                $e    = preg_replace('@.*\.(?=[^.]+$)@', '', $path);
-                $t   = null;
-                if (in_array($e, configArray('file_extension_document'), true)) {
-                    $t   = 'document';
-                } elseif (in_array($e, configArray('file_extension_archive'), true)) {
-                    $t   = 'archive';
-                } elseif (in_array($e, configArray('file_extension_movie'), true)) {
-                    $t   = 'movie';
-                } elseif (in_array($e, configArray('file_extension_audio'), true)) {
-                    $t   = 'audio';
+                $mimeValidator = new MimeTypeValidator();
+                $e = preg_replace('@.*\.(?=[^.]+$)@', '', $path);
+                $t = null;
+                if ($mimeValidator->validateAllowedExtension($e, configArray('file_extension_document'))) {
+                    $t = 'document';
+                } elseif ($mimeValidator->validateAllowedExtension($e, configArray('file_extension_archive'))) {
+                    $t = 'archive';
+                } elseif ($mimeValidator->validateAllowedExtension($e, configArray('file_extension_movie'))) {
+                    $t = 'movie';
+                } elseif ($mimeValidator->validateAllowedExtension($e, configArray('file_extension_audio'))) {
+                    $t = 'audio';
                 }
-
                 $fileList = LocalStorage::getFileList(THEMES_DIR . 'system/' . IMAGES_DIR . 'fileicon/');
                 $icon = $t;
                 $pattern = '/' . strtolower($e) . '.*$/';

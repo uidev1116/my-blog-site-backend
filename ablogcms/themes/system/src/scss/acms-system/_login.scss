@@ -31,16 +31,16 @@
 
 /* メインコンテンツボックス */
 .acms-login-main-box {
-  margin-bottom: var(--login-space-section-y);
   padding-right: var(--login-space-container-x);
   padding-left: var(--login-space-container-x);
+  margin-bottom: var(--login-space-section-y);
 }
 
 /* ネガティブアクションボタンボックス */
 .acms-login-main-box-bottom {
-  margin-top: var(--login-space-section-y);
   padding-right: var(--login-space-container-x);
   padding-left: var(--login-space-container-x);
+  margin-top: var(--login-space-section-y);
 }
 
 @include global.media-breakpoint-up(sm) {
@@ -97,18 +97,18 @@
   &::before {
     position: absolute;
     left: 0;
-    margin: 10px 0 0;
     padding: 0 0 0 100%;
-    border-top: 1px solid var(--login-color-border-section);
+    margin: 10px 0 0;
     content: '';
+    border-top: 1px solid var(--login-color-border-section);
   }
 }
 
 .acms-login-border-text {
   position: relative;
   padding: 0 10px;
-  color: global.$acms-color-black;
   line-height: 1.4;
+  color: global.$acms-color-black;
   background: global.$acms-color-white;
 
   @include global.font-size(13);
@@ -117,9 +117,9 @@
 /* 説明テキスト */
 .acms-login-notice-text {
   margin: 20px 0;
-  color: global.$acms-color-black;
   font-weight: bold;
   line-height: 1.4;
+  color: global.$acms-color-black;
 
   @include global.font-size(13);
 }
@@ -153,11 +153,11 @@
 /* フォームラベル */
 .acms-login-form-label {
   display: block;
-  margin-top: 12px;
-  margin-bottom: 3px;
 
   /* legendタグスタイルリセット */
   padding: 0;
+  margin-top: 12px;
+  margin-bottom: 3px;
   line-height: 1.4;
   border: 0;
 
@@ -167,9 +167,9 @@
 /* 注意文 */
 .acms-login-input-caution {
   margin: 6px 0 0;
-  color: var(--login-color-error);
   font-weight: bold;
   line-height: 1.4;
+  color: var(--login-color-error);
 
   @include global.font-size(13);
 }
@@ -202,10 +202,10 @@
 /* ソーシャルログインボタン */
 .acms-login-sns-btn-item .acms-btn {
   position: relative;
+  box-sizing: border-box;
   display: flex;
   align-items: stretch;
   justify-content: flex-start;
-  box-sizing: border-box;
   height: var(--login-height-sns-btn);
   padding: 0;
   overflow: hidden;
@@ -215,9 +215,9 @@
     position: absolute;
     inset: 0;
     z-index: 1;
+    content: '';
     background-color: transparent;
     transition: background-color 0.2s;
-    content: '';
   }
 
   &:hover::before {
@@ -233,10 +233,10 @@
 .acms-login-sns-btn-icon-outer {
   position: relative;
   z-index: 2;
-  display: grid;
   box-sizing: border-box;
-  width: calc(var(--login-height-sns-btn) - (var(--login-border-width-btn-sns) * 2));
+  display: grid;
   place-content: center;
+  width: calc(var(--login-height-sns-btn) - (var(--login-border-width-btn-sns) * 2));
 }
 
 .acms-login-sns-btn-icon {
@@ -252,8 +252,8 @@
   flex: 1;
   align-items: center;
   justify-content: center;
-  border-left-width: var(--login-border-width-btn-sns);
   border-left-style: solid;
+  border-left-width: var(--login-border-width-btn-sns);
 }
 
 /* ソーシャルログインボタンのカラー変化

@@ -6,9 +6,9 @@
 
 /* レイアウト */
 :where(.#{global.$entry-class}) :where([data-type='columns']) {
+  box-sizing: border-box;
   display: grid;
   grid-auto-flow: column;
-  box-sizing: border-box;
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
 
   // 2カラム

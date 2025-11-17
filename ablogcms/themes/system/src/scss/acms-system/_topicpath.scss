@@ -5,8 +5,8 @@
 // ------------------------------
 .acms-system-topicpath {
   display: inline-block;
-  margin: 0;
   padding: 0;
+  margin: 0;
   list-style: none;
 
   @include global.font-size(14);
@@ -30,9 +30,9 @@
       height: 17px;
       margin-bottom: 3px;
       vertical-align: middle;
+      content: ' ';
       background: url('../images/common/topicpath.svg') no-repeat center center;
       background-size: 25px 25px;
-      content: ' ';
     }
   }
 
@@ -40,8 +40,8 @@
   .link {
     display: inline-block;
     padding: 10px 5px;
-    color: global.$acms-color-black;
     line-height: 1;
+    color: global.$acms-color-black;
 
     @include global.font-size(14);
 
@@ -62,8 +62,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  margin: 0 0 20px;
   padding: 5px 15px;
+  margin: 0 0 20px;
   background: global.$acms-color-gray20;
   border-radius: 3px;
 }

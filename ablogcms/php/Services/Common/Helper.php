@@ -16,6 +16,7 @@ use Acms\Services\Facades\RichEditor;
 use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Session;
 use Acms\Services\Facades\Login;
+use Acms\Services\Common\MimeTypeValidator;
 use phpseclib3\Crypt\AES;
 use phpseclib3\Crypt\Random;
 use cebe\markdown\MarkdownExtra;
@@ -106,6 +107,13 @@ class Helper
     private $mediaDeliveryUrl = '';
 
     /**
+     * MIMEタイプ検証クラス
+     *
+     * @var MimeTypeValidator
+     */
+    private MimeTypeValidator $mimeTypeValidator;
+
+    /**
      * Constructor
      */
     public function __construct()
@@ -116,6 +124,7 @@ class Helper
         $this->Get =& $app->getGetParameter();
         $this->Post =& $app->getPostParameter();
         $this->cacheField = Cache::field();
+        $this->mimeTypeValidator = new MimeTypeValidator();
 
         $mediaDeliveryUrl = env('ASSETS_DELIVERY_URL', '');
         if (!!$mediaDeliveryUrl) {
@@ -560,19 +569,34 @@ class Helper
             $out .= ' ';
         }
 
-        $this->setSafeHeadersWithoutCache(301);
+        header("Location: " . $url, true, 301);
         header("Content-Length: " . strlen($out));
         header("Connection: close");
-        header("Location: " . $url);
+        $this->addSecurityHeader();
+        $this->clientCacheHeader(true);
 
+        // 新しいバッファを開始
         if (ob_get_level() === 0) {
             ob_start();
         }
+
+        // コンテンツ出力
         echo $out;
-        sleep(2);
-        ob_flush();
-        flush();
-        ob_end_flush();
+
+        // 環境に応じた終了処理
+        if (function_exists('fastcgi_finish_request')) {
+            // PHP-FPM環境
+            fastcgi_finish_request();
+        } elseif (function_exists('litespeed_finish_request')) {
+            // LiteSpeed環境
+            litespeed_finish_request();
+        } else {
+            // その他の環境
+            sleep(2);
+            ob_flush();
+            flush();
+            ob_end_flush();
+        }
     }
 
     /**
@@ -882,11 +906,14 @@ class Helper
             global $extend_section_stack;
             $extend_section_stack = [];
             $acmsTplEngine = Application::make('template.acms');
+            assert($acmsTplEngine instanceof \Acms\Services\Template\Acms);
             $txt = buildVarBlocks($txt, true);
 
             $acmsTplEngine->loadFromString($txt, '/', config('theme'), BID);
-            $txt = $acmsTplEngine->getTemplate();
-            $tpl = build($txt, Field_Validation::singleton('post'), true);
+            $post = Field_Validation::singleton('post');
+            $acmsTplEngine->setPostData($post);
+            $acmsTplEngine->setNoBuildIF(true);
+            $tpl = $acmsTplEngine->render();
             $extend_section_stack = [];
 
             $Tpl = new Template($tpl, new ACMS_Corrector());
@@ -1822,14 +1849,7 @@ class Helper
                         $file = ACMS_Http::file($fd);
                         if ($type === 'file') {
                             if ($extensions = $this->Post->getArray($fd . '@extension')) {
-                                $extension_entity = pathinfo($file->getName(), PATHINFO_EXTENSION);
-                                $extension_matched = false;
-                                foreach ($extensions as $extension) {
-                                    if ($extension === $extension_entity) {
-                                        $extension_matched = true;
-                                    }
-                                }
-                                if (!$extension_matched) {
+                                if (!$this->mimeTypeValidator->validateAllowedByContent($file->getPath(), $extensions)) {
                                     throw new \RuntimeException('EXTENSION_IS_DIFFERENT');
                                 }
                             }
@@ -2469,34 +2489,23 @@ class Helper
                                 $dirname    = PublicStorage::archivesDir();
                                 $basename   = uniqueString() . '.' . $extension;
                             }
-
                             if (
-                                1
+                                // mimeタイプから判定した実ファイルの種類がアップロード許可ファイルであること
+                                $this->mimeTypeValidator->validateAllowedByContent($tmp_name, $allow_file_extensions) &&
                                 // "実ファイルの拡張子" が "アップロード許可拡張子コンフィグ" に含まれていること
-                                and in_array($extension, $allow_file_extensions, true)
-
+                                $this->mimeTypeValidator->validateAllowedExtension($extension, $allow_file_extensions) &&
                                 // 拡張子指定オプションが空でなければ...
-                                and ( empty($c['extension']) or
-                                    (
-                                        // "拡張子指定オプション" が "アップロード許可拡張子コンフィグ" に含まれていること
-                                        array_in_array($c['extension'], $allow_file_extensions)
-
-                                        // さらに，"拡張子指定オプション" と "実ファイルの拡張子" が一致すること
-                                        and in_array($extension, $c['extension'], true))
-                                    )
-
+                                (!$c['extension'] ||
+                                    // "拡張子指定オプション" が "アップロード許可拡張子コンフィグ" に含まれていること
+                                    $this->mimeTypeValidator->validateAllowedExtension($c['extension'], $allow_file_extensions)
+                                ) &&
                                 // ファイル名オプションの拡張子が未定義でなければ...
-                                and ( !isset($c['filename_extension']) or
-                                    (
-                                        // "ファイル名オプションの拡張子" が "アップロード許可拡張子コンフィグ" に含まれていること
-                                        in_array($c['filename_extension'], $allow_file_extensions, true))
-
-                                        // さらに，"ファイル名オプションの拡張子" と "実ファイルの拡張子" が一致すること
-                                        and $c['filename_extension'] === $extension
-                                    )
-
+                                (!isset($c['filename_extension']) ||
+                                    // "ファイル名オプションの拡張子" が "アップロード許可拡張子コンフィグ" に含まれていること
+                                    $this->mimeTypeValidator->validateAllowedExtension($c['filename_extension'], $allow_file_extensions)
+                                ) &&
                                 // 保存先ディレクトリの再帰的作成
-                                and PublicStorage::makeDirectory($ARCHIVES_DIR . $dirname)
+                                PublicStorage::makeDirectory($ARCHIVES_DIR . $dirname)
                             ) {
                                 //---------------------------
                                 // delete ( 古いファイルの削除 )

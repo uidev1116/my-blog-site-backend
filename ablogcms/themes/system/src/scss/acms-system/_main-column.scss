@@ -17,9 +17,9 @@
 }
 
 #main {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
   min-height: 100vh;
   padding-top: 20px;
   padding-bottom: 20px;

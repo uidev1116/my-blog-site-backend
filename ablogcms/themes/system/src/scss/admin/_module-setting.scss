@@ -44,9 +44,9 @@
       position: absolute;
       inset: -4px;
       z-index: -1;
+      content: '';
       border: 2px solid global.$acms-color-gray80;
       border-radius: 4px;
-      content: '';
     }
 
     .acms-module-edit {

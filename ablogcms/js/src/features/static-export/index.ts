@@ -31,6 +31,21 @@ export default function dispatchStaticExport(context: Element | Document = docum
       data.append('formToken', window.csrfToken);
       const response = await axiosLib.post(ACMS.Config.root, data);
       const json = response.data;
+      const updatedAt = new Date(json.updatedAt).getTime();
+      const now = Date.now();
+      const timeout = 180 * 1000; // 180秒
+
+      if (now - updatedAt > timeout) {
+        // 一定秒数更新されていないなら「停止した可能性あり」と判断
+        json.inProcess = 'タイムアウトしました。リロードして処理が完了しているか確認してください。';
+        json.percentage = 0;
+        json.errorList.push({
+          code: null,
+          message: 'タイムアウトしました。リロードして処理が完了しているか確認してください。',
+          path: '',
+        });
+        clearInterval(interval);
+      }
 
       if (json.status === 'notfound') {
         throw new Error('notfound');

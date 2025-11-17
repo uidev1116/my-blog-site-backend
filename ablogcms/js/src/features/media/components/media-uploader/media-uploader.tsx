@@ -361,6 +361,7 @@ export default class MediaUploader extends Component<MediaUploaderProps, MediaUp
               isValidNewOption={(inputValue) => inputValue.trim().length > 0}
               noOptionsMessage={() => ACMS.i18n('media.tag_select_no_options_message')}
               closeMenuOnSelect={false}
+              menuPortalTarget={document.body}
             />
           </div>
         </div>

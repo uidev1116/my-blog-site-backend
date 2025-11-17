@@ -6,27 +6,27 @@
 
 @keyframes fade-in-bottom {
   0% {
-    transform: translateY(50px);
     opacity: 0;
+    transform: translateY(50px);
   }
 
   100% {
-    transform: translateY(0);
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @keyframes fade-out-top {
   0% {
-    transform: translateY(0);
     visibility: visible;
     opacity: 1;
+    transform: translateY(0);
   }
 
   100% {
-    transform: translateY(-50px);
     visibility: hidden;
     opacity: 0;
+    transform: translateY(-50px);
   }
 }
 
@@ -43,6 +43,7 @@
   --acms-modal-border-radius: 6px;
 
   position: fixed;
+  inset: 0;
   z-index: global.zIndex(acms-modal);
   width: 100%;
   height: 100%;
@@ -50,9 +51,8 @@
   padding-left: calc(constant(safe-area-inset-left));
   overflow: hidden auto;
   outline: 0;
-  transform: translate3d(0, 0, 0);
   opacity: 0;
-  inset: 0;
+  transform: translate3d(0, 0, 0);
   -webkit-overflow-scrolling: touch;
 
   @if global.$admin == true {
@@ -166,9 +166,9 @@
 }
 
 .acms-modal-content {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
   width: 100%;
   padding: var(--acms-modal-content-padding);
   overflow: hidden;
@@ -182,8 +182,8 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
-  margin: 0 calc(-1 * var(--acms-modal-content-padding));
   padding: var(--acms-modal-header-padding-y) var(--acms-modal-header-padding-x);
+  margin: 0 calc(-1 * var(--acms-modal-content-padding));
   border-bottom: 1px solid global.$acms-color-gray60;
 }
 
@@ -195,8 +195,8 @@
 }
 
 .acms-modal-body {
-  margin: 0 -5px;
   padding: var(--acms-modal-body-padding-y) var(--acms-modal-body-padding-x);
+  margin: 0 -5px;
 
   @include global.font-size(14);
 }
@@ -216,14 +216,14 @@
 
 .acms-modal-hide {
   order: 99; // 一番右に配置（互換性のために指定している。利用する場合はHTML構造として最後に配置することを推奨）
-  margin-left: auto;
   padding: 0;
-  color: global.$acms-color-gray90;
+  margin-left: auto;
   font-size: 20px;
   line-height: 1;
+  color: global.$acms-color-gray90;
+  cursor: pointer;
   background: global.$acms-color-white;
   border: 1px solid transparent;
-  cursor: pointer;
 
   &:focus {
     border-color: global.$acms-btn-focus-border-color;
@@ -232,8 +232,8 @@
 }
 
 .acms-modal-footer {
-  margin: 0 calc(-1 * var(--acms-modal-content-padding));
   padding: var(--acms-modal-body-padding-y) var(--acms-modal-body-padding-x);
+  margin: 0 calc(-1 * var(--acms-modal-content-padding));
   text-align: right;
   border-top: 1px solid global.$acms-color-gray60;
 }
@@ -298,8 +298,8 @@
   .acms-module-en {
     display: inline-block;
     margin: 0 15px 10px 0;
-    color: global.$acms-color-gray90;
     font-weight: bold;
+    color: global.$acms-color-gray90;
 
     @include global.font-size(12);
   }

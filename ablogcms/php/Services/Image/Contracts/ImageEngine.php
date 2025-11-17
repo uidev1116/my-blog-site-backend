@@ -91,7 +91,7 @@ abstract class ImageEngine
      * @param string|null $format
      * @return void
      */
-    abstract public function copyImage(string $srcPath, string $distPath, string $format = null): void;
+    abstract public function copyImage(string $srcPath, string $distPath, ?string $format = null): void;
 
     /**
      * 画像をリサイズ
@@ -109,9 +109,10 @@ abstract class ImageEngine
      * @param int $canvasWidth
      * @param int $canvasHeight
      * @param array{0: int, 1: int, 2: int} $color
+     * @param int|null $angle
      * @return void
      */
-    abstract public function resizeImage(string $srcPath, string $destPath, int $srcWidth, int $srcHeight, int $srcX, int $srcY, int $destWidth, int $destHeight, int $destX, int $destY, int $canvasWidth, int $canvasHeight, array $color): void;
+    abstract public function resizeImage(string $srcPath, string $destPath, int $srcWidth, int $srcHeight, int $srcX, int $srcY, int $destWidth, int $destHeight, int $destX, int $destY, int $canvasWidth, int $canvasHeight, array $color, ?int $angle = null): void;
 
     /**
      * WebP画像として画像を複製

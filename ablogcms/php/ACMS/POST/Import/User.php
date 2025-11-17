@@ -1,6 +1,6 @@
 <?php
 
-use Acms\Services\Facades\PrivateStorage;
+use Acms\Services\Facades\Application;
 
 class ACMS_POST_Import_User extends ACMS_POST_Import_Csv
 {
@@ -8,11 +8,6 @@ class ACMS_POST_Import_User extends ACMS_POST_Import_Csv
      * @var array
      */
     protected $csvLabels;
-
-    /**
-     * @var string
-     */
-    protected $lockFile;
 
     /**
      * @var int
@@ -30,13 +25,15 @@ class ACMS_POST_Import_User extends ACMS_POST_Import_Csv
         setlocale(LC_ALL, 'ja_JP.UTF-8');
 
         $this->init();
+        $lockService = Application::make('user.import.csv-lock');
+
         try {
             $this->httpFile = ACMS_Http::file($this->uploadFiledName);
-            if (PrivateStorage::exists($this->lockFile)) {
+            if ($lockService->isLocked()) {
                 throw new \RuntimeException('CSVユーザーインポートを中止しました。すでにインポート中の可能性があります。変化がない場合は、cache/user-csv-import-lock ファイルを削除してお試しください。');
             }
             Common::backgroundRedirect(HTTP_REQUEST_URL);
-            $this->run();
+            $this->run($lockService);
             die();
         } catch (Exception $e) {
             $this->addError($e->getMessage());
@@ -50,29 +47,28 @@ class ACMS_POST_Import_User extends ACMS_POST_Import_Csv
         ignore_user_abort(true);
         set_time_limit(0);
 
-        $this->lockFile = CACHE_DIR . 'user-csv-import-lock';
         $this->uploadFiledName = 'csv_import_file';
     }
 
-    function run()
+    function run(\Acms\Services\Common\Lock $lockService)
     {
         set_time_limit(0);
-        PrivateStorage::put($this->lockFile, 'lock');
-        $logger = App::make('common.logger');
-        $logger->setDestinationPath(CACHE_DIR . 'user-csv-import-logger.json');
-        $logger->init();
-
         DB::setThrowException(true);
 
-        $logger->addMessage('CSV読み込み中...', 10);
-        sleep(6);
+        $logger = App::make('common.logger');
 
         try {
+            $lockService->tryLock();
+            $logger->setDestinationPath(CACHE_DIR . 'user-csv-import-logger.json');
+            $logger->init();
+            $logger->addMessage('CSV読み込み中...', 10);
+            sleep(6);
+
             $csv = $this->httpFile->getCsv();
             $this->csvLabels = $csv->fgetcsv();
         } catch (Exception $e) {
             $logger->error($e->getMessage());
-            PrivateStorage::remove($this->lockFile);
+            $lockService->release();
             sleep(5);
             $logger->terminate();
 
@@ -114,7 +110,7 @@ class ACMS_POST_Import_User extends ACMS_POST_Import_Csv
             'error' => $this->errorCount,
         ]);
 
-        PrivateStorage::remove($this->lockFile);
+        $lockService->release();
         Cache::flush('page');
         Cache::flush('field');
         Cache::flush('temp');

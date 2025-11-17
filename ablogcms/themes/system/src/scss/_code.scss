@@ -3,8 +3,8 @@
 /* ソースコード */
 .code-highlight {
   max-width: 100%;
-  margin: 0 0 28px;
   padding: 15px;
+  margin: 0 0 28px;
   overflow: auto;
   border: solid 1px global.$acms-color-gray50;
   border-radius: 5px;
@@ -13,8 +13,8 @@
 .acms-pre,
 .acms-style pre {
   padding: 10px;
-  white-space: pre-wrap;
   word-wrap: break-word;
+  white-space: pre-wrap;
   background-color: global.$acms-color-gray10;
   border: solid 1px global.$acms-color-gray50;
   border-radius: 5px;
@@ -23,8 +23,8 @@
 .acms-pre code,
 .acms-style code,
 .acms-code {
-  margin: 0 5px;
   padding: 2px 5px;
+  margin: 0 5px;
   color: global.$acms-color-danger90;
   background-color: global.$acms-color-danger10;
   border: 1px solid global.$acms-color-danger20;

@@ -633,7 +633,11 @@ abstract class Model
      */
     public function getName(): string
     {
-        return $this->getUnitNameTrait($this->getType());
+        $name = $this->getUnitNameTrait($this->getType());
+        if ($name !== '') {
+            return $name;
+        }
+        return static::getUnitLabel();
     }
 
     /**

@@ -7,7 +7,7 @@ class ACMS_POST_Media_UpdateAsNew extends ACMS_POST_Media_Update
 {
     public function post()
     {
-        $mid = $this->Get->get('_mid', false);
+        $mid = (int)$this->Get->get('_mid');
         $data = [];
 
         try {
@@ -15,17 +15,13 @@ class ACMS_POST_Media_UpdateAsNew extends ACMS_POST_Media_Update
                 throw new \RuntimeException('メディア機能が有効でないか、権限がありません');
             }
             $Media = $this->extract('media');
-            if (empty($mid)) {
+            if ($mid === 0) {
                 $Media->setMethod('media', 'operable', false);
             }
-            $Media->setMethod('field_3', 'maxlength', 150);
             $Media->validate(new ACMS_Validator_Media());
             if (!$this->Post->isValidAll()) {
                 if (!$Media->isValid('media', 'operable')) {
                     throw new \RuntimeException('メディアが指定されていない、または権限がありません');
-                }
-                if (!$Media->isValid('field_3', 'maxlength')) {
-                    throw new \RuntimeException('代替テキストは150文字以内で入力してください');
                 }
             }
             $tags = $Media->get('media_label');

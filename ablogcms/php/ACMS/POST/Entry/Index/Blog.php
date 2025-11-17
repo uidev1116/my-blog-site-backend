@@ -3,10 +3,21 @@
 use Acms\Services\Facades\Logger;
 use Acms\Services\Facades\Common;
 use Acms\Services\Facades\Entry;
+use Acms\Services\Facades\Application;
 
 class ACMS_POST_Entry_Index_Blog extends ACMS_POST
 {
     protected $globalCids = [];
+
+    protected \Acms\Services\Entry\EntryRepository $entryRepository;
+
+    /**
+     * constructor
+     */
+    public function __construct()
+    {
+        $this->entryRepository = Application::make('entry.repository');
+    }
 
     function post()
     {
@@ -59,7 +70,7 @@ class ACMS_POST_Entry_Index_Blog extends ACMS_POST
         $sort = $this->getEntrySort($bid);
         $usort = $this->getEntryUserSort($bid, $suid);
         $cid = ACMS_RAM::entryCategory($eid);
-        $csort = $cid === null ? 1 : $this->getEntryCategorySort($bid, $cid);
+        $csort = $this->getEntryCategorySort($bid, $cid);
         $isGlobalCategory = $cid === null ? false : $this->isGlobalCategory($bid, $cid);
 
         // 通常エントリーを移動
@@ -165,10 +176,20 @@ class ACMS_POST_Entry_Index_Blog extends ACMS_POST
     protected function moveEntryUnit(int $eid, int $bid, bool $revision = false): void
     {
         $tableName = $revision ? 'column_rev' : 'column';
-        $sql = SQL::newUpdate($tableName);
-        $sql->addUpdate('column_blog_id', $bid);
-        $sql->addWhereOpr('column_entry_id', $eid);
-        DB::query($sql->get(dsn()), 'exec');
+        $selectSql = SQL::newSelect($tableName);
+        $selectSql->addWhereOpr('column_entry_id', $eid);
+        $units = DB::query($selectSql->get(dsn()), 'all');
+
+        $updateSql = SQL::newUpdate($tableName);
+        $updateSql->addUpdate('column_blog_id', $bid);
+        $updateSql->addWhereOpr('column_entry_id', $eid);
+        DB::query($updateSql->get(dsn()), 'exec');
+
+        $unitIds = array_column($units, 'column_id');
+        $updateFieldSql = SQL::newUpdate($revision ? 'field_rev' : 'field');
+        $updateFieldSql->addUpdate('field_blog_id', $bid);
+        $updateFieldSql->addWhereIn('field_unit_id', $unitIds);
+        DB::query($updateFieldSql->get(dsn()), 'exec');
     }
 
     /**
@@ -213,12 +234,7 @@ class ACMS_POST_Entry_Index_Blog extends ACMS_POST
      */
     protected function getEntrySort(int $bid): int
     {
-        $Sort = SQL::newSelect('entry');
-        $Sort->addSelect('entry_sort', 'sort_max', null, 'max');
-        $Sort->addWhereOpr('entry_blog_id', $bid);
-        $sort = DB::query($Sort->get(dsn()), 'one');
-
-        return intval($sort) + 1;
+        return $this->entryRepository->nextSort($bid);
     }
 
     /**
@@ -230,31 +246,19 @@ class ACMS_POST_Entry_Index_Blog extends ACMS_POST
      */
     protected function getEntryUserSort(int $bid, int $uid): int
     {
-        $sql = SQL::newSelect('entry');
-        $sql->addSelect('entry_user_sort', 'usort_max', null, 'max');
-        $sql->addWhereOpr('entry_user_id', $uid);
-        $sql->addWhereOpr('entry_blog_id', $bid);
-        $sort = DB::query($sql->get(dsn()), 'one');
-
-        return intval($sort) + 1;
+        return $this->entryRepository->nextUserSort($uid, $bid);
     }
 
     /**
      * 指定ブログ・指定カテゴリーのエントリーの最大ソート番号（カテゴリー）を取得
      *
      * @param int $bid
-     * @param int $cid
+     * @param int|null $cid
      * @return int
      */
-    protected function getEntryCategorySort(int $bid, int $cid): int
+    protected function getEntryCategorySort(int $bid, ?int $cid): int
     {
-        $sql = SQL::newSelect('entry');
-        $sql->addSelect('entry_category_sort', 'csort_max', null, 'max');
-        $sql->addWhereOpr('entry_category_id', $cid);
-        $sql->addWhereOpr('entry_blog_id', $bid);
-        $sort = DB::query($sql->get(dsn()), 'one');
-
-        return intval($sort) + 1;
+        return $this->entryRepository->nextCategorySort($cid, $bid);
     }
 
     /**

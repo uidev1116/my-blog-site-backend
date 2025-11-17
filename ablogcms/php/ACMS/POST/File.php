@@ -1,6 +1,7 @@
 <?php
 
 use Acms\Services\Facades\PublicStorage;
+use Acms\Services\Common\MimeTypeValidator;
 
 /**
  * ファイルアップロードと管理を担当するクラス
@@ -146,17 +147,17 @@ class ACMS_POST_File extends ACMS_POST
             return '';
         }
 
-        $basename   = $match[0];
-        $extension  = strtolower($match[2]);
+        $basename = $match[0];
+        $extension = strtolower($match[2]);
 
-        if (
-            !in_array($extension, array_merge(
-                configArray('file_extension_document'),
-                configArray('file_extension_archive'),
-                configArray('file_extension_movie'),
-                configArray('file_extension_audio')
-            ), true)
-        ) {
+        $allowedExtensions = array_merge(
+            configArray('file_extension_document'),
+            configArray('file_extension_archive'),
+            configArray('file_extension_movie'),
+            configArray('file_extension_audio')
+        );
+        $mimeValidator = new MimeTypeValidator();
+        if (!$mimeValidator->validateAllowedByContent($ufile, $allowedExtensions)) {
             // 許可されていない拡張子の場合は空文字を返す
             return '';
         }

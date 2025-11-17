@@ -4,25 +4,25 @@
 
 .acms-block-editor-button,
 .acms-block-editor-icon-button {
+  box-sizing: border-box;
   display: flex;
   flex-shrink: 0;
   gap: var(--acms-block-editor-spacing-1);
   align-items: center;
   justify-content: center;
-  box-sizing: border-box;
   min-width: 2rem;
   height: 2rem;
   padding: 0;
   padding: 4px;
-  font-weight: 600;
   font-size: var(--acms-block-editor-font-size-xs);
+  font-weight: 600;
   line-height: 1;
-  white-space: nowrap;
   text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--acms-block-editor-border-radius-sm);
-  cursor: pointer;
   transition: background-color 0.2s ease;
 
   // 共通Stateスタイル

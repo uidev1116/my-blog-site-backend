@@ -18,7 +18,7 @@ referrer_policy: strict-origin-when-cross-origin # no-referrer | no-referrer-whe
 subscriber_access_admin_page: [] # 読者権限でアクセスできる管理ページを設定
 sanitize_scheme: on # on | off 変数から標準で危険なスキームを削除するか指定
 strip_dangerous_tag: off # on | off 変数から標準で危険なタグ（dangerous_tagsで指定）を削除するか指定
-dangerous_tags: ['script', 'iframe', 'form'] # 変数から標準で削除するタグを指定
+dangerous_tags: ['script', 'iframe', 'form'] # 変数から標準で削除するタグを指定。注意点としてここで指定されていないタグでも、非推奨・廃止されたタグ（例:<font>）は削除されます。
 secret_file_name: [config.server.php, .env, .htaccess] # CMSのStorageサービスで取得できないファイル名を指定
 ajax_security_level: 1 # ajaxリクエストのセキュリティレベルを設定します。（0: チェックなし 1: RefererとHttpヘッダーを確認 2: CSRFトークン確認）
 
@@ -668,6 +668,7 @@ entry_tag-relational_blog_field_on: off
 ## カテゴリーリスト
 category_list_order: amount-desc
 category_list_amount: on
+category_list_count_entries_in_subcategories: off
 category_list_amount_zero: on
 category_list_level:
 category_list_field_search: entry

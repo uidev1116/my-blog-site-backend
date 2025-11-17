@@ -30,8 +30,8 @@
   z-index: 0;
   padding: 0.375rem 1.375rem;
   color: var(--acms-block-editor-neutral-900);
-  outline: 0;
   caret-color: #000;
+  outline: 0;
 
   @include global.media-breakpoint-up(md) {
     padding: 0.875rem 3rem 0;
@@ -91,8 +91,8 @@
 }
 
 .acms-block-editor [data-reference-hidden] {
-  opacity: 0;
   pointer-events: none;
+  opacity: 0;
 }
 
 .acms-block-editor::-webkit-scrollbar {
@@ -108,11 +108,11 @@
 
 .acms-block-editor input[type='range'] {
   height: 0.625rem;
+  appearance: none;
   background-color: var(--acms-block-editor-neutral-200);
   border: 0;
   border-radius: 0.25rem;
   transition: all 0.2s;
-  appearance: none;
 
   &:active {
     background-color: var(--acms-block-editor-neutral-300);
@@ -121,10 +121,10 @@
   &::-webkit-slider-thumb {
     width: 0.75rem;
     height: 1.25rem;
+    appearance: none;
     background-color: var(--acms-block-editor-neutral-800);
     border-radius: 9999px;
     transition: all 0.2s;
-    appearance: none;
 
     &:active {
       width: 1rem;
@@ -267,8 +267,8 @@
       width: 1px;
       height: 100%;
       margin-left: 0.5rem;
-      background-color: rgb(0 0 0 / 20%);
       content: '';
+      background-color: rgb(0 0 0 / 20%);
     }
   }
 
@@ -285,8 +285,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--acms-block-editor-gray-200);
     cursor: pointer;
+    background-color: var(--acms-block-editor-gray-200);
 
     &:hover,
     &.selected {
@@ -381,8 +381,8 @@
 :where(.acms-block-editor .ProseMirror) {
   [data-type='horizontalRule'] {
     padding: 8px 0;
-    border-radius: 0.125rem;
     cursor: pointer;
+    border-radius: 0.125rem;
     transition: all 100ms ease-in-out;
 
     /* 操作時 */

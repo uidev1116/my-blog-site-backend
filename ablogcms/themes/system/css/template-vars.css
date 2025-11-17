@@ -29,8 +29,8 @@ html {
 
 body {
   padding: 0 0 40px;
-  color: #333;
   font-family: "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", Meiryo, "メイリオ", "ＭＳ Ｐゴシック", "MS PGothic", Verdana, sans-serif;
+  color: #333;
   background: #fff;
 }
 body {
@@ -62,8 +62,8 @@ body {
 }
 
 .tv-page-title {
-  margin: 0;
   padding: 10px 0;
+  margin: 0;
   color: #fff;
 }
 .tv-page-title {
@@ -84,13 +84,13 @@ body {
 }
 
 .tv-main-contents {
-  clear: both;
   margin: 0 0 20px;
+  clear: both;
 }
 
 .tv-section {
-  margin: 0 0 30px;
   padding: 5px 0 0;
+  margin: 0 0 30px;
 }
 
 .tv-header-info {
@@ -104,8 +104,8 @@ body {
 
 .tv-info-item {
   float: left;
-  margin: 0 10px 0 0;
   padding: 8px 0;
+  margin: 0 10px 0 0;
 }
 
 .tv-info-label {
@@ -122,8 +122,8 @@ body {
 }
 
 .tv-tab-list {
-  margin: 0 -5px;
   padding: 0;
+  margin: 0 -5px;
   list-style: none;
 }
 
@@ -143,8 +143,8 @@ body {
   border-bottom: 2px solid #7e7e8b;
 }
 .tv-tab-list-link.js-acms_tab-active {
-  color: #333;
   font-weight: bold;
+  color: #333;
   border-bottom: 2px solid #7e7e8b;
 }
 
@@ -181,8 +181,8 @@ body {
 
 .tv-comment {
   position: relative;
-  margin: 0 0 10px;
   padding: 20px 15px 15px;
+  margin: 0 0 10px;
   line-height: 1.5;
   border: 1px solid #ccc;
 }
@@ -231,8 +231,8 @@ body {
 }
 
 .tv-side-navigation {
-  margin: 0;
   padding: 0;
+  margin: 0;
   list-style: none;
   /* リンクの設定 */
 }

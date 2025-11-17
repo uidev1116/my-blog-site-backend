@@ -1,12 +1,10 @@
 <?php
 
+use Acms\Services\Facades\Application;
+
 class ACMS_POST_Import extends ACMS_POST
 {
     use \Acms\Traits\Unit\UnitModelTrait;
-
-    public const SORT_ENTRY    = 1;
-    public const SORT_USER     = 2;
-    public const SORT_CATEGORY = 3;
 
     protected $unitType;
     protected $uploadFiledName;
@@ -78,38 +76,47 @@ class ACMS_POST_Import extends ACMS_POST
         setlocale(LC_ALL, $this->locale);
     }
 
-    function getNextSort($type)
+    /**
+     * 次のエントリー表示順を取得
+     *
+     * @param int $blogId
+     *
+     * @return int
+     **/
+    public function nextEntrySort(int $blogId): int
     {
-        $next = 0;
-        $DB = DB::singleton(dsn());
-        $SQL = SQL::newSelect('entry');
+        $entryRepository = Application::make('entry.repository');
+        assert($entryRepository instanceof \Acms\Services\Entry\EntryRepository);
+        return $entryRepository->nextSort($blogId);
+    }
 
-        switch ($type) {
-            case self::SORT_ENTRY:
-                $SQL->setSelect('entry_sort');
-                $SQL->addWhereOpr('entry_blog_id', BID);
-                $SQL->setOrder('entry_sort', 'DESC');
-                break;
-            case self::SORT_USER:
-                $SQL->setSelect('entry_user_sort');
-                $SQL->addWhereOpr('entry_user_id', SUID);
-                $SQL->addWhereOpr('entry_blog_id', BID);
-                $SQL->setOrder('entry_user_sort', 'DESC');
-                break;
-            case self::SORT_CATEGORY:
-                $SQL->setSelect('entry_category_sort');
-                $SQL->addWhereOpr('entry_category_id', $this->importCid);
-                $SQL->addWhereOpr('entry_blog_id', BID);
-                $SQL->setOrder('entry_category_sort', 'DESC');
-                break;
-            default:
-                return 0;
-        }
+    /**
+     * 次のエントリーのユーザー絞り込み時の表示順を取得
+     *
+     * @param int $userId
+     * @param int $blogId
+     * @return int
+     **/
+    public function nextEntryUserSort(int $userId, int $blogId): int
+    {
+        $entryRepository = Application::make('entry.repository');
+        assert($entryRepository instanceof \Acms\Services\Entry\EntryRepository);
+        return $entryRepository->nextUserSort($userId, $blogId);
+    }
 
-        $SQL->setLimit(1);
-        $next = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
-
-        return $next;
+    /**
+     * 次のエントリーのカテゴリー絞り込み時の表示順を取得
+     *
+     * @param int|null $categoryId
+     * @param int $blogId
+     *
+     * @return int
+     **/
+    public function nextEntryCategorySort(?int $categoryId, int $blogId): int
+    {
+        $entryRepository = Application::make('entry.repository');
+        assert($entryRepository instanceof \Acms\Services\Entry\EntryRepository);
+        return $entryRepository->nextCategorySort($categoryId, $blogId);
     }
 
     public function insertEntry($entry)
@@ -155,9 +162,9 @@ class ACMS_POST_Import extends ACMS_POST
             'entry_user_id'             => SUID,
             'entry_blog_id'             => BID,
             'entry_code'                => $ecode,
-            'entry_sort'                => $this->getNextSort(self::SORT_ENTRY),
-            'entry_user_sort'           => $this->getNextSort(self::SORT_USER),
-            'entry_category_sort'       => $this->getNextSort(self::SORT_CATEGORY),
+            'entry_sort'                => $this->nextEntrySort(BID),
+            'entry_user_sort'           => $this->nextEntryUserSort(SUID, BID), // @phpstan-ignore-line
+            'entry_category_sort'       => $this->nextEntryCategorySort($cid, BID),
             'entry_status'              => $status,
             'entry_title'               => $entry['title'],
             'entry_link'                => '',

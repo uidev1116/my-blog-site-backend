@@ -1,6 +1,6 @@
 <?php
 
-use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\Application;
 
 class ACMS_GET_Admin_Backup_Index extends ACMS_GET_Admin
 {
@@ -20,14 +20,13 @@ class ACMS_GET_Admin_Backup_Index extends ACMS_GET_Admin
         }
 
         $tpl = new Template($this->tpl, new ACMS_Corrector());
-        $logger = App::make('db.logger');
-        $archivesLogger = App::make('archives.logger');
         $rootVars = [];
 
         /**
          * DBエクスポート中チェック
          */
-        if (LocalStorage::exists($logger->getDestinationPath())) {
+        $dbLockService = Application::make('db.backup-lock');
+        if ($dbLockService->isLocked()) {
             $rootVars['processing'] = 1;
         } else {
             $rootVars['processing'] = 0;
@@ -36,7 +35,8 @@ class ACMS_GET_Admin_Backup_Index extends ACMS_GET_Admin
         /**
          * アーカイブ、エクスポート中チェック
          */
-        if (LocalStorage::exists($archivesLogger->getDestinationPath())) {
+        $archiveLockService = Application::make('archive.backup-lock');
+        if ($archiveLockService->isLocked()) {
             $rootVars['archivesProcessing'] = 1;
         } else {
             $rootVars['archivesProcessing'] = 0;

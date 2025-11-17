@@ -31,8 +31,8 @@
       bottom: 18px;
       left: 0;
       margin: 0 auto;
-      color: global.$acms-color-white;
       font-weight: bold;
+      color: global.$acms-color-white;
 
       @include global.font-size(16);
     }

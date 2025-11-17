@@ -148,7 +148,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
             // 起動
             $this->boot();
 
-            if (strval($this->eid) === strval(intval($this->eid)) && ($this->eid ?? 0) > 0) {
+            if ($this->isEntryDetailPage()) {
                 // エントリー詳細ページ
                 $this->entryPage($tpl);
             } else {
@@ -681,7 +681,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
      * @param string|string[] $block
      * @return void
      */
-    protected function buildAdminEntryEdit(
+    protected function buildAdminEntryAction(
         int $bid,
         int $uid,
         ?int $cid,
@@ -699,6 +699,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
             // 編集権限がない場合は処理を終了
             return;
         }
+        $block = array_merge(['adminEntryAction'], $block);
 
         $entry = $this->createAdminEntry($eid, $bid, $cid);
 
@@ -716,6 +717,8 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
         if (Entry::canDelete($eid)) {
             $this->buildDeleteBlock($tpl, $block, $entry);
         }
+
+        $tpl->add($block);
     }
 
     /**
@@ -791,7 +794,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
     protected function buildBodyField(Template $tpl, array &$vars, array $row, int $serial = 0): void
     {
         $bid = intval($row['entry_blog_id']);
-        $uid = $row['entry_user_id'] ? intval($row['entry_user_id']) : null;
+        $uid = intval($row['entry_user_id']);
         $cid = $row['entry_category_id'] ? intval($row['entry_category_id']) : null;
         $eid = intval($row['entry_id']);
         $inheritUrl = acmsLink([
@@ -866,7 +869,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
             $tpl->add(['relatedEntry', 'entry:loop']);
         }
         // admin
-        $this->buildAdminEntryEdit($bid, $uid, $cid, $eid, $tpl, 'entry:loop');
+        $this->buildAdminEntryAction($bid, $uid, $cid, $eid, $tpl, 'entry:loop');
         // build entry field
         if (($this->config['includeEntryFields'] ?? false) && isset($this->eagerLoadedData['entryField'][$eid])) {
             $vars += TplHelper::buildField($this->eagerLoadedData['entryField'][$eid], $tpl, 'entry:loop', 'entry');
@@ -977,5 +980,15 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
         return [
             'parent.loop.class' => $this->config['parentLoopClass'] ?? '',
         ];
+    }
+
+    /**
+     * エントリー詳細ページかどうか
+     *
+     * @return bool
+     */
+    protected function isEntryDetailPage(): bool
+    {
+        return strval($this->eid) === strval(intval($this->eid)) && ($this->eid ?? 0) > 0;
     }
 }

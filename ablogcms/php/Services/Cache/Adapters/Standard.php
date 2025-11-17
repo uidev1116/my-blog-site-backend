@@ -111,17 +111,6 @@ class Standard implements AdapterInterface
     }
 
     /**
-     * キャッシュがなかった場合はコールバックを実行し、キャッシュに追加
-     * @param string $key
-     * @param callable $callback
-     * @param int $lifetime
-     * @return void
-     */
-    public function remember(string $key, $callback, int $lifetime = 0): void
-    {
-    }
-
-    /**
      * キャッシュを全削除
      * @return void
      */

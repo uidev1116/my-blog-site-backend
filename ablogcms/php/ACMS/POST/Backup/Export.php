@@ -1,5 +1,6 @@
 <?php
 
+use Acms\Services\Facades\Application;
 use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Facades\PrivateStorage;
 use Acms\Services\Facades\Common;
@@ -43,17 +44,16 @@ class ACMS_POST_Backup_Export extends ACMS_POST_Backup_Base
         $this->tempDirectory =  MEDIA_STORAGE_DIR . '/sql_export/';
         $this->sqlFilePath = $this->tempDirectory . 'sql_query.sql';
         $this->hashFilePath = $this->tempDirectory . 'md5_hash.txt';
+        $lockService = Application::make('db.backup-lock');
 
         try {
             AcmsLogger::info('データベースのバックアップを開始しました');
-
             $this->authCheck('backup_export');
-
-            if (PrivateStorage::exists($this->lockFile)) {
+            if ($lockService->isLocked()) {
                 throw new \RuntimeException('データベースのバックアップを中止しました。すでにバックアップ中の可能性があります。変化がない場合は、cache/system-backup-lock ファイルを削除してお試しください。');
             }
             Common::backgroundRedirect(HTTP_REQUEST_URL);
-            $this->run();
+            $this->run($lockService);
             die();
         } catch (\Exception $e) {
             $this->addError($e->getMessage());
@@ -65,15 +65,15 @@ class ACMS_POST_Backup_Export extends ACMS_POST_Backup_Base
     /**
      * Run
      */
-    protected function run()
+    protected function run(\Acms\Services\Common\Lock $lockService)
     {
-        PrivateStorage::put($this->lockFile, 'lock');
         set_time_limit(0);
         $logger = App::make('db.logger');
         $this->replication = App::make('db.replication');
 
         DB::setThrowException(true);
         try {
+            $lockService->tryLock();
             $logger->init();
             if (!LocalStorage::makeDirectory($this->tempDirectory)) {
                 throw new Exception('ディレクトリの作成に失敗しました。storageディレクトリへの権限を確認して下さい。');
@@ -101,7 +101,7 @@ class ACMS_POST_Backup_Export extends ACMS_POST_Backup_Base
             }
         } finally {
             LocalStorage::removeDirectory($this->tempDirectory);
-            PrivateStorage::remove($this->lockFile);
+            $lockService->release();
             sleep(3);
             $logger->terminate();
         }

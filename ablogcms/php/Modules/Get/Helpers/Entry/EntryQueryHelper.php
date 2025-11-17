@@ -263,6 +263,12 @@ class EntryQueryHelper extends BaseHelper
                 }
                 $sql->addWhere($where);
             }
+        } else {
+            if ($this->config['displaySecretEntry'] ?? false) {
+                ACMS_Filter::categoryDisclosureSecretStatus($sql);
+            } else {
+                ACMS_Filter::categoryStatus($sql);
+            }
         }
         return $multi;
     }

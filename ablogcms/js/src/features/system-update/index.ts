@@ -32,6 +32,15 @@ export default function dispatchSystemUpdate(context: Element | Document = docum
         data.append('formToken', window.csrfToken);
         const response = await axiosLib.post(ACMS.Config.root, data);
         const json = response.data;
+        const updatedAt = new Date(json.updatedAt).getTime();
+        const now = Date.now();
+        const timeout = 180 * 1000; // 180秒
+
+        if (now - updatedAt > timeout) {
+          // 一定秒数更新されていないなら「停止した可能性あり」と判断
+          json.error = 'タイムアウトしました。リロードして処理が完了しているか確認してください。';
+          clearInterval(interval);
+        }
 
         const engine = window._.template(template);
         box.innerHTML = engine(json);

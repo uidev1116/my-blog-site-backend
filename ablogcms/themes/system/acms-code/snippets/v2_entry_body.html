@@ -75,7 +75,7 @@
             &lt;li&gt;&lt;a href=&quot;&#123;&#123; category.url &#125;&#125;&quot; class=&quot;entry-category-label&quot;&gt;&#123;&#123; category.name &#125;&#125;&lt;/a&gt;&lt;/li&gt;
           &#123;% endfor %&#125;
           &lt;!-- タグ --&gt;
-          &#123;% if touch(&#039;Touch_NotEntry&#039;) and entry.tags %&#125;
+          &#123;% if entry.tags %&#125;
             &#123;% for tag in entry.tags %&#125;
               &lt;li&gt;&lt;a href=&quot;&#123;&#123; tag.url &#125;&#125;&quot; class=&quot;entry-tag-label&quot;&gt;#&#123;&#123; tag.name &#125;&#125;&lt;/a&gt;&lt;/li&gt;
             &#123;% endfor %&#125;

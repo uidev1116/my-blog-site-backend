@@ -28,7 +28,7 @@ class EntrySummary extends Tree
         $config = $this->loadModuleConfig();
         return [
             // カテゴリー系
-            'categoryOrder' => $this->order ? $this->order : $config->get('entry_summary_order'),
+            'categoryOrder' => $this->order ? $this->order : $config->get('category_entry_summary_category_order'),
             'displayCategoryWithoutEntry' => $config->get('category_entry_summary_entry_amount_zero') === 'on',
             'displayEntryCount' => false,
             'categoryDisplayDepth' => (int) $config->get('category_entry_summary_level', 99),
@@ -36,6 +36,7 @@ class EntrySummary extends Tree
             'displayCategoryField' => $config->get('category_entry_summary_field') === 'on',
             'displayGeolocation' => false,
             'categoryDisplayIndexingOnly' => $config->get('category_entry_summary_category_indexing') === 'on',
+            'countEntryInSubcategories' => false,
 
             // エントリー系
             'order' => $config->get('category_entry_summary_order'),

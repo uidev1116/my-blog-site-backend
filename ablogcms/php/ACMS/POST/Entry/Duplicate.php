@@ -150,6 +150,8 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
 
         //-------
         // entry
+        $entryRepository = Application::make('entry.repository');
+        assert($entryRepository instanceof \Acms\Services\Entry\EntryRepository);
         if ($sourceRev) {
             $SQL = SQL::newSelect('entry_rev');
             $SQL->addWhereOpr('entry_rev_id', 1);
@@ -172,28 +174,9 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
 
         //------
         // sort
-        $SQL = SQL::newSelect('entry');
-        $SQL->setSelect('entry_sort');
-        $SQL->addWhereOpr('entry_blog_id', $bid);
-        $SQL->setOrder('entry_sort', 'DESC');
-        $SQL->setLimit(1);
-        $esort = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
-
-        $SQL = SQL::newSelect('entry');
-        $SQL->setSelect('entry_user_sort');
-        $SQL->addWhereOpr('entry_user_id', $uid);
-        $SQL->addWhereOpr('entry_blog_id', $bid);
-        $SQL->setOrder('entry_user_sort', 'DESC');
-        $SQL->setLimit(1);
-        $usort = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
-
-        $SQL = SQL::newSelect('entry');
-        $SQL->setSelect('entry_category_sort');
-        $SQL->addWhereOpr('entry_category_id', $cid);
-        $SQL->addWhereOpr('entry_blog_id', $bid);
-        $SQL->setOrder('entry_category_sort', 'DESC');
-        $SQL->setLimit(1);
-        $csort = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
+        $esort = $entryRepository->nextSort($bid);
+        $usort = $entryRepository->nextUserSort($uid, $bid);
+        $csort = $entryRepository->nextCategorySort($cid, $bid);
 
         $row['entry_id'] = $newEid;
         $row['entry_status'] = 'close';
@@ -327,6 +310,8 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
 
         //-------
         // entry
+        $entryRepository = Application::make('entry.repository');
+        assert($entryRepository instanceof \Acms\Services\Entry\EntryRepository);
         $SQL    = SQL::newSelect('entry');
         $SQL->addWhereOpr('entry_id', $eid);
         $SQL->addWhereOpr('entry_blog_id', $bid);
@@ -344,28 +329,9 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
 
         //------
         // sort
-        $SQL = SQL::newSelect('entry');
-        $SQL->setSelect('entry_sort');
-        $SQL->addWhereOpr('entry_blog_id', $bid);
-        $SQL->setOrder('entry_sort', 'DESC');
-        $SQL->setLimit(1);
-        $esort = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
-
-        $SQL = SQL::newSelect('entry');
-        $SQL->setSelect('entry_user_sort');
-        $SQL->addWhereOpr('entry_user_id', $uid);
-        $SQL->addWhereOpr('entry_blog_id', $bid);
-        $SQL->setOrder('entry_user_sort', 'DESC');
-        $SQL->setLimit(1);
-        $usort = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
-
-        $SQL = SQL::newSelect('entry');
-        $SQL->setSelect('entry_category_sort');
-        $SQL->addWhereOpr('entry_category_id', $cid);
-        $SQL->addWhereOpr('entry_blog_id', $bid);
-        $SQL->setOrder('entry_category_sort', 'DESC');
-        $SQL->setLimit(1);
-        $csort = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
+        $esort = $entryRepository->nextSort($bid);
+        $usort = $entryRepository->nextUserSort($uid, $bid);
+        $csort = $entryRepository->nextCategorySort($cid, $bid);
 
         $row['entry_id'] = $newEid;
         $row['entry_status'] = 'close';

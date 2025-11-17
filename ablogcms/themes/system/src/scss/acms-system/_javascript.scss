@@ -5,9 +5,9 @@
 // ------------------------------
 .js-acms_fix_marker {
   z-index: global.zIndex(js-acms_fix_marker);
-  margin: 0 0 10px;
   padding-top: 5px;
   padding-bottom: 5px;
+  margin: 0 0 10px;
   background: global.$acms-color-white;
 
   &.js-acms-tab-select {

@@ -17,6 +17,7 @@ class ACMS_GET_Category_List extends ACMS_GET
      * @var array{
      *  fieldSearch: string,
      *  amount: string,
+     *  countEntryInSubcategories: bool,
      *  amountZero: string,
      *  order: string,
      *  level: int,
@@ -37,6 +38,7 @@ class ACMS_GET_Category_List extends ACMS_GET
      * @return array{
      *  fieldSearch: string,
      *  amount: string,
+     *  countEntryInSubcategories: bool,
      *  amountZero: string,
      *  order: string,
      *  level: int,
@@ -51,6 +53,7 @@ class ACMS_GET_Category_List extends ACMS_GET
         return [
             'fieldSearch' => config('category_list_field_search'),
             'amount' => config('category_list_amount'),
+            'countEntryInSubcategories' => config('category_list_count_entries_in_subcategories') === 'on',
             'amountZero' => config('category_list_amount_zero'),
             'order' => config('category_list_order'),
             'level' => (int)config('category_list_level'),
@@ -80,7 +83,8 @@ class ACMS_GET_Category_List extends ACMS_GET
             $this->start,
             $this->end,
             $searchType,
-            true
+            true,
+            $this->config['countEntryInSubcategories']
         );
         $all = Database::query($categoryQuery->get(dsn()), 'all');
         if (count($all) === 0) {

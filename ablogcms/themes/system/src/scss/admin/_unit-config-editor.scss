@@ -1,8 +1,8 @@
 @use '../global/common' as global;
 
 .acms-unit-config-editor {
-  margin: 0 0 20px;
   padding: 10px;
+  margin: 0 0 20px;
   background: global.$acms-color-white;
   border: 1px solid global.$edit-entry-bg-color-dark;
 }
@@ -49,9 +49,9 @@
 
 .acms-unit-config-edit-title {
   margin: 0;
-  color: global.$acms-color-black;
   font-weight: bold;
   line-height: 1.5;
+  color: global.$acms-color-black;
 
   @include global.font-size(13);
 }

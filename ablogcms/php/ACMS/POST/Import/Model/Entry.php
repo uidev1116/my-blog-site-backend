@@ -7,8 +7,7 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
     protected $entry;
     protected $units;
     protected $fields;
-    protected $importCid;
-    protected $importBid = BID;
+    protected int $importBid = BID;
     protected $subCategories = [];
     protected $geoLat = 0;
     protected $geoLng = 0;
@@ -16,12 +15,22 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
     protected $tags = [];
     protected $idLabel = 'entry_id';
 
-    function setTargetCid($cid)
+    /**
+     * set target category id
+     *
+     * @param int|null $cid
+     */
+    public function setTargetCid($cid)
     {
         $this->importCid = $cid;
     }
 
-    function setTargetBid($bid)
+    /**
+     * set target blog id
+     *
+     * @param int $bid
+     */
+    public function setTargetBid($bid)
     {
         $this->importBid = $bid;
     }
@@ -383,6 +392,19 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
             }
         }
 
+        if (!$this->isUpdate) {
+            // 新規作成の場合はソート番号を設定（ブログ・カテゴリー・ユーザーの決定後に設定する必要がある）
+            if (!is_int($this->entry['entry_sort'])) {
+                $this->entry['entry_sort'] = $this->nextEntrySort($this->entry['entry_blog_id']);
+            }
+            if (!is_int($this->entry['entry_user_sort'])) {
+                $this->entry['entry_user_sort'] = $this->nextEntryUserSort($this->entry['entry_user_id'], $this->entry['entry_blog_id']);
+            }
+            if (!is_int($this->entry['entry_category_sort'])) {
+                $this->entry['entry_category_sort'] = $this->nextEntryCategorySort($this->entry['entry_category_id'], $this->entry['entry_blog_id']);
+            }
+        }
+
         // アップデートの場合は余分なベース情報を削除
         if ($this->isUpdate) {
             foreach ($this->entry as $key => $value) {
@@ -527,14 +549,19 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
 
     function buildField($field, $key, $value)
     {
-        $sort   = 1;
+        $sort = 1;
         if (preg_match('@\[\d+\]$@', $key, $matchs)) {
-            $sort   = intval(preg_replace('@\[|\]@', '', $matchs[0]));
-            $key    = preg_replace('@\[\d+\]$@', '', $key);
+            $sort = intval(preg_replace('@\[|\]@', '', $matchs[0]));
+            $key = preg_replace('@\[\d+\]$@', '', $key);
         }
-        $field['field_key']     = ltrim($key, '*');
-        $field['field_value']   = $value;
-        $field['field_sort']    = $sort;
+        $fieldTypeValue = null;
+        if (preg_match('/@(html|media|title)$/', $key, $matches)) {
+            $fieldTypeValue = $matches[1];
+        }
+        $field['field_key'] = ltrim($key, '*');
+        $field['field_type'] = $fieldTypeValue;
+        $field['field_value'] = $value;
+        $field['field_sort'] = $sort;
 
         $this->fields[] = $field;
     }
@@ -547,9 +574,9 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
             'entry_id'              => $this->nextId,
             'entry_code'            => config('entry_code_prefix') . $this->nextId . $this->getExtension(),
             'entry_status'          => 'open',
-            'entry_sort'            => $this->getNextSort(self::SORT_ENTRY),
-            'entry_user_sort'       => $this->getNextSort(self::SORT_USER),
-            'entry_category_sort'   => $this->getNextSort(self::SORT_CATEGORY),
+            'entry_sort'            => null,
+            'entry_user_sort'       => null,
+            'entry_category_sort'   => null,
             'entry_title'           => 'CSV_IMPORT-' . $this->nextId,
             'entry_link'            => '',
             'entry_datetime'        => $posted_datetime,

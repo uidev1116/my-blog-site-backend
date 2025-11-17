@@ -25,9 +25,9 @@
 
   margin-top: 0;
   margin-bottom: 0.5em;
-  color: var(--acms-hading-color);
   font-weight: bold;
   line-height: var(--acms-heading-line-height);
+  color: var(--acms-hading-color);
 }
 
 // h1
@@ -93,8 +93,8 @@
 
 // リスト 点なし
 .acms-list-nostyle {
-  margin: 0;
   padding-left: 0;
+  margin: 0;
   list-style: none;
 }
 
@@ -104,8 +104,8 @@
 
   li {
     display: inline-block;
-    margin-bottom: 5px;
     padding-right: 20px;
+    margin-bottom: 5px;
   }
 }
 
@@ -126,18 +126,18 @@
 .acms-dl-horizontal dt,
 .acms-dl-line dt {
   float: left;
-  clear: left;
   width: 160px;
   overflow: hidden;
-  white-space: nowrap;
+  clear: left;
   text-align: left;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .acms-dl-horizontal dd,
 .acms-dl-line dd {
-  margin: 0;
   padding-left: 0;
+  margin: 0;
 
   @include global.clearfix;
 }
@@ -170,12 +170,12 @@
 // ---------------
 .acms-blockquote,
 .acms-style blockquote {
-  margin-top: 0;
-  margin-right: 0;
-  margin-left: 0;
   padding-top: 10px;
   padding-bottom: 10px;
   padding-left: 20px;
+  margin-top: 0;
+  margin-right: 0;
+  margin-left: 0;
   border-left: solid 5px global.$acms-color-gray60;
 }
 
@@ -188,12 +188,12 @@
 
 [class*='acms-icon-'] {
   display: inline-block;
-  font-weight: normal;
   font-family: acms-fonts;
   font-style: normal;
+  font-weight: normal;
   line-height: 1;
-  text-transform: none;
   text-decoration: inherit;
+  text-transform: none;
   vertical-align: middle;
   speak: none;
   -webkit-font-smoothing: antialiased;

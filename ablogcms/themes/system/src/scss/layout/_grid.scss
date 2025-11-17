@@ -14,7 +14,9 @@
 .acms-cssgrid {
   display: grid;
   grid-template-rows: repeat(var(--acms-rows, 1), 1fr);
-  grid-template-columns: repeat(var(--acms-columns, #{global.$acms-columns}), 1fr);
+
+  /// @link https://zenn.dev/storehero/articles/31012c944ddb90
+  grid-template-columns: repeat(var(--acms-columns, #{global.$acms-columns}), minmax(0, 1fr));
   gap: var(--acms-gap, #{global.$grid-space});
 
   @include global.make-cssgrid;

@@ -4,6 +4,7 @@ namespace Acms\Services\StaticExport;
 
 use Acms\Contracts\ServiceProvider;
 use Acms\Services\Container;
+use Acms\Services\Common\Lock;
 
 class StaticExportServiceProvider extends ServiceProvider
 {
@@ -34,6 +35,9 @@ class StaticExportServiceProvider extends ServiceProvider
             $excludeLogStatusCodes = configArray('static_export_exclude_log_status_codes', false);
             $logger->init($logger_path, $container->make('static-export.terminate-check'), $excludeLogStatusCodes);
             return $logger;
+        });
+        $container->singleton('static-export.lock', function () {
+            return new Lock(CACHE_DIR . 'static-export-lock');
         });
     }
 }

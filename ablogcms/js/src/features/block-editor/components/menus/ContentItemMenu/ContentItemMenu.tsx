@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, memo, useCallback } from 'react';
 import DragHandle from '@tiptap/extension-drag-handle-react';
 import { Editor } from '@tiptap/react';
+import { NodeSelection, TextSelection } from '@tiptap/pm/state';
 import type { BlockMenuItem } from '@features/block-editor/types';
 import { Toolbar } from '@features/block-editor/components/ui/Toolbar';
 import { Icon } from '@features/block-editor/components/ui/Icon';
@@ -108,11 +109,23 @@ export const ContentItemMenu = ({ editor, getFilteredBlockMenus }: ContentItemMe
             ref={menuAnchorRef}
             aria-label="ブロックメニューを開く"
             onClick={() => {
+              const { state } = editor;
+              const { tr } = state;
               const node = editor.state.doc.nodeAt(currentNodePos);
-              const textPos = node && node.isTextblock ? currentNodePos + 1 : currentNodePos;
-              editor.chain().setTextSelection(textPos).run();
 
-              setMenuOpen(!menuOpen);
+              if (!node) return;
+
+              if (node.isTextblock) {
+                // テキストブロックなら中にカーソルを入れる
+                const textSelection = TextSelection.create(state.doc, currentNodePos + 1);
+                editor.view.dispatch(tr.setSelection(textSelection).scrollIntoView());
+              } else {
+                // 非テキストブロック（imageBlockなど）はノード選択にする
+                const nodeSelection = NodeSelection.create(state.doc, currentNodePos);
+                editor.view.dispatch(tr.setSelection(nodeSelection).scrollIntoView());
+              }
+
+              setMenuOpen((prev) => !prev);
             }}
           >
             <Icon name="drag_indicator" />

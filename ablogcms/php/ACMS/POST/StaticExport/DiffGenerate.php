@@ -1,5 +1,6 @@
 <?php
 
+use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Common;
 
 class ACMS_POST_StaticExport_DiffGenerate extends ACMS_POST_StaticExport_Generate
@@ -44,6 +45,12 @@ class ACMS_POST_StaticExport_DiffGenerate extends ACMS_POST_StaticExport_Generat
             return $this->Post;
         }
 
+        $lockService = Application::make('static-export.lock');
+        if ($lockService->isLocked()) {
+            $this->addError('静的書き出しを中止しました。すでに書き出し中の可能性があります。');
+            return $this->Post;
+        }
+
         ignore_user_abort(true);
         set_time_limit(0);
 
@@ -52,11 +59,11 @@ class ACMS_POST_StaticExport_DiffGenerate extends ACMS_POST_StaticExport_Generat
         ]);
 
         Common::backgroundRedirect(HTTP_REQUEST_URL);
-        $this->run();
+        $this->run($lockService);
         die();
     }
 
-    protected function run()
+    protected function run(\Acms\Services\Common\Lock $lockService)
     {
         $setting = Config::loadDefaultField();
         $setting->overload(Config::loadBlogConfig(BID));
@@ -95,6 +102,8 @@ class ACMS_POST_StaticExport_DiffGenerate extends ACMS_POST_StaticExport_Generat
         DB::setThrowException(true);
         $logger = null;
         try {
+            $lockService->tryLock();
+
             $logger = App::make('static-export.logger');
             $engine = App::make('static-export.diff-engine');
             $destination = App::make('static-export.destination');
@@ -127,6 +136,8 @@ class ACMS_POST_StaticExport_DiffGenerate extends ACMS_POST_StaticExport_Generat
         } catch (\Exception $e) {
             $logger->error($e->getMessage());
             AcmsLogger::warning($e->getMessage(), Common::exceptionArray($e));
+        } finally {
+            $lockService->release();
         }
         DB::setThrowException(false);
     }

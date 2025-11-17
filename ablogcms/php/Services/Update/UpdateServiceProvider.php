@@ -4,6 +4,7 @@ namespace Acms\Services\Update;
 
 use Acms\Contracts\ServiceProvider;
 use Acms\Services\Container;
+use Acms\Services\Common\Lock;
 
 class UpdateServiceProvider extends ServiceProvider
 {

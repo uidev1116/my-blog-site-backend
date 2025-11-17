@@ -11,14 +11,13 @@ class ACMS_GET_Admin_Export_WordPress extends ACMS_GET_Admin
         }
 
         $tpl = new Template($this->tpl, new ACMS_Corrector());
-        $logger = Application::make('common.logger');
-        $logger->setDestinationPath(CACHE_DIR . 'wxr-export-logger.json');
         $rootVars = [];
 
         /**
          * CSVインポート中チェック
          */
-        if ($logger->isProcessing()) {
+        $lockService = Application::make('export-wxr-lock');
+        if ($lockService->isLocked()) {
             $rootVars['processing'] = 1;
         } else {
             $rootVars['processing'] = 0;

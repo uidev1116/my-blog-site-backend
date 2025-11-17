@@ -2,8 +2,8 @@
 
 .acms-banner-edit-item {
   position: relative;
-  margin-bottom: 15px;
   padding-bottom: 10px;
+  margin-bottom: 15px;
   background-color: global.$acms-color-white;
   border-radius: 3px;
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%);
@@ -50,9 +50,9 @@
 
 .acms-banner-edit-header-type-label {
   margin: 0;
-  color: global.$acms-color-white;
-  font-weight: bold;
   font-size: 13px;
+  font-weight: bold;
+  color: global.$acms-color-white;
 }
 
 .acms-banner-edit-container {
@@ -117,16 +117,16 @@
 .acms-banner-edit-remove-btn {
   width: 18px;
   height: 18px;
-  margin: 0;
   padding: 2px;
-  color: global.$acms-color-system-gray60;
+  margin: 0;
   font-size: 10px;
+  color: global.$acms-color-system-gray60;
   text-align: center;
+  appearance: none;
+  cursor: pointer;
   background: global.$acms-color-white;
   border: 0;
   border-radius: 50%;
-  cursor: pointer;
-  appearance: none;
 }
 
 .acms-banner-edit-figure {
@@ -134,8 +134,8 @@
   box-sizing: border-box;
   padding-bottom: 100%;
   overflow: hidden;
-  background-color: global.$acms-color-gray20;
   cursor: pointer;
+  background-color: global.$acms-color-gray20;
 
   img {
     position: absolute;
@@ -143,9 +143,9 @@
     left: 50%;
     width: 100%;
     height: auto;
-    transform: translate(-50%, -50%);
     opacity: 0;
     transition: transform 0.3s;
+    transform: translate(-50%, -50%);
   }
 }
 
@@ -260,8 +260,8 @@
     display: block;
     width: 15px;
     height: 1px;
-    background-color: global.$acms-color-white;
     content: '';
+    background-color: global.$acms-color-white;
   }
 }
 

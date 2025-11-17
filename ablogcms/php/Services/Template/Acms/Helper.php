@@ -1502,6 +1502,8 @@ class Helper
     {
         $acmsTplEngine = Application::make('template.acms.engine');
         $acmsTplResolver = Application::make('template.acms.resolver');
+        assert($acmsTplEngine instanceof \Acms\Services\Template\Acms\Engine);
+        assert($acmsTplResolver instanceof \Acms\Services\Template\Acms\Resolver);
 
         $tpl = 'include/module/template/' . $moduleName . '.html'; // 標準テンプレート
         if ($moduleTpl) {
@@ -1533,7 +1535,7 @@ class Helper
                     if ($onlyLayout) {
                         if ($moduleName === 'Entry_Body') {
                             $mTpl = (string)preg_replace('/<!--[\t 　]*BEGIN_MODULE[\t 　]+Entry_Body[^>]*?-->/', '<!-- BEGIN_MODULE Entry_Body' . $opt . ' -->', $mTpl);
-                            $mTpl = build($mTpl, $post);
+                            $mTpl = $acmsTplEngine->render($mTpl, $post);
                         } else {
                             $mTpl = (string)preg_replace(
                                 '/<!--[\t 　]*(BEGIN|END)_MODULE+[\t 　]+([^\t 　]+)([^>]*?)[\t 　]*-->/',
@@ -1544,7 +1546,7 @@ class Helper
                         }
                     } elseif ($moduleName === 'Entry_Body') {
                         $mTpl = (string)preg_replace('/<!--[\t 　]*BEGIN_MODULE[\t 　]+Entry_Body[^>]*?-->/', '<!-- BEGIN_MODULE Entry_Body' . $opt . ' -->', $mTpl);
-                        $mTpl = build($mTpl, $post);
+                        $mTpl = $acmsTplEngine->render($mTpl, $post);
                     } else {
                         $mTpl = (string)preg_replace(
                             '/<!--[\t 　]*(BEGIN|END)_MODULE+[\t 　]+([^\t 　]+)([^>]*?)[\t 　]*-->/',
@@ -1556,7 +1558,10 @@ class Helper
                         $sql->addWhereOpr('module_name', $moduleName);
 
                         $eagerLoadModule[$moduleName][$moduleID] = DB::query($sql->get(dsn()), 'row');
+
+                        $mTpl = preg_replace(['/@begin_acms_vars@[^@]+@end_acms_vars@/'], [''], $mTpl) ?? ''; // 未解決の @begin_acms_vars@xxx@end_acms_vars@ を削除
                         $mTpl = boot($moduleName, $mTpl, $opt, $post, Field::singleton('config'), $eagerLoadModule);
+                        $mTpl = verbatim($mTpl, false); // @verbatim ブロックが残ってしまう問題対策
                     }
                 }
                 if (isDebugMode()) {

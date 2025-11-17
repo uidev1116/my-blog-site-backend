@@ -1,6 +1,6 @@
 <?php
 
-use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\Application;
 
 class ACMS_GET_Admin_Import_UserCsv extends ACMS_GET_Admin
 {
@@ -14,14 +14,13 @@ class ACMS_GET_Admin_Import_UserCsv extends ACMS_GET_Admin
         }
 
         $tpl = new Template($this->tpl, new ACMS_Corrector());
-        $logger = App::make('common.logger');
-        $logger->setDestinationPath(CACHE_DIR . 'user-csv-import-logger.json');
         $rootVars = [];
 
         /**
          * CSVインポート中チェック
          */
-        if (LocalStorage::exists($logger->getDestinationPath())) {
+        $lockService = Application::make('user.import.csv-lock');
+        if ($lockService->isLocked()) {
             $rootVars['processing'] = 1;
         } else {
             $rootVars['processing'] = 0;

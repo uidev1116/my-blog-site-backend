@@ -5,9 +5,9 @@
 ------------------------------- */
 .acms-navbar {
   z-index: global.zIndex(acms-navbar);
-  clear: both;
   width: 100%;
   margin: 0 0 20px;
+  clear: both;
   list-style: none outside none;
   background-color: global.$acms-color-black;
   border-top: solid 1px global.$acms-color-black;
@@ -16,8 +16,8 @@
   // リスト全体
   ul {
     display: block;
-    margin: 0 auto;
     padding: 0;
+    margin: 0 auto;
     list-style: none;
   }
 
@@ -28,11 +28,11 @@
   a:active {
     display: block;
     padding: 0 30px;
-    color: global.$acms-color-white;
     font-size: 14px;
     line-height: 4.5;
-    letter-spacing: 0 !important;
+    color: global.$acms-color-white;
     text-decoration: none;
+    letter-spacing: 0 !important;
   }
 
   a:hover {
@@ -70,9 +70,9 @@
 
     li {
       position: relative;
-      clear: left;
       width: 100%;
       height: 40px;
+      clear: left;
       font-size: 13px;
       border-right: none;
       border-left: none;
@@ -137,8 +137,8 @@
     ul {
       display: block;
       width: 940px;
-      margin: 0 auto;
       padding: 0;
+      margin: 0 auto;
       list-style: none;
     }
 

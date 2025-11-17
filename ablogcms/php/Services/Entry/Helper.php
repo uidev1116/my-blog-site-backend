@@ -500,7 +500,7 @@ class Helper
      * サブカテゴリーを保存
      *
      * @param int $eid
-     * @param int $masterCid
+     * @param int|null $masterCid
      * @param string $cids
      * @param int $bid
      * @param int|null $rvid

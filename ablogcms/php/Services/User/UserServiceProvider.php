@@ -4,6 +4,7 @@ namespace Acms\Services\User;
 
 use Acms\Contracts\ServiceProvider;
 use Acms\Services\Container;
+use Acms\Services\Common\Lock;
 
 class UserServiceProvider extends ServiceProvider
 {
@@ -17,6 +18,9 @@ class UserServiceProvider extends ServiceProvider
     public function register(Container $container)
     {
         $container->singleton('user', 'Acms\Services\User\Helper');
+        $container->singleton('user.import.csv-lock', function () {
+            return new Lock(CACHE_DIR . 'user-import-csv-lock');
+        });
     }
 
     /**

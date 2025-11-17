@@ -505,9 +505,6 @@
     "remove_file": "ファイルを削除する",
     "error": {
       "unknown": "不明なエラーが発生しました。"
-    },
-    "validate_message": {
-      "alt_maxlength": "150字以内で入力してください。"
     }
   },
   "media_banner": {

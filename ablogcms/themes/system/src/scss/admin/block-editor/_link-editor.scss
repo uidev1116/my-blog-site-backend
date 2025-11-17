@@ -4,8 +4,8 @@
 
 .acms-block-editor-link-editor {
   min-width: 264px;
-  color: var(--acms-block-editor-neutral-900);
   font-size: var(--acms-block-editor-font-size-xs);
+  color: var(--acms-block-editor-neutral-900);
 }
 
 // プレビュー
@@ -23,14 +23,14 @@
   max-height: 90px;
   padding: 4px;
   overflow: hidden;
-  color: var(--acms-block-editor-neutral-900);
   font-size: var(--acms-block-editor-font-size-xs);
   line-height: var(--acms-block-editor-line-height-sm);
+  color: var(--acms-block-editor-neutral-900);
   text-decoration: underline;
   text-overflow: ellipsis;
+  -webkit-line-clamp: 5;
   word-break: break-all;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 5;
 
   &:hover {
     color: var(--acms-block-editor-neutral-900);

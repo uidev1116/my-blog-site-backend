@@ -90,6 +90,9 @@ class Text extends Model implements AlignableUnitInterface, AnkerUnitInterface, 
         if (is_null($id)) {
             throw new \LogicException('Unit ID must be set before calling extract');
         }
+        if (!isset($request["text_tag_{$id}"])) {
+            return;
+        }
         $tag = is_array($request["text_tag_{$id}"]) ? $request["text_tag_{$id}"][0] : $request["text_tag_{$id}"];
         $tokens = preg_split('@(#|\.)@', $tag, -1, PREG_SPLIT_DELIM_CAPTURE);
         if ($tokens === false) {

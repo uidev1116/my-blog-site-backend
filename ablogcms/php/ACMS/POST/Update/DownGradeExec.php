@@ -10,7 +10,7 @@ class ACMS_POST_Update_DownGradeExec extends ACMS_POST_Update_Base
     {
         /** @var \Acms\Services\Update\Operations\Downgrade $downgradeService */
         $downgradeService = Application::make('update.exec.downgrade');
-        /** @var \Acms\Services\Update\Lock $lockService */
+        /** @var \Acms\Services\Common\Lock $lockService */
         $lockService = Application::make('update.lock');
         /** @var \Acms\Services\Update\LoggerFactory $loggerFactory */
         $loggerFactory = Application::make('update.logger');
@@ -20,7 +20,7 @@ class ACMS_POST_Update_DownGradeExec extends ACMS_POST_Update_Base
             return $this->Post;
         }
         $downgradeService->init();
-        if ($lockService->isProcessing()) {
+        if ($lockService->isLocked()) {
             $this->addError(gettext('ダウングレードを中止しました。すでにダウングレード中の可能性があります。変化がない場合は、cache/system-update-lock ファイルを削除してお試しください。'));
             return $this->Post;
         }

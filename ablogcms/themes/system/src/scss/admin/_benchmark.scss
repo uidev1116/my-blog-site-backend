@@ -24,8 +24,8 @@
 .acmsBenchmarkTable {
   margin-top: 10px;
   text-align: left;
-  background-color: global.$acms-color-white;
   border-collapse: collapse;
+  background-color: global.$acms-color-white;
 
   @include global.font-size(8);
 

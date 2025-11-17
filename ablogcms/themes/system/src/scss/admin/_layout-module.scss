@@ -28,9 +28,9 @@
   min-width: 200px;
   padding: 10px;
   color: global.$acms-color-white;
+  cursor: move;
   background: global.$acms-color-black;
   border-radius: 3px 3px 0 0;
-  cursor: move;
 
   @include global.font-size(13);
 }
@@ -40,8 +40,8 @@
 }
 
 .acms-layout-menu-half {
-  float: left;
   box-sizing: border-box;
+  float: left;
   width: 50%;
   padding: 0 5px;
 }
@@ -50,8 +50,8 @@
 .acms-layout-menu-group-heading {
   display: block;
   padding: 7px 10px 7px 28px;
-  color: global.$acms-color-white;
   font-weight: bold;
+  color: global.$acms-color-white;
   background: url('../images/marker/arrow_black05.png') no-repeat 10px center global.$acms-color-system-gray70;
   background-size: 8px 5px;
   border-top: 1px solid global.$acms-color-white;
@@ -157,10 +157,10 @@
   &::before {
     position: absolute;
     inset: -2px;
-    border: 2px dashed global.$acms-color-black-dark;
 
     // レイアウト範囲表示
     content: '';
+    border: 2px dashed global.$acms-color-black-dark;
   }
 }
 
@@ -172,12 +172,12 @@
   // レイアウトユニット
   .acms-layout-unit {
     box-sizing: border-box;
-    margin-bottom: 5px;
     padding: 0 3px 3px;
+    margin-bottom: 5px;
+    cursor: move;
     background-color: global.$layout-unit-bg;
     border: 1px solid global.$layout-unit-border;
     border-radius: 4px;
-    cursor: move;
 
     .acms-layout-contents {
       padding: 3px;
@@ -195,16 +195,16 @@
 
   // ユニット内ラベルの名前
   .acms-layout-label-name {
-    color: global.$acms-color-gray90;
     font-weight: bold;
+    color: global.$acms-color-gray90;
 
     @include global.font-size(13);
   }
 
   // モジュールユニット
   .acms-layout-module-unit {
-    margin-bottom: 5px;
     padding: 0 5px 5px;
+    margin-bottom: 5px;
     background: #7096cd;
 
     .acms-layout-contents {
@@ -228,9 +228,9 @@
       display: block;
       width: 100%;
       height: 13px;
+      content: '';
       background: url('../images/marker/ico_dragabble.png') no-repeat center center;
       background-size: 23px 13px;
-      content: '';
     }
 
     [class*='acms-icon'] {
@@ -323,8 +323,8 @@
   padding: 0;
 
   ul {
-    margin: 0;
     padding-left: 0;
+    margin: 0;
     list-style: none;
   }
 
@@ -346,8 +346,8 @@
 
 .acms-layout-module-edit-tpl-type {
   margin: 0 10px 0 0;
-  color: global.$acms-color-gray90;
   font-weight: bold;
+  color: global.$acms-color-gray90;
 }
 
 .acms-layout-sidebar-item {
@@ -371,9 +371,9 @@
   }
 
   &:hover {
+    cursor: pointer;
     background: global.$edit-entry-bg-color-white;
     border-right: 1px solid global.$acms-color-white;
-    cursor: pointer;
   }
 
   [class*='acms-label'] {
@@ -412,9 +412,9 @@
 .acms-layout-sidebar-item-sub {
   display: block;
   margin: 0 0 8px;
-  color: global.$acms-color-gray90;
-  font-weight: normal;
   font-size: 12px;
+  font-weight: normal;
+  color: global.$acms-color-gray90;
 
   p {
     margin: 0;
@@ -424,8 +424,8 @@
 .acms-layout-sidebar-link a {
   padding: 20px 10px 20px 20px;
   padding-left: calc(10px + constant(safe-area-inset-left));
-  color: global.$acms-color-black;
   font-weight: bold;
+  color: global.$acms-color-black;
 
   @include global.font-size(14);
 
@@ -468,12 +468,12 @@
 
 .acms-layout-mobile-phone-frame {
   position: relative;
-  clear: both;
   width: 360px;
   height: 680px;
-  margin: 20px auto;
   padding-top: 50px;
   padding-left: 18px;
+  margin: 20px auto;
+  clear: both;
   background: global.$acms-color-white;
   border: 2px solid global.$acms-color-gray60;
   border-radius: 35px;
@@ -485,9 +485,9 @@
     box-sizing: border-box;
     width: 40px;
     height: 40px;
+    content: '';
     border: 2px solid global.$acms-color-gray60;
     border-radius: 20px;
-    content: '';
   }
 
   &::after {
@@ -497,9 +497,9 @@
     box-sizing: border-box;
     width: 80px;
     height: 6px;
+    content: '';
     border: 3px solid global.$acms-color-gray60;
     border-radius: 5px;
-    content: '';
   }
 }
 

@@ -1,6 +1,6 @@
 <?php
 
-use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\Application;
 
 class ACMS_GET_Admin_StaticExport extends ACMS_GET_Admin
 {
@@ -10,13 +10,13 @@ class ACMS_GET_Admin_StaticExport extends ACMS_GET_Admin
             die403();
         }
         $tpl = new Template($this->tpl, new ACMS_Corrector());
-        $logger = App::make('static-export.logger');
-        assert($logger instanceof \Acms\Services\StaticExport\Logger);
 
         /**
          * 書き出し中チェック
          */
-        if (LocalStorage::exists($logger->getDestinationPath())) {
+        $lockService = Application::make('static-export.lock');
+        assert($lockService instanceof \Acms\Services\Common\Lock);
+        if ($lockService->isLocked()) {
             return $tpl->render([
                 'processing' => 1,
             ]);

@@ -12,13 +12,13 @@
   width: 100%;
   max-width: 300px;
   box-shadow: 0 3px 6px rgb(0 0 0 / 15%);
-  transform: translateY(-100%);
   transition: transform 0.4s ease;
+  transform: translateY(-100%);
 }
 
 .acms-toast-header {
-  display: flex;
   box-sizing: border-box;
+  display: flex;
   width: 100%;
   padding: 10px;
   color: global.$acms-toast-text-color;
@@ -31,9 +31,9 @@
 .acms-toast-icon-btn {
   padding: 0;
   color: global.$acms-toast-black;
+  appearance: none;
   background: transparent;
   border: 0;
-  appearance: none;
 }
 
 .acms-toast-heading {
@@ -41,16 +41,16 @@
   flex: 1;
   width: 100%;
   margin: 0 0 0 10px;
-  color: global.$acms-toast-text-color;
   line-height: 1.3;
+  color: global.$acms-toast-text-color;
 
   @include global.font-size(14);
 }
 
 .acms-toast-body {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
   width: 100%;
   padding: 10px;
   color: global.$acms-color-black;
@@ -80,8 +80,8 @@
 }
 
 .acms-toast-footer {
-  display: flex;
   box-sizing: border-box;
+  display: flex;
   width: 100%;
   padding: 15px;
   background: global.$acms-color-white;

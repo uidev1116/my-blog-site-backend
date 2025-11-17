@@ -50,7 +50,7 @@ class ACMS_GET_Member_Update_Email extends ACMS_GET_Member
         $vars = [];
         $data = [];
 
-        if ($_SERVER['REQUEST_METHOD'] === 'GET' && $this->isAuthUrl()) {
+        if ($this->shouldTryEmailAuth()) {
             // メールアドレス認証画面
             try {
                 $data = $this->validateAuthUrl();
@@ -103,5 +103,27 @@ class ACMS_GET_Member_Update_Email extends ACMS_GET_Member
         ACMS_RAM::user($uid, null);
 
         $this->removeToken();
+    }
+
+    /**
+     * メール認証によるメールアドレス変更を試行するかどうか
+     *
+     * @return bool
+     */
+    protected function shouldTryEmailAuth(): bool
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            return false;
+        }
+        if (!defined('IS_UPDATE_EMAIL_PAGE')) {
+            return false;
+        }
+        if (IS_UPDATE_EMAIL_PAGE !== 1) {
+            return false;
+        }
+        if (!$this->isAuthUrl()) {
+            return false;
+        }
+        return true;
     }
 }

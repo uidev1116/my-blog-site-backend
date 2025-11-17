@@ -14,8 +14,8 @@
 .acms-table {
   width: 100%;
   max-width: 100%;
-  border-top: var(--acms-table-border);
   border-collapse: collapse;
+  border-top: var(--acms-table-border);
 
   // データ
   th,
@@ -272,8 +272,8 @@
   .acms-table-entry {
     th,
     td {
-      display: block;
       box-sizing: border-box;
+      display: block;
       width: 100%;
       padding-right: 0;
       padding-left: 0;
@@ -314,8 +314,8 @@
 
   .acms-table-admin {
     width: 100%;
-    border-collapse: separate;
     border-spacing: 0;
+    border-collapse: separate;
 
     // 見出し
     thead {
@@ -358,10 +358,10 @@
     top: 0;
     width: 5px;
     height: 100%;
-    background: rgb(0 0 0 / 50%);
+    touch-action: none;
     cursor: col-resize;
     user-select: none;
-    touch-action: none;
+    background: rgb(0 0 0 / 50%);
   }
 
   .acms-table-column-resizer.ltr {
@@ -549,8 +549,8 @@
 
   .acms-table-admin-media-edit {
     width: 100%;
-    border: none;
     border-collapse: collapse;
+    border: none;
 
     @include global.font-size(14);
 
@@ -640,8 +640,8 @@
     box-sizing: border-box;
     width: 100%;
     margin: 0;
-    border: var(--acms-admin-mini-table-border);
     border-collapse: collapse;
+    border: var(--acms-admin-mini-table-border);
 
     thead {
       background: global.$acms-color-white;
@@ -671,8 +671,8 @@
     }
 
     ul {
-      margin-bottom: 0;
       padding-left: 1em;
+      margin-bottom: 0;
     }
   }
 
@@ -767,10 +767,10 @@
 // カスタムフィールドメーカーで生成されるモダンなタグのテーブルレイアウト
 // -----------------------------------------------------------
 .acms-grid-edit-table {
+  box-sizing: border-box;
   display: grid;
   grid-template-columns: repeat(1, minmax(0, 1fr));
   gap: 12px;
-  box-sizing: border-box;
 
   @include global.font-size(14);
 
@@ -785,9 +785,9 @@
 
   .acms-grid-edit-table-heading {
     width: 100%;
-    color: global.$acms-color-gray90;
     font-weight: bold;
     line-height: 1.7;
+    color: global.$acms-color-gray90;
     text-align: left;
     vertical-align: top;
   }
@@ -814,20 +814,20 @@
 // テーブル ソート
 // ---------------
 .acms-th-sort-btn {
-  display: inline-flex;
-  align-items: center;
   box-sizing: content-box;
+  display: inline-flex;
+  column-gap: global.$acms-btn-column-gap;
+  align-items: center;
   width: 100%;
-  margin: calc(-1 * var(--acms-table-cell-padding));
   padding: var(--acms-table-cell-padding);
-  color: inherit;
+  margin: calc(-1 * var(--acms-table-cell-padding));
   font-weight: inherit;
   line-height: inherit;
-  column-gap: global.$acms-btn-column-gap;
+  color: inherit;
+  appearance: none;
+  cursor: pointer;
   background-color: transparent;
   border: none;
-  cursor: pointer;
-  appearance: none;
 
   &:focus-visible {
     outline-offset: -5px;
@@ -836,12 +836,12 @@
 
 .acms-th-sort-btn::after {
   position: absolute;
+  inset: 0;
   z-index: 1;
+  content: '';
   border-color: global.$acms-color-black;
   border-style: solid;
   border-width: 0;
-  content: '';
-  inset: 0;
 }
 
 th[aria-sort='ascending'] .acms-th-sort-btn::after {
@@ -868,18 +868,18 @@ th[aria-sort='descending'] .acms-th-sort-btn::after {
   display: inline-block;
   width: 10px;
   height: 7px;
-  background-color: global.$acms-color-black;
   visibility: hidden;
+  background-color: global.$acms-color-black;
 }
 
 th[aria-sort='ascending'] .acms-th-sort-btn-icon {
-  visibility: visible;
   clip-path: polygon(100% 100%, 0 100%, 50% 0);
+  visibility: visible;
 }
 
 th[aria-sort='descending'] .acms-th-sort-btn-icon {
-  visibility: visible;
   clip-path: polygon(0 0, 100% 0, 50% 100%);
+  visibility: visible;
 }
 
 // ---------------

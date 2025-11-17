@@ -19,6 +19,7 @@ export const FileBlockView = (props: FileBlockViewProps) => {
         mediaId: string;
         alt?: string;
         caption?: string;
+        class?: string;
       };
     };
   };
@@ -28,7 +29,8 @@ export const FileBlockView = (props: FileBlockViewProps) => {
   const wrapperClassName = cn(
     node.attrs.align === 'left' && 'acms-admin-block-editor-wrapper acms-admin-block-editor-wrapper-left',
     node.attrs.align === 'right' && 'acms-admin-block-editor-wrapper acms-admin-block-editor-wrapper-right',
-    node.attrs.align === 'center' && 'acms-admin-block-editor-wrapper acms-admin-block-editor-wrapper-center'
+    node.attrs.align === 'center' && 'acms-admin-block-editor-wrapper acms-admin-block-editor-wrapper-center',
+    node.attrs.class
   );
 
   const onClick = useCallback(
@@ -54,6 +56,7 @@ export const FileBlockView = (props: FileBlockViewProps) => {
                 height={iconHeight}
                 onClick={onClick}
                 data-mid={mediaId}
+                draggable={false}
               />
               {caption && <p className="caption">{caption}</p>}
             </>
@@ -71,7 +74,15 @@ export const FileBlockView = (props: FileBlockViewProps) => {
                   }
                 }}
               >
-                <img className="block" src={icon} alt={alt} width={iconWidth} height={iconHeight} data-mid={mediaId} />
+                <img
+                  className="block"
+                  src={icon}
+                  alt={alt}
+                  width={iconWidth}
+                  height={iconHeight}
+                  data-mid={mediaId}
+                  draggable={false}
+                />
                 {caption && <p className="caption">{caption}</p>}
               </div>
             </>

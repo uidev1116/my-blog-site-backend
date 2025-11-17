@@ -1,4 +1,5 @@
 import { Editor } from '@tiptap/core';
+import { NodeSelection } from '@tiptap/pm/state';
 import { useCallback, useEffect, useRef, useMemo } from 'react';
 import type { BlockMenuItem, CommandItem } from '@features/block-editor/types';
 import { useFrequentlyUsed } from '@features/block-editor/hooks/useFrequentlyUsed';
@@ -25,12 +26,24 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
         convert: (editor, pos) => {
           const chain = editor.chain();
           chain.setNodeSelection(pos);
-          chain.removeList(pos).setParagraph().run();
+          chain.removeList(pos).removeBlockquote(pos).setParagraph().run();
           const { $from } = editor.state.selection;
           const newPos = $from.before(1);
           editor.chain().focus().setBlockAttrs(newPos, { class: cmd.class }).run();
         },
         isDisabled: (editor) => {
+          const isSame = cmd.class
+            ? editor.isActive('paragraph', { class: cmd.class })
+            : editor.isActive('paragraph', { class: null }) || editor.isActive('paragraph', { class: '' });
+          // 同じ 要素 + class なら disable
+          if (isSame) {
+            return true;
+          }
+          // 同じ要素だが class が違う場合 → enable
+          if (editor.isActive('paragraph')) {
+            return false;
+          }
+          // それ以外は通常の can 判定
           return !editor.can().setParagraph();
         },
         isActive: (editor) => {
@@ -53,12 +66,25 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
         convert: (editor, pos) => {
           const chain = editor.chain();
           chain.setNodeSelection(pos);
-          chain.removeList(pos).setHeading({ level: 1 }).run();
+          chain.removeList(pos).removeBlockquote(pos).setHeading({ level: 1 }).run();
           const { $from } = editor.state.selection;
           const newPos = $from.before(1);
           editor.chain().focus().setBlockAttrs(newPos, { class: cmd.class }).run();
         },
         isDisabled: (editor) => {
+          const isSame = cmd.class
+            ? editor.isActive('heading', { level: 1, class: cmd.class })
+            : editor.isActive('heading', { level: 1, class: null }) ||
+              editor.isActive('heading', { level: 1, class: '' });
+          // 同じ 要素 + class なら disable
+          if (isSame) {
+            return true;
+          }
+          // 同じ要素だが class が違う場合 → enable
+          if (editor.isActive('heading', { level: 1 })) {
+            return false;
+          }
+          // それ以外は通常の can 判定
           return !editor.can().setHeading({ level: 1 });
         },
         isActive: (editor) => {
@@ -83,12 +109,25 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
         convert: (editor, pos) => {
           const chain = editor.chain();
           chain.setNodeSelection(pos);
-          chain.removeList(pos).setHeading({ level: 2 }).run();
+          chain.removeList(pos).removeBlockquote(pos).setHeading({ level: 2 }).run();
           const { $from } = editor.state.selection;
           const newPos = $from.before(1);
           editor.chain().focus().setBlockAttrs(newPos, { class: cmd.class }).run();
         },
         isDisabled: (editor) => {
+          const isSame = cmd.class
+            ? editor.isActive('heading', { level: 2, class: cmd.class })
+            : editor.isActive('heading', { level: 2, class: null }) ||
+              editor.isActive('heading', { level: 2, class: '' });
+          // 同じ 要素 + class なら disable
+          if (isSame) {
+            return true;
+          }
+          // 同じ要素だが class が違う場合 → enable
+          if (editor.isActive('heading', { level: 2 })) {
+            return false;
+          }
+          // それ以外は通常の can 判定
           return !editor.can().setHeading({ level: 2 });
         },
         isActive: (editor) => {
@@ -113,12 +152,25 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
         convert: (editor, pos) => {
           const chain = editor.chain();
           chain.setNodeSelection(pos);
-          chain.removeList(pos).setHeading({ level: 3 }).run();
+          chain.removeList(pos).removeBlockquote(pos).setHeading({ level: 3 }).run();
           const { $from } = editor.state.selection;
           const newPos = $from.before(1);
           editor.chain().setBlockAttrs(newPos, { class: cmd.class }).run();
         },
         isDisabled: (editor) => {
+          const isSame = cmd.class
+            ? editor.isActive('heading', { level: 3, class: cmd.class })
+            : editor.isActive('heading', { level: 3, class: null }) ||
+              editor.isActive('heading', { level: 3, class: '' });
+          // 同じ 要素 + class なら disable
+          if (isSame) {
+            return true;
+          }
+          // 同じ要素だが class が違う場合 → enable
+          if (editor.isActive('heading', { level: 3 })) {
+            return false;
+          }
+          // それ以外は通常の can 判定
           return !editor.can().setHeading({ level: 3 });
         },
         isActive: (editor) => {
@@ -143,12 +195,25 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
         convert: (editor, pos) => {
           const chain = editor.chain();
           chain.setNodeSelection(pos);
-          chain.removeList(pos).setHeading({ level: 4 }).run();
+          chain.removeList(pos).removeBlockquote(pos).setHeading({ level: 4 }).run();
           const { $from } = editor.state.selection;
           const newPos = $from.before(1);
           editor.chain().focus().setBlockAttrs(newPos, { class: cmd.class }).run();
         },
         isDisabled: (editor) => {
+          const isSame = cmd.class
+            ? editor.isActive('heading', { level: 4, class: cmd.class })
+            : editor.isActive('heading', { level: 4, class: null }) ||
+              editor.isActive('heading', { level: 4, class: '' });
+          // 同じ 要素 + class なら disable
+          if (isSame) {
+            return true;
+          }
+          // 同じ要素だが class が違う場合 → enable
+          if (editor.isActive('heading', { level: 4 })) {
+            return false;
+          }
+          // それ以外は通常の can 判定
           return !editor.can().setHeading({ level: 4 });
         },
         isActive: (editor) => {
@@ -173,12 +238,25 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
         convert: (editor, pos) => {
           const chain = editor.chain();
           chain.setNodeSelection(pos);
-          chain.removeList(pos).setHeading({ level: 5 }).run();
+          chain.removeList(pos).removeBlockquote(pos).setHeading({ level: 5 }).run();
           const { $from } = editor.state.selection;
           const newPos = $from.before(1);
           editor.chain().focus().setBlockAttrs(newPos, { class: cmd.class }).run();
         },
         isDisabled: (editor) => {
+          const isSame = cmd.class
+            ? editor.isActive('heading', { level: 5, class: cmd.class })
+            : editor.isActive('heading', { level: 5, class: null }) ||
+              editor.isActive('heading', { level: 5, class: '' });
+          // 同じ 要素 + class なら disable
+          if (isSame) {
+            return true;
+          }
+          // 同じ要素だが class が違う場合 → enable
+          if (editor.isActive('heading', { level: 5 })) {
+            return false;
+          }
+          // それ以外は通常の can 判定
           return !editor.can().setHeading({ level: 5 });
         },
         isActive: (editor) => {
@@ -203,12 +281,25 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
         convert: (editor, pos) => {
           const chain = editor.chain();
           chain.setNodeSelection(pos);
-          chain.removeList(pos).setHeading({ level: 6 }).run();
+          chain.removeList(pos).removeBlockquote(pos).setHeading({ level: 6 }).run();
           const { $from } = editor.state.selection;
           const newPos = $from.before(1);
           editor.chain().focus().setBlockAttrs(newPos, { class: cmd.class }).run();
         },
         isDisabled: (editor) => {
+          const isSame = cmd.class
+            ? editor.isActive('heading', { level: 6, class: cmd.class })
+            : editor.isActive('heading', { level: 6, class: null }) ||
+              editor.isActive('heading', { level: 6, class: '' });
+          // 同じ 要素 + class なら disable
+          if (isSame) {
+            return true;
+          }
+          // 同じ要素だが class が違う場合 → enable
+          if (editor.isActive('heading', { level: 6 })) {
+            return false;
+          }
+          // それ以外は通常の can 判定
           return !editor.can().setHeading({ level: 6 });
         },
         isActive: (editor) => {
@@ -240,12 +331,25 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
         convert: (editor, pos) => {
           const chain = editor.chain();
           chain.setNodeSelection(pos);
-          chain.toggleBulletList().run();
+          chain.removeList(pos).removeBlockquote(pos).splitBulletList(pos).run();
+
           const { $from } = editor.state.selection;
           const newPos = $from.before(1);
           editor.chain().focus().setBlockAttrs(newPos, { class: cmd.class }).run();
         },
         isDisabled: (editor) => {
+          const isSame = cmd.class
+            ? editor.isActive('bulletList', { class: cmd.class })
+            : editor.isActive('bulletList', { class: null }) || editor.isActive('bulletList', { class: '' });
+          // 同じ 要素 + class なら disable
+          if (isSame) {
+            return true;
+          }
+          // 同じ要素だが class が違う場合 → enable
+          if (editor.isActive('bulletList') || editor.isActive('orderedList')) {
+            return false;
+          }
+          // それ以外は通常の can 判定
           return !editor.can().toggleBulletList();
         },
         isActive: (editor) => {
@@ -272,12 +376,25 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
         convert: (editor, pos) => {
           const chain = editor.chain();
           chain.setNodeSelection(pos);
-          chain.toggleOrderedList().run();
+          chain.removeList(pos).removeBlockquote(pos).splitOrderedList(pos).run();
+
           const { $from } = editor.state.selection;
           const newPos = $from.before(1);
           editor.chain().focus().setBlockAttrs(newPos, { class: cmd.class }).run();
         },
         isDisabled: (editor) => {
+          const isSame = cmd.class
+            ? editor.isActive('orderedList', { class: cmd.class })
+            : editor.isActive('orderedList', { class: null }) || editor.isActive('orderedList', { class: '' });
+          // 同じ 要素 + class なら disable
+          if (isSame) {
+            return true;
+          }
+          // 同じ要素だが class が違う場合 → enable
+          if (editor.isActive('orderedList') || editor.isActive('bulletList')) {
+            return false;
+          }
+          // それ以外は通常の can 判定
           return !editor.can().toggleOrderedList();
         },
         isActive: (editor) => {
@@ -310,7 +427,19 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
           editor.chain().focus().setBlockAttrs(newPos, { class: cmd.class }).run();
         },
         isDisabled: (editor) => {
-          return !editor.can().setBlockquote();
+          const isSame = cmd.class
+            ? editor.isActive('blockquote', { class: cmd.class })
+            : editor.isActive('blockquote', { class: null }) || editor.isActive('blockquote', { class: '' });
+          // 同じ 要素 + class なら disable
+          if (isSame) {
+            return true;
+          }
+          // 同じ要素だが class が違う場合 → enable
+          if (editor.isActive('blockquote')) {
+            return false;
+          }
+          // それ以外は通常の can 判定
+          return true;
         },
         isActive: (editor) => {
           return editor.isActive('blockquote');
@@ -336,12 +465,24 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
         convert: (editor, pos) => {
           const chain = editor.chain();
           chain.setNodeSelection(pos);
-          chain.setCodeBlock().run();
+          chain.removeList(pos).removeBlockquote(pos).setCodeBlock().run();
           const { $from } = editor.state.selection;
           const newPos = $from.before(1);
           editor.chain().focus().setBlockAttrs(newPos, { class: cmd.class }).run();
         },
         isDisabled: (editor) => {
+          const isSame = cmd.class
+            ? editor.isActive('codeBlock', { class: cmd.class })
+            : editor.isActive('codeBlock', { class: null }) || editor.isActive('codeBlock', { class: '' });
+          // 同じ 要素 + class なら disable
+          if (isSame) {
+            return true;
+          }
+          // 同じ要素だが class が違う場合 → enable
+          if (editor.isActive('codeBlock')) {
+            return false;
+          }
+          // それ以外は通常の can 判定
           return !editor.can().setCodeBlock();
         },
         isActive: (editor) => {
@@ -357,8 +498,30 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
           const pos = $from.before($from.depth);
           editor.chain().focus().uploadMediaImage().setBlockAttrs(pos, { class: cmd.class }).run();
         },
-        convert: () => {},
-        isDisabled: () => true,
+        convert: (editor) => {
+          const { state } = editor;
+          const { selection } = state;
+          if (
+            editor.isActive('imageBlock') ||
+            (selection instanceof NodeSelection && selection.node.type.name === 'imageBlock')
+          ) {
+            editor.chain().focus().updateAttributes('imageBlock', { class: cmd.class }).run();
+          }
+        },
+        isDisabled: (editor) => {
+          const isSame = cmd.class
+            ? editor.isActive('imageBlock', { class: cmd.class })
+            : editor.isActive('imageBlock', { class: null }) || editor.isActive('imageBlock', { class: '' });
+          // 同じ 要素 + class なら disable
+          if (isSame) {
+            return true;
+          }
+          // 同じ要素だが class が違う場合 → enable
+          if (editor.isActive('imageBlock')) {
+            return false;
+          }
+          return true;
+        },
         isActive: (editor) => {
           return editor.isActive('imageBlock');
         },
@@ -372,8 +535,30 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
           const pos = $from.before($from.depth);
           editor.chain().focus().uploadMediaFile().setBlockAttrs(pos, { class: cmd.class }).run();
         },
-        convert: () => {},
-        isDisabled: () => true,
+        convert: (editor) => {
+          const { state } = editor;
+          const { selection } = state;
+          if (
+            editor.isActive('fileBlock') ||
+            (selection instanceof NodeSelection && selection.node.type.name === 'fileBlock')
+          ) {
+            editor.chain().focus().updateAttributes('fileBlock', { class: cmd.class }).run();
+          }
+        },
+        isDisabled: (editor) => {
+          const isSame = cmd.class
+            ? editor.isActive('fileBlock', { class: cmd.class })
+            : editor.isActive('fileBlock', { class: null }) || editor.isActive('fileBlock', { class: '' });
+          // 同じ 要素 + class なら disable
+          if (isSame) {
+            return true;
+          }
+          // 同じ要素だが class が違う場合 → enable
+          if (editor.isActive('fileBlock')) {
+            return false;
+          }
+          return true;
+        },
         isActive: (editor) => {
           return editor.isActive('fileBlock');
         },
@@ -387,8 +572,30 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
           const pos = $from.before($from.depth);
           editor.chain().focus().setLinkButtonBlock().setBlockAttrs(pos, { class: cmd.class }).run();
         },
-        convert: () => {},
-        isDisabled: () => true,
+        convert: (editor) => {
+          const { state } = editor;
+          const { selection } = state;
+          if (
+            editor.isActive('linkButton') ||
+            (selection instanceof NodeSelection && selection.node.type.name === 'linkButton')
+          ) {
+            editor.chain().focus().updateAttributes('linkButton', { class: cmd.class }).run();
+          }
+        },
+        isDisabled: (editor) => {
+          const isSame = cmd.class
+            ? editor.isActive('linkButton', { class: cmd.class })
+            : editor.isActive('linkButton', { class: null }) || editor.isActive('linkButton', { class: '' });
+          // 同じ 要素 + class なら disable
+          if (isSame) {
+            return true;
+          }
+          // 同じ要素だが class が違う場合 → enable
+          if (editor.isActive('linkButton')) {
+            return false;
+          }
+          return true;
+        },
         isActive: (editor) => {
           return editor.isActive('linkButton');
         },
@@ -410,8 +617,30 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
             }
           }
         },
-        convert: () => {},
-        isDisabled: () => true,
+        convert: (editor) => {
+          const { state } = editor;
+          const { selection } = state;
+          if (
+            editor.isActive('table') ||
+            (selection instanceof NodeSelection && selection.node.type.name === 'table')
+          ) {
+            editor.chain().focus().updateAttributes('table', { class: cmd.class }).run();
+          }
+        },
+        isDisabled: (editor) => {
+          const isSame = cmd.class
+            ? editor.isActive('table', { class: cmd.class })
+            : editor.isActive('table', { class: null }) || editor.isActive('table', { class: '' });
+          // 同じ 要素 + class なら disable
+          if (isSame) {
+            return true;
+          }
+          // 同じ要素だが class が違う場合 → enable
+          if (editor.isActive('table')) {
+            return false;
+          }
+          return true;
+        },
         isActive: (editor) => {
           return editor.isActive('table');
         },

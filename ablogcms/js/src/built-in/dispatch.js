@@ -6,6 +6,7 @@ import lazyLoad from '../lib/lazy-load';
 import dispatchScrollAnimation from '../dispatch/dispatch-scroll-animation';
 import { addClass, removeClass } from '../lib/dom';
 import { contrastColor, rgb2hex } from '../utils';
+import dispatchFlatpicker from '../dispatch/dispatch-flatpicker';
 
 /**
  * 組み込みJS の dispatch 関数
@@ -385,6 +386,14 @@ export default (context) => {
     ACMS.Dispatch.wysiwyg.dispatch(event.target);
   });
 
+  /**
+   * Flatpicker
+   */
+  dispatchFlatpicker(context);
+  ACMS.addListener('acmsAddCustomFieldGroup', (event) => {
+    dispatchFlatpicker(event.target);
+  });
+
   //-------------------
   // contrast color
   ((context) => {
@@ -465,7 +474,8 @@ export default (context) => {
       resultClassName: ACMS.Config.validatorResultClass || ACMS.Config.validatorOptions.resultClassName,
       okClassName: ACMS.Config.validatorOkClass || ACMS.Config.validatorOptions.okClassName,
       ngClassName: ACMS.Config.validatorNgClass || ACMS.Config.validatorOptions.ngClassName,
-      ...(ACMS.Config.admin ? { shouldValidateOnSubmit: true } : {}),
+      // サーバーサイドのテンプレートエンジンでバリデーションをしている場合に送信時のバリデーションを有効化すると、エラーメッセージが表示されず、どこでエラーが発生したかわからなくなるので、無効化する
+      ...(ACMS.Config.admin ? { shouldValidateOnSubmit: false } : {}),
       ...options,
     });
     return validator;

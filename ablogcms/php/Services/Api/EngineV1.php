@@ -6,6 +6,7 @@ use Acms\Services\Api\Exceptions\NotFoundModuleException;
 use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Database as DB;
 use Acms\Services\Facades\Logger as AcmsLogger;
+use Acms\Services\Facades\Common;
 use ACMS_Filter;
 use Field;
 use Field_Validation;
@@ -50,12 +51,19 @@ class EngineV1 extends Contracts\Api
         Application::bind('view', 'Acms\Services\View\ApiEngine'); // テンプレートエンジンの切り替え
         define('IS_API_BUILD', true);
 
-        $sql = SQL::newSelect('module');
-        $sql->addWhereOpr('module_identifier', $identifier);
-        $sql->addWhereOpr('module_name', $moduleName);
-        $eagerLoadModule[$moduleName][$identifier] = DB::query($sql->get(dsn()), 'row');
-        $json = boot($moduleName, '', $opt, $post, $config, $eagerLoadModule);
-        return $this->jsonValidate($json) ? $json : '{}'; // GETモジュールの結果が不正なJSONの場合は'{}'を返す
+        try {
+            Common::setForceV1Build(true);
+            $sql = SQL::newSelect('module');
+            $sql->addWhereOpr('module_identifier', $identifier);
+            $sql->addWhereOpr('module_name', $moduleName);
+            $eagerLoadModule[$moduleName][$identifier] = DB::query($sql->get(dsn()), 'row');
+            $json = boot($moduleName, '', $opt, $post, $config, $eagerLoadModule);
+            $result = $this->jsonValidate($json) ? $json : '{}'; // GETモジュールの結果が不正なJSONの場合は'{}'を返す
+            return $result;
+        } finally {
+            // 必ずV1ビルドを終了するためにfinallyで処理する
+            Common::setForceV1Build(false);
+        }
     }
 
     /**

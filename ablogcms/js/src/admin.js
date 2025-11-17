@@ -11,7 +11,7 @@ import dispatchTimeMachineMode from './dispatch/dispatch-timemachine-mode';
 import dispatchInlinePreview from './dispatch/dispatch-inline-preview';
 import dispatchAdminMenuEditor from './dispatch/dispatch-admin-menu-editor';
 import dispatchBannerEditor from './dispatch/dispatch-banner-editor';
-import dispatchColorPicker from './dispatch/dispatch-color-picker';
+import dispatchThemeColorPicker from './dispatch/dispatch-theme-color-picker';
 import dispatchSelect2 from './dispatch/dispatch-select2';
 import dispatchCustomFieldMaker from './dispatch/dispatch-custom-field-maker';
 import dispatchAuditLogDetailModal from './dispatch/dispatch-audit-log-detail-modal';
@@ -41,7 +41,6 @@ import dispatchGoogleMapsPicker from './dispatch/dispatch-google-maps-picker';
 import dispatchOpenStreetMapPicker from './dispatch/dispatch-open-street-map-picker';
 import dispatchModal from './dispatch/dispatch-modal';
 import dispatchResizeImageCF from './dispatch/dispatch-resize-image-cf';
-import dispatchFlatpicker from './dispatch/dispatch-flatpicker';
 import dispatchDialog from './dispatch/dispatch-dialog';
 import dispatchUnitConfigEditor from './dispatch/dispatch-unit-config-editor';
 
@@ -283,12 +282,12 @@ ACMS.Ready(() => {
   dispatchWebhookEventSelect(document);
 
   /**
-   * Color picker
+   * Theme color picker
    */
-  dispatchColorPicker(document);
+  dispatchThemeColorPicker(document);
   ACMS.addListener('acmsAdminDelayedContents', (event) => {
     const context = event.obj.item || event.target;
-    dispatchColorPicker(context);
+    dispatchThemeColorPicker(context);
   });
 
   /**
@@ -357,14 +356,6 @@ ACMS.Ready(() => {
   });
   ACMS.addListener('acmsAddCustomFieldGroup', (e) => {
     dispatchSelect2(e.obj.item);
-  });
-
-  /**
-   * Flatpicker
-   */
-  dispatchFlatpicker(document);
-  ACMS.addListener('acmsAddCustomFieldGroup', (event) => {
-    dispatchFlatpicker(event.target);
   });
 
   /**

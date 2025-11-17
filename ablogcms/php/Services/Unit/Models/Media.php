@@ -405,9 +405,15 @@ class Media extends Model implements AlignableUnitInterface, ImageUnit, UnitList
                 $vars += $this->renderFile($mid, $i, $path, $media, $vars, $fx, $mediaUseIcons, $mediaSizes);
             }
             $tpl->add(array_merge([
-                'type' . $fx . '#' . $media['media_type'],
+                'type' . $fx . '#' . $type,
                 "unit#{$actualType}"
             ], $rootBlock), $vars);
+            $varsRoot = [
+                ...$varsRoot,
+                "type{$fx}" => $type,
+                ...(isset($vars["x{$fx}"]) ? ["rootWidth{$fx}" => $vars["x{$fx}"]] : []),
+                ...(isset($vars["y{$fx}"]) ? ["rootHeight{$fx}" => $vars["y{$fx}"]] : []),
+            ];
         }
         $varsRoot = $this->displaySizeStyleTrait($displaySize, $varsRoot);
         $varsRoot['align'] = $mediaAlign;
@@ -610,33 +616,54 @@ class Media extends Model implements AlignableUnitInterface, ImageUnit, UnitList
      */
     protected function renderFile(int $mid, int $index, string $path, array $media, array $vars, string $suffix, array $mediaUseIcons, array $mediaSizes): array
     {
-        if (empty($media['media_status'])) {
+        if ($media['media_status'] === '') {
             $url = MediaHelper::getFileOldPermalink($path, false);
         } else {
             $url = MediaHelper::getFilePermalink($mid, false);
         }
-        $icon = pathIcon($media['media_extension']);
+        $isPdfFile = strtolower($media['media_extension']) === 'pdf';
+        $useIcon = isset($mediaUseIcons[$index]) ? $mediaUseIcons[$index] : 'no';
+        $iconPath = pathIcon($media['media_extension']);
+
         $vars += [
             "url{$suffix}" => $url,
-            "icon{$suffix}" => $icon,
-            "x{$suffix}" => 70,
-            "y{$suffix}" => 81,
+            "icon{$suffix}" => $iconPath,
+            "use_icon{$suffix}" => $useIcon,
             "file_utid{$suffix}" => $this->getId(),
         ];
-        if (config('file_icon_size') === 'dynamic') {
-            $xy = LocalStorage::getImageSize($icon);
-            $vars["x{$suffix}"] = $xy[0] ?? 70;
-            $vars["y{$suffix}"] = $xy[1] ?? 81;
-        }
-        if (!empty($media['media_thumbnail'])) {
-            $vars["thumbnail{$suffix}"] = $media['media_thumbnail'];
-            $size = $mediaSizes[$index] ?? '';
-            $vars = $this->resolveImageSize($vars, $suffix, $media['media_image_size'], $size, 'file', $media['media_thumbnail']);
-            if (isset($mediaUseIcons[$index])) {
-                $vars["use_icon{$suffix}"] = $mediaUseIcons[$index];
+        if ($useIcon === 'yes' || !$isPdfFile) {
+            list($iconWidth, $iconHeight) = $this->getIconSize($iconPath);
+            $vars += [
+                "x{$suffix}" => $iconWidth,
+                "y{$suffix}" => $iconHeight,
+            ];
+        } else {
+            if ($media['media_thumbnail'] !== '') {
+                $vars["thumbnail{$suffix}"] = $media['media_thumbnail'];
+                $size = $mediaSizes[$index] ?? '';
+                $vars = $this->resolveImageSize($vars, $suffix, $media['media_image_size'], $size, 'file', $media['media_thumbnail']);
             }
         }
         return $vars;
+    }
+
+    /**
+     * アイコンサイズを取得
+     *
+     * @param string $icon アイコン画像のパス
+     * @return array{int, int}
+     */
+    private function getIconSize(string $icon): array
+    {
+        $defaultWidth = 70;
+        $defaultHeight = 81;
+
+        if (config('file_icon_size') === 'dynamic') {
+            $xy = LocalStorage::getImageSize($icon);
+            return [$xy[0] ?? $defaultWidth, $xy[1] ?? $defaultHeight];
+        }
+
+        return [$defaultWidth, $defaultHeight];
     }
 
     /**

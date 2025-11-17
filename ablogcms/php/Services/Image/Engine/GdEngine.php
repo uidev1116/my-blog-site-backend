@@ -24,49 +24,14 @@ class GdEngine extends ImageEngine
      */
     public function editImage(string $srcPath, string $destPath, ?int $width = null, ?int $height = null, ?int $size = null, ?int $angle = null): void
     {
+        // 元画像を読み込み
         $resource = $this->loadGdImageFromPath($srcPath);
         $srcWidth = imagesx($resource);
         $srcHeight = imagesy($resource);
+        // 出力サイズなど計算
         [$srcWidth, $srcHeight, $x, $y, $column, $rows] = $this->computeEditMetrics($srcWidth, $srcHeight, $width, $height, $size);
-
-        // tranceparent
-        $nrsrc = imagecreatetruecolor($column, $rows);
-        if (0 <= ($idx = imagecolortransparent($resource))) {
-            @imagetruecolortopalette($nrsrc, true, 256);
-            $rgb = @imagecolorsforindex($resource, $idx);
-            if ($idx = imagecolorallocate($nrsrc, $rgb['red'], $rgb['green'], $rgb['blue'])) {
-                imagefill($nrsrc, 0, 0, $idx);
-                imagecolortransparent($nrsrc, $idx);
-            }
-        } else {
-            imagealphablending($nrsrc, false);
-            if ($idx = imagecolorallocatealpha($nrsrc, 0, 0, 0, 127)) {
-                imagefill($nrsrc, 0, 0, $idx);
-            }
-            imagesavealpha($nrsrc, true);
-        }
-        if (function_exists('imagepalettetotruecolor')) {
-            imagepalettetotruecolor($nrsrc); // true color に変換
-        }
-        imagecopyresampled($nrsrc, $resource, 0, 0, $x, $y, $column, $rows, $srcWidth, $srcHeight);
-
-        if (function_exists('imagerotate') and ($angle = intval($angle))) {
-            $nrsrc = imagerotate($nrsrc, $angle, 0);
-        }
-        // シャープネス
-        // if (function_exists('imageconvolution')) {
-        //     $filter = array(
-        //         array( 0.0, -1.0, 0.0 ),
-        //         array( -1.0, 5.5, -1.0 ),
-        //         array( 0.0, -1.0, 0.0 )
-        //     );
-        //     $div = array_sum(array_map('array_sum', $filter));
-        //     imageconvolution($nrsrc, $filter, $div, 0);
-        // }
-
-        $mimeType = $this->getMimeType($srcPath);
-        $imageType = $this->detectImageExtenstion($mimeType);
-        $this->outputImage($nrsrc, $imageType, $destPath);
+        // リサイズ・回転して保存
+        $this->resizeImage($srcPath, $destPath, $srcWidth, $srcHeight, $x, $y, $column, $rows, 0, 0, $column, $rows, [255, 255, 255], $angle);
     }
 
     /**
@@ -77,24 +42,27 @@ class GdEngine extends ImageEngine
      * @param string|null $format
      * @return void
      */
-    public function copyImage(string $srcPath, string $destPath, string $format = null): void
+    public function copyImage(string $srcPath, string $destPath, ?string $format = null): void
     {
         if ($format) {
             $mimeType = $this->getMimeType($srcPath);
-            $srcFormat = $this->detectImageExtenstion($mimeType, true);
-            if ($srcFormat !== $format) {
+            $srcFormat = strtolower($this->detectImageExtenstion($mimeType, true));
+
+            // jpeg/jpg 揺れ対策
+            $normalize = fn($f) => $f === 'jpeg' ? 'jpg' : $f;
+
+            if ($normalize($srcFormat) !== $normalize($format)) {
                 $resource = $this->loadGdImageFromPath($srcPath);
-                // パレットベースの画像かどうかを確認し、TrueColorに変換
-                if (!imageistruecolor($resource)) {
-                    // パレットベースの画像をTrueColorに変換
+                // パレット画像をTrueColor化
+                if (function_exists('imagepalettetotruecolor')) {
                     imagepalettetotruecolor($resource);
                 }
-                // PNG画像の場合、TrueColorに変換後に透明度情報を保持するために必要
-                // PNG画像でない場合は適用しても何も起こらない
+                // 透過設定（PNGで有効、他では無害）
                 imagealphablending($resource, false);
                 imagesavealpha($resource, true);
 
                 $this->outputImage($resource, $format, $destPath);
+                imagedestroy($resource);
                 return;
             }
         }
@@ -123,49 +91,105 @@ class GdEngine extends ImageEngine
      * @param int $canvasWidth
      * @param int $canvasHeight
      * @param array{0: int, 1: int, 2: int} $color
+     * @param int|null $angle
      * @return void
      */
-    public function resizeImage(string $srcPath, string $destPath, int $srcWidth, int $srcHeight, int $srcX, int $srcY, int $destWidth, int $destHeight, int $destX, int $destY, int $canvasWidth, int $canvasHeight, array $color): void
+    public function resizeImage(string $srcPath, string $destPath, int $srcWidth, int $srcHeight, int $srcX, int $srcY, int $destWidth, int $destHeight, int $destX, int $destY, int $canvasWidth, int $canvasHeight, array $color, ?int $angle = null): void
     {
+
         $resource = $this->loadGdImageFromPath($srcPath);
         if ($canvasWidth <= 0 || $canvasHeight <= 0) {
             throw new InvalidArgumentException('Canvas width and height must be greater than zero.');
         }
+        // 出力画像リソースを生成
         $outputResource = imagecreatetruecolor($canvasWidth, $canvasHeight);
-
-        if (0 <= ($idx = imagecolortransparent($resource))) {
-            @imagetruecolortopalette($outputResource, true, 256);
-            $rgb = @imagecolorsforindex($resource, $idx);
-            if ($idx = imagecolorallocate($outputResource, $rgb['red'], $rgb['green'], $rgb['blue'])) {
-                imagefill($outputResource, 0, 0, $idx);
-                imagecolortransparent($outputResource, $idx);
+        // 形式判定
+        $mimeType = $this->getMimeType($srcPath);
+        $imageType = $this->detectImageExtenstion($mimeType);
+        [$red, $green, $blue] = $color;
+        assert($red >= 0 && $red <= 255);
+        assert($green >= 0 && $green <= 255);
+        assert($blue >= 0 && $blue <= 255);
+        // 透過処理
+        if ($imageType === 'gif' && ($idx = imagecolortransparent($resource)) >= 0) {
+            // GIF専用の透過色処理（TrueColor化する前にやる）
+            $total = imagecolorstotal($resource);
+            if ($idx < $total) {
+                $rgb = imagecolorsforindex($resource, $idx);
+                if ($transparent = imagecolorallocate($outputResource, $rgb['red'], $rgb['green'], $rgb['blue'])) {
+                    imagefill($outputResource, 0, 0, $transparent);
+                    imagecolortransparent($outputResource, $transparent);
+                }
+            }
+        } elseif ($imageType === 'png' || $imageType === 'webp') {
+            // PNG/WebP はアルファ保持
+            imagealphablending($outputResource, false);
+            if ($transparent = imagecolorallocatealpha($outputResource, $red, $green, $blue, 127)) {
+                imagefill($outputResource, 0, 0, $transparent);
+                imagesavealpha($outputResource, true);
             }
         } else {
-            imagealphablending($outputResource, false);
+            if ($bg = imagecolorallocate($outputResource, $red, $green, $blue)) {
+                imagefill($outputResource, 0, 0, $bg);
+            }
+        }
+        // TrueColor化
+        if (function_exists('imagepalettetotruecolor') && !imageistruecolor($resource)) {
+            imagepalettetotruecolor($resource);
+        }
+        // リサイズ（imagescale が使えれば優先）
+        if (function_exists('imagescale')) {
+            // imagescale + Lanczosフィルタで高品質縮小（IMG_NEAREST_NEIGHBOUR | IMG_BILINEAR_FIXED | IMG_BICUBIC | IMG_BICUBIC_FIXED）
+            if ($srcX > 0 || $srcY > 0) {
+                assert($srcWidth > 0);
+                assert($srcHeight > 0);
+                $cropped = imagecreatetruecolor($srcWidth, $srcHeight);
+                imagealphablending($cropped, false);
+                imagesavealpha($cropped, true);
+                if ($transparent = imagecolorallocatealpha($cropped, $red, $green, $blue, 127)) {
+                    imagefill($cropped, 0, 0, $transparent);
+                }
+                imagecopy($cropped, $resource, 0, 0, $srcX, $srcY, $srcWidth, $srcHeight);
+
+                $scaled = imagescale($cropped, $destWidth, $destHeight, IMG_BILINEAR_FIXED);
+                imagedestroy($cropped);
+            } else {
+                $scaled = imagescale($resource, $destWidth, $destHeight, IMG_BILINEAR_FIXED);
+            }
+            if ($scaled) {
+                imagecopy($outputResource, $scaled, $destX, $destY, 0, 0, $destWidth, $destHeight);
+                imagedestroy($scaled);
+            }
+        } else {
+            imagecopyresampled(
+                $outputResource,
+                $resource,
+                $destX,
+                $destY,
+                $srcX,
+                $srcY,
+                $destWidth,
+                $destHeight,
+                $srcWidth,
+                $srcHeight,
+            );
+        }
+        // 回転（背景を透明で保持）
+        if ($angle && function_exists('imagerotate')) {
             [$red, $green, $blue] = $color;
-            if ($idx = imagecolorallocatealpha($outputResource, $red, $green, $blue, 127)) {
-                imagefill($outputResource, 0, 0, $idx);
+            imagealphablending($outputResource, false);
+            if ($transparent = imagecolorallocatealpha($outputResource, $red, $green, $blue, 127)) {
+                $outputResource = imagerotate($outputResource, $angle, $transparent);
             }
             imagesavealpha($outputResource, true);
         }
-        if (function_exists('imagepalettetotruecolor')) {
-            imagepalettetotruecolor($outputResource); // true color に変換
-        }
-        imagecopyresampled(
-            $outputResource,
-            $resource,
-            $destX,
-            $destY,
-            $srcX,
-            $srcY,
-            $destWidth,
-            $destHeight,
-            $srcWidth,
-            $srcHeight,
-        );
-        $mimeType = $this->getMimeType($srcPath);
-        $imageType = $this->detectImageExtenstion($mimeType);
+        // パレット化して減色する（8bit）
+        // imagetruecolortopalette($outputResource, false, 256);
+        // 画像保存
         $this->outputImage($outputResource, $imageType, $destPath);
+
+        imagedestroy($resource);
+        imagedestroy($outputResource);
     }
 
     /**

@@ -74,7 +74,10 @@ class WxrEngine
      */
     public function export(int $bid, bool $includeChildBlogs, string $outputPath): void
     {
+        $lockService = Application::make('export-wxr-lock');
+
         try {
+            $lockService->tryLock();
             $this->targetBlogId = $bid;
             $this->includeChildBlogs = $includeChildBlogs;
 
@@ -90,12 +93,12 @@ class WxrEngine
                 }
                 LocalStorage::remove($outputPath);
             }
-
             $this->logger->addMessage('エクスポート完了', 100, 1, false);
             $this->logger->success();
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
         } finally {
+            $lockService->release();
             sleep(5);
             $this->logger->terminate();
         }

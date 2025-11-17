@@ -15,13 +15,13 @@ class ACMS_POST_Update_Exec extends ACMS_POST_Update_Base
         }
         /** @var \Acms\Services\Update\Operations\Update $updateService */
         $updateService = Application::make('update.exec.update');
-        /** @var \Acms\Services\Update\Lock $lockService */
+        /** @var \Acms\Services\Common\Lock $lockService */
         $lockService = Application::make('update.lock');
         /** @var \Acms\Services\Update\LoggerFactory $loggerFactory */
         $loggerFactory = Application::make('update.logger');
 
         $updateService->init();
-        if ($lockService->isProcessing()) {
+        if ($lockService->isLocked()) {
             $this->addError(gettext('アップデートを中止しました。すでにアップデート中の可能性があります。変化がない場合は、cache/system-update-lock ファイルを削除してお試しください。'));
             return $this->Post;
         }

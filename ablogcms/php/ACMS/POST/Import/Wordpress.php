@@ -19,7 +19,7 @@ class ACMS_POST_Import_Wordpress extends ACMS_POST_Import
 
     public function import()
     {
-        $this->httpFile->validateFormat(['text/xml', 'application/xml']);
+        $this->httpFile->validateFormat(['xml']);
         $path = $this->httpFile->getPath();
         $data = LocalStorage::get($path, dirname($path));
         if ($data) {

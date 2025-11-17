@@ -72,6 +72,7 @@ class Web implements LoggerInterface, WebLoggerInterface
         }
         $this->json = new stdClass();
         $this->json->processing = true;
+        $this->json->updatedAt = date('c');
         $this->json->fileUpdateSuccess = false;
         $this->json->success = false;
         $this->json->error = '';
@@ -184,6 +185,8 @@ class Web implements LoggerInterface, WebLoggerInterface
         if (!is_writable($this->destinationPath)) {
             return;
         }
+        $this->json->updatedAt = date('c');
+
         if ($json = json_encode($this->json)) {
             LocalStorage::put($this->destinationPath, $json);
         }

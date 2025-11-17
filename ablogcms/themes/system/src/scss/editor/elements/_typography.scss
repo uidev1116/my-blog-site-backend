@@ -63,9 +63,9 @@
 /* 見出し
 ----------------------------- */
 @include global.editor-style('h1') {
+  margin-block: calc(var(--unit-margin-top) + 0.923em) var(--unit-margin-bottom);
   font-weight: bold;
   line-height: 1.5;
-  margin-block: calc(var(--unit-margin-top) + 0.923em) var(--unit-margin-bottom);
 
   @include global.font-size(26);
 
@@ -75,9 +75,9 @@
 }
 
 @include global.editor-style('h2') {
+  margin-block: calc(var(--unit-margin-top) + 0.923em) var(--unit-margin-bottom);
   font-weight: bold;
   line-height: 1.5;
-  margin-block: calc(var(--unit-margin-top) + 0.923em) var(--unit-margin-bottom);
 
   @include global.font-size(22);
 
@@ -87,9 +87,9 @@
 }
 
 @include global.editor-style('h3') {
+  margin-block: calc(var(--unit-margin-top) + 0.667em) var(--unit-margin-bottom);
   font-weight: bold;
   line-height: 1.5;
-  margin-block: calc(var(--unit-margin-top) + 0.667em) var(--unit-margin-bottom);
 
   @include global.font-size(20);
 
@@ -99,9 +99,9 @@
 }
 
 @include global.editor-style('h4') {
+  margin-block: calc(var(--unit-margin-top) + 0.4em) var(--unit-margin-bottom);
   font-weight: bold;
   line-height: 1.5;
-  margin-block: calc(var(--unit-margin-top) + 0.4em) var(--unit-margin-bottom);
 
   @include global.font-size(16);
 
@@ -111,9 +111,9 @@
 }
 
 @include global.editor-style('h5') {
+  margin-block: calc(var(--unit-margin-top) + 0.25em) var(--unit-margin-bottom);
   font-weight: bold;
   line-height: 1.7;
-  margin-block: calc(var(--unit-margin-top) + 0.25em) var(--unit-margin-bottom);
 
   @include global.font-size(14);
 
@@ -123,9 +123,9 @@
 }
 
 @include global.editor-style('h6') {
+  margin-block: calc(var(--unit-margin-top) + 0.25em) var(--unit-margin-bottom);
   font-weight: bold;
   line-height: 1.7;
-  margin-block: calc(var(--unit-margin-top) + 0.25em) var(--unit-margin-bottom);
 
   @include global.font-size(14);
 
@@ -137,8 +137,8 @@
 /* 本文
 ----------------------------- */
 @include global.editor-style('p') {
-  line-height: 1.7;
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+  line-height: 1.7;
 
   @include global.font-size(14);
 
@@ -150,13 +150,13 @@
 /* リスト
 ----------------------------- */
 @include global.editor-style('ul') {
+  padding-inline-start: 1.5rem;
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
   list-style: disc;
-  padding-inline-start: 1.5rem;
 
   li {
-    line-height: 1.7;
     margin-block-start: 0.5em;
+    line-height: 1.7;
 
     @include global.font-size(14);
 
@@ -170,9 +170,9 @@
     }
 
     ul {
+      padding-inline-start: 1.75rem;
       margin-block: 0.5em 0;
       list-style: circle;
-      padding-inline-start: 1.75rem;
 
       ul {
         list-style: square;
@@ -189,13 +189,13 @@
 
 /* 番号付きリスト */
 @include global.editor-style('ol') {
+  padding-inline-start: 1.5rem;
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
   list-style-type: decimal;
-  padding-inline-start: 1.5rem;
 
   li {
-    line-height: 1.7;
     margin-block-start: 0.5em;
+    line-height: 1.7;
 
     @include global.font-size(14);
 
@@ -209,9 +209,9 @@
     }
 
     ol {
+      padding-inline-start: 1.75rem;
       margin-block: 0.5em 0;
       list-style-type: lower-alpha;
-      padding-inline-start: 1.75rem;
 
       ol {
         list-style-type: lower-roman;
@@ -232,8 +232,8 @@
   gap: 0.5em;
   padding-block: 1em;
   padding-inline-start: 0;
-  line-height: 1.7;
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
+  line-height: 1.7;
   border: 0 solid currentcolor;
   border-block-start-width: 1px;
   border-block-end-width: 1px;
@@ -262,21 +262,21 @@
 @include global.editor-style(('pre')) {
   max-width: 100%;
   padding: 1rem;
+  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
   overflow: auto;
-  color: global.$acms-color-black; /* 閲覧側画面の文字色はライブラリに依存 */
   line-height: 1.7;
+  color: global.$acms-color-black; /* 閲覧側画面の文字色はライブラリに依存 */
   background-color: global.$acms-color-gray20;
   border: 1px solid global.$acms-color-system-gray40;
   border-radius: 0.375rem; /* 6px */
-  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
 
   @include global.font-size(14);
 
   code {
     /* リセット用 */
     padding: 0;
-    color: inherit;
     font-size: inherit;
+    color: inherit;
     background-color: inherit;
     border: none;
     box-shadow: none;

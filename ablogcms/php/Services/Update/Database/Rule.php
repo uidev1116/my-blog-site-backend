@@ -3,9 +3,6 @@
 namespace Acms\Services\Update\Database;
 
 use Acms\Services\Facades\Database as DB;
-use Acms\Services\Facades\Common;
-use Acms\Services\Unit\Constants\UnitAlign;
-use Acms\Services\Unit\Constants\UnitStatus;
 use SQL;
 use Field;
 
@@ -57,18 +54,21 @@ class Rule
         if (version_compare($this->fromVersion, '2.10.0', '<')) {
             $this->update2100();
         }
+
+        // v3.1.49 以前 & v3.2.6 以前 のバージョンでsetupからのDBアップデートで以下の処理が実行されていないため、
+        // バージョン比較をせずに実行するようにしています。
+        // - update3150()
+        // - update320()
+        // - update321()
+
         // v3.1.50以前
-        if (version_compare($this->fromVersion, '3.1.50', '<')) {
-            $this->update3150();
-        }
+        $this->update3150();
+
         // v3.2.0以前
-        if (version_compare($this->fromVersion, '3.2.0', '<')) {
-            $this->update320();
-        }
+        $this->update320();
+
         // v3.2.1以前
-        if (version_compare($this->fromVersion, '3.2.1', '<')) {
-            $this->update321();
-        }
+        $this->update321();
     }
 
     /**
@@ -431,15 +431,54 @@ class Rule
         $sql->addSelect('column_id');
         $sql->addSelect('column_field_6');
         $sql->addSelect('column_blog_id');
-        $sql->addWhereOpr('column_type', 'custom_%', 'LIKE');
+        $sql->addWhereOpr('column_type', 'custom_%', 'LIKE', 'OR');
+        $sql->addWhereOpr('column_type', 'custom', '=', 'OR');
         $q = $sql->get(dsn());
         $all = DB::query($q, 'all');
-        foreach ($all as $item) {
-            $id = (string) $item['column_id'];
-            $bid = (int) $item['column_blog_id'];
-            $field = acmsDangerUnserialize($item['column_field_6']);
-            if ($id && ($field instanceof Field)) {
-                Common::saveField('unit_id', $id, $field, null, null, $bid);
+
+        $unitIds = array_column($all, 'column_id');
+        if (count($unitIds) > 0) {
+            $selectFieldSql = SQL::newSelect('field');
+            $selectFieldSql->addSelect('field_unit_id');
+            $selectFieldSql->addWhereOpr('field_unit_id', $unitIds[0]);
+            $q = $selectFieldSql->get(dsn());
+            $isConverted = !!DB::query($q, 'one');
+            // すでに移行済みのデータが存在する場合はスキップ
+            // すべてのユニットデータが field テーブルに移行済みかどうかを確認するのは、パフォーマンス的に心配なので
+            // 最初のユニットデータが field テーブルに移行済みかどうかを確認するようにしています。
+            if (!$isConverted) {
+                foreach ($all as $item) {
+                    $id = (string) $item['column_id'];
+                    $bid = (int) $item['column_blog_id'];
+                    $field = function_exists('acmsDangerUnserialize') ? acmsDangerUnserialize($item['column_field_6']) : acmsUnserialize($item['column_field_6']);
+                    if ($id !== '' && ($field instanceof Field)) {
+                        foreach ($field->listFields() as $fd) {
+                            foreach ($field->getArray($fd, true) as $i => $val) {
+                                $fieldTypeValue = null;
+                                if (preg_match('/@(html|media|title)$/', $fd, $match)) {
+                                    $fieldTypeValue = $match[1];
+                                }
+                                if ($fieldType = $field->getMeta($fd, 'type')) {
+                                    $fieldTypeValue = $fieldType;
+                                }
+                                $data = [
+                                    'field_key' => $fd,
+                                    'field_value' => $val,
+                                    'field_type' => $fieldTypeValue,
+                                    'field_sort' => $i + 1,
+                                    'field_search' => $field->getMeta($fd, 'search') ? 'on' : 'off',
+                                    'field_unit_id' => $id,
+                                    'field_blog_id' => $bid,
+                                ];
+                                $insertFieldSql = SQL::newInsert('field');
+                                foreach ($data as $key => $value) {
+                                    $insertFieldSql->addInsert($key, $value);
+                                }
+                                DB::query($insertFieldSql->get(dsn()), 'exec');
+                            }
+                        }
+                    }
+                }
             }
         }
         // column_revテーブルのcustomユニット情報をfield_revテーブルに移動
@@ -448,16 +487,55 @@ class Rule
         $sql->addSelect('column_rev_id');
         $sql->addSelect('column_field_6');
         $sql->addSelect('column_blog_id');
-        $sql->addWhereOpr('column_type', 'custom_%', 'LIKE');
+        $sql->addWhereOpr('column_type', 'custom_%', 'LIKE', 'OR');
+        $sql->addWhereOpr('column_type', 'custom', '=', 'OR');
         $q = $sql->get(dsn());
         $all = DB::query($q, 'all');
-        foreach ($all as $item) {
-            $id = (string) $item['column_id'];
-            $bid = (int) $item['column_blog_id'];
-            $rvid = (int) $item['column_rev_id'];
-            $field = acmsDangerUnserialize($item['column_field_6']);
-            if ($id && ($field instanceof Field)) {
-                Common::saveField('unit_id', $id, $field, null, $rvid, $bid);
+        $unitIds = array_column($all, 'column_id');
+        if (count($unitIds) > 0) {
+            $selectFieldRevSql = SQL::newSelect('field_rev');
+            $selectFieldRevSql->addSelect('field_unit_id');
+            $selectFieldRevSql->addWhereOpr('field_unit_id', $unitIds[0]);
+            $q = $selectFieldRevSql->get(dsn());
+            $isConverted = !!DB::query($q, 'one');
+            // すでに移行済みのデータが存在する場合はスキップ
+            // すべてのユニットデータが field_rev テーブルに移行済みかどうかを確認するのは、パフォーマンス的に心配なので
+            // 最初のユニットデータが field_rev テーブルに移行済みかどうかを確認するようにしています。
+            if (!$isConverted) {
+                foreach ($all as $item) {
+                    $id = (string) $item['column_id'];
+                    $bid = (int) $item['column_blog_id'];
+                    $rvid = (int) $item['column_rev_id'];
+                    $field = function_exists('acmsDangerUnserialize') ? acmsDangerUnserialize($item['column_field_6']) : acmsUnserialize($item['column_field_6']);
+                    if ($id !== '' && ($field instanceof Field)) {
+                        foreach ($field->listFields() as $fd) {
+                            foreach ($field->getArray($fd, true) as $i => $val) {
+                                $fieldTypeValue = null;
+                                if (preg_match('/@(html|media|title)$/', $fd, $match)) {
+                                    $fieldTypeValue = $match[1];
+                                }
+                                if ($fieldType = $field->getMeta($fd, 'type')) {
+                                    $fieldTypeValue = $fieldType;
+                                }
+                                $data = [
+                                    'field_key' => $fd,
+                                    'field_value' => $val,
+                                    'field_type' => $fieldTypeValue,
+                                    'field_sort' => $i + 1,
+                                    'field_search' => $field->getMeta($fd, 'search') ? 'on' : 'off',
+                                    'field_unit_id' => $id,
+                                    'field_rev_id' => $rvid,
+                                    'field_blog_id' => $bid,
+                                ];
+                                $insertFieldRevSql = SQL::newInsert('field_rev');
+                                foreach ($data as $key => $value) {
+                                    $insertFieldRevSql->addInsert($key, $value);
+                                }
+                                DB::query($insertFieldRevSql->get(dsn()), 'exec');
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -472,14 +550,14 @@ class Rule
     private function updateUnitAlignToStatus(): void
     {
         $sql = SQL::newUpdate('column');
-        $sql->addUpdate('column_status', UnitStatus::CLOSE->value);
-        $sql->addUpdate('column_align', UnitAlign::CENTER->value);
+        $sql->addUpdate('column_status', 'close');
+        $sql->addUpdate('column_align', 'center');
         $sql->addWhereOpr('column_align', 'hidden');
         DB::query($sql->get(dsn()), 'exec');
 
         $sql = SQL::newUpdate('column_rev');
-        $sql->addUpdate('column_status', UnitStatus::CLOSE->value);
-        $sql->addUpdate('column_align', UnitAlign::CENTER->value);
+        $sql->addUpdate('column_status', 'close');
+        $sql->addUpdate('column_align', 'center');
         $sql->addWhereOpr('column_align', 'hidden');
         DB::query($sql->get(dsn()), 'exec');
     }

@@ -15,6 +15,12 @@ class ACMS_POST_Export_Wordpress extends ACMS_POST
         set_time_limit(0);
         setlocale(LC_ALL, 'ja_JP.UTF-8');
 
+        $lockService = Application::make('export-wxr-lock');
+        if ($lockService->isLocked()) {
+            $this->addError('エクスポートを中止しました。すでにエクスポート中の可能性があります。');
+            return $this->Post;
+        }
+
         Common::backgroundRedirect(HTTP_REQUEST_URL);
         $this->run();
         die();

@@ -22,11 +22,11 @@
 .acms-alert {
   position: relative;
   display: block;
-  margin-bottom: var(--acms-alert-margin-bottom);
   padding: var(--acms-alert-padding);
-  color: var(--acms-alert-color);
+  margin-bottom: var(--acms-alert-margin-bottom);
   font-weight: bold;
   line-height: 1.7;
+  color: var(--acms-alert-color);
   background: var(--acms-alert-bg);
   border: var(--acms-alert-border);
   border-radius: var(--acms-alert-border-radius);
@@ -51,20 +51,20 @@
     z-index: global.$acms-stretch-z-index + 1;
     padding: 0;
     padding: var(--acms-alert-padding-y) var(--acms-alert-padding-x);
-    color: var(--acms-alert-close-color);
     font-weight: normal;
     line-height: 1;
+    color: var(--acms-alert-close-color);
+    appearance: none;
     background: transparent;
     border: 0;
     outline: 0;
-    appearance: none;
 
     @include global.font-size(18);
   }
 
   ul {
-    margin: 0;
     padding: 0;
+    margin: 0;
     list-style-position: inside;
     list-style-type: disc;
   }
@@ -73,13 +73,13 @@
 // アニメーション
 @keyframes anime1 {
   0% {
-    transform: translate(0, -5px);
     opacity: 0;
+    transform: translate(0, -5px);
   }
 
   100% {
-    transform: translate(0, 0);
     opacity: 1;
+    transform: translate(0, 0);
   }
 }
 

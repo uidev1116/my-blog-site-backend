@@ -98,7 +98,7 @@
 
         <fieldset><legend>unit#text<span>テキストユニット</span></legend>
           <fieldset><legend>tag(設定値)<span>タグ要素</span></legend>
-            <var>align<span>配置（float）</span></var>
+            <var>align<span>配置</span></var>
             <var>text<span>テキスト</span></var>
             <var>class<span>クラス</span></var>
             <var>attr<span>属性</span></var>
@@ -109,7 +109,7 @@
         </fieldset>
 
         <fieldset><legend>unit#table<span>テーブルユニット</span></legend>
-          <var>align<span>配置（float）</span></var>
+          <var>align<span>配置</span></var>
           <var>table<span>テーブル</span></var>
           <var>class<span>クラス</span></var>
           <var>attr<span>属性</span></var>
@@ -118,7 +118,7 @@
         </fieldset>
 
         <fieldset><legend>unit#media<span>メディアユニット</span></legend>
-          <var>align<span>配置（float）</span></var>
+          <var>align<span>配置</span></var>
           <fieldset><legend>type#image<span>画像タイプ</span></legend>
             <fieldset><legend>link#front<span>リンクブロック</span></legend>
               <var>url<span>リンク先URL</span></var>
@@ -164,13 +164,16 @@
 
           <var>display_size<span>メディアサイズセレクトで設定した表示サイズ</span></var>
           <var>display_size_class<span>メディアサイズセレクトで設定した表示サイズのクラス</span></var>
+          <var>rootWidth<span>メディアの横幅</span></var>
+          <var>rootHeight<span>メディアの高さ</span></var>
+          <var>type<span>メディアタイプ（image|svg|file）</span></var>
 
           <var>utid<span>ユニットID</span></var>
           <var>unit_eid<span>エントリーID</span></var>
         </fieldset>
 
         <fieldset><legend>unit#image<span>画像ユニット</span></legend>
-          <var>align<span>配置（float）</span></var>
+          <var>align<span>配置</span></var>
           <var>attr<span>attr属性</span></var>
 
           <fieldset><legend>link#front<span>リンクブロック</span></legend>
@@ -207,7 +210,7 @@
         </fieldset>
 
         <fieldset><legend>unit#file<span>ファイルユニット</span></legend>
-          <var>align<span>配置（float）</span></var>
+          <var>align<span>配置</span></var>
           <var>attr<span>attr属性</span></var>
 
           <var>path<span>ファイルパス</span></var>
@@ -223,7 +226,7 @@
         </fieldset>
 
         <fieldset><legend>unit#osmap<span>標準 Mapユニット</span></legend>
-          <var>align<span>配置（float）</span></var>
+          <var>align<span>配置</span></var>
           <var>attr<span>attr属性</span></var>
 
           <var>lat<span>緯度</span></var>
@@ -242,7 +245,7 @@
         </fieldset>
 
         <fieldset><legend>unit#map<span>Google Mapユニット</span></legend>
-          <var>align<span>配置（float）</span></var>
+          <var>align<span>配置</span></var>
           <var>attr<span>attr属性</span></var>
 
           <var>lat<span>緯度</span></var>
@@ -265,7 +268,7 @@
         </fieldset>
 
         <fieldset><legend>unit#youtube<span>youtubeユニット</span></legend>
-          <var>align<span>配置（float）</span></var>
+          <var>align<span>配置</span></var>
           <var>attr<span>attr属性</span></var>
           <var>x<span>横幅</span></var>
           <var>y<span>高さ</span></var>
@@ -279,7 +282,7 @@
         </fieldset>
 
         <fieldset><legend>unit#video<span>ビデオユニット</span></legend>
-          <var>align<span>配置（float）</span></var>
+          <var>align<span>配置</span></var>
           <var>attr<span>attr属性</span></var>
           <var>x<span>横幅</span></var>
           <var>y<span>高さ</span></var>
@@ -293,7 +296,7 @@
         </fieldset>
 
         <fieldset><legend>unit#eximage<span>画像URLユニット</span></legend>
-          <var>align<span>配置（float）</span></var>
+          <var>align<span>配置</span></var>
           <fieldset><legend>link#front<span>リンク開始ブロック</span></legend>
             <var>url<span>リンク先URL</span></var>
             <var>viewer<span>ビューワー</span></var>
@@ -317,7 +320,7 @@
         </fieldset>
 
         <fieldset><legend>unit#quote<span>引用ユニット</span></legend>
-          <var>align<span>配置（float）</span></var>
+          <var>align<span>配置</span></var>
           <var>quote_url<span>引用URL</span></var>
           <var>quote_site_name<span>引用サイト名</span></var>
           <var>quote_author<span>引用サイト著者</span></var>
@@ -330,21 +333,21 @@
         </fieldset>
 
         <fieldset><legend>unit#rich-editor<span>リッチエディターユニット</span></legend>
-          <var>align<span>配置（float）</span></var>
+          <var>align<span>配置</span></var>
           <var>html<span>HTML</span></var>
           <var>utid<span>ユニットID</span></var>
           <var>unit_eid<span>エントリーID</span></var>
         </fieldset>
 
         <fieldset><legend>unit#module<span>モジュールユニット</span></legend>
-          <var>align<span>配置（float）</span></var>
+          <var>align<span>配置</span></var>
           <var>view<span>解決されたモジュール</span></var>
           <var>utid<span>ユニットID</span></var>
           <var>unit_eid<span>エントリーID</span></var>
         </fieldset>
 
         <fieldset><legend>unit#custom<span>カスタムユニット</span></legend>
-          <var>align<span>配置（float）</span></var>
+          <var>align<span>配置</span></var>
           <var>utid<span>ユニットID</span></var>
           <var>unit_eid<span>エントリーID</span></var>
           <var>

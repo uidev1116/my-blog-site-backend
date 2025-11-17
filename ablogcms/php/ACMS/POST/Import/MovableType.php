@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Common\MimeTypeValidator;
+
 class ACMS_POST_Import_MovableType extends ACMS_POST_Import
 {
     protected $importCid;
@@ -22,9 +24,7 @@ class ACMS_POST_Import_MovableType extends ACMS_POST_Import
 
     function import()
     {
-        $this->httpFile->validateFormat(['text/plain', 'text/html']);
         $path = $this->httpFile->getPath();
-
         $this->validate($path);
 
         $entryBlock = '';
@@ -47,6 +47,15 @@ class ACMS_POST_Import_MovableType extends ACMS_POST_Import
 
     function validate($path)
     {
+        $mimeValidator = new MimeTypeValidator();
+        $mime = $mimeValidator->sniffMimeType($path);
+        if (!$mime) {
+            throw new RuntimeException(gettext('ファイル形式が不明です'));
+        }
+        $extensions = $mimeValidator->getExtensionsFromMimeType($mime);
+        if (!in_array('txt', $extensions, true) && !in_array('html', $extensions, true)) {
+            throw new RuntimeException(gettext('ファイル形式が不正です'));
+        }
         $handle = @fopen($path, "r");
         if ($handle) {
             while (fgets($handle) !== false) {

@@ -7,8 +7,8 @@
   padding-bottom: 40px;
 
   ul {
-    margin: 0;
     padding-left: 0;
+    margin: 0;
     list-style: none;
   }
 
@@ -24,8 +24,8 @@
 /* タイトル */
 .acms-sidebar-title {
   padding: 10px 15px;
-  color: global.$acms-color-gray90;
   font-weight: 400;
+  color: global.$acms-color-gray90;
   background-color: global.$acms-color-system-gray90;
 
   @include global.font-size(14);

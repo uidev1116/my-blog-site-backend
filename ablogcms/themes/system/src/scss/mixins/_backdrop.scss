@@ -7,10 +7,10 @@
 
 @mixin backdrop($color: rgba(var.$acms-color-black, 0.5)) {
   position: fixed;
+  inset: 0;
   z-index: fn.zIndex(acms-modal);
   width: 100vw;
   height: 100vh;
   overflow: hidden auto;
   background-color: $color;
-  inset: 0;
 }

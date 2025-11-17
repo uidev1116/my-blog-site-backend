@@ -23,25 +23,15 @@ class ImagickEngine extends ImageEngine
      */
     public function editImage(string $srcPath, string $destPath, ?int $width = null, ?int $height = null, ?int $size = null, ?int $angle = null): void
     {
+        // 元画像を読み込み
         $imagick = $this->loadImagickFromPath($srcPath);
-        $imagick->setImageCompression(Imagick::COMPRESSION_JPEG);
-        $imagick->setImageCompressionQuality($this->getImageQuality());
-        // $imagick->sharpenimage(0.8, 0.6); // シャープネス
-
         $imageprops = $imagick->getImageGeometry();
         $srcWidth = $imageprops['width'];
         $srcHeight = $imageprops['height'];
+        // 出力サイズなど計算
         [$srcWidth, $srcHeight, $x, $y, $column, $rows] = $this->computeEditMetrics($srcWidth, $srcHeight, $width, $height, $size);
-
-        // tranceparent
-        $imagick->cropImage($srcWidth, $srcHeight, $x, $y);
-        $imagick->resizeImage($column, $rows, Imagick::FILTER_LANCZOS, 0.9, true);
-        // rotate
-        if ($angle = intval($angle)) {
-            $imagick->rotateImage('none', -1 * $angle);
-        }
-        $imagick->stripImage();
-        $this->outputImage($imagick, $destPath);
+        // リサイズ・回転して保存
+        $this->resizeImage($srcPath, $destPath, $srcWidth, $srcHeight, $x, $y, $column, $rows, 0, 0, $column, $rows, [255, 255, 255], $angle);
     }
 
     /**
@@ -52,17 +42,14 @@ class ImagickEngine extends ImageEngine
      * @param string|null $format
      * @return void
      */
-    public function copyImage(string $srcPath, string $destPath, string $format = null): void
+    public function copyImage(string $srcPath, string $destPath, ?string $format = null): void
     {
         if ($format) {
             $mimeType = $this->getMimeType($srcPath);
             $srcFormat = $this->detectImageExtenstion($mimeType, true);
             if ($srcFormat !== $format) {
                 $imagick = $this->loadImagickFromPath($srcPath);
-                $imagick->implodeImage(0.0001);
-                $imagick->setImageCompressionQuality($this->getImageQuality());
-                $imagick->setFormat($format);
-                $imagick->stripImage();
+                $imagick->setFormat($format); // フォーマットだけ変更（圧縮設定はしない）
                 $this->outputImage($imagick, $destPath);
                 return;
             }
@@ -112,35 +99,97 @@ class ImagickEngine extends ImageEngine
      * @param int $canvasWidth
      * @param int $canvasHeight
      * @param array{0: int, 1: int, 2: int} $color
+     * @param int|null $angle
      * @return void
      */
-    public function resizeImage(string $srcPath, string $destPath, int $srcWidth, int $srcHeight, int $srcX, int $srcY, int $destWidth, int $destHeight, int $destX, int $destY, int $canvasWidth, int $canvasHeight, array $color): void
+    public function resizeImage(string $srcPath, string $destPath, int $srcWidth, int $srcHeight, int $srcX, int $srcY, int $destWidth, int $destHeight, int $destX, int $destY, int $canvasWidth, int $canvasHeight, array $color, ?int $angle = null): void
     {
         $imagick = $this->loadImagickFromPath($srcPath);
-        $imagick->setImageCompression(Imagick::COMPRESSION_JPEG);
-        $imagick->setImageCompressionQuality($this->getImageQuality());
-        $imagick->cropImage($srcWidth, $srcHeight, $srcX, $srcY);
-        $imagick->resizeImage($destWidth, $destHeight, Imagick::FILTER_LANCZOS, 0.9, false);
-
+        // 画像形式
         $mimeType = $this->getMimeType($srcPath);
         $format = $this->detectImageExtenstion($mimeType, true);
-
+        // 背景色
+        /** @var array{0:int,1:int,2:int} $color */
+        [$red, $green, $blue] = $color;
+        $red = max(0, min(255, $red));
+        $green = max(0, min(255, $green));
+        $blue = max(0, min(255, $blue));
+        // もしアニメGIFなら → 変換せずにそのままコピー
+        if ($format === 'gif' && $imagick->getNumberImages() > 1) {
+            PublicStorage::copy($srcPath, $destPath);
+            return;
+        }
+        // リニア色空間に変換
+        $imagick->transformImageColorspace(Imagick::COLORSPACE_RGB);
+        // 色深度を保持
+        $depth = $imagick->getImageDepth();
+        // クロップ
+        $imagick->cropImage($srcWidth, $srcHeight, $srcX, $srcY);
+        // 縮小前に軽くシャープ（プリシェーピング）
+        $imagick->unsharpMaskImage(0, 0.3, 0.6, 0.02);
+        // 縮小（縮小率が高い場合は段階的に縮小）
+        $factor = 2; // 縮小ステップ
+        while (
+            $imagick->getImageWidth() / $factor > $destWidth &&
+            $imagick->getImageHeight() / $factor > $destHeight
+        ) {
+            $imagick->resizeImage(
+                intval($imagick->getImageWidth() / $factor),
+                intval($imagick->getImageHeight() / $factor),
+                Imagick::FILTER_LANCZOS,
+                1
+            );
+        }
+        $imagick->resizeImage($destWidth, $destHeight, Imagick::FILTER_LANCZOS, 1);
+        // 背景色設定（透過 or RGB指定）
         if (in_array($format, ['gif', 'png'], true)) {
             $imagick->setImageBackgroundColor(new ImagickPixel('transparent'));
         } else {
-            [$red, $green, $blue] = $color;
             $imagick->setImageBackgroundColor(new ImagickPixel("rgb($red, $green, $blue)"));
         }
+        // キャンバス調整（上下 or 左右に余白）
         if ($destWidth === $canvasWidth) {
-            // 横幅いっぱい
+            // 横幅いっぱい → 上下余白
             $imagick->spliceImage(0, $destY, 0, 0);
             $imagick->spliceImage(0, $destY, 0, $destY + $destHeight);
         } else {
-            // 縦幅いっぱい
+            // 縦幅いっぱい → 左右余白
             $imagick->spliceImage($destX, 0, 0, 0);
             $imagick->spliceImage($destX, 0, $destX + $destWidth, 0);
         }
+        // 回転
+        if ($angle) {
+            $bg = in_array($format, ['png','gif'], true) ? 'none' : "rgb($red, $green, $blue)";
+            $imagick->rotateImage(new ImagickPixel($bg), -1 * $angle);
+        }
+        // メタデータ削除
         $imagick->stripImage();
+        $imagick->profileImage('*', null);
+        // 出力時に元の depth に合わせる
+        $imagick->setImageDepth($depth);
+        // リニア → sRGB に戻す
+        $imagick->transformImageColorspace(Imagick::COLORSPACE_SRGB);
+        // 圧縮
+        if ($format === 'png') {
+            $imagick->setImageFormat('png');
+            $imagick->quantizeImage(256, Imagick::COLORSPACE_RGB, 0, false, true);
+            $imagick->setImageType(Imagick::IMGTYPE_PALETTEMATTE);
+            $imagick->setOption('png:compression-level', '9');
+            $imagick->setOption('png:compression-filter', '5');
+            $imagick->setOption('png:compression-strategy', '1');
+            $imagick->setOption('png:exclude-chunk', 'all');
+        } elseif ($format === 'webp' && $this->isWebpSupported()) {
+            $imagick->setImageFormat('webp');
+            $imagick->setImageCompressionQuality($this->getImageQuality());
+        } elseif ($format === 'jpg') {
+            $imagick->setImageFormat('jpeg');
+            $imagick->setImageCompression(Imagick::COMPRESSION_JPEG);
+            $imagick->setImageCompressionQuality($this->getImageQuality());
+            $imagick->setInterlaceScheme(Imagick::INTERLACE_JPEG);
+        } elseif ($format === 'gif') {
+            $imagick->setImageFormat('gif');
+            $imagick->setImageCompression(Imagick::COMPRESSION_LZW);
+        }
         $this->outputImage($imagick, $destPath);
     }
 

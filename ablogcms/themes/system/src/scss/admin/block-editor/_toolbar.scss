@@ -9,8 +9,8 @@
   align-items: center;
   height: 100%;
   padding: var(--acms-block-editor-spacing-1);
-  color: #000;
   line-height: 1;
+  color: #000;
 }
 
 // Divider
@@ -59,14 +59,14 @@
 .acms-block-editor-toolbar-arrow {
   position: absolute;
   display: grid;
+  place-items: center;
   height: 100%;
-  color: var(--acms-block-editor-neutral-900);
   font-size: var(--acms-block-editor-font-size-base);
+  color: var(--acms-block-editor-neutral-900);
+  appearance: none;
   background: white;
   border: none;
   transition: background-color 0.2s ease;
-  appearance: none;
-  place-items: center;
 
   &:hover,
   &:active {

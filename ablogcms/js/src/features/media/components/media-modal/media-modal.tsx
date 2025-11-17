@@ -54,8 +54,6 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
 
   root: HTMLElement;
 
-  validator!: Awaited<ReturnType<typeof ACMS.Dispatch.validator>> | null;
-
   static defaultProps = {
     tags: [],
   };
@@ -130,14 +128,7 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
     }
   }
 
-  async setFormRef(node: HTMLFormElement) {
-    if (this.form === null && node) {
-      this.validator = await ACMS.Dispatch.validator(node);
-    }
-    if (node === null) {
-      this.validator?.destroy();
-      this.validator = null;
-    }
+  setFormRef(node: HTMLFormElement) {
     this.form = node;
   }
 
@@ -773,13 +764,6 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
                                   name="field_3"
                                   className="acms-admin-form-width-full"
                                 />
-                                <div data-validator-label="field_3-v-maxlength" className="validator-result-1">
-                                  <p className="error-text acms-admin-m-0">
-                                    <span className="acms-admin-icon acms-admin-icon-attention" />
-                                    {ACMS.i18n('media.validate_message.alt_maxlength')}
-                                  </p>
-                                </div>
-                                <input type="hidden" name="field_3:v#maxlength" id="field_3-v-maxlength" value="150" />
                                 <input type="hidden" name="media[]" value="field_3" />
                               </td>
                             </tr>

@@ -3,13 +3,13 @@
 namespace Acms\Services\Logger;
 
 use Acms\Services\Facades\Logger;
+use Acms\Services\Facades\Cache;
 
 class Deprecated
 {
-    /**
-     * @var string[]
-     */
-    private static $repository = [];
+    private const CACHE_KEY_PREFIX = 'deprecated-logger-';
+    private const CACHE_LIFETIME = 60 * 60 * 24;
+
     /**
      * 開発モードか判定
      */
@@ -55,12 +55,13 @@ class Deprecated
 
         $message = "{$feature}は{$sinceMessage}非推奨の機能です。{$removeMessage}{$alternativeMessage}{$linkMessage}{$hintMessage}";
 
-        if (in_array($message, self::$repository, true)) {
+        // 有効期限付きキャッシュを使用して、一定期間で一度だけ非推奨ログを出力する
+        $cache = Cache::config();
+        $cacheKey = self::CACHE_KEY_PREFIX . md5($message);
+        if ($cache->has($cacheKey)) {
             return;
         }
-
         Logger::notice($message, $context);
-
-        self::$repository[] = $message;
+        $cache->put($cacheKey, true, self::CACHE_LIFETIME);
     }
 }

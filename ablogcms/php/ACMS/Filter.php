@@ -659,12 +659,13 @@ class ACMS_Filter
      * @template T of \SQL_Where
      * @param T $SQL
      * @param Field_Search $Field
+     * @param string|null $bScp 結合先のエイリアス名
      * @return array
      * @param-out T $SQL
      */
-    public static function entryField(&$SQL, $Field)
+    public static function entryField(&$SQL, $Field, $bScp = null)
     {
-        return ACMS_Filter::_field($SQL, $Field, 'field_eid', 'entry_id');
+        return ACMS_Filter::_field($SQL, $Field, 'field_eid', 'entry_id', $bScp);
     }
 
     /**
@@ -1032,10 +1033,11 @@ class ACMS_Filter
      * @param Field_Search $Field
      * @param 'field_eid'|'field_cid'|'field_bid'|'field_uid'|null $fieldKey
      * @param string|null $tableKey 結合先のテーブルのキー
+     * @param string|null $bScp 結合先のエイリアス名
      * @return string[] ソートに利用するフィールド名の配列
      * @param-out T $SQL
      */
-    private static function _field(&$SQL, $Field, $fieldKey = null, $tableKey = null)
+    private static function _field(&$SQL, $Field, $fieldKey = null, $tableKey = null, $bScp = null)
     {
         $sortFields = []; // ソートに利用するフィールド名の配列
         $unionAry   = []; // UNION するための SQL_Select オブジェクトの配列
@@ -1088,9 +1090,9 @@ class ACMS_Filter
                             for ($i = 1; $i < $uniouCount; $i++) {
                                 $UNION->addUnion($unionAry[$i]);
                             }
-                            $SQL->addInnerJoin($UNION, $fieldKey, $tableKey, 'field' . $j);
+                            $SQL->addInnerJoin($UNION, $fieldKey, $tableKey, 'field' . $j, $bScp);
                         } elseif ($uniouCount > 0) {
-                            $SQL->addInnerJoin($unionAry[0], $fieldKey, $tableKey, 'field' . $j);
+                            $SQL->addInnerJoin($unionAry[0], $fieldKey, $tableKey, 'field' . $j, $bScp);
                         }
 
                         $unionAry   = [];
@@ -1109,9 +1111,9 @@ class ACMS_Filter
                 for ($i = 1; $i < $unionCount; $i++) {
                     $UNION->addUnion($unionAry[$i]);
                 }
-                $SQL->addInnerJoin($UNION, $fieldKey, $tableKey, 'field_end');
+                $SQL->addInnerJoin($UNION, $fieldKey, $tableKey, 'field_end', $bScp);
             } elseif ($unionCount > 0) {
-                $SQL->addInnerJoin($unionAry[0], $fieldKey, $tableKey, 'field_end');
+                $SQL->addInnerJoin($unionAry[0], $fieldKey, $tableKey, 'field_end', $bScp);
             }
         }
 

@@ -350,14 +350,22 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
      */
     function buildField($field, $key, $value)
     {
-        $sort   = 1;
+        $sort = 1;
         if (preg_match('@\[\d+\]$@', $key, $matchs)) {
-            $sort   = intval(preg_replace('@\[|\]@', '', $matchs[0]));
-            $key    = preg_replace('@\[\d+\]$@', '', $key);
+            $sort = intval(preg_replace('@\[|\]@', '', $matchs[0]));
+            $key = preg_replace('@\[\d+\]$@', '', $key);
         }
-        $field['field_key']     = $key;
-        $field['field_value']   = $value;
-        $field['field_sort']    = $sort;
+        if (!$key) {
+            return;
+        }
+        $fieldTypeValue = null;
+        if (preg_match('/@(html|media|title)$/', $key, $matches)) {
+            $fieldTypeValue = $matches[1];
+        }
+        $field['field_key'] = $key;
+        $field['field_type'] = $fieldTypeValue;
+        $field['field_value'] = $value;
+        $field['field_sort'] = $sort;
 
         $this->fields[] = $field;
     }

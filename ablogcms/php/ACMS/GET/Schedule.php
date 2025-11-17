@@ -327,7 +327,7 @@ class ACMS_GET_Schedule extends ACMS_GET
             $labelKey = isset($Plan['label' . $dayNum][0]) ? $Plan['label' . $dayNum][0] : '';
 
             // first Item on Calendar
-            if ($Plan['item' . $dayNum][0]) {
+            if (isset($Plan['item' . $dayNum][0])) {
                 $day['dayItem'] = $Plan['item' . $dayNum][0];
             }
         }

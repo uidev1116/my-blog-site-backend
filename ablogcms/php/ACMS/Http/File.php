@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Common\MimeTypeValidator;
+
 /**
  * ACMS_Http_File
  */
@@ -116,24 +118,21 @@ class ACMS_Http_File extends ACMS_Http
     /**
      * フォーマットのチェック
      *
-     * @param array $mimeTypes
+     * @param array $allowedExtensions
      */
-    public function validateFormat($mimeTypes = [])
+    public function validateFormat($allowedExtensions = [])
     {
         // 許可ファイル拡張子をまとめておく
-        if (empty($mimeTypes)) {
-            $mimeTypes = array_merge(
+        if (!$allowedExtensions) {
+            $allowedExtensions = array_merge(
                 configArray('file_extension_document'),
                 configArray('file_extension_archive'),
                 configArray('file_extension_movie'),
                 configArray('file_extension_audio')
             );
         }
-
-        // MIMEタイプに対応する拡張子を自前で取得する
-        $mimeType = mime_content_type($_FILES[$this->key]['tmp_name']);
-
-        if (!in_array($mimeType, $mimeTypes, true)) {
+        $mimeValidator = new MimeTypeValidator();
+        if (!$mimeValidator->validateAllowedByContent($_FILES[$this->key]['tmp_name'], $allowedExtensions)) {
             throw new RuntimeException(gettext('ファイル形式が不正です'));
         }
     }
@@ -174,7 +173,7 @@ class ACMS_Http_File extends ACMS_Http
      */
     public function getCsv()
     {
-        $this->validateFormat(['csv', 'text/csv', 'text/plain', 'html', 'text/html', 'application/csv']);
+        $this->validateFormat(['csv', 'html']);
         $path = $this->getPath();
 
         $csv = $this->convertEncoding($path);

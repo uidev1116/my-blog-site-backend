@@ -61,27 +61,32 @@ class ACMS_GET_Member_ResetPasswordAuth extends ACMS_GET_Member
         }
         $vars += TemplateHelper::buildField($this->Post, $tpl);
 
-        try {
-            $data = $this->validateAuthUrl();
-            $this->findAccount($data);
-            $tpl->add('emailAuthSuccess');
-            $tpl->add('form', $vars);
-            if ($this->Post->isValidAll() === false) {
+        if ($this->shouldTryEmailAuth()) {
+            try {
+                $data = $this->validateAuthUrl();
+                $this->findAccount($data);
+                $tpl->add('emailAuthSuccess');
+                $tpl->add('form', $vars);
+                if ($this->Post->isValidAll() === false) {
+                    $tpl->add('notSuccessful');
+                }
+                $tpl->add(null, $vars);
+            } catch (BadRequestException $e) {
+                Logger::notice('不正なURLのため、パスワード再設定処理を中断しました', Common::exceptionArray($e, $data));
+                $tpl->add('badRequest');
+                $tpl->add('notSuccessful');
+            } catch (ExpiredException $e) {
+                Logger::notice('有効期限切れのURLのため、パスワード再設定処理を中断しました', Common::exceptionArray($e, $data));
+                $tpl->add('expired');
+                $tpl->add('notSuccessful');
+            } catch (NotFoundException $e) {
+                Logger::notice('アカウントが存在しないため、パスワード再設定処理を中断しました', Common::exceptionArray($e, $data));
+                $tpl->add('notFound');
                 $tpl->add('notSuccessful');
             }
+        } else {
+            $tpl->add('form', $vars);
             $tpl->add(null, $vars);
-        } catch (BadRequestException $e) {
-            Logger::notice('不正なURLのため、パスワード再設定処理を中断しました', Common::exceptionArray($e, $data));
-            $tpl->add('badRequest');
-            $tpl->add('notSuccessful');
-        } catch (ExpiredException $e) {
-            Logger::notice('有効期限切れのURLのため、パスワード再設定処理を中断しました', Common::exceptionArray($e, $data));
-            $tpl->add('expired');
-            $tpl->add('notSuccessful');
-        } catch (NotFoundException $e) {
-            Logger::notice('アカウントが存在しないため、パスワード再設定処理を中断しました', Common::exceptionArray($e, $data));
-            $tpl->add('notFound');
-            $tpl->add('notSuccessful');
         }
     }
 
@@ -118,5 +123,27 @@ class ACMS_GET_Member_ResetPasswordAuth extends ACMS_GET_Member
             throw new NotFoundException('Not found account.');
         }
         return $uid;
+    }
+
+    /**
+     * メール認証によるパスワード再設定を試行するかどうかを判定
+     *
+     * @return bool
+     */
+    protected function shouldTryEmailAuth(): bool
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            return false;
+        }
+        if (!defined('IS_SYSTEM_RESET_PASSWORD_AUTH_PAGE')) {
+            return false;
+        }
+        if (IS_SYSTEM_RESET_PASSWORD_AUTH_PAGE !== 1) {
+            return false;
+        }
+        if (!$this->isAuthUrl()) {
+            return false;
+        }
+        return true;
     }
 }

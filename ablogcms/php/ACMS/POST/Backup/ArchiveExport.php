@@ -1,6 +1,6 @@
 <?php
 
-use Acms\Services\Facades\PrivateStorage;
+use Acms\Services\Facades\Application;
 
 class ACMS_POST_Backup_ArchiveExport extends ACMS_POST_Backup_Base
 {
@@ -20,13 +20,13 @@ class ACMS_POST_Backup_ArchiveExport extends ACMS_POST_Backup_Base
             $this->authCheck('backup_export');
             ignore_user_abort(true);
             set_time_limit(0);
-            $this->lockFile = CACHE_DIR . 'archives-backup-lock';
+            $lockService = Application::make('archive.backup-lock');
 
-            if (PrivateStorage::exists($this->lockFile)) {
+            if ($lockService->isLocked()) {
                 throw new \RuntimeException(gettext('アーカイブのバックアップを中止しました。すでにバックアップ中の可能性があります。変化がない場合は、cache/archives-backup-lock ファイルを削除してお試しください。'));
             }
             Common::backgroundRedirect(HTTP_REQUEST_URL);
-            $this->run();
+            $this->run($lockService);
             die();
         } catch (\Exception $e) {
             $this->addError($e->getMessage());
@@ -35,14 +35,14 @@ class ACMS_POST_Backup_ArchiveExport extends ACMS_POST_Backup_Base
         return $this->Post;
     }
 
-    protected function run()
+    protected function run(\Acms\Services\Common\Lock $lockService)
     {
-        PrivateStorage::put($this->lockFile, 'lock');
         set_time_limit(0);
         $logger = App::make('archives.logger');
 
         DB::setThrowException(true);
         try {
+            $lockService->tryLock();
             $logger->init();
             LocalStorage::makeDirectory($this->backupArchivesDir);
             $dest = $this->backupArchivesDir . 'archives' . date('_Ymd_Hi') . '.zip';
@@ -83,7 +83,7 @@ class ACMS_POST_Backup_ArchiveExport extends ACMS_POST_Backup_Base
                 AcmsLogger::warning('アーカイブのバックアップ中にエラーが発生しました。', Common::exceptionArray($e));
             }
         } finally {
-            PrivateStorage::remove($this->lockFile);
+            $lockService->release();
             sleep(3);
             $logger->terminate();
         }

@@ -32,8 +32,8 @@
 
 /* ナビゲーションリンク */
 .acms-navbar-admin-nav {
-  margin: 0 -10px;
   padding-left: 0;
+  margin: 0 -10px;
 
   @include global.font-size(22);
 
@@ -44,10 +44,10 @@
     > a,
     > button {
       display: block;
-      margin: 0 auto;
       padding: 5px 0;
-      color: global.$acms-color-white;
+      margin: 0 auto;
       line-height: 1.2;
+      color: global.$acms-color-white;
       text-align: center;
       background: 0;
       border: 0;
@@ -94,12 +94,12 @@
     display: block;
     width: 100%;
     padding: 20px 10px 20px 20px;
-    color: global.$acms-color-black;
     font-weight: bold;
+    color: global.$acms-color-black;
     text-align: left;
+    appearance: none;
     background: 0;
     border: 0;
-    appearance: none;
   }
 }
 
@@ -163,8 +163,8 @@
 }
 
 .acms-title-cms {
-  margin: 0;
   padding: 15px 0 20px;
+  margin: 0;
 
   @include global.font-size(26);
 }
@@ -176,10 +176,6 @@
 .acms-icon-logo.acms-blog-color {
   display: block;
   color: global.$acms-color-white;
-}
-
-.js-acms-color-picker-target {
-  background-color: global.$acms-red;
 }
 
 // スクロール
@@ -234,8 +230,8 @@
 
 .acms-navbar-admin-nav-username {
   margin: 0 0 2px;
-  font-weight: bold;
   font-size: 12px;
+  font-weight: bold;
   overflow-wrap: break-word;
 }
 

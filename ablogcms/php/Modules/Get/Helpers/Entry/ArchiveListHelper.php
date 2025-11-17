@@ -95,45 +95,49 @@ class ArchiveListHelper extends EntryQueryHelper
         foreach ($data as $row) {
             switch ($scope) {
                 case 'year':
-                    $entryDatetime = strtotime($row['entry_date'] . '-01-01 00:00:00');
-                    if ($entryDatetime === false) {
+                    $entryDatetime = $row['entry_date'] . '-01-01 00:00:00';
+                    $timestamp = strtotime($entryDatetime);
+                    if ($timestamp === false) {
                         continue 2;
                     }
-                    $y = date('Y', $entryDatetime);
+                    $y = date('Y', $timestamp);
                     $m = null;
                     $d = null;
                     break;
                 case 'month':
-                    $entryDatetime = strtotime($row['entry_date'] . '-01 00:00:00');
-                    if ($entryDatetime === false) {
+                    $entryDatetime = $row['entry_date'] . '-01 00:00:00';
+                    $timestamp = strtotime($entryDatetime);
+                    if ($timestamp === false) {
                         continue 2;
                     }
-                    $y = date('Y', $entryDatetime);
-                    $m = date('m', $entryDatetime);
+                    $y = date('Y', $timestamp);
+                    $m = date('m', $timestamp);
                     $d = null;
                     break;
                 case 'day':
-                    $entryDatetime = strtotime($row['entry_date'] . ' 00:00:00');
-                    if ($entryDatetime === false) {
+                    $entryDatetime = $row['entry_date'] . ' 00:00:00';
+                    $timestamp = strtotime($entryDatetime);
+                    if ($timestamp === false) {
                         continue 2;
                     }
-                    $y = date('Y', $entryDatetime);
-                    $m = date('m', $entryDatetime);
-                    $d = date('d', $entryDatetime);
+                    $y = date('Y', $timestamp);
+                    $m = date('m', $timestamp);
+                    $d = date('d', $timestamp);
                     break;
                 case 'biz_year':
-                    $entryDatetime = strtotime($row['entry_date'] . '-01 00:00:00');
-                    if ($entryDatetime === false) {
+                    $entryDatetime = $row['entry_date'] . '-01 00:00:00';
+                    $timestamp = strtotime($entryDatetime);
+                    if ($timestamp === false) {
                         continue 2;
                     }
-                    $y = date('Y', $entryDatetime);
-                    $m = date('m', $entryDatetime);
+                    $y = date('Y', $timestamp);
+                    $m = date('m', $timestamp);
                     $d = null;
                     break;
             }
             $vars = [
                 'amount' => $row['entry_amount'],
-                'date' => $row['entry_date'],
+                'date' => $entryDatetime,
                 'url' => acmsLink([ // @phpstan-ignore-line
                     'bid' => $this->bid,
                     'cid' => $this->cid,

@@ -22,8 +22,8 @@ button,
 input[type='button'],
 input[type='reset'],
 input[type='submit'] {
-  cursor: pointer;
   appearance: auto;
+  cursor: pointer;
 }
 
 input[type='checkbox'],
@@ -63,15 +63,15 @@ label {
   input.acms-form-control {
     min-height: global.$acms-form-height;
     padding: global.$acms-form-padding-y global.$acms-form-padding-x;
-    color: global.$acms-color-black;
     line-height: global.$acms-form-line-height;
+    color: global.$acms-color-black;
     vertical-align: middle;
+    appearance: none;
     background: global.$acms-color-white;
     border: global.$acms-form-border;
     border-radius: global.$acms-form-border-radius;
     box-shadow: global.$acms-form-box-shadow;
     transition: background-color 0.2s;
-    appearance: none;
 
     @include global.font-size(global.$acms-form-font-size-md);
 
@@ -89,9 +89,9 @@ label {
 
     &:disabled {
       color: global.$acms-form-disabled-text-color;
+      cursor: not-allowed;
       background-color: global.$acms-form-disabled-bg-color;
       border-color: global.$acms-form-disabled-border-color;
-      cursor: not-allowed;
     }
 
     // ---------------
@@ -128,14 +128,14 @@ label {
   textarea.acms-form-control {
     padding: 5px 5px 4px;
     overflow: auto;
-    color: global.$acms-color-black;
     line-height: 1.7;
+    color: global.$acms-color-black;
+    resize: vertical;
     background: global.$acms-color-white;
     border: global.$acms-form-border;
     border-radius: global.$acms-form-border-radius;
     box-shadow: global.$acms-form-box-shadow;
     transition: background-color 0.2s;
-    resize: vertical;
 
     @include global.font-size(14);
 
@@ -153,9 +153,9 @@ label {
 
     &:disabled {
       color: global.$acms-form-disabled-text-color;
+      cursor: not-allowed;
       background-color: global.$acms-form-disabled-bg-color;
       border-color: global.$acms-form-disabled-border-color;
-      cursor: not-allowed;
     }
 
     &.acms-form-large {
@@ -220,9 +220,9 @@ label {
 
     &:disabled {
       color: global.$acms-form-disabled-text-color;
+      cursor: not-allowed;
       background-color: global.$acms-form-disabled-bg-color;
       border-color: global.$acms-form-disabled-border-color;
-      cursor: not-allowed;
     }
 
     &.acms-form-auto-size {
@@ -237,9 +237,9 @@ label {
   select[multiple='multiple'],
   select.acms-form-select[multiple='multiple'] {
     padding: 7px 10px;
+    appearance: none;
     background: global.$acms-form-multiple-bg-color;
     box-shadow: global.$acms-form-box-shadow;
-    appearance: none;
 
     &:focus {
       border-color: global.$acms-form-focus-border-color;
@@ -253,15 +253,15 @@ label {
 
     &:disabled {
       color: global.$acms-form-disabled-text-color;
+      cursor: not-allowed;
       background-color: global.$acms-form-disabled-bg-color;
       border-color: global.$acms-form-disabled-border-color;
-      cursor: not-allowed;
     }
   }
 
   input[type='file'] {
-    color: global.$acms-btn-default-color;
     line-height: global.$acms-btn-line-height;
+    color: global.$acms-btn-default-color;
 
     @include global.font-size(global.$acms-btn-font-size);
 
@@ -327,9 +327,9 @@ label {
 
       &:disabled {
         color: global.$acms-form-disabled-text-color;
+        cursor: not-allowed;
         background-color: global.$acms-form-disabled-bg-color;
         border-color: global.$acms-form-disabled-border-color;
-        cursor: not-allowed;
       }
 
       .select2-selection__rendered {
@@ -349,8 +349,8 @@ label {
       }
 
       .select2-search__field {
-        color: global.$acms-color-black;
         line-height: 1;
+        color: global.$acms-color-black;
         background: global.$acms-color-white;
         border: global.$acms-form-border;
         border-radius: global.$acms-form-border-radius;
@@ -420,8 +420,8 @@ label {
 
 .acms-form-action {
   display: table;
-  border-collapse: separate;
   border-spacing: 0;
+  border-collapse: separate;
 
   .acms-form-side,
   .acms-form-side-btn,
@@ -432,8 +432,8 @@ label {
   .acms-form-side {
     width: 1%;
     padding: 0 6px;
-    color: global.$acms-color-black;
     line-height: 1;
+    color: global.$acms-color-black;
     vertical-align: middle;
     background: global.$acms-color-gray30;
     border: global.$acms-form-border;
@@ -645,8 +645,8 @@ label {
 .acms-form-checkbox {
   input {
     position: absolute;
-    margin: 0;
     padding: 0;
+    margin: 0;
     font-size: 100%;
     opacity: 0;
   }
@@ -667,10 +667,11 @@ label {
 
   input:disabled + label .acms-ico-checkbox,
   input:disabled + .acms-ico-checkbox {
+    cursor: not-allowed;
+
     // 2つめの記述は旧マークアップとの互換性対応
     background: url('#{global.$acms-input-images-path}') no-repeat left -40px;
     background-size: 40px 80px;
-    cursor: not-allowed;
   }
 
   input:disabled + label {
@@ -696,8 +697,8 @@ label {
 .acms-form-radio {
   input {
     position: absolute;
-    margin: 0;
     padding: 0;
+    margin: 0;
     font-size: 100%;
     opacity: 0;
   }
@@ -718,10 +719,11 @@ label {
 
   input:disabled + label .acms-ico-radio,
   input:disabled + .acms-ico-radio {
+    cursor: not-allowed;
+
     // 2つめの記述は旧マークアップとの互換性対応
     background: url('#{global.$acms-input-images-path}') no-repeat -20px -40px;
     background-size: 40px 80px;
-    cursor: not-allowed;
   }
 
   input:disabled + label {
@@ -859,9 +861,9 @@ label {
 
 .acms-btn-checkbox:disabled + label,
 .acms-btn-checkbox[disabled] + label {
-  opacity: global.$acms-btn-disabled-opacity;
-  filter: alpha(opacity=global.$acms-btn-disabled-opacity-ie);
   pointer-events: none;
+  filter: alpha(opacity=global.$acms-btn-disabled-opacity-ie);
+  opacity: global.$acms-btn-disabled-opacity;
 }
 
 // ラジオボタン
@@ -872,13 +874,13 @@ label {
     position: relative;
     display: inline-block;
     padding: 9px;
+    appearance: none;
     background-color: global.$acms-color-gray20;
     border: 1px solid global.$acms-color-system-gray40;
     border-radius: 50px;
     box-shadow:
       0 1px 2px rgb(0 0 0 / 5%),
       inset 0 -15px 10px -12px rgb(0 0 0 / 5%);
-    appearance: none;
   }
 
   &:checked + label::after {
@@ -935,9 +937,9 @@ label {
 
 .acms-form-label {
   margin-bottom: global.$acms-form-label-margin-bottom;
-  color: global.$acms-form-label-color;
-  font-weight: global.$acms-form-label-font-weight;
   font-style: global.$acms-form-label-font-style;
+  font-weight: global.$acms-form-label-font-weight;
+  color: global.$acms-form-label-color;
 
   @if global.$acms-form-label-font-size {
     @include global.font-size(global.$acms-form-label-font-size);
@@ -947,14 +949,14 @@ label {
 // For use with horizontal and inline forms, when you need the label (or legend)
 // text to align with the form controls.
 .acms-col-form-label {
-  margin-bottom: 0; // Override the `<legend>` default
   padding-top: calc(#{global.$acms-form-padding-y} + #{global.$acms-form-border-width});
   padding-bottom: calc(#{global.$acms-form-padding-y} + #{global.$acms-form-border-width});
-  color: global.$acms-form-label-color;
-  font-weight: global.$acms-form-label-font-weight;
+  margin-bottom: 0; // Override the `<legend>` default
   font-size: inherit; // Override the `<legend>` default
   font-style: global.$acms-form-label-font-style;
+  font-weight: global.$acms-form-label-font-weight;
   line-height: global.$acms-form-line-height;
+  color: global.$acms-form-label-color;
 }
 
 .acms-col-form-label-lg {

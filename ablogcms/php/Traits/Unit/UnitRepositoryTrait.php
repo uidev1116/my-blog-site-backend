@@ -263,6 +263,8 @@ trait UnitRepositoryTrait
             } else {
                 // 通常メディアユニットの場合
                 $mediaIds = $_POST["media_id_{$id}"] ?? [];
+                $mediaSize = $_POST["media_size_{$id}"][0] ?? ''; // メディアサイズは配列で管理しているが、1つしか対応していない
+
                 if (!is_array($mediaIds)) {
                     $mediaIds = [$mediaIds];
                 }
@@ -274,6 +276,7 @@ trait UnitRepositoryTrait
                     $newModel = clone $model;
                     $newId = $newModel->getId();
                     $_POST["media_id_{$newId}"] = $mid;
+                    $_POST["media_size_{$newId}"] = $mediaSize;
                     $items[] = $newModel;
                 }
             }

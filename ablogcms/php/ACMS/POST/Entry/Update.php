@@ -23,6 +23,22 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
      */
     protected $unitRepository;
 
+
+    /**
+     * @var \Acms\Services\Entry\EntryRepository $entryRepository
+     */
+    protected $entryRepository;
+
+    /**
+     * constructor
+     */
+    public function __construct()
+    {
+        $this->unitRepository = Application::make('unit-repository');
+        $this->lockService = Application::make('entry.lock');
+        $this->entryRepository = Application::make('entry.repository');
+    }
+
     /**
      * 専用のカスタムフィールドを別テーブルに保存する
      *
@@ -42,11 +58,6 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
      */
     public function post()
     {
-        $this->unitRepository = Application::make('unit-repository');
-        $this->lockService = Application::make('entry.lock');
-        assert($this->unitRepository instanceof \Acms\Services\Unit\Repository);
-        assert($this->lockService instanceof \Acms\Services\Entry\Lock);
-
         $updatedResponse = $this->update();
         $redirect = $this->Post->get('redirect');
 
@@ -260,7 +271,6 @@ class ACMS_POST_Entry_Update extends ACMS_POST_Entry
             'eid' => EID,
             'cid' => $cid,
             'ecd' => $this->getEntryCode($postEntry),
-            'ccd' => $cid !== null ? ACMS_RAM::categoryCode($cid) : null,
             'rvid' => $rvid,
             'trash' => $status,
             'updateApproval' => $isApproved,

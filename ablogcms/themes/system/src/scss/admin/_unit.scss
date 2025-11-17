@@ -158,18 +158,18 @@
 }
 
 .acms-unit-toolbar-button {
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-sizing: border-box;
   padding: var(--acms-unit-toolbar-button-padding-y) var(--acms-unit-toolbar-button-padding-x);
   color: var(--acms-unit-toolbar-button-color);
+  appearance: none;
   background-color: var(--acms-unit-toolbar-button-bg-color);
   border: none;
   border-radius: 3px;
   box-shadow: var(--acms-unit-toolbar-button-box-shadow);
   transition: all 0.2s;
-  appearance: none;
 
   @include global.font-size(var(--acms-unit-toolbar-button-font-size));
 
@@ -225,8 +225,8 @@
 
   > * {
     margin: 0;
-    color: global.$acms-color-system-gray70;
     font-weight: bold;
+    color: global.$acms-color-system-gray70;
 
     span + span::before {
       margin: 0 4px;
@@ -264,8 +264,8 @@
   position: relative;
   z-index: 1;
   height: 8px;
-  margin-bottom: -1px;
   padding: 0;
+  margin-bottom: -1px;
   background-color: global.$acms-color-system-gray80;
   border-color: #2389ff;
   opacity: 1;
@@ -332,9 +332,9 @@
 /* More
 =============================== */
 .acms-unit-more {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  box-sizing: border-box;
   width: 100%;
   margin: 0;
   background: global.$acms-color-system-gray80;
@@ -344,8 +344,8 @@
 
   .acms-unit-more-content {
     flex: 1 1 auto;
-    color: global.$acms-color-white;
     font-weight: bold;
+    color: global.$acms-color-white;
     text-align: center;
 
     @include global.font-size(14);

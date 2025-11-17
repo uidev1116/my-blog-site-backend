@@ -3,8 +3,8 @@
 namespace Acms\Services\Update\Operations;
 
 use Acms\Services\Update\Contracts\LoggerInterface;
-use Acms\Services\Update\Lock;
 use Acms\Services\Update\System\CheckForUpdate;
+use Acms\Services\Common\Lock;
 use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Database;
 use Acms\Services\Facades\Common;
@@ -16,11 +16,11 @@ class Downgrade extends Update
     public function exec(LoggerInterface $logger, Lock $lockService, int $range = CheckForUpdate::PATCH_VERSION, bool $createSetup = true): void
     {
         $destDir = ARCHIVES_DIR . uniqueString() . '/';
-        $lockService->createLockFile();
 
         Database::setThrowException(true);
 
         try {
+            $lockService->tryLock();
             $logger->init();
 
             // アップデートパッケージを検証
@@ -51,7 +51,7 @@ class Downgrade extends Update
         Database::setThrowException(false);
         $logger->message(gettext('ダウンロードファイルを削除中...'), 0);
         $this->removeDirectory($destDir);
-        $lockService->removeLockFile();
+        $lockService->release();
 
         // opcodeキャッシュをリセット
         if (function_exists("opcache_reset")) {

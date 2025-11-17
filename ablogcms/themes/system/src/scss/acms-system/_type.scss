@@ -8,8 +8,8 @@
 
 .acms-text-ellipsis {
   overflow: hidden;
-  white-space: nowrap;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 // テーブルセルのとき
@@ -24,8 +24,8 @@
 
 .acms-module-title-main {
   display: block;
-  clear: both;
   margin: 0 0 15px;
+  clear: both;
 
   .acms-module-title {
     margin: 0;
@@ -38,8 +38,8 @@
 // acms-admin-title2
 // ------------------------------
 .acms-admin-title2 {
-  clear: both;
   padding: 0;
+  clear: both;
 }
 
 .acms-admin-title2.acms-margin-top-medium {
