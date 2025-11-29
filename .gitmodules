@@ -1,9 +1,3 @@
-[submodule "plugins/V2"]
-	path = plugins/V2
-	url = git@github.com:uidev1116/acms-v2.git
 [submodule "plugins/ApiPreview"]
 	path = plugins/ApiPreview
 	url = git@github.com:uidev1116/acms-api-prview.git
-[submodule "plugins/Vite"]
-	path = plugins/Vite
-	url = git@github.com:appleple/acms-vite.git
