@@ -2,7 +2,7 @@ import { Component, createRef } from 'react';
 import DOMPurify from 'dompurify';
 import ResizeImage from '../../../../lib/resize-image/util';
 import { fetchPdfPage } from './pdf-previewer';
-import { formatBytes, dataURItoBlob } from '../../../../utils';
+import { formatBytes, dataURItoBlob, triggerEvent } from '../../../../utils';
 import CopyToClipboard from '../../../../components/copy-to-clipborad/copy-to-clipboard';
 import { Tabs, TabPanel } from '../../../../components/tabs/tabs';
 import Modal from '../../../../components/modal/modal';
@@ -301,6 +301,10 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
       if (this.props.onUpdate) {
         this.props.onUpdate(res as MediaItem);
       }
+      triggerEvent(document, 'acms.media-updated', {
+        detail: { data: res as MediaItem },
+        bubbles: true,
+      });
       this.hideModal();
       this.updateStateOnAfterSave(res as MediaItem);
     });

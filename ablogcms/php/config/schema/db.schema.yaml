@@ -384,7 +384,7 @@
 %{PREFIX}cache_data:
   cache_data_key:
     Field: cache_data_key
-    Type: VARBINARY(255)
+    Type: varchar(255)
     'Null': NO
     Key: PRI
     Default:
@@ -413,14 +413,14 @@
 %{PREFIX}cache_tag:
   cache_tag_name:
     Field: cache_tag_name
-    Type: VARBINARY(255)
+    Type: varchar(255)
     'Null': NO
     Key: PRI
     Default:
     Extra:
   cache_tag_key:
     Field: cache_tag_key
-    Type: VARBINARY(255)
+    Type: varchar(255)
     'Null': NO
     Key: PRI
     Default:

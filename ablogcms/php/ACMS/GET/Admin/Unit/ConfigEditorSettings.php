@@ -183,14 +183,30 @@ class ACMS_GET_Admin_Unit_ConfigEditorSettings extends ACMS_GET_Admin_Config
      */
     private function getUnitDefsSetting(\Field $config): array
     {
+        $registry = Application::make('unit-registry');
+        assert($registry instanceof \Acms\Services\Unit\Registry);
         $defs = array_map(
             function (
                 ?string $id,
                 ?string $label,
-            ) {
+            ) use ($registry): ?array {
+                if ($id === null) {
+                    return null;
+                }
+                $type = detectUnitTypeSpecifier($id);
+                $class = $registry->findClassByAlias($type);
+                if ($class === null) {
+                    return null;
+                }
+                if (!class_exists($class)) {
+                    return null;
+                }
+                if (!is_subclass_of($class, \Acms\Services\Unit\Contracts\Model::class)) {
+                    return null;
+                }
                 return [
-                    'id' => $id ?? '',
-                    'label' => $label ?? '',
+                    'id' => $id,
+                    'label' => $label ? $label : $class::getUnitLabel(),
                 ];
             },
             $config->getArray('column_add_type'),
@@ -198,10 +214,8 @@ class ACMS_GET_Admin_Unit_ConfigEditorSettings extends ACMS_GET_Admin_Config
         );
 
         $defs = array_filter($defs, function ($def) {
-            return $def['id'] !== '';
+            return $def !== null && $def['id'] !== '';
         });
-        $registry = Application::make('unit-registry');
-        assert($registry instanceof \Acms\Services\Unit\Registry);
         $defs = array_filter($defs, function ($def) use ($registry, $config) {
             $type = detectUnitTypeSpecifier($def['id']);
             if ($config->get('unit_group') === 'on' && $registry->isParentUnit($type)) {

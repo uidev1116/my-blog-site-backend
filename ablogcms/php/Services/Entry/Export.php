@@ -115,6 +115,31 @@ class Export extends ExportBase
     }
 
     /**
+     * エントリーのアセットを取得
+     *
+     * @param int[] $eids
+     * @return array
+     */
+    public function exportEntryAssets(array $eids): array
+    {
+        $this->targetEntryIds = $eids;
+        foreach ($this->tables as $table) {
+            $sql = SQL::newSelect($table);
+            $method = 'getQuery' . ucfirst($table);
+            if (is_callable([$this, $method])) {
+                /** @var callable $callback */
+                $callback = [$this, $method];
+                call_user_func_array($callback, [$sql]);
+            }
+        }
+        return [
+            'media' => $this->mediaFiles,
+            'storage' => $this->storageFiles,
+            'archives' => $this->archivesFiles,
+        ];
+    }
+
+    /**
      * fix data
      *
      * @param array &$record

@@ -7,11 +7,11 @@ import { MediaItem } from '../../types';
 import { ExtendedFile } from '../../../../lib/read-files';
 
 type MediaUnitProps = {
-  items?: MediaItem[];
+  items: MediaItem[];
   mediaSizes?: { value: string; label: string; selected: boolean }[];
   primaryImageId: string;
   id: string;
-  active: string;
+  active: 'on' | 'off';
   mediaDir: string;
   lang?: string;
   usePdfIcon: 'yes' | 'no';
@@ -35,7 +35,7 @@ type MediaUnitState = {
   useIcon: 'yes' | 'no';
   modalType: 'upload' | 'select';
   link: string;
-  targetId: string | null;
+  targetId: number | null;
   items: MediaItem[];
   files: File[];
   landscape: boolean;
@@ -52,11 +52,13 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
 
   rootRef = createRef<HTMLDivElement>();
 
+  handleMediaUpdated?: (event: Event) => void;
+
   constructor(props: MediaUnitProps) {
     super(props);
 
     let newMedia = false;
-    if (props.items && !props.items[0].media_id) {
+    if (props.items.length === 0) {
       newMedia = true;
     }
     this.state = {
@@ -64,7 +66,7 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
       updateModalOpened: false,
       modalType: 'upload',
       targetId: null,
-      items: props.items || [],
+      items: props.items,
       files: [],
       landscape: true,
       newMedia,
@@ -94,6 +96,31 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
 
     if (this.props.onMount) {
       this.props.onMount();
+    }
+
+    // メディア更新イベントを購読
+    this.handleMediaUpdated = (event: Event) => {
+      if (!(event instanceof CustomEvent)) {
+        return;
+      }
+      const updatedMedia = event.detail.data as MediaItem;
+      const { items: currentItems } = this.state;
+      // 現在のitems内に該当するメディアIDがあるか確認
+      const findIndex = currentItems.findIndex((item) => item.media_id === updatedMedia.media_id);
+      if (findIndex !== -1) {
+        // 該当するメディアを更新
+        const newItems = [...currentItems.slice(0, findIndex), updatedMedia, ...currentItems.slice(findIndex + 1)];
+        this.setState({
+          items: newItems,
+        });
+      }
+    };
+    document.addEventListener('acms.media-updated', this.handleMediaUpdated);
+  }
+
+  componentWillUnmount() {
+    if (this.handleMediaUpdated) {
+      document.removeEventListener('acms.media-updated', this.handleMediaUpdated);
     }
   }
 
@@ -152,7 +179,7 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
     });
   };
 
-  openEditModal = (targetId: string) => {
+  openEditModal = (targetId: number) => {
     this.setState({
       targetId,
       updateModalOpened: true,
@@ -194,7 +221,7 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
       caption,
     } = this.state;
     const { mediaSizes, primaryImageId, id, active, enlarged, usePdfIcon, primary, lang, multiUpload } = this.props;
-    const [item] = items;
+    const item = items.at(0);
 
     return (
       <div ref={this.rootRef}>
@@ -207,7 +234,7 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
             <tbody>
               <tr className="entryFormFileControl">
                 <td className="acms-admin-media-unit-preview-area">
-                  {(items.length === 0 || (items.length < 2 && !item.media_id)) && (
+                  {items.length === 0 && (
                     <div>
                       <div className="acms-admin-media-unit-droparea">
                         <DropZoneText>{ACMS.i18n('media.add_new_media')}</DropZoneText>
@@ -217,7 +244,7 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
                       <input type="hidden" name={`media_id_${id}[]`} value="" />
                     </div>
                   )}
-                  {items.length > 0 && items.length < 2 && item.media_id && (
+                  {items.length > 0 && items.length < 2 && item !== undefined && (
                     <div className="acms-admin-media-unit-preview-wrap">
                       <div className="acms-admin-media-unit-preview-overlay" />
                       <button
@@ -243,7 +270,7 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
                       >
                         {ACMS.i18n('media.edit')}
                       </button>
-                      <input type="hidden" name={`media_id_${id}[]`} value={item && item.media_id} />
+                      <input type="hidden" name={`media_id_${id}[]`} value={item.media_id.toString()} />
                     </div>
                   )}
                 </td>
@@ -351,8 +378,7 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
                         </tr>
                       )}
                       {items.length < 2 &&
-                        item &&
-                        item.media_id !== '' &&
+                        item !== undefined &&
                         (item.media_type === 'image' || item.media_type === 'svg') && (
                           <tr>
                             <th>
@@ -372,41 +398,43 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
                             </td>
                           </tr>
                         )}
-                      {items.length < 2 && item && (item.media_type === 'image' || item.media_type === 'svg') && (
-                        <tr>
-                          <th>
-                            <label htmlFor={`input-checkbox-media_enlarged_${id}_${lang}`}>
-                              {ACMS.i18n('media.image_link')}
-                            </label>
-                          </th>
-                          <td>
-                            <div className="acms-admin-form-checkbox">
-                              <input type="hidden" name={`media_enlarged_${id}[]`} value={noLarge} />
-                              <input
-                                type="checkbox"
-                                value="no"
-                                id={`input-checkbox-media_enlarged_${id}_${lang}`}
-                                defaultChecked={enlarged === 'true'}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    this.setState({
-                                      noLarge: 'no',
-                                    });
-                                  } else {
-                                    this.setState({
-                                      noLarge: 'yes',
-                                    });
-                                  }
-                                }}
-                              />
+                      {items.length < 2 &&
+                        item !== undefined &&
+                        (item.media_type === 'image' || item.media_type === 'svg') && (
+                          <tr>
+                            <th>
                               <label htmlFor={`input-checkbox-media_enlarged_${id}_${lang}`}>
-                                <i className="acms-admin-ico-checkbox" />
-                                {ACMS.i18n('media.no_image_link')}
+                                {ACMS.i18n('media.image_link')}
                               </label>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
+                            </th>
+                            <td>
+                              <div className="acms-admin-form-checkbox">
+                                <input type="hidden" name={`media_enlarged_${id}[]`} value={noLarge} />
+                                <input
+                                  type="checkbox"
+                                  value="no"
+                                  id={`input-checkbox-media_enlarged_${id}_${lang}`}
+                                  defaultChecked={enlarged === 'true'}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      this.setState({
+                                        noLarge: 'no',
+                                      });
+                                    } else {
+                                      this.setState({
+                                        noLarge: 'yes',
+                                      });
+                                    }
+                                  }}
+                                />
+                                <label htmlFor={`input-checkbox-media_enlarged_${id}_${lang}`}>
+                                  <i className="acms-admin-ico-checkbox" />
+                                  {ACMS.i18n('media.no_image_link')}
+                                </label>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
                       {items.length < 2 &&
                         primaryImageId !== 'no' &&
                         item &&
@@ -470,7 +498,7 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
                                 <p className="acms-admin-media-unit-file-caption">{item.media_title}</p>
                               </div>
                             )}
-                            <input type="hidden" name={`media_id_${id}[]`} value={item && item.media_id} />
+                            <input type="hidden" name={`media_id_${id}[]`} value={item.media_id.toString()} />
                           </div>
                           <div className="acms-admin-media-unit-preview-overlay" />
                           <button
@@ -503,7 +531,7 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
             tab={modalType}
             filetype="all"
           />
-          {targetId && (
+          {targetId != null && targetId > 0 && (
             <MediaUpdate
               isOpen={updateModalOpened}
               mid={targetId}

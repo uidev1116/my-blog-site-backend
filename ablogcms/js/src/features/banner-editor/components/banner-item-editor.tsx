@@ -2,26 +2,33 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import classNames from 'classnames';
 import type { ExtendedFile } from '../../../lib/read-files';
-import { BannerItem, BannerType } from '../types';
+import {
+  type BannerItem,
+  type BannerType,
+  type ImageBannerItem,
+  type SourceBannerItem,
+  isImageBannerItem,
+  isSourceBannerItem,
+} from '../types';
 import DropZone, { DropZoneFileSelector, DropZoneText } from '../../../components/drop-zone/drop-zone';
 import DraggableButton from '../../../components/draggable-button/draggable-button';
 import { range } from '../../../utils';
 
-interface BannerItemEditorProps {
-  item: BannerItem;
+interface BannerItemEditorProps<T extends BannerItem> {
+  item: T;
   index: number;
   length: number;
-  updateBannerItem: (id: string, key: keyof BannerItem, value: unknown) => void;
+  updateBannerItem: <T extends BannerItem>(id: string, key: keyof T, value: unknown) => void;
   removeBannerItem: (id: string) => void;
   changeBannerItemSort: (oldIndex: number, newIndex: number) => void;
-  openInsertModal: (item: BannerItem) => void;
-  openUpdateModal: (item: BannerItem) => void;
-  clearMediaItem: (id: string) => void;
+  openInsertModal: (item: ImageBannerItem) => void;
+  openUpdateModal: (item: ImageBannerItem) => void;
+  clearMediaItem: (id: BannerItem['id']) => void;
   scrollToActiveElement: () => void;
   addItem: (type: BannerType) => void;
-  onComplete: (files: ExtendedFile[], item: BannerItem) => void;
-  onFileInputChage: (files: File[], item: BannerItem) => void;
-  renderOpenDate: (item: BannerItem) => React.ReactNode;
+  onComplete: (files: ExtendedFile[], item: ImageBannerItem) => void;
+  onFileInputChage: (files: File[], item: ImageBannerItem) => void;
+  renderOpenDate: (item: T) => React.ReactNode;
   attr1: string;
   attr2: string;
   hide1: string;
@@ -30,7 +37,7 @@ interface BannerItemEditorProps {
   tooltip2: string;
 }
 
-const BannerItemEditor = ({
+const BannerItemEditor = <T extends BannerItem>({
   item,
   index,
   length,
@@ -50,7 +57,7 @@ const BannerItemEditor = ({
   hide2,
   tooltip1,
   tooltip2,
-}: BannerItemEditorProps) => {
+}: BannerItemEditorProps<T>) => {
   const { isDragging, attributes, listeners, setNodeRef, transform, transition, setActivatorNodeRef } = useSortable({
     id: item.id,
   });
@@ -73,7 +80,9 @@ const BannerItemEditor = ({
     >
       <DropZone
         onComplete={(files) => {
-          onComplete(files, item);
+          if (isImageBannerItem(item)) {
+            onComplete(files, item);
+          }
         }}
       >
         <div
@@ -221,7 +230,11 @@ const BannerItemEditor = ({
                                   id={`media_banner-item-alt-${item.id}`}
                                   value={item.media_banner_alt}
                                   onInput={(e: React.FormEvent<HTMLInputElement>) => {
-                                    updateBannerItem(item.id, 'media_banner_alt', (e.target as HTMLInputElement).value);
+                                    updateBannerItem<ImageBannerItem>(
+                                      item.id,
+                                      'media_banner_alt',
+                                      (e.target as HTMLInputElement).value
+                                    );
                                   }}
                                 />
                               </td>
@@ -241,7 +254,11 @@ const BannerItemEditor = ({
                                   className="acms-admin-form-width-full"
                                   placeholder={item.media_banner_link ? `メディア: ${item.media_banner_link}` : ''}
                                   onChange={(e) => {
-                                    updateBannerItem(item.id, 'media_banner_override_link', e.target.value);
+                                    updateBannerItem<ImageBannerItem>(
+                                      item.id,
+                                      'media_banner_override_link',
+                                      e.target.value
+                                    );
                                   }}
                                 />
                                 <div>
@@ -253,9 +270,9 @@ const BannerItemEditor = ({
                                       value="true"
                                       onChange={() => {
                                         if (item.media_banner_target === 'true') {
-                                          updateBannerItem(item.id, 'media_banner_target', '');
+                                          updateBannerItem<ImageBannerItem>(item.id, 'media_banner_target', '');
                                         } else {
-                                          updateBannerItem(item.id, 'media_banner_target', 'true');
+                                          updateBannerItem<ImageBannerItem>(item.id, 'media_banner_target', 'true');
                                         }
                                       }}
                                     />
@@ -283,7 +300,7 @@ const BannerItemEditor = ({
                                     id={`media_banner-item-attr1-${item.id}`}
                                     value={item.media_banner_attr1}
                                     onInput={(e) => {
-                                      updateBannerItem(
+                                      updateBannerItem<ImageBannerItem>(
                                         item.id,
                                         'media_banner_attr1',
                                         (e.target as HTMLInputElement).value
@@ -310,7 +327,7 @@ const BannerItemEditor = ({
                                     id={`media_banner-item-attr2-${item.id}`}
                                     value={item.media_banner_attr2}
                                     onInput={(e) => {
-                                      updateBannerItem(
+                                      updateBannerItem<ImageBannerItem>(
                                         item.id,
                                         'media_banner_attr2',
                                         (e.target as HTMLInputElement).value
@@ -332,7 +349,7 @@ const BannerItemEditor = ({
                       style={{ height: '200px' }}
                       value={item.media_banner_source}
                       onChange={(e) => {
-                        updateBannerItem(item.id, 'media_banner_source', e.target.value);
+                        updateBannerItem<SourceBannerItem>(item.id, 'media_banner_source', e.target.value);
                       }}
                     />
                   )}
@@ -349,47 +366,40 @@ const BannerItemEditor = ({
           </div>
         </div>
       </DropZone>
-      <input
-        type="hidden"
-        name="media_banner_source[]"
-        value={item.media_banner_source ? item.media_banner_source : ''}
-      />
-      <input
-        type="hidden"
-        name="media_banner_datestart[]"
-        value={item.media_banner_datestart ? item.media_banner_datestart : ''}
-      />
-      <input
-        type="hidden"
-        name="media_banner_timestart[]"
-        value={item.media_banner_timestart ? item.media_banner_timestart : ''}
-      />
-      <input
-        type="hidden"
-        name="media_banner_dateend[]"
-        value={item.media_banner_dateend ? item.media_banner_dateend : ''}
-      />
-      <input
-        type="hidden"
-        name="media_banner_timeend[]"
-        value={item.media_banner_timeend ? item.media_banner_timeend : ''}
-      />
-      <input type="hidden" name="media_banner_mid[]" value={item.media_banner_mid ? item.media_banner_mid : ''} />
-      <input type="hidden" name="media_banner_attr1[]" value={item.media_banner_attr1 ? item.media_banner_attr1 : ''} />
-      <input type="hidden" name="media_banner_attr2[]" value={item.media_banner_attr2 ? item.media_banner_attr2 : ''} />
-      <input
-        type="hidden"
-        name="media_banner_status[]"
-        value={item.media_banner_status ? item.media_banner_status : ''}
-      />
-      <input
-        type="hidden"
-        name="media_banner_target[]"
-        value={item.media_banner_target ? item.media_banner_target : ''}
-      />
+
+      {/* 共通項目 */}
       <input type="hidden" name="media_banner_type[]" value={item.media_banner_type} />
-      <input type="hidden" name="media_banner_alt[]" value={item.media_banner_alt} />
-      <input type="hidden" name="media_banner_link[]" value={item.media_banner_override_link} />
+      <input type="hidden" name="media_banner_status[]" value={item.media_banner_status} />
+      <input type="hidden" name="media_banner_datestart[]" value={item.media_banner_datestart} />
+      <input type="hidden" name="media_banner_timestart[]" value={item.media_banner_timestart} />
+      <input type="hidden" name="media_banner_dateend[]" value={item.media_banner_dateend} />
+      <input type="hidden" name="media_banner_timeend[]" value={item.media_banner_timeend} />
+      {/* ソースバナーのみ */}
+      {isSourceBannerItem(item) ? (
+        <input type="hidden" name="media_banner_source[]" value={item.media_banner_source} />
+      ) : (
+        <input type="hidden" name="media_banner_source[]" value="" />
+      )}
+      {/* 画像バナーのみ */}
+      {isImageBannerItem(item) ? (
+        <>
+          <input type="hidden" name="media_banner_mid[]" value={item.media_banner_mid} />
+          <input type="hidden" name="media_banner_attr1[]" value={item.media_banner_attr1} />
+          <input type="hidden" name="media_banner_attr2[]" value={item.media_banner_attr2} />
+          <input type="hidden" name="media_banner_target[]" value={item.media_banner_target} />
+          <input type="hidden" name="media_banner_alt[]" value={item.media_banner_alt} />
+          <input type="hidden" name="media_banner_link[]" value={item.media_banner_override_link} />
+        </>
+      ) : (
+        <>
+          <input type="hidden" name="media_banner_mid[]" value="" />
+          <input type="hidden" name="media_banner_attr1[]" value="" />
+          <input type="hidden" name="media_banner_attr2[]" value="" />
+          <input type="hidden" name="media_banner_target[]" value="" />
+          <input type="hidden" name="media_banner_alt[]" value="" />
+          <input type="hidden" name="media_banner_link[]" value="" />
+        </>
+      )}
     </div>
   );
 };

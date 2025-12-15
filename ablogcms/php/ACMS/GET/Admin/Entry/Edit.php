@@ -171,8 +171,8 @@ class ACMS_GET_Admin_Entry_Edit extends ACMS_GET_Admin
         $relatedTypes = $Entry->getArray('related_type');
         $Entry->deleteField('related');
         foreach ($relateds as $i => $related) {
-            $type = $relatedTypes[$i];
-            if ($type) {
+            $type = $relatedTypes[$i] ?? '';
+            if ($type !== '') {
                 $Entry->addField('related_' . $type, $related);
             } else {
                 $Entry->addField('related', $related);

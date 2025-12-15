@@ -46,7 +46,10 @@ class GdEngine extends ImageEngine
     {
         if ($format) {
             $mimeType = $this->getMimeType($srcPath);
-            $srcFormat = strtolower($this->detectImageExtenstion($mimeType, true));
+            if (is_null($mimeType)) {
+                throw new RuntimeException(sprintf('Failed to get MIME type from %s.', $srcPath));
+            }
+            $srcFormat = strtolower($this->mimeTypeToExtension($mimeType));
 
             // jpeg/jpg 揺れ対策
             $normalize = fn($f) => $f === 'jpeg' ? 'jpg' : $f;

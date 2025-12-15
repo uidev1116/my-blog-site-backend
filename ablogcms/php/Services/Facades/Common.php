@@ -39,6 +39,7 @@ namespace Acms\Services\Facades;
  * @method static \Field extract(string $scp = 'field', ?\ACMS_Validator $V = null, ?\Field $deleteField = null) フィールドを取得する
  * @method static array getJsModules() acms.js のクエリを取得する
  * @method static bool isSafeUrl(string $url) a-blog cms で管理しているドメインのURLかチェックする
+ * @method static bool isManagedDomain(string $domain, array $additionalDomains = []) 指定されたドメインが管理ドメインかどうかを判定
  * @method static never responseJson(array $data) JSON形式のレスポンスを返す
  * @method static void logLockPost(string $lockKey) ロックポストをログに記録する
  * @method static bool validateLockPost(string $lockKey, int $trialTime = 5, int $trialNumber = 5, int $lockTime = 15, bool $remoteAddr = true) ロックポストを検証する
@@ -48,7 +49,6 @@ namespace Acms\Services\Facades;
  * @method static array exceptionArray(\Throwable $th, array $add = []) エラー情報を配列に変換する
  * @method static string[] getInheritedThemes(string $theme) 指定されたテーマの継承テーマ・システムテーマすべてのテーマの配列を取得する
  * @method static void validateFileUpload(string $name) ファイルアップロードを検証する
- * @method static string|false getMimeType(string $path) ファイルのMIMEタイプを取得する
  * @method static bool isLocalPrivateStorage() プライベートストレージの設定がローカルかどうか
  * @method static bool isLocalPublicStorage() パブリックストレージの設定がローカルかどうか
  * @method static void uploadAssetDirectory(string $from, string $to, bool $isPublic) アセットディレクトリをアップロードする

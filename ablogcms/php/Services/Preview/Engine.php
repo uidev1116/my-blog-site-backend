@@ -145,7 +145,7 @@ class Engine implements Base
         if (empty($url)) {
             return false;
         }
-        $isPreview = $this->shareUrlFormat(REQUEST_URL) === $url || (is_ajax() && $this->shareUrlFormat(htmlspecialchars_decode(REFERER, ENT_QUOTES)) === $url);
+        $isPreview = $this->shareUrlFormat(REQUEST_URL) === $url || is_ajax();
         if ($isPreview) {
             $session = Session::handle();
             $session->set('in-preview', REQUEST_TIME + (60 * 15));

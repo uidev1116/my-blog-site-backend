@@ -11354,6 +11354,9 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
   margin-left: auto;
   border-top-color: rgba(0, 0, 0, 0.4);
 }
+:where(.acms-admin-block-editor .ProseMirror) a {
+  pointer-events: none;
+}
 
 /**
  * ProseMirror Base Style の上書きのため :where で詳細度を下げないようにしています。
@@ -11500,20 +11503,6 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
 :where(.acms-admin-block-editor .ProseMirror) {
   /* テーブル操作時用にデフォルトのスタイルを付与（テーマで上書きされる前提） */
   border-collapse: collapse;
-}
-:where(.acms-admin-block-editor .ProseMirror) th,
-:where(.acms-admin-block-editor .ProseMirror) td {
-  text-align: left;
-  vertical-align: top;
-  border: 1px solid var(--acms-admin-block-editor-gray-400);
-}
-:where(.acms-admin-block-editor .ProseMirror) th {
-  background-color: var(--acms-admin-block-editor-gray-100);
-}
-:where(.acms-admin-block-editor .ProseMirror) td {
-  background-color: var(--acms-admin-block-editor-white);
-}
-:where(.acms-admin-block-editor .ProseMirror) {
   /* テーブル操作UI */
 }
 :where(.acms-admin-block-editor .ProseMirror) .column-resize-handle {
@@ -11597,7 +11586,8 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
   padding-left: calc(1rem + 1px);
   /* 行列操作用UI出現時 */
 }
-.acms-admin-block-editor .ProseMirror div:has(> table):has(.ProseMirror-widget) {
+.acms-admin-block-editor .ProseMirror div:has(> table):has(.ProseMirror-widget) .grip-column,
+.acms-admin-block-editor .ProseMirror div:has(> table):has(.ProseMirror-widget) .grip-row {
   background-color: var(--acms-admin-block-editor-gray-200);
 }
 .acms-admin-block-editor .ProseMirror table td,
@@ -11938,19 +11928,6 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
 
 .acms-admin-block-editor-id-editor {
   font-size: var(--acms-admin-block-editor-font-size-sm);
-}
-
-.acms-admin-block-editor-wrapper {
-  display: flex;
-}
-.acms-admin-block-editor-wrapper.acms-admin-block-editor-wrapper-left {
-  justify-content: flex-start;
-}
-.acms-admin-block-editor-wrapper.acms-admin-block-editor-wrapper-center {
-  justify-content: center;
-}
-.acms-admin-block-editor-wrapper.acms-admin-block-editor-wrapper-right {
-  justify-content: flex-end;
 }
 
 .acms-admin-block-editor-image-drop {

@@ -44,7 +44,7 @@ namespace Acms\Services\Facades;
  * @method static string getMediaLabel(int $mid) メディアのラベルを取得
  * @method static array<int, array<string, mixed>> mediaEagerLoad(int[] $midiaIds) メディアIDからメディア情報を取得
  * @method static array<int, array<string, mixed>> mediaEagerLoadFromUnit(\Acms\Services\Unit\UnitCollection $collection) ユニットモデル一覧からメディア情報を取得
- * @method static array{ path: string, width: string, height: string, permalink: string, icon: string, iconWidth: string, iconHeight: string}[] getMediaList(int[] $midiaIds) メディアIDから整形されたメディア一覧を取得
+ * @method static array{ path: string, width: string, height: string, permalink: string, icon: string, iconWidth: string, iconHeight: string, extension: string, fileSize: int}[] getMediaList(int[] $midiaIds) メディアIDから整形されたメディア一覧を取得
  * @method static array{mid: int, bid: int, status: string, path: string, thumbnail: string, name: string, size: string, filesize: int, type: string, extension: string, original: string, update_date: string, upload_date: string, field1: string, field2: string, field3: string, field4: string, field5: string, field6: string, blog_name: string, user_id: int, user_name: string, last_update_user_id: int, last_update_user_name: string, editable: bool}|array{} getMedia(int $mid) メディアを取得
  * @method static void deleteItem(int $mid) メディアを削除
  * @method static void injectMediaField(\Field $Field, array $mediaList, string[] $useMediaField) \Fieldにメディアデータを注入

@@ -797,8 +797,9 @@ class ACMS_CorrectorBody
 
     public function imageRatioSizeH($src, $args = [])
     {
+        $src = strtok(urldecode($src), '?');
         foreach (['', ARCHIVES_DIR, MEDIA_LIBRARY_DIR] as $dir) {
-            $size = PublicStorage::getImageSize($dir . urldecode($src));
+            $size = PublicStorage::getImageSize($dir . $src);
 
             if ($size) {
                 $width = isset($args[0]) ? intval($args[0]) : 200;
@@ -812,8 +813,9 @@ class ACMS_CorrectorBody
 
     public function imageRatioSizeW($src, $args = [])
     {
+        $src = strtok(urldecode($src), '?');
         foreach (['', ARCHIVES_DIR, MEDIA_LIBRARY_DIR] as $dir) {
-            $size = PublicStorage::getImageSize($dir . urldecode($src));
+            $size = PublicStorage::getImageSize($dir . $src);
 
             if ($size) {
                 $height = isset($args[0]) ? intval($args[0]) : 200;

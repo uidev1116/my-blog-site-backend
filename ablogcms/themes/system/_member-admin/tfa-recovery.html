@@ -10,7 +10,7 @@
   <form action="" method="post" enctype="multipart/form-data">
     @include("/_member-admin/parts/header.html")
     <div class="acms-admin-login-main-box">
-      <div class="acms-admin-login-page-title"><span class="acms-admin-label" style="background-color:%{BLOG_THEME_COLOR};">%{BLOG_NAME}</span>&ensp;<span class="acms-admin-label"><!--T-->2段階認証リカバリー<!--/T--></span></div>
+      @include("/_member-admin/parts/page-title.html", { "title": "<!--T-->2段階認証リカバリー<!--/T-->" })
       <div class="acms-admin-form">
         <!-- BEGIN success -->
         <div class="acms-admin-alert acms-admin-alert-info"><!--T-->2段階認証を無効化しました。<!--/T--></div>

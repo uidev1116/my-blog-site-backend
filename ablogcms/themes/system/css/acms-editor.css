@@ -39,6 +39,22 @@
   margin-block-start: 0;
 }
 
+:where(.acms-entry) img,
+:where(.acms-entry) video {
+  max-width: 100%;
+  height: auto;
+}
+:where(.acms-entry) audio,
+:where(.acms-entry) canvas,
+:where(.acms-entry) embed,
+:where(.acms-entry) iframe,
+:where(.acms-entry) object,
+:where(.acms-entry) svg,
+:where(.acms-entry) video {
+  display: block;
+  vertical-align: middle;
+}
+
 /* ------------------------------
  テキスト
 ------------------------------ */
@@ -756,7 +772,6 @@
   box-sizing: border-box;
   display: grid;
   grid-auto-flow: column;
-  margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
 }
 :where(.acms-entry) :where([data-type=columns]).layout-two-column {
   grid-template-columns: repeat(2, 1fr);
@@ -775,40 +790,24 @@
   gap: var(--unit-gap-x);
 }
 
-/* カラム上下余白
-/* 編集画面でのブロックエディターでのカラム上下余白親要素でとるため、
-/* 子要素の最初と最後の上下マージンをリセット
-/* 上書きのため詳細度高め（0,0,2,0）
+/* メディアサイズ（v3.2.0 ~ v3.2.1 に保存されているブロックエディターのHTML対応）
 ----------------------------- */
-:where(.acms-entry) [data-type=column] > *:first-child {
-  margin-block-start: 0;
-}
-:where(.acms-entry) [data-type=column] > *:last-child {
-  margin-block-end: 0;
-}
-
-/* メディアサイズ
------------------------------ */
-:where(.media-image-block) figure {
-  /* リセット用 */
-  margin: 0;
-}
-:where(.media-image-block) .media-width-25 {
+:where([data-type=imageBlock]) .media-width-25 {
   max-width: 25%;
 }
-:where(.media-image-block) .media-width-33 {
+:where([data-type=imageBlock]) .media-width-33 {
   max-width: 33%;
 }
-:where(.media-image-block) .media-width-50 {
+:where([data-type=imageBlock]) .media-width-50 {
   max-width: 50%;
 }
-:where(.media-image-block) .media-width-66 {
+:where([data-type=imageBlock]) .media-width-66 {
   max-width: 66%;
 }
-:where(.media-image-block) .media-width-75 {
+:where([data-type=imageBlock]) .media-width-75 {
   max-width: 75%;
 }
-:where(.media-image-block) .media-width-100 {
+:where([data-type=imageBlock]) .media-width-100 {
   max-width: 100%;
 }
 
@@ -870,95 +869,66 @@
  - ブロックエディターのファイル（ボタン型）
 ------------------------------ */
 /* 上下余白 */
-:where(.acms-entry) .node-linkButton,
-.link-button-block,
-:where(.acms-entry) .node-fileBlock:has(.acms-admin-block-editor-file-link),
-.media-file-block[data-display-type=button] {
+:where(.acms-entry) [data-type=linkButton],
+:where(.acms-entry) [data-type=fileBlock][data-display-type=button] {
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
 }
 
 /* リンク */
-.acms-admin-block-editor-link-button-link,
-.link-button-block-link,
-.acms-admin-block-editor-file-link,
-.media-file-block[data-display-type=button] a {
+:where(.acms-entry) [data-type=linkButton] a,
+:where(.acms-entry) [data-type=fileBlock][data-display-type=button] a {
   box-sizing: border-box;
   display: inline-flex;
   gap: 0.5rem;
   place-items: center;
   min-height: 40px;
   padding: 0.625rem 1.5rem;
+  font-weight: bold;
+  line-height: 1.4;
+  text-decoration: none;
   background-color: #595963;
   border-radius: calc(infinity * 1px); /* infinity */
 }
-.acms-admin-block-editor-link-button-link, .acms-admin-block-editor-link-button-link:link, .acms-admin-block-editor-link-button-link:visited,
-.link-button-block-link,
-.link-button-block-link:link,
-.link-button-block-link:visited,
-.acms-admin-block-editor-file-link,
-.acms-admin-block-editor-file-link:link,
-.acms-admin-block-editor-file-link:visited,
-.media-file-block[data-display-type=button] a,
-.media-file-block[data-display-type=button] a:link,
-.media-file-block[data-display-type=button] a:visited {
+:where(.acms-entry) [data-type=linkButton] a,
+:where(.acms-entry) [data-type=fileBlock][data-display-type=button] a {
+  font-size: 14px;
+}
+@media print {
+  :where(.acms-entry) [data-type=linkButton] a,
+  :where(.acms-entry) [data-type=fileBlock][data-display-type=button] a {
+    font-size: 14px;
+  }
+}
+:where(.acms-entry) [data-type=linkButton] a, :where(.acms-entry) [data-type=linkButton] a:link, :where(.acms-entry) [data-type=linkButton] a:visited,
+:where(.acms-entry) [data-type=fileBlock][data-display-type=button] a,
+:where(.acms-entry) [data-type=fileBlock][data-display-type=button] a:link,
+:where(.acms-entry) [data-type=fileBlock][data-display-type=button] a:visited {
   color: #fff;
 }
-
-/* リンク動作スタイル（閲覧画面のみ） */
-.acms-entry .link-button-block-link,
-.media-file-block[data-display-type=button] a {
-  text-decoration: none;
-}
-@media (hover: hover) {
-  .acms-entry .link-button-block-link,
-  .media-file-block[data-display-type=button] a {
+@media (any-hover: hover) {
+  :where(.acms-entry) [data-type=linkButton] a,
+  :where(.acms-entry) [data-type=fileBlock][data-display-type=button] a {
     transition: background-color 0.2s ease;
   }
-  .acms-entry .link-button-block-link:where(:-moz-any-link):hover, .media-file-block[data-display-type=button] a:where(:-moz-any-link):hover {
+  :where(.acms-entry) [data-type=linkButton] a:where(:-moz-any-link):hover, :where(.acms-entry) [data-type=fileBlock][data-display-type=button] a:where(:-moz-any-link):hover {
     color: #fff; /* テキストリンクスタイル上書き用スタイル */
     background-color: #35353a;
   }
-  .acms-entry .link-button-block-link:where(:any-link):hover,
-  .media-file-block[data-display-type=button] a:where(:any-link):hover {
+  :where(.acms-entry) [data-type=linkButton] a:where(:any-link):hover,
+  :where(.acms-entry) [data-type=fileBlock][data-display-type=button] a:where(:any-link):hover {
     color: #fff; /* テキストリンクスタイル上書き用スタイル */
     background-color: #35353a;
   }
 }
 
 /* ブロックエディターのファイル（ボタン型）のアイコン */
-.acms-admin-block-editor-file-link img,
-.media-file-block[data-display-type=button] img {
+:where(.acms-entry) [data-type=fileBlock][data-display-type=button] img {
   width: auto;
   height: 1lh;
 }
 
-/* - リンクボタンのタイポグラフィ設定
-   - ブロックエディターのファイル（ボタン型）のキャプション */
-.acms-admin-block-editor-link-button-link,
-.link-button-block-link,
-.acms-admin-block-editor-file-link .caption,
-.media-file-block[data-display-type=button] .caption {
-  font-weight: bold;
-  line-height: 1.4;
-}
-.acms-admin-block-editor-link-button-link,
-.link-button-block-link,
-.acms-admin-block-editor-file-link .caption,
-.media-file-block[data-display-type=button] .caption {
-  font-size: 14px;
-}
-@media print {
-  .acms-admin-block-editor-link-button-link,
-  .link-button-block-link,
-  .acms-admin-block-editor-file-link .caption,
-  .media-file-block[data-display-type=button] .caption {
-    font-size: 14px;
-  }
-}
-
 /* ブロックエディターのファイル（ボタン型）のキャプション */
-.acms-admin-block-editor-file-link .caption,
-.media-file-block[data-display-type=button] .caption {
+:where(.acms-entry) [data-type=fileBlock][data-display-type=button] .caption {
   margin: 0; /* リセット */
   color: currentcolor;
 }
@@ -1063,20 +1033,18 @@
  - ファイル
  ※ media-downloadは動的、storageは静的書き出しに対応
 ------------------------------ */
-:where(.acms-entry) .node-fileBlock:not(:has(.acms-admin-block-editor-file-link)),
-.media-file-block[data-display-type=icon],
-[class*=column-media]:has(a[href*=media-download], a[href*=storage]),
-[class*=column-file] {
+:where(.acms-entry) [data-type=fileBlock][data-display-type=icon],
+:where(.acms-entry) [class*=column-media]:has(a[href*=media-download], a[href*=storage]),
+:where(.acms-entry) [class*=column-file] {
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
   font-size: 0; /* Descender space 対策 */
   text-align: center;
 }
 
 /* ファイルアイコン */
-.acms-admin-block-editor-file:not(:has(.acms-admin-block-editor-file-link)) img,
-.media-file-block[data-display-type=icon] img,
-[class*=column-media] .columnIcon,
-[class*=column-file] .columnIcon {
+:where(.acms-entry) [data-type=fileBlock][data-display-type=icon] img,
+:where(.acms-entry) [class*=column-media] .columnIcon,
+:where(.acms-entry) [class*=column-file] .columnIcon {
   display: inline-block;
   width: 56px;
   max-width: 100%;
@@ -1084,58 +1052,55 @@
 }
 
 /* キャプション */
-.acms-admin-block-editor-file:not(:has(.acms-admin-block-editor-file-link)) .caption,
-.media-file-block[data-display-type=icon] .caption,
-[class*=column-media]:has(a[href*=media-download], a[href*=storage]) .caption,
-[class*=column-file] .caption {
+:where(.acms-entry) [data-type=fileBlock][data-display-type=icon] .caption,
+:where(.acms-entry) [class*=column-media]:has(a[href*=media-download], a[href*=storage]) .caption,
+:where(.acms-entry) [class*=column-file] .caption {
   display: block;
   margin: 4px 0 0; /* 余白リセットのため全方向指定 */
   line-height: 1.5;
 }
-.acms-admin-block-editor-file:not(:has(.acms-admin-block-editor-file-link)) .caption,
-.media-file-block[data-display-type=icon] .caption,
-[class*=column-media]:has(a[href*=media-download], a[href*=storage]) .caption,
-[class*=column-file] .caption {
+:where(.acms-entry) [data-type=fileBlock][data-display-type=icon] .caption,
+:where(.acms-entry) [class*=column-media]:has(a[href*=media-download], a[href*=storage]) .caption,
+:where(.acms-entry) [class*=column-file] .caption {
   font-size: 12px;
 }
 @media print {
-  .acms-admin-block-editor-file:not(:has(.acms-admin-block-editor-file-link)) .caption,
-  .media-file-block[data-display-type=icon] .caption,
-  [class*=column-media]:has(a[href*=media-download], a[href*=storage]) .caption,
-  [class*=column-file] .caption {
+  :where(.acms-entry) [data-type=fileBlock][data-display-type=icon] .caption,
+  :where(.acms-entry) [class*=column-media]:has(a[href*=media-download], a[href*=storage]) .caption,
+  :where(.acms-entry) [class*=column-file] .caption {
     font-size: 12px;
   }
 }
 
 /* リンク（閲覧画面のみ） */
-.media-file-block[data-display-type=icon] a,
-[class*=column-media] a[href*=media-download],
-[class*=column-media] a[href*=storage],
-[class*=column-file] a {
+:where(.acms-entry) [data-type=fileBlock][data-display-type=icon] a,
+:where(.acms-entry) [class*=column-media] a[href*=media-download],
+:where(.acms-entry) [class*=column-media] a[href*=storage],
+:where(.acms-entry) [class*=column-file] a {
   display: inline-block;
   text-decoration: none; /* リセット用 */
 }
-@media (hover: hover) {
-  .media-file-block[data-display-type=icon] a,
-  [class*=column-media] a[href*=media-download],
-  [class*=column-media] a[href*=storage],
-  [class*=column-file] a {
+@media (any-hover: hover) {
+  :where(.acms-entry) [data-type=fileBlock][data-display-type=icon] a,
+  :where(.acms-entry) [class*=column-media] a[href*=media-download],
+  :where(.acms-entry) [class*=column-media] a[href*=storage],
+  :where(.acms-entry) [class*=column-file] a {
     transition: opacity 0.2s ease;
   }
-  .media-file-block[data-display-type=icon] a:where(:-moz-any-link):hover, [class*=column-media] a[href*=media-download]:where(:-moz-any-link):hover, [class*=column-media] a[href*=storage]:where(:-moz-any-link):hover, [class*=column-file] a:where(:-moz-any-link):hover {
+  :where(.acms-entry) [data-type=fileBlock][data-display-type=icon] a:where(:-moz-any-link):hover, :where(.acms-entry) [class*=column-media] a[href*=media-download]:where(:-moz-any-link):hover, :where(.acms-entry) [class*=column-media] a[href*=storage]:where(:-moz-any-link):hover, :where(.acms-entry) [class*=column-file] a:where(:-moz-any-link):hover {
     opacity: 0.7;
   }
-  .media-file-block[data-display-type=icon] a:where(:any-link):hover,
-  [class*=column-media] a[href*=media-download]:where(:any-link):hover,
-  [class*=column-media] a[href*=storage]:where(:any-link):hover,
-  [class*=column-file] a:where(:any-link):hover {
+  :where(.acms-entry) [data-type=fileBlock][data-display-type=icon] a:where(:any-link):hover,
+  :where(.acms-entry) [class*=column-media] a[href*=media-download]:where(:any-link):hover,
+  :where(.acms-entry) [class*=column-media] a[href*=storage]:where(:any-link):hover,
+  :where(.acms-entry) [class*=column-file] a:where(:any-link):hover {
     opacity: 0.7;
   }
 }
 
 /* PDFプレビュー
 ------------------------------ */
-.column-pdf-image {
+:where(.acms-entry) [class*=column-media] .column-pdf-image {
   max-width: 100%;
   border: solid 1px #aaa;
 }
@@ -1143,84 +1108,41 @@
 /* ------------------------------
  メディア画像・画像・画像URL
 ------------------------------ */
-/* 管理画面側：ブロックエディターfigure要素リセット用 */
-.acms-admin-block-editor-image {
-  margin: 0;
-}
-
 /* 上下余白 */
-:where(.media-image-block),
-:where(.acms-entry) .node-imageBlock,
-[class*=column-image],
-[class*=column-media]:not(:has(a[href*=media-download], a[href*=storage])),
-[class*=column-eximage] {
+:where(.acms-entry) figure,
+:where(.acms-entry) [role=figure]:not(:has(a[href*=media-download], a[href*=storage])) {
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
-}
-
-/* 画像ユニット：style属性でwidth指定された場合の横はみ出し防止 */
-[class*=column-image][style*=width] {
-  max-width: 100%;
-}
-
-/* 共通設定
------------------------------- */
-:where(.media-image-block),
-:where(.acms-admin-block-editor-image),
-[class*=column-image],
-[class*=column-media]:not(:has(a[href*=media-download], a[href*=storage])),
-[class*=column-eximage] {
+  margin-inline: 0;
   line-height: 0; /* Descender space 対策 */
+  text-align: center;
 }
-:where(.media-image-block) a,
-:where(.acms-admin-block-editor-image) a,
-[class*=column-image] a,
-[class*=column-media]:not(:has(a[href*=media-download], a[href*=storage])) a,
-[class*=column-eximage] a {
+:where(.acms-entry) figure a,
+:where(.acms-entry) [role=figure]:not(:has(a[href*=media-download], a[href*=storage])) a {
   display: inline-block;
   /* リセット用 */
   text-decoration: none;
   /* マウスオーバー用 */
   transition: opacity 0.2s ease;
 }
-:where(.media-image-block) a:hover,
-:where(.acms-admin-block-editor-image) a:hover,
-[class*=column-image] a:hover,
-[class*=column-media]:not(:has(a[href*=media-download], a[href*=storage])) a:hover,
-[class*=column-eximage] a:hover {
+:where(.acms-entry) figure a:hover,
+:where(.acms-entry) [role=figure]:not(:has(a[href*=media-download], a[href*=storage])) a:hover {
   opacity: 0.7;
 }
-:where(.media-image-block) img,
-:where(.acms-admin-block-editor-image) img,
-[class*=column-image] img,
-[class*=column-media]:not(:has(a[href*=media-download], a[href*=storage])) img,
-[class*=column-eximage] img {
+:where(.acms-entry) figure img,
+:where(.acms-entry) [role=figure]:not(:has(a[href*=media-download], a[href*=storage])) img {
   display: inline-block;
   max-width: 100%;
   height: auto;
 }
 
-:where(.media-image-block),
-:where(.acms-admin-block-editor-image) {
-  text-align: center;
-}
-
 /* キャプション
 ------------------------------ */
-:where(.media-image-block) figcaption,
-:where(.acms-admin-block-editor-image) figcaption,
-[class*=column-image] .caption,
-[class*=column-media]:not(:has(a[href*=media-download], a[href*=storage])) .caption,
-[class*=column-eximage] .caption {
+:where(.acms-entry) figcaption,
+:where(.acms-entry) [role=figure]:not(:has(a[href*=media-download], a[href*=storage]), .column-file) .caption {
   display: block;
   margin: 4px 0 0; /* 余白リセットのため全方向指定 */
-  font-size: 90%;
+  font-size: 0.9em;
   line-height: 1.3;
-}
-
-[class*=column-image] .caption,
-[class*=column-media]:not(:has(a[href*=media-download], a[href*=storage])) .caption,
-[class*=column-eximage] .caption {
-  text-align: center;
 }
 
 /* ------------------------------

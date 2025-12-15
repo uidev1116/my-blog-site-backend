@@ -107,7 +107,7 @@ class Helper
      * メディアIDを修正する
      *
      * @param string $html
-     * @param array $mediaIdMap
+     * @param array<int, int> $mediaIdMap
      * @return string
      */
     public function fixMediaId(string $html, array $mediaIdMap): string
@@ -160,7 +160,17 @@ class Helper
      * htmlに存在するメディア情報を取得する
      *
      * @param DOMXPath $xpath
-     * @return array
+     * @return array{
+     *  path: string,
+     *  width: string,
+     *  height: string,
+     *  permalink: string,
+     *  icon: string,
+     *  iconWidth: string,
+     *  iconHeight: string,
+     *  extension: string,
+     *  fileSize: int,
+     * }[]
      */
     protected function loadMedia(DOMXPath $xpath): array
     {
@@ -181,7 +191,17 @@ class Helper
      * メディア画像の修正
      *
      * @param DOMXPath $xpath
-     * @param array $mediaList
+     * @param array{
+     *  path: string,
+     *  width: string,
+     *  height: string,
+     *  permalink: string,
+     *  icon: string,
+     *  iconWidth: string,
+     *  iconHeight: string,
+     *  extension: string,
+     *  fileSize: int,
+     * }[] $mediaList
      * @param boolean $resize
      * @return void
      */
@@ -211,7 +231,7 @@ class Helper
                     $factory = CorrectorFactory::singleton();
                     $path = $factory->call('resizeImg', $media['path'], [$this->resizeImageSize]); // 画像リサイズ
                 }
-                $imgTag->setAttribute('src', $path);
+                $imgTag->setAttribute('src', $path ? $path : '');
                 $imgTag->setAttribute('width', $media['width']);
                 $imgTag->setAttribute('height', $media['height']);
                 if (!$block->getAttribute('data-link')) {
@@ -235,7 +255,17 @@ class Helper
      * メディアファイルの修正
      *
      * @param DOMXPath $xpath
-     * @param array $mediaList
+     * @param array{
+     *  path: string,
+     *  width: string,
+     *  height: string,
+     *  permalink: string,
+     *  icon: string,
+     *  iconWidth: string,
+     *  iconHeight: string,
+     *  extension: string,
+     *  fileSize: int,
+     * }[] $mediaList
      * @return void
      */
     protected function fixMediaFiles(DOMXPath $xpath, array $mediaList): void
@@ -250,6 +280,13 @@ class Helper
                 continue;
             }
             $media = $mediaList[$mid];
+            if ($block instanceof DOMElement) {
+                $block->setAttribute('data-icon', $media['icon']);
+                $block->setAttribute('data-icon-width', $media['iconWidth']);
+                $block->setAttribute('data-icon-height', $media['iconHeight']);
+                $block->setAttribute('data-extension', $media['extension']);
+                $block->setAttribute('data-file-size', (string) $media['fileSize']);
+            }
             $linkTags = $xpath->query('.//a', $block);
             $iconTags = $xpath->query('.//img', $block);
             if ($linkTags && $linkTags->length > 0) {

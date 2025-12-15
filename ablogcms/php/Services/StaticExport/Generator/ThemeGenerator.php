@@ -71,6 +71,13 @@ class ThemeGenerator extends Generator
                     $iterator->notPath(config('forbid_direct_access_tpl'));
                     $iterator->notName(config('forbid_direct_access_tpl'));
                 }
+                $forbidPatterns = configArray('forbid_direct_access_file');
+                if (count($forbidPatterns) > 0) {
+                    foreach ($forbidPatterns as $pattern) {
+                        // 正規表現パターンでチェック（/pattern/ 形式で指定）
+                        $iterator->notName($pattern);
+                    }
+                }
                 foreach ($this->exclusionList as $path) {
                     if (!empty($path)) {
                         $iterator->notPath($path);

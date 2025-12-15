@@ -3,7 +3,7 @@ import { Node as TiptapNode } from '@tiptap/pm/model';
 
 export const useMediaUpdate = ({ inspectMedia }: { inspectMedia: () => TiptapNode | undefined }) => {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
-  const targetMediaId = inspectMedia()?.attrs?.mediaId || null;
+  const targetMediaId = (inspectMedia()?.attrs?.mediaId || null) as number | null;
   const imageSrc = inspectMedia()?.attrs?.src || null;
   let selfImgSrc = null;
 

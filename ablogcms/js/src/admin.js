@@ -386,16 +386,18 @@ ACMS.Ready(() => {
    * AdminMenu editor
    */
   dispatchAdminMenuEditor(document);
-  ACMS.addListener('acmsAdminDelayedContents', () => {
-    dispatchAdminMenuEditor(document);
+  ACMS.addListener('acmsAdminDelayedContents', (event) => {
+    const context = event.obj.item || event.target;
+    dispatchAdminMenuEditor(context);
   });
 
   /**
    * Navigation editor
    */
   dispatchNavigationEditor(document);
-  ACMS.addListener('acmsAdminDelayedContents', () => {
-    dispatchNavigationEditor(document);
+  ACMS.addListener('acmsAdminDelayedContents', (event) => {
+    const context = event.obj.item || event.target;
+    dispatchNavigationEditor(context);
   });
 
   /**

@@ -3,7 +3,6 @@
 namespace Acms\Services\Unit\Models;
 
 use Acms\Services\Unit\Contracts\ExportEntry;
-use Acms\Services\Unit\Contracts\StaticExport;
 use Acms\Services\Unit\Contracts\AssetProvider;
 use Acms\Services\Unit\Contracts\Model;
 use Acms\Services\Unit\Contracts\AlignableUnitInterface;
@@ -23,7 +22,7 @@ use Template;
  *
  * @extends \Acms\Services\Unit\Contracts\Model<array<string, mixed>>
  */
-class File extends Model implements AssetProvider, StaticExport, ExportEntry, AlignableUnitInterface, AnkerUnitInterface
+class File extends Model implements AssetProvider, ExportEntry, AlignableUnitInterface, AnkerUnitInterface
 {
     use \Acms\Traits\Common\AssetsTrait;
     use AlignableUnitTrait;
@@ -100,18 +99,6 @@ class File extends Model implements AssetProvider, StaticExport, ExportEntry, Al
     public function setFilePaths($paths): void
     {
         $this->setField2($this->implodeUnitDataTrait($paths));
-    }
-
-    /**
-     * 静的書き出しで書き出しを行うアセットのパス配列
-     *
-     * @return array
-     */
-    public function outputAssetPaths(): array
-    {
-        return array_map(function (string $path) {
-            return ARCHIVES_DIR . $path;
-        }, $this->getFilePaths());
     }
 
     /**

@@ -712,7 +712,13 @@ class Helper
      * @param \Acms\Services\View\Contracts\ViewInterface $Tpl
      * @param int $entryId
      * @param string $pimageId
-     * @param array $config
+     * @param array{
+     *   imageX: int,
+     *   imageY: int,
+     *   imageTrim?: bool | 'on' | 'off',
+     *   imageZoom?: bool | 'on' | 'off',
+     *   imageCenter?: bool | 'on' | 'off',
+     * } $config
      * @param array{unit: array<string, \Acms\Services\Unit\Contracts\Model>, media: array<int, array<string, mixed>>, fieldMainImage?: array<int, array<string, mixed>>} $eagerLoadingData
      *
      * @return array
@@ -727,6 +733,14 @@ class Helper
         $caption = '';
         $unit = null;
         $fieldImage = null;
+
+        // 互換性維持のまま、bool も許可するため 'on' | 'off' に正規化
+        $toOnOff = static function ($value) {
+            return ($value === true || $value === 'on') ? 'on' : 'off';
+        };
+        $config['imageTrim'] = $toOnOff($config['imageTrim'] ?? 'off');
+        $config['imageZoom'] = $toOnOff($config['imageZoom'] ?? 'off');
+        $config['imageCenter'] = $toOnOff($config['imageCenter'] ?? 'off');
 
         if (isset($eagerLoadingData['fieldMainImage'][$entryId])) {
             $media = $eagerLoadingData['fieldMainImage'][$entryId];
@@ -827,7 +841,7 @@ class Helper
                 $vars += [
                     'path' . $fx => Media::urlencode($path) . $query,
                 ];
-                if ('on' == $config['imageTrim']) {
+                if ($config['imageTrim'] === 'on') {
                     if ($x > $config['imageX'] and $y > $config['imageY']) {
                         if (($x / $config['imageX']) < ($y / $config['imageY'])) {
                             $imgX = $config['imageX'];
@@ -904,7 +918,7 @@ class Helper
                         $imgY = $config['imageY'];
                         $imgX = round($x / ($y / $config['imageY']));
                     } else {
-                        if ('on' == $config['imageZoom']) {
+                        if ($config['imageZoom'] === 'on') {
                             if (($config['imageX'] - $x) > ($config['imageY'] - $y)) {
                                 $imgY = $config['imageY'];
                                 $imgX = round($x * ($config['imageY'] / $y));
@@ -920,7 +934,7 @@ class Helper
                 }
                 //-------
                 // align
-                if ('on' == $config['imageCenter']) {
+                if ($config['imageCenter'] === 'on') {
                     if ($imgX > $config['imageX']) {
                         $left = round((-1 * ($imgX - $config['imageX'])) / 2);
                     } else {
@@ -1258,7 +1272,19 @@ class Helper
             //-------
             // image
             if (isset($eagerLoadingData['mainImage'])) {
-                $vars += $this->buildImage($Tpl, $eid, $clid, $config, $eagerLoadingData['mainImage']);
+                $vars += $this->buildImage(
+                    $Tpl,
+                    $eid,
+                    $clid,
+                    [
+                        'imageX' => $config['imageX'],
+                        'imageY' => $config['imageY'],
+                        'imageTrim' => $config['imageTrim'],
+                        'imageZoom' => $config['imageZoom'],
+                        'imageCenter' => $config['imageCenter'],
+                    ],
+                    $eagerLoadingData['mainImage']
+                );
             }
 
             //---------------

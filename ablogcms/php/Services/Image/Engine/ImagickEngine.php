@@ -46,8 +46,12 @@ class ImagickEngine extends ImageEngine
     {
         if ($format) {
             $mimeType = $this->getMimeType($srcPath);
-            $srcFormat = $this->detectImageExtenstion($mimeType, true);
-            if ($srcFormat !== $format) {
+            if (is_null($mimeType)) {
+                throw new RuntimeException(sprintf('Failed to get MIME type from %s.', $srcPath));
+            }
+            $srcFormat = $this->mimeTypeToExtension($mimeType);
+            $normalize = fn($f) => $f === 'jpeg' ? 'jpg' : $f;
+            if ($normalize($srcFormat) !== $normalize($format)) {
                 $imagick = $this->loadImagickFromPath($srcPath);
                 $imagick->setFormat($format); // フォーマットだけ変更（圧縮設定はしない）
                 $this->outputImage($imagick, $destPath);
@@ -107,7 +111,10 @@ class ImagickEngine extends ImageEngine
         $imagick = $this->loadImagickFromPath($srcPath);
         // 画像形式
         $mimeType = $this->getMimeType($srcPath);
-        $format = $this->detectImageExtenstion($mimeType, true);
+        if (is_null($mimeType)) {
+            throw new RuntimeException(sprintf('Failed to get MIME type from %s.', $srcPath));
+        }
+        $format = $this->mimeTypeToExtension($mimeType);
         // 背景色
         /** @var array{0:int,1:int,2:int} $color */
         [$red, $green, $blue] = $color;

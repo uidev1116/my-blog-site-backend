@@ -3,10 +3,6 @@ import { triggerEvent } from '../../utils';
 import { MediaItem } from './types';
 import MediaUnit from './components/media-unit/media-unit';
 
-function removeTrailingSlash(path: string) {
-  return path.replace(/\/$/, '');
-}
-
 export default function setupMediaUnit(
   context: HTMLElement,
   options: Partial<React.ComponentPropsWithoutRef<typeof MediaUnit>> = {}
@@ -44,20 +40,23 @@ export default function setupMediaUnit(
       overrideAlt = '',
       overrideCaption = '',
     } = element.dataset;
-    const thumbnailPath =
-      type === 'file' ? `${removeTrailingSlash(ACMS.Config.root)}${thumbnail}` : `${mediaDir}${thumbnail}`;
-    const item = {
-      media_caption: caption,
-      media_text: text,
-      media_alt: alt,
-      media_id: mid,
-      media_link: link,
-      media_landscape: landscape,
-      media_thumbnail: thumbnailPath,
-      media_type: type,
-      media_pdf: pdf,
-      media_title: name,
-    } as MediaItem;
+    const items: MediaItem[] = [];
+    if (mid) {
+      const thumbnailPath = type === 'file' ? thumbnail : `${mediaDir}${thumbnail}`;
+      const item = {
+        media_caption: caption,
+        media_text: text,
+        media_alt: alt,
+        media_id: Number(mid),
+        media_link: link,
+        media_landscape: landscape,
+        media_thumbnail: thumbnailPath,
+        media_type: type,
+        media_pdf: pdf,
+        media_title: name,
+      } as MediaItem;
+      items.push(item);
+    }
     let mediaSizesFiltered = [];
     if (mediaSizes) {
       mediaSizesFiltered = JSON.parse(mediaSizes).filter((obj: object) => {
@@ -69,12 +68,12 @@ export default function setupMediaUnit(
     }
     const root = render(
       <MediaUnit
-        items={[item]}
+        items={items}
         id={id}
         primaryImageId={primaryImageId}
         mediaSizes={mediaSizesFiltered}
         mediaDir={mediaDir}
-        active={active}
+        active={active as 'on' | 'off'}
         lang={lang}
         primary={primary as 'true' | 'false'}
         multiUpload={multiUpload === 'false' ? 'false' : 'true'}

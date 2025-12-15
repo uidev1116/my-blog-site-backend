@@ -3,6 +3,7 @@
 namespace Acms\Services\Common;
 
 use Acms\Services\Facades\Database as DB;
+use Acms\Services\Facades\JQuery;
 use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Facades\PrivateStorage;
 use Acms\Services\Facades\PublicStorage;
@@ -15,13 +16,13 @@ use Acms\Services\Facades\Logger as AcmsLogger;
 use Acms\Services\Facades\RichEditor;
 use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Session;
+use Acms\Services\Facades\Template as Tpl;
 use Acms\Services\Facades\Login;
 use Acms\Services\Common\MimeTypeValidator;
 use phpseclib3\Crypt\AES;
 use phpseclib3\Crypt\Random;
 use cebe\markdown\MarkdownExtra;
 use SQL;
-use Tpl;
 use Field;
 use Field_Search;
 use Field_Validation;
@@ -107,6 +108,13 @@ class Helper
     private $mediaDeliveryUrl = '';
 
     /**
+     * 管理ドメインリスト（キャッシュ）
+     *
+     * @var array<string>|null
+     */
+    private ?array $managedDomainsCache = null;
+
+    /**
      * MIMEタイプ検証クラス
      *
      * @var MimeTypeValidator
@@ -176,6 +184,69 @@ class Helper
     }
 
     /**
+     * 管理ドメインのリストを取得（キャッシュあり）
+     *
+     * @param array<string> $additionalDomains 追加で許可するドメインのリスト
+     * @return array<string>
+     */
+    protected function getManagedDomains(array $additionalDomains = []): array
+    {
+        if ($this->managedDomainsCache === null) {
+            $domains = [];
+
+            $sql = SQL::newSelect('blog');
+            $sql->setSelect('blog_domain', null, null, 'DISTINCT');
+            $domains = array_merge($domains, DB::query($sql->get(dsn()), 'list'));
+
+            $sql = SQL::newSelect('alias');
+            $sql->setSelect('alias_domain', null, null, 'DISTINCT');
+            $sql->addWhereOpr('alias_status', 'open');
+            $domains = array_merge($domains, DB::query($sql->get(dsn()), 'list'));
+
+            $this->managedDomainsCache = array_unique($domains);
+        }
+
+        $domains = $this->managedDomainsCache;
+        if (count($additionalDomains) > 0) {
+            $domains = array_merge($domains, $additionalDomains);
+            $domains = array_unique($domains);
+        }
+
+        return $domains;
+    }
+
+    /**
+     * 指定されたドメインが管理ドメインかどうかを判定
+     *
+     * @param string $domain チェックするドメイン
+     * @param array<string> $additionalDomains 追加で許可するドメインのリスト
+     * @return bool
+     */
+    public function isManagedDomain(string $domain, array $additionalDomains = []): bool
+    {
+        if ($domain === '') {
+            return false;
+        }
+        return in_array($domain, $this->getManagedDomains($additionalDomains), true);
+    }
+
+    /**
+     * 指定URLが管理ドメインからのものかどうかを判定
+     *
+     * @param string $url
+     * @return bool
+     */
+    protected function isUrlFromManagedDomain(string $url): bool
+    {
+        $host = parse_url($url, PHP_URL_HOST);
+        if ($host === false || $host === null) {
+            return true; // 相対URLは自ドメインとみなす
+        }
+        // HTTP_HOSTを含めてチェック（相対URLの場合は自ドメインとみなすため）
+        return in_array($host, $this->getManagedDomains([HTTP_HOST]), true);
+    }
+
+    /**
      * メディアの配信先URLを書き換え
      *
      * @param string $url
@@ -184,6 +255,10 @@ class Helper
     public function replaceDeliveryUrl(string $url): string
     {
         if (!$this->mediaDeliveryUrl) {
+            return $url;
+        }
+        // 管理ドメイン以外は置換しない
+        if (!$this->isUrlFromManagedDomain($url)) {
             return $url;
         }
         $mediaDeliveryUrl = rtrim($this->mediaDeliveryUrl, '/');
@@ -1431,6 +1506,7 @@ class Helper
         if ($cacheItem && $cacheItem->isHit()) {
             $cacheData = $cacheItem->get();
             if ($cacheData instanceof Field) {
+                Tpl::injectMediaField($cacheData, force: true);
                 return $cacheData;
             }
             $this->cacheField->forget($cacheKey);
@@ -1479,36 +1555,15 @@ class Helper
         $q  = $SQL->get(dsn());
         $statement = $DB->query($q, 'exec');
 
-        $mediaList = [];
-        $mediaIds = [];
-        $useMediaField = [];
         while ($row = $DB->next($statement)) {
-            $fixPaht = '';
             $fd = $row['field_key'];
-            if (strpos($fd, '@media') !== false) {
-                $fdSource = substr($fd, 0, -6);
-                $mediaIds[] = intval($row['field_value']);
-                $useMediaField[] = $fdSource;
-            }
-            $Field->addField($fd, $fixPaht . $row['field_value']);
+            $Field->addField($fd, $row['field_value']);
             $Field->setMeta($fd, 'search', $row['field_search'] === 'on');
             $Field->setMeta($fd, 'type', $row['field_type']);
         }
-        if ($mediaIds) {
-            $DB = DB::singleton(dsn());
-            $SQL = SQL::newSelect('media');
-            $SQL->addWhereIn('media_id', $mediaIds);
-            $q  = $SQL->get(dsn());
-            $statement = $DB->query($q, 'exec');
-            while ($media = $DB->next($statement)) {
-                $mid = intval($media['media_id']);
-                $mediaList[$mid] = $media;
-            }
-        }
-        Media::injectMediaField($Field, $mediaList, $useMediaField);
-
         $cacheItem->set($Field);
         $this->cacheField->putItem($cacheItem);
+        Tpl::injectMediaField($Field, force: true);
 
         return $Field;
     }
@@ -2640,8 +2695,8 @@ class Helper
         jsModule('setid', $this->Get->get('setid', null));
         jsModule('layout', LAYOUT_EDIT);
         jsModule('googleApiKey', config('google_api_key'));
-        jsModule('jQuery', config('jquery_version'));
-        jsModule('jQueryMigrate', config('jquery_migrate', 'off'));
+        jsModule('jQuery', JQuery::getVersion());
+        jsModule('jQueryMigrate', JQuery::getMigrate());
         jsModule('mediaClientResize', config('media_client_resize', 'on'));
         jsModule('delStorage', $delStorage);
         jsModule('fulltimeSSL', (SSL_ENABLE and FULLTIME_SSL_ENABLE) ? 1 : 0);
@@ -2766,20 +2821,12 @@ class Helper
             return false;
         }
         // ホストが自サービスのドメインであること
-        $sql = SQL::newSelect('blog');
-        $sql->setSelect('blog_domain', null, null, 'DISTINCT');
-        $domains = DB::query($sql->get(dsn()), 'list');
-
-        $sql = SQL::newSelect('alias');
-        $sql->setSelect('alias_domain', null, null, 'DISTINCT');
-        $domains = array_merge($domains, DB::query($sql->get(dsn()), 'list'));
-
         $host = parse_url($url, PHP_URL_HOST);
-
-        if (in_array($host, $domains, true)) {
-            return true;
+        if ($host === false || $host === null) {
+            return false;
         }
-        return false;
+
+        return in_array($host, $this->getManagedDomains([HTTP_HOST]), true);
     }
 
     /**
@@ -3030,24 +3077,6 @@ class Helper
         }
         $themes[] = 'system';
         return array_unique($themes);
-    }
-
-    /**
-     * MIMEタイプをパスから取得
-     *
-     * @param string $path
-     * @return string|false
-     */
-    public function getMimeType(string $path)
-    {
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        if ($finfo === false) {
-            return false; // ファイル情報を取得できない場合はfalseを返す
-        }
-        $mimeType = finfo_file($finfo, $path);
-        finfo_close($finfo);
-
-        return $mimeType;
     }
 
     /**

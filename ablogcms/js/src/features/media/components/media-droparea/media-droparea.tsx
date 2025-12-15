@@ -6,11 +6,11 @@ import { MediaItem, MediaType } from '../../types';
 import type { ExtendedFile } from '../../../../lib/read-files';
 
 type AcceptMediaType = Extract<MediaType, 'image' | 'file'> | 'all';
-interface MediaDropAreaProps {
+type MediaDropAreaProps = {
   /**
    * メディアID
    */
-  mid: string;
+  mid?: number;
 
   /**
    * サムネイル画像のパス
@@ -51,13 +51,12 @@ interface MediaDropAreaProps {
    * エラー時のコールバック
    */
   onError: () => void;
-}
+};
 
 interface MediaDropAreaState {
   isInsertModalOpen: boolean;
   isUpdateModalOpen: boolean;
   files: File[];
-  landscape: boolean;
 }
 
 export default class MediaDropArea extends Component<MediaDropAreaProps, MediaDropAreaState> {
@@ -71,20 +70,7 @@ export default class MediaDropArea extends Component<MediaDropAreaProps, MediaDr
       isInsertModalOpen: false,
       isUpdateModalOpen: false,
       files: [],
-      landscape: true,
     };
-  }
-
-  componentDidMount() {
-    const img = new Image();
-    img.onload = () => {
-      if (img.width < img.height) {
-        this.setState({
-          landscape: false,
-        });
-      }
-    };
-    img.src = this.props.thumbnail;
   }
 
   onComplete = (files: ExtendedFile[]) => {
@@ -107,13 +93,6 @@ export default class MediaDropArea extends Component<MediaDropAreaProps, MediaDr
     const { accept = 'image' } = this.props;
     const [item] = items;
     const fileOrImage = item.media_type === 'image' || item.media_type === 'svg' ? 'image' : 'file';
-    let landscape = true;
-    if (item.media_size) {
-      const [sizeX, sizeY] = item.media_size.split(' , ');
-      if (sizeX < sizeY) {
-        landscape = false;
-      }
-    }
     if (accept !== 'all' && accept !== fileOrImage) {
       this.props.onError();
       this.setState({
@@ -123,7 +102,6 @@ export default class MediaDropArea extends Component<MediaDropAreaProps, MediaDr
     }
     this.setState({
       isInsertModalOpen: false,
-      landscape,
     });
     this.props.onChange(item);
   };
@@ -141,16 +119,8 @@ export default class MediaDropArea extends Component<MediaDropAreaProps, MediaDr
   };
 
   onUpdateModalUpdate = (item: MediaItem) => {
-    let landscape = true;
-    if (item.media_size) {
-      const [sizeX, sizeY] = item.media_size.split(' , ');
-      if (sizeX < sizeY) {
-        landscape = false;
-      }
-    }
     this.setState({
       isUpdateModalOpen: false,
-      landscape,
     });
     this.props.onChange(item);
   };
@@ -182,14 +152,14 @@ export default class MediaDropArea extends Component<MediaDropAreaProps, MediaDr
       <>
         <DropZone onComplete={this.onComplete}>
           <div>
-            {!mid && (
+            {mid === undefined && (
               <div className="acms-admin-media-unit-droparea" style={style}>
                 <DropZoneText>{ACMS.i18n('media.add_new_media')}</DropZoneText>
                 <DropZoneFileSelector onChange={this.uploadFile} disabled={isInsertModalOpen} />
                 <DropZoneText>{ACMS.i18n('media.drop_file')}</DropZoneText>
               </div>
             )}
-            {mid !== '' && (
+            {mid != null && mid > 0 && (
               <div className="acms-admin-media-unit-preview-wrap">
                 <div className="acms-admin-media-unit-preview-overlay" />
                 <button
@@ -226,12 +196,14 @@ export default class MediaDropArea extends Component<MediaDropAreaProps, MediaDr
           tab="upload"
           filetype={accept}
         />
-        <MediaUpdate
-          isOpen={isUpdateModalOpen}
-          mid={`${mid}`}
-          onClose={this.onUpdateModalClose}
-          onUpdate={this.onUpdateModalUpdate}
-        />
+        {mid != null && mid > 0 && (
+          <MediaUpdate
+            isOpen={isUpdateModalOpen}
+            mid={mid}
+            onClose={this.onUpdateModalClose}
+            onUpdate={this.onUpdateModalUpdate}
+          />
+        )}
       </>
     );
   }

@@ -1,4 +1,3 @@
-import { useRef } from 'react';
 import { NodeViewWrapper, NodeViewContent } from '@tiptap/react';
 import { Node } from '@tiptap/pm/model';
 import { cn } from '../../../lib/utils';
@@ -19,28 +18,34 @@ export const LinkButtonView = (props: LinkButtonBlockViewProps) => {
       };
     };
   };
-  const fileWrapperRef = useRef<HTMLDivElement>(null);
-  const { align, target } = node.attrs;
+  const { href, align, target } = node.attrs;
 
+  const cleanedClassNames = String(node.attrs.class ?? '')
+    .split(/\s+/)
+    .filter((cls: string) => !['align-left', 'align-center', 'align-right'].includes(cls))
+    .join(' ')
+    .trim();
   const wrapperClassName = cn(
-    align === 'left' && 'acms-admin-block-editor-wrapper acms-admin-block-editor-wrapper-left',
-    align === 'right' && 'acms-admin-block-editor-wrapper acms-admin-block-editor-wrapper-right',
-    align === 'center' && 'acms-admin-block-editor-wrapper acms-admin-block-editor-wrapper-center',
-    node.attrs.class
+    'link-button-block',
+    'acms-admin-block-editor-link-button', // 3.2.0 ~ 3.2.7 互換性のために残しておく
+    `align-${align || 'center'}`,
+    cleanedClassNames
   );
 
   const showPlaceholder = node.content.size === 0;
 
   return (
-    <NodeViewWrapper>
-      <div className={wrapperClassName}>
-        <div className="acms-admin-block-editor-link-button" ref={fileWrapperRef}>
-          <div className="acms-admin-block-editor-link-button-link" data-target={target}>
-            {showPlaceholder && <span className="is-empty" />}
-            <NodeViewContent as="span" style={showPlaceholder ? { minWidth: '1px' } : null} />
-          </div>
-        </div>
-      </div>
+    <NodeViewWrapper className={wrapperClassName} data-type="linkButton" data-align={align || 'center'}>
+      <a
+        href={href || ''}
+        className="link-button-block-link acms-admin-block-editor-link-button-link" // acms-admin-block-editor-link-button-link は 3.2.0 ~ 3.2.7 互換性のために残しておく
+        data-type="button"
+        target={target || undefined}
+        rel={target ? 'noopener noreferrer' : undefined}
+      >
+        {showPlaceholder && <span className="is-empty" />}
+        <NodeViewContent as="span" style={showPlaceholder ? { minWidth: '1px' } : null} />
+      </a>
     </NodeViewWrapper>
   );
 };

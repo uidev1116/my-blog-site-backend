@@ -11,7 +11,12 @@ async function fetcher(url: string): Promise<EntriesResponse> {
     entry: entries = [],
     itemsAmount: totalItems = 0,
     bulkActions = [],
-    sort = { enabled: false, type: 'entry' },
+    sort = {
+      enabled: false,
+      type: 'entry',
+      context: null,
+      permissions: { entry: false, user: false, category: false, otherUser: false },
+    },
   } = data;
 
   return {

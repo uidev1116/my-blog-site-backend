@@ -95,7 +95,7 @@ export const TableHeader = TiptapTableHeader.extend({
                       className += ' last';
                     }
 
-                    const grip = document.createElement('a');
+                    const grip = document.createElement('button');
                     const icon = document.createElement('span');
                     icon.className = 'material-symbols-outlined acms-admin-block-editor-icon grip-icon';
                     icon.textContent = 'more_horiz';
@@ -103,6 +103,7 @@ export const TableHeader = TiptapTableHeader.extend({
                     grip.appendChild(icon);
 
                     grip.className = className;
+                    grip.type = 'button';
                     grip.addEventListener('mousedown', (event) => {
                       event.preventDefault();
                       event.stopImmediatePropagation();

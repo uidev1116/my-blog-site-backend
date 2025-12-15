@@ -6,7 +6,7 @@ import type { MediaStateProps } from '../../types';
 interface MediaUpdateModalProps
   extends MediaStateProps,
     Pick<React.ComponentProps<typeof MediaModal>, 'onClose' | 'isOpen' | 'onUpdate' | 'container'> {
-  mid: string;
+  mid: number;
 }
 
 export default class MediaUpdateModal extends Component<MediaUpdateModalProps> {
@@ -25,7 +25,7 @@ export default class MediaUpdateModal extends Component<MediaUpdateModalProps> {
     axiosLib
       .get(url, {
         params: {
-          _mid: mid,
+          _mid: mid.toString(),
         },
       })
       .then((res) => {

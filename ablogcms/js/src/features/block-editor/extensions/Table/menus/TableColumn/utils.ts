@@ -17,7 +17,7 @@ export const isColumnGripSelected = ({ editor, view, from }: { editor: Editor; v
     container = container.parentElement!;
   }
 
-  const gripColumn = container && container.querySelector && container.querySelector('a.grip-column.selected');
+  const gripColumn = container && container.querySelector && container.querySelector('button.grip-column.selected');
 
   return !!gripColumn;
 };

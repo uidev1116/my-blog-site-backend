@@ -1,6 +1,5 @@
 import { lazy, Suspense, useCallback, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import useEffectOnce from '../../hooks/use-effect-once';
 import { render } from '../../utils/react';
 import { triggerEvent } from '../../utils';
 import { MediaItem } from '../../features/media/types';
@@ -115,14 +114,14 @@ export default function dispatchMediaField(context: Element | Document = documen
     } = dropArea?.dataset || {};
 
     const [dropAreaState, setDropAreaState] = useState<DropAreaState>({
-      mid: inputs.length > 0 ? inputs[0].value : '',
+      mid: inputs.length > 0 && inputs[0].value ? Number(inputs[0].value) : undefined,
       thumbnail,
       // カスタムフィールドメーカーの不具合で、thubmnailType が未指定かつ、mediaTypeがallの場合があるため、その場合はimageとして扱うことで互換性を保つ
       mediaType: thumbnailType || (type === 'all' ? 'image' : type), // thumbnailTypeが未指定の場合でも動作するようにする
     } as DropAreaState);
 
     useEffect(() => {
-      if (dropAreaState.mid === '') {
+      if (dropAreaState.mid == null) {
         removeButtons.forEach((button) => {
           hide(button);
         });
@@ -147,14 +146,14 @@ export default function dispatchMediaField(context: Element | Document = documen
           });
         }
         inputs.forEach((input) => {
-          input.value = newMedia?.media_id || '';
+          input.value = newMedia?.media_id ? String(newMedia.media_id) : '';
           triggerEvent(input, 'acmsAdminMediaFieldChange', { bubbles: true });
         });
         setDropAreaState(
           (prevState) =>
             ({
               ...prevState,
-              mid: newMedia?.media_id || '',
+              mid: newMedia?.media_id,
               mediaType: newMedia?.media_type || '',
               thumbnail: newMedia?.media_thumbnail || '',
             }) as DropAreaState
@@ -195,7 +194,7 @@ export default function dispatchMediaField(context: Element | Document = documen
           });
         }
         inputs.forEach((input) => {
-          input.value = media.media_id;
+          input.value = String(media.media_id);
           triggerEvent(input, 'acmsAdminMediaFieldChange', { bubbles: true });
         });
         if (previewImages.length > 0) {
@@ -219,7 +218,7 @@ export default function dispatchMediaField(context: Element | Document = documen
       [errorTexts, inputs, previewImages]
     );
 
-    useEffectOnce(() => {
+    useEffect(() => {
       const handleInsertButtonClick = (event: MouseEvent) => {
         if (!(event.currentTarget instanceof HTMLElement)) {
           return;
@@ -239,7 +238,7 @@ export default function dispatchMediaField(context: Element | Document = documen
       };
     });
 
-    useEffectOnce(() => {
+    useEffect(() => {
       const handleUpdateButtonClick = () => {
         setMode('update');
       };
@@ -251,12 +250,12 @@ export default function dispatchMediaField(context: Element | Document = documen
           button.removeEventListener('click', handleUpdateButtonClick);
         });
       };
-    });
+    }, [inputs, insertButtons, updateButtons]);
 
     const handleUpdate = useCallback(
       (media: MediaItem) => {
         inputs.forEach((input) => {
-          input.value = media.media_id;
+          input.value = media.media_id.toString();
           triggerEvent(input, 'acmsAdminMediaFieldChange', { bubbles: true });
         });
         if (previewImages.length > 0) {
@@ -264,22 +263,31 @@ export default function dispatchMediaField(context: Element | Document = documen
             preview.src = media.media_thumbnail;
           });
         }
+        setDropAreaState(
+          (prevState) =>
+            ({
+              ...prevState,
+              mid: media.media_id,
+              mediaType: media.media_type,
+              thumbnail: media.media_thumbnail,
+            }) as DropAreaState
+        );
         setMode('none');
       },
       [inputs, previewImages]
     );
 
-    useEffectOnce(() => {
+    useEffect(() => {
       const handleRemoveButtonClick = () => {
         inputs.forEach((input) => {
-          input.value = '';
+          input.value = '0';
           triggerEvent(input, 'acmsAdminMediaFieldChange', { bubbles: true });
         });
         previewImages.forEach((preview) => {
           preview.src = '';
         });
         setDropAreaState({
-          mid: '',
+          mid: undefined,
           thumbnail: '',
           mediaType: undefined,
         } as DropAreaState);
@@ -293,9 +301,9 @@ export default function dispatchMediaField(context: Element | Document = documen
           button.removeEventListener('click', handleRemoveButtonClick);
         });
       };
-    });
+    }, [inputs, removeButtons, previewImages]);
 
-    useEffectOnce(() => {
+    useEffect(() => {
       const listener = (event: Event) => {
         if (!(event instanceof CustomEvent)) return;
         const media = event.detail;
@@ -309,7 +317,24 @@ export default function dispatchMediaField(context: Element | Document = documen
           input?.removeEventListener('acms.set-main-image', listener);
         });
       };
-    });
+    }, [handleChange, inputs]);
+
+    useEffect(() => {
+      const listener = (event: Event) => {
+        if (!(event instanceof CustomEvent)) {
+          return;
+        }
+        const media = event.detail.data as MediaItem;
+        // 現在のメディアIDと一致する場合のみ更新
+        if (media.media_id === dropAreaState.mid) {
+          handleUpdate(media);
+        }
+      };
+      document.addEventListener('acms.media-updated', listener);
+      return () => {
+        document.removeEventListener('acms.media-updated', listener);
+      };
+    }, [dropAreaState, handleUpdate]);
 
     return (
       <>
@@ -336,14 +361,16 @@ export default function dispatchMediaField(context: Element | Document = documen
             onClose={handleClose}
           />
         </Suspense>
-        <Suspense fallback={null}>
-          <MediaUpdate
-            isOpen={mode === 'update'}
-            mid={dropAreaState.mid}
-            onClose={handleClose}
-            onUpdate={handleUpdate}
-          />
-        </Suspense>
+        {dropAreaState.mid != null && dropAreaState.mid > 0 && (
+          <Suspense fallback={null}>
+            <MediaUpdate
+              isOpen={mode === 'update'}
+              mid={dropAreaState.mid}
+              onClose={handleClose}
+              onUpdate={handleUpdate}
+            />
+          </Suspense>
+        )}
       </>
     );
   };

@@ -521,7 +521,7 @@ class ACMS_GET
      * @param Template $Tpl
      * @param string $pimageId
      * @param int $entryId
-     * @param array $config
+     * @param array{imageX: int, imageY: int, imageTrim?: bool | 'on' | 'off', imageZoom?: bool | 'on' | 'off', imageCenter?: bool | 'on' | 'off'} $config
      * @param array{unit: array<string, \Acms\Services\Unit\Contracts\Model>, media: array<int, array<string, mixed>>, fieldMainImage?: array<int, array<string, mixed>>} $eagerLoadingData
      *
      * @return array

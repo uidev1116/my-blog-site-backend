@@ -6,20 +6,19 @@
  - ファイル
  ※ media-downloadは動的、storageは静的書き出しに対応
 ------------------------------ */
-:where(.#{global.$entry-class}) .node-fileBlock:not(:has(.acms-admin-block-editor-file-link)),
-.media-file-block[data-display-type='icon'],
-[class*='column-media']:has(a[href*='media-download'], a[href*='storage']),
-[class*='column-file'] {
+
+:where(.#{global.$entry-class}) [data-type='fileBlock'][data-display-type='icon'],
+:where(.#{global.$entry-class}) [class*='column-media']:has(a[href*='media-download'], a[href*='storage']),
+:where(.#{global.$entry-class}) [class*='column-file'] {
   margin-block: var(--unit-margin-top) var(--unit-margin-bottom);
   font-size: 0; /* Descender space 対策 */
   text-align: center;
 }
 
 /* ファイルアイコン */
-.acms-admin-block-editor-file:not(:has(.acms-admin-block-editor-file-link)) img,
-.media-file-block[data-display-type='icon'] img,
-[class*='column-media'] .columnIcon,
-[class*='column-file'] .columnIcon {
+:where(.#{global.$entry-class}) [data-type='fileBlock'][data-display-type='icon'] img,
+:where(.#{global.$entry-class}) [class*='column-media'] .columnIcon,
+:where(.#{global.$entry-class}) [class*='column-file'] .columnIcon {
   display: inline-block;
   width: 56px;
   max-width: 100%;
@@ -27,10 +26,9 @@
 }
 
 /* キャプション */
-.acms-admin-block-editor-file:not(:has(.acms-admin-block-editor-file-link)) .caption,
-.media-file-block[data-display-type='icon'] .caption,
-[class*='column-media']:has(a[href*='media-download'], a[href*='storage']) .caption,
-[class*='column-file'] .caption {
+:where(.#{global.$entry-class}) [data-type='fileBlock'][data-display-type='icon'] .caption,
+:where(.#{global.$entry-class}) [class*='column-media']:has(a[href*='media-download'], a[href*='storage']) .caption,
+:where(.#{global.$entry-class}) [class*='column-file'] .caption {
   display: block;
   margin: 4px 0 0; /* 余白リセットのため全方向指定 */
   line-height: 1.5;
@@ -39,14 +37,14 @@
 }
 
 /* リンク（閲覧画面のみ） */
-.media-file-block[data-display-type='icon'] a,
-[class*='column-media'] a[href*='media-download'],
-[class*='column-media'] a[href*='storage'],
-[class*='column-file'] a {
+:where(.#{global.$entry-class}) [data-type='fileBlock'][data-display-type='icon'] a,
+:where(.#{global.$entry-class}) [class*='column-media'] a[href*='media-download'],
+:where(.#{global.$entry-class}) [class*='column-media'] a[href*='storage'],
+:where(.#{global.$entry-class}) [class*='column-file'] a {
   display: inline-block;
   text-decoration: none; /* リセット用 */
 
-  @media (hover: hover) {
+  @media (any-hover: hover) {
     transition: opacity 0.2s ease;
 
     &:where(:any-link):hover {
@@ -57,7 +55,7 @@
 
 /* PDFプレビュー
 ------------------------------ */
-.column-pdf-image {
+:where(.#{global.$entry-class}) [class*='column-media'] .column-pdf-image {
   max-width: 100%;
   border: solid 1px global.$acms-color-gray70;
 }

@@ -271,6 +271,8 @@ class Import
             $value = $this->distPath . $value;
         } elseif ($type === 'file' && $field === 'column_field_2' && !empty($value)) {
             $value = $this->distPath . $value;
+        } elseif ($field === 'column_parent_id' && $value) {
+            $value = $this->getNewID('column', $value);
         }
         return $value;
     }

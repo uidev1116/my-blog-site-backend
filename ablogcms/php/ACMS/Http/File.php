@@ -173,7 +173,7 @@ class ACMS_Http_File extends ACMS_Http
      */
     public function getCsv()
     {
-        $this->validateFormat(['csv', 'html']);
+        $this->validateFormat(['csv', 'html', 'text']);
         $path = $this->getPath();
 
         $csv = $this->convertEncoding($path);

@@ -12,7 +12,7 @@ export type MediaItem = {
   media_label: string;
   media_last_modified: string;
   media_datetime: string;
-  media_id: string;
+  media_id: number;
   media_bid: string;
   media_blog_name: string;
   media_user_id: string;

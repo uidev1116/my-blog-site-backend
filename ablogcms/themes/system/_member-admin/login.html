@@ -9,7 +9,7 @@
 
     <!-- BEGIN signin -->
     <div class="acms-admin-login-main-box">
-      <h1 class="acms-admin-login-page-title"><span class="acms-admin-label" style="background-color:%{BLOG_THEME_COLOR};">%{BLOG_NAME}</span>&ensp;<span class="acms-admin-label"><!--T-->管理ログイン<!--/T--></span></h1>
+      @include("/_member-admin/parts/page-title.html", { "title": "<!--T-->管理ログイン<!--/T-->" })
       <div class="acms-admin-form">
         <!-- BEGIN_IF [{mail:validator#restriction}/eq/0] -->
         <div role="alert" class="acms-admin-alert acms-admin-alert-danger">
@@ -103,7 +103,7 @@
 
     <!-- BEGIN verifyCode -->
     <div class="acms-admin-login-main-box">
-      <h1 class="acms-admin-login-page-title"><span class="acms-admin-label" style="background-color:%{BLOG_THEME_COLOR};">%{BLOG_NAME}</span>&ensp;<span class="acms-admin-label"><!--T-->管理ログイン<!--/T--></span></h1>
+      @include("/_member-admin/parts/page-title.html", { "title": "<!--T-->管理ログイン<!--/T-->" })
       <div class="acms-admin-form">
         <!-- BEGIN successSent -->
         <div role="alert" class="acms-admin-alert acms-admin-alert-info"><!--T-->本人確認のため、確認メールをお送りしました。メールに記載されている確認リンクをクリックするか、下記に確認コードを入力してください。<!--/T--></div>
@@ -152,7 +152,7 @@
 
     <!-- BEGIN tfa -->
     <div class="acms-admin-login-main-box">
-      <h1 class="acms-admin-login-page-title"><span class="acms-admin-label" style="background-color:%{BLOG_THEME_COLOR};">%{BLOG_NAME}</span>&ensp;<span class="acms-admin-label"><!--T-->管理ログイン<!--/T--></span></h1>
+      @include("/_member-admin/parts/page-title.html", { "title": "<!--T-->管理ログイン<!--/T-->" })
       <div class="acms-admin-form">
         <!-- BEGIN_IF [{code:validator#auth}/eq/0] -->
         <div role="alert" class="acms-admin-alert acms-admin-alert-danger">

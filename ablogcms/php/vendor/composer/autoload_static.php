@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit69e47e8068554a138cd68cba6b4e0007
+class ComposerStaticInit5d9af5238736c6aa9be3ad05eb19c413
 {
     public static $files = array (
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
@@ -661,6 +661,7 @@ class ComposerStaticInit69e47e8068554a138cd68cba6b4e0007
         'Acms\\Services\\Facades\\Facade' => __DIR__ . '/../../..' . '/php/Services/Facades/Facade.php',
         'Acms\\Services\\Facades\\Http' => __DIR__ . '/../../..' . '/php/Services/Facades/Http.php',
         'Acms\\Services\\Facades\\Image' => __DIR__ . '/../../..' . '/php/Services/Facades/Image.php',
+        'Acms\\Services\\Facades\\JQuery' => __DIR__ . '/../../..' . '/php/Services/Facades/JQuery.php',
         'Acms\\Services\\Facades\\LocalStorage' => __DIR__ . '/../../..' . '/php/Services/Facades/LocalStorage.php',
         'Acms\\Services\\Facades\\Logger' => __DIR__ . '/../../..' . '/php/Services/Facades/Logger.php',
         'Acms\\Services\\Facades\\Login' => __DIR__ . '/../../..' . '/php/Services/Facades/Login.php',
@@ -690,6 +691,8 @@ class ComposerStaticInit69e47e8068554a138cd68cba6b4e0007
         'Acms\\Services\\Image\\Helper' => __DIR__ . '/../../..' . '/php/Services/Image/Helper.php',
         'Acms\\Services\\Image\\ImageServiceProvider' => __DIR__ . '/../../..' . '/php/Services/Image/ImageServiceProvider.php',
         'Acms\\Services\\Image\\ImagerOptimizer' => __DIR__ . '/../../..' . '/php/Services/Image/ImagerOptimizer.php',
+        'Acms\\Services\\JQuery\\Helper' => __DIR__ . '/../../..' . '/php/Services/JQuery/Helper.php',
+        'Acms\\Services\\JQuery\\JQueryServiceProvider' => __DIR__ . '/../../..' . '/php/Services/JQuery/JQueryServiceProvider.php',
         'Acms\\Services\\License\\Exceptions\\LicenseActivationFailedException' => __DIR__ . '/../../..' . '/php/Services/License/Exceptions/LicenseActivationFailedException.php',
         'Acms\\Services\\License\\Exceptions\\LicenseException' => __DIR__ . '/../../..' . '/php/Services/License/Exceptions/LicenseException.php',
         'Acms\\Services\\License\\Exceptions\\LicenseNetworkException' => __DIR__ . '/../../..' . '/php/Services/License/Exceptions/LicenseNetworkException.php',
@@ -798,7 +801,6 @@ class ComposerStaticInit69e47e8068554a138cd68cba6b4e0007
         'Acms\\Services\\Unit\\Contracts\\ParentUnit' => __DIR__ . '/../../..' . '/php/Services/Unit/Contracts/ParentUnit.php',
         'Acms\\Services\\Unit\\Contracts\\ProcessExtender' => __DIR__ . '/../../..' . '/php/Services/Unit/Contracts/ProcessExtender.php',
         'Acms\\Services\\Unit\\Contracts\\SizeableUnitInterface' => __DIR__ . '/../../..' . '/php/Services/Unit/Contracts/SizeableUnitInterface.php',
-        'Acms\\Services\\Unit\\Contracts\\StaticExport' => __DIR__ . '/../../..' . '/php/Services/Unit/Contracts/StaticExport.php',
         'Acms\\Services\\Unit\\Contracts\\UnitListModule' => __DIR__ . '/../../..' . '/php/Services/Unit/Contracts/UnitListModule.php',
         'Acms\\Services\\Unit\\Models\\BlockEditor' => __DIR__ . '/../../..' . '/php/Services/Unit/Models/BlockEditor.php',
         'Acms\\Services\\Unit\\Models\\Code' => __DIR__ . '/../../..' . '/php/Services/Unit/Models/Code.php',
@@ -3815,10 +3817,10 @@ class ComposerStaticInit69e47e8068554a138cd68cba6b4e0007
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit69e47e8068554a138cd68cba6b4e0007::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit69e47e8068554a138cd68cba6b4e0007::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit69e47e8068554a138cd68cba6b4e0007::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit69e47e8068554a138cd68cba6b4e0007::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit5d9af5238736c6aa9be3ad05eb19c413::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit5d9af5238736c6aa9be3ad05eb19c413::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit5d9af5238736c6aa9be3ad05eb19c413::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit5d9af5238736c6aa9be3ad05eb19c413::$classMap;
 
         }, null, ClassLoader::class);
     }

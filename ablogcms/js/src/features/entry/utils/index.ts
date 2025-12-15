@@ -1,4 +1,4 @@
-import { Column, SortDirection, type View } from '../../../components/dataview/types';
+import { Column, isAccessorColumn, SortDirection, type View } from '../../../components/dataview/types';
 import { AcmsContext } from '../../../lib/acmsPath/types';
 import { ENTRY_ORDER_COLUMNS } from '../constants';
 import { EntryType } from '../types';
@@ -20,16 +20,21 @@ export function getOrderInfo(sort: View['sort'], columns: Column<EntryType>[]): 
   }
   const column = columns.find((column) => column.id === sort?.id);
   if (column) {
+    const sortFieldName = isAccessorColumn(column) ? column.accessorKey : column.id;
     return {
       order: `${column.type === 'number' ? 'intfield' : 'field'}-${sort.direction}`,
-      sortFieldName: sort.id,
+      sortFieldName,
     };
   }
 
   return { order: `id-${sort.direction}` };
 }
 
-export function getSortFromContext(context: AcmsContext, searchParams: URLSearchParams): NonNullable<View['sort']> {
+export function getSortFromContext(
+  context: AcmsContext,
+  searchParams: URLSearchParams,
+  columns: Column<EntryType>[]
+): NonNullable<View['sort']> {
   if (context.order === undefined) {
     return { id: 'datetime', direction: 'desc' as SortDirection };
   }
@@ -40,12 +45,18 @@ export function getSortFromContext(context: AcmsContext, searchParams: URLSearch
   }
   const sortFieldName = searchParams.get('sortFieldName');
   if (sortFieldName) {
-    return { id: sortFieldName, direction: direction as SortDirection };
+    const column = columns.find((column) => isAccessorColumn(column) && column.accessorKey === sortFieldName);
+    if (column) {
+      return { id: column.id, direction: direction as SortDirection };
+    }
   }
 
   if (context.field?.getFields() && context.field.getFields().length > 0) {
-    const field = context.field.getFields()[0];
-    return { id: field.key, direction: direction as SortDirection };
+    // sortFieldName が見つからない場合は、最初のフィールドを使用
+    const field = context.field.getFields().at(0);
+    if (field) {
+      return { id: field.key, direction: direction as SortDirection };
+    }
   }
   return { id: 'entry_id', direction: direction as SortDirection };
 }

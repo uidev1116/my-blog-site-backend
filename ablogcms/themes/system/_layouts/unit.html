@@ -28,7 +28,6 @@
 <!-- END_MODULE Touch_SessionWithContribution -->
 <!-- END inplace#front -->
 <!-- BEGIN clear -->
-<!-- 非推奨（配置v1でのみ利用されます） -->
 <hr class="clearHidden">
 <!-- END clear -->
 <!-- BEGIN unit#text -->
@@ -148,6 +147,25 @@
 <!-- BEGIN unit#image -->
 @section(image-unit)
 <!-- 画像 -->
+<!-- BEGIN_IF [%{UNIT_ALIGN_VERSION}/eq/v1] -->
+<div role="figure" class="column-image column-image-{align} align-{align} {display_size_class}"{display_size}[raw] aria-labelledby="image-caption-{utid}"><!-- BEGIN link#front --><!-- BEGIN_IF [{url}/nem/] -->
+  <a href="{url}" {viewer}[raw] data-group="{link_eid}" data-caption="{caption}[nl2br|delnl]"><!-- END_IF --><!-- END link#front -->
+    <img
+      <!-- BEGIN_IF [{anker}/nem] -->
+      id="{anker}"
+      <!-- END_IF -->
+      class="columnImage unit-id-{utid}"
+      src="%{HTTP_ROOT}{path}"
+      alt="{alt}[delnl]"
+      width="{x}"
+      height="{y}"
+      loading="lazy"
+      decoding="async"
+    ><!-- BEGIN link#rear -->
+  </a><!-- END link#rear --><!-- BEGIN_IF [{caption}[delnl]/nem] -->
+  <p id="image-caption-{utid}" class="caption">{caption}[raw|nl2br]</p><!-- END_IF -->
+</div>
+<!-- ELSE -->
 <div role="figure" class="column-image column-image-{align} align-{align}" aria-labelledby="image-caption-{utid}">
   <div class="{display_size_class}" {display_size}[raw] <!-- BEGIN_IF [{display_size_class}{display_size}/em] --> style="width: {x}px; min-width: 0;"<!-- END_IF -->>
     <!-- BEGIN link#front --><!-- BEGIN_IF [{url}/nem/] -->
@@ -173,6 +191,7 @@
     <!-- END_IF -->
   </div>
 </div>
+<!-- END_IF -->
 @endsection
 <!-- END unit#image -->
 
@@ -323,6 +342,25 @@
 <!-- BEGIN unit#eximage -->
 @section(eximage-unit)
 <!-- 画像URL -->
+<!-- BEGIN_IF [%{UNIT_ALIGN_VERSION}/eq/v1] -->
+<div role="figure" class="column-eximage column-eximage-{align} align-{align} {display_size_class}"{display_size}[raw] aria-labelledby="eximage-caption-{utid}"><!-- BEGIN link#front -->
+  <a href="{url}" {viewer}[raw] data-group="{link_eid}"><!-- END link#front -->
+    <img
+      <!-- BEGIN_IF [{anker}/nem] -->
+      id="{anker}"
+      <!-- END_IF -->
+      class="columnImage unit-id-{utid}"
+      src="{normal}"
+      alt="{alt}"
+      width="{x}"
+      height="{y}"
+      loading="lazy"
+      decoding="async"
+    ><!-- BEGIN link#rear -->
+  </a><!-- END link#rear --><!-- BEGIN_IF [{caption}[delnl]/nem] -->
+  <p id="eximage-caption-{utid}" class="caption">{caption}[raw|nl2br]</p><!-- END_IF -->
+</div>
+<!-- ELSE -->
 <div role="figure" class="column-eximage column-eximage-{align} align-{align}" aria-labelledby="eximage-caption-{utid}">
   <div class="{display_size_class}" {display_size}[raw] <!-- BEGIN_IF [{display_size_class}{display_size}/em] --> style="width: {x}px; min-width: 0;"<!-- END_IF -->>
     <!-- BEGIN link#front -->
@@ -331,8 +369,8 @@
         <!-- BEGIN_IF [{anker}/nem] -->
         id="{anker}"
         <!-- END_IF -->
+        class="columnImage unit-id-{utid}"
         src="{normal}"
-        class="columnImage"
         alt="{alt}"
         width="{x}"
         height="{y}"
@@ -343,12 +381,91 @@
     <p id="eximage-caption-{utid}" class="caption">{caption}[raw|nl2br]</p><!-- END_IF -->
   </div>
 </div>
+<!-- END_IF -->
 @endsection
 <!-- END unit#eximage -->
 
 <!-- BEGIN unit#media -->
 @section(media-unit)
 <!-- media -->
+<!-- BEGIN_IF [%{UNIT_ALIGN_VERSION}/eq/v1] -->
+<div role="figure" class="column-media column-media-{align} align-{align}" aria-labelledby="media-caption-{utid}">
+  <!-- BEGIN type#image -->
+  <!-- BEGIN link#front -->
+  <a href="{url}" {viewer}[raw] data-group="{link_eid}">
+  <!-- END link#front -->
+    <img
+      <!-- BEGIN_IF [{anker}/nem] -->
+      id="{anker}"
+      <!-- END_IF -->
+      class="columnImage unit-id-{image_utid}"
+      src="%{HTTP_ROOT}{path}[resizeImg({resizeWidth})]"
+      alt="{alt}"
+      width="{x}"
+      height="{y}"
+      loading="lazy"
+      decoding="async"
+    >
+  <!-- BEGIN link#rear -->
+  </a>
+  <!-- END link#rear -->
+  <!-- BEGIN_IF [{caption}[delnl]/nem] -->
+  <p id="media-caption-{image_utid}" class="caption">{caption}[raw|nl2br]</p>
+  <!-- END_IF -->
+  <!-- END type#image -->
+  <!-- BEGIN type#svg -->
+  <!-- BEGIN link#front -->
+  <a href="{url}" {viewer}[raw] data-group="{link_eid}">
+  <!-- END link#front -->
+    <img
+      <!-- BEGIN_IF [{anker}/nem] -->
+      id="{anker}"
+      <!-- END_IF -->
+      class="columnImage unit-id-{svg_utid}"
+      src="%{HTTP_ROOT}{path}"
+      alt="{alt}"
+      width="{x}"
+      height="{y}"
+      loading="lazy"
+      decoding="async"
+    >
+  <!-- BEGIN link#rear -->
+  </a>
+  <!-- END link#rear -->
+  <!-- BEGIN_IF [{caption}[delnl]/nem] -->
+  <p id="media-caption-{svg_utid}" class="caption">{caption}[raw|nl2br]</p>
+  <!-- END_IF -->
+  <!-- END type#svg -->
+  <!-- BEGIN type#file -->
+  <a<!-- BEGIN_IF [{anker}/nem] --> id="{anker}"<!-- END_IF --> href="{url}" target="_blank">
+    <!-- BEGIN_IF [{thumbnail}/nem/_and_/{use_icon}/neq/yes] -->
+    <img
+      class="column-pdf-image unit-id-{file_utid}"
+      src="%{MEDIA_ARCHIVES_DIR}{thumbnail}"
+      alt="{alt}"
+      width="{x}"
+      height="{y}"
+      loading="lazy"
+      decoding="async"
+    >
+    <!-- ELSE -->
+    <img
+      class="columnIcon"
+      src="%{HTTP_ROOT}{icon}"
+      alt="{alt}"
+      width="{x}"
+      height="{y}"
+      loading="lazy"
+      decoding="async"
+    >
+    <!-- END_IF -->
+  </a>
+  <!-- BEGIN_IF [{caption}[delnl]/nem] -->
+  <p id="media-caption-{file_utid}" class="caption">{caption}[raw|nl2br]</p>
+  <!-- END_IF -->
+  <!-- END type#file -->
+</div>
+<!-- ELSE -->
 <div role="figure" class="column-media column-media-{align} align-{align}" aria-labelledby="media-caption-{utid}">
   <div class="{display_size_class}" {display_size}[raw] <!-- BEGIN_IF [{display_size_class}{display_size}/em/_and_/{type}/re/^(image|svg)$] --> style="width: {rootWidth}px; min-width: 0;"<!-- END_IF -->>
     <!-- BEGIN type#image -->
@@ -427,6 +544,7 @@
     <!-- END type#file -->
   </div>
 </div>
+<!-- END_IF -->
 @endsection
 <!-- END unit#media -->
 

@@ -17,7 +17,7 @@ export const isRowGripSelected = ({ editor, view, from }: { editor: Editor; view
     container = container.parentElement!;
   }
 
-  const gripRow = container && container.querySelector && container.querySelector('a.grip-row.selected');
+  const gripRow = container && container.querySelector && container.querySelector('button.grip-row.selected');
 
   return !!gripRow;
 };

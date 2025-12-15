@@ -192,27 +192,37 @@ abstract class ImageEngine
     }
 
     /**
-     * 画像パスから画像拡張子を取得
+     * MIMEタイプから画像拡張子を検出する
      *
      * @param string $mimeType
-     * @param bool $isOriginal
      * @return string
      */
-    public function detectImageExtenstion(string $mimeType, $isOriginal = false): string
+    public function detectImageExtenstion(string $mimeType): string
     {
-        $extension = $this->mimeTypeMap[$mimeType] ?? null;
-        if ($isOriginal) {
-            return $extension;
-        }
+        $extension = $this->mimeTypeToExtension($mimeType, null);
         if (in_array($extension, ['jpg', 'png'], true) && $this->isWebpSupported() && config('convert_2webp') === 'on') {
             return 'webp';
         }
         if ($extension === 'webp' && !$this->isWebpSupported()) {
             return 'jpg';
         }
-        if (empty($extension)) {
+        if (is_null($extension)) {
             return 'jpg';
         }
+        return $extension;
+    }
+
+    /**
+     * 画像パスから画像拡張子を取得
+     *
+     * @template T of string|null
+     * @param string $mimeType
+     * @param T $fallback
+     * @return string|T
+     */
+    protected function mimeTypeToExtension(string $mimeType, ?string $fallback = 'jpg'): ?string
+    {
+        $extension = $this->mimeTypeMap[$mimeType] ?? $fallback;
         return $extension;
     }
 

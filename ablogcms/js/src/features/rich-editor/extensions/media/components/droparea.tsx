@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import MediaInsert from '../../../../media/components/media-insert/media-insert';
 import MediaUpdate from '../../../../media/components/media-update/media-update';
 import DropZone from '../../../../../components/drop-zone/drop-zone';
@@ -6,7 +6,7 @@ import type { MediaItem, MediaViewFileType } from '../../../../media/types';
 import type { ExtendedFile } from '../../../../../lib/read-files';
 
 interface DropAreaProps {
-  mid?: string;
+  mid?: number;
   thumbnail?: string;
   caption?: string;
   className?: string;
@@ -16,7 +16,7 @@ interface DropAreaProps {
 }
 
 const DropArea = ({
-  mid: midProp = '',
+  mid: midProp = undefined,
   thumbnail: thumbnailProp = '',
   caption = '',
   className = '',
@@ -93,13 +93,29 @@ const DropArea = ({
   );
 
   const remove = useCallback(() => {
-    setMid('');
+    setMid(undefined);
     onChange([]);
   }, [onChange]);
 
   const openEditModal = useCallback(() => {
     setUpdateModalOpened(true);
   }, []);
+
+  useEffect(() => {
+    const listener = (event: Event) => {
+      if (!(event instanceof CustomEvent)) {
+        return;
+      }
+      const media = event.detail.data as MediaItem;
+      if (mid === media.media_id) {
+        handleMediaUpdate(media);
+      }
+    };
+    document.addEventListener('acms.media-updated', listener);
+    return () => {
+      document.removeEventListener('acms.media-updated', listener);
+    };
+  }, [mid, handleMediaUpdate]);
 
   return (
     <>
@@ -166,12 +182,14 @@ const DropArea = ({
         tab={tab}
         filetype={['image', 'svg'].includes(mediaType) ? 'image' : (mediaType as MediaViewFileType)}
       />
-      <MediaUpdate
-        isOpen={updateModalOpened}
-        mid={`${mid}`}
-        onClose={handleUpdateModalClose}
-        onUpdate={handleMediaUpdate}
-      />
+      {mid != null && mid > 0 && (
+        <MediaUpdate
+          isOpen={updateModalOpened}
+          mid={mid}
+          onClose={handleUpdateModalClose}
+          onUpdate={handleMediaUpdate}
+        />
+      )}
     </>
   );
 };

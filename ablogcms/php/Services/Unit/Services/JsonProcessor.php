@@ -2,9 +2,7 @@
 
 namespace Acms\Services\Unit\Services;
 
-use Acms\Services\Common\ChildrenRecursiveIterator;
 use Acms\Services\Unit\Contracts\JsonNodeProcessorInterface;
-use RecursiveIteratorIterator;
 
 /**
  * 汎用JSON処理クラス
@@ -62,23 +60,19 @@ class JsonProcessor
      */
     private function replaceNodesByType(array $data, callable $replacer): array
     {
-        $rit = new RecursiveIteratorIterator(
-            new ChildrenRecursiveIterator($data),
-            RecursiveIteratorIterator::SELF_FIRST
-        );
-
-        foreach ($rit as $key => $node) {
-            if (!is_array($node)) {
-                continue;
+        $result = [];
+        foreach ($data as $key => $node) {
+            // まず子ノードを再帰的に処理
+            if (isset($node['children']) && is_array($node['children'])) {
+                $node['children'] = $this->replaceNodesByType($node['children'], $replacer);
             }
 
+            // 次にこのノード自体を処理
             /** @var array<string, mixed> $newNode */
             $newNode = $replacer($node);
-            $rit->getSubIterator()[$key] = $newNode;
+            $result[$key] = $newNode;
         }
 
-        /** @var \RecursiveArrayIterator $root */
-        $root = $rit->getSubIterator(0);
-        return $root->getArrayCopy();
+        return $result;
     }
 }

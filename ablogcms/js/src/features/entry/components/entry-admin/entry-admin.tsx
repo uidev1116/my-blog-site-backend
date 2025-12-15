@@ -203,13 +203,13 @@ const EntryAdmin = (props: EntryAdminProps) => {
     return {
       type: 'table',
       search: '',
-      sort: getSortFromContext(context, searchParams),
+      sort: getSortFromContext(context, searchParams, columns),
       pageIndex: context.page || 0,
       pageSize: context.limit || parseInt(ACMS.Config.defaultLimit, 10),
       visibility: columnVisibility,
       order: ['sort', ...config.order],
     };
-  }, [columnVisibility, searchParams, context, config.order]);
+  }, [columnVisibility, searchParams, context, config.order, columns]);
 
   const handleViewChange = (newView: View) => {
     const orderInfo = getOrderInfo(newView.sort, columns);

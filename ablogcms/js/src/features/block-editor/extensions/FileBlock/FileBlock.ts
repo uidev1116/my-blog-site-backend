@@ -15,6 +15,7 @@ declare module '@tiptap/core' {
       setFileBlockAlt: (alt: string) => ReturnType;
       setMediaFileBlock: (mediaItem: MediaItem, className?: string) => ReturnType;
       updateMediaFileBlock: (mediaItem: MediaItem) => ReturnType;
+      updateAllMediaFileBlocks: (mediaItem: MediaItem) => ReturnType;
       toggleFileBlockTarget: () => ReturnType;
     };
   }
@@ -289,6 +290,43 @@ export const FileBlock = ImageBlock.extend({
         (mediaItem) =>
         ({ commands }) =>
           commands.updateAttributes('fileBlock', createFileAttrs(mediaItem)),
+
+      updateAllMediaFileBlocks:
+        (mediaItem) =>
+        ({ state, dispatch }) => {
+          if (!dispatch) return false;
+
+          const newAttrs = createFileAttrs(mediaItem);
+          const targetMediaId = mediaItem.media_id;
+
+          // エディター全体を走査して、同じmediaIdを持つすべてのfileBlockノードを見つける
+          const positions: number[] = [];
+          state.doc.descendants((node, pos) => {
+            if (node.type.name === 'fileBlock') {
+              // mediaIdは文字列として保存されている可能性があるため、数値に変換して比較
+              const nodeMediaId =
+                typeof node.attrs.mediaId === 'string' ? parseInt(node.attrs.mediaId, 10) : node.attrs.mediaId;
+              if (nodeMediaId === targetMediaId) {
+                positions.push(pos);
+              }
+            }
+          });
+
+          // 見つかったすべてのノードを更新
+          if (positions.length > 0) {
+            const { tr } = state;
+            positions.forEach((pos) => {
+              const node = state.doc.nodeAt(pos);
+              if (node && node.type.name === 'fileBlock') {
+                tr.setNodeMarkup(pos, undefined, { ...node.attrs, ...newAttrs });
+              }
+            });
+            dispatch(tr);
+            return true;
+          }
+
+          return false;
+        },
 
       toggleFileBlockTarget:
         () =>

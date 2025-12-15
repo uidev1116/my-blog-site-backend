@@ -238,6 +238,8 @@ class ACMS_GET_Admin_Config extends ACMS_GET_Admin
     {
         $repository = Application::make('unit-repository');
         assert($repository instanceof \Acms\Services\Unit\Repository);
+        $registry = Application::make('unit-registry');
+        assert($registry instanceof \Acms\Services\Unit\Registry);
         if (!is_array($rootBlock)) {
             $rootBlock = [$rootBlock];
         }
@@ -247,7 +249,15 @@ class ACMS_GET_Admin_Config extends ACMS_GET_Admin
         /** @var array<string, string> $typesLabel */
         $typesLabel = [];
         foreach ($config->getArray('column_add_type') as $i => $type) {
-            $typesLabel[$type] = $config->get('column_add_type_label', '', $i);
+            $label = $config->get('column_add_type_label', '', $i);
+            if ($label === '') {
+                $unitType = detectUnitTypeSpecifier($type);
+                $unitClass = $registry->findClassByAlias($unitType);
+                if ($unitClass !== null && class_exists($unitClass) && is_subclass_of($unitClass, \Acms\Services\Unit\Contracts\Model::class)) {
+                    $label = $unitClass::getUnitLabel();
+                }
+            }
+            $typesLabel[$type] = $label;
         }
 
         /** @var array<string, string> $labels */
@@ -255,7 +265,14 @@ class ACMS_GET_Admin_Config extends ACMS_GET_Admin
         /** @var array<string, string> $unitConfigs */
         $unitConfigs = ['insert' => '新規エントリー作成'];
         foreach ($config->getArray('column_add_type') as $type) {
-            $label = array_shift($labels);
+            $label = array_shift($labels) ?? '';
+            if ($label === '') {
+                $unitType = detectUnitTypeSpecifier($type);
+                $unitClass = $registry->findClassByAlias($unitType);
+                if ($unitClass !== null && class_exists($unitClass) && is_subclass_of($unitClass, \Acms\Services\Unit\Contracts\Model::class)) {
+                    $label = $unitClass::getUnitLabel();
+                }
+            }
             $unitConfigs['add_' . $type] = $label;
         }
 

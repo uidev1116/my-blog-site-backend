@@ -32,14 +32,20 @@ class SQL
             }
         }
         if (self::$connection === null) {
-            self::$connection = DriverManager::getConnection(array_filter([
+            $parts = explode(':', DB_HOST, 2);
+            $host = $parts[0];
+            $port = $parts[1] ?? DB_PORT;
+            $params = [
                 'driver' => 'pdo_mysql',
                 'dbname' => DB_NAME,
                 'user' => DB_USER,
                 'password' => DB_PASS,
-                'host' => DB_HOST,
-                'port' => DB_PORT,
-            ], fn($value) => $value !== null && $value !== ''));
+                'host' => $host,
+            ];
+            if ($port) {
+                $params['port'] = (int) $port;
+            }
+            self::$connection = DriverManager::getConnection($params);
         }
     }
 

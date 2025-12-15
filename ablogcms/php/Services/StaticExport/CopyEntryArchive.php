@@ -13,9 +13,9 @@ class CopyEntryArchive
     protected $destinationPaths;
 
     /**
-     * @var \Acms\Services\Unit\Repository
+     * @var \Acms\Services\Entry\Export
      */
-    protected $unitRepository;
+    protected $entryExportHelper;
 
     /**
      * CopyEntryArchive constructor.
@@ -24,8 +24,8 @@ class CopyEntryArchive
     public function __construct($destinationPaths)
     {
         $this->destinationPaths = $destinationPaths;
-        $this->unitRepository = Application::make('unit-repository');
-        assert($this->unitRepository instanceof \Acms\Services\Unit\Repository);
+        $this->entryExportHelper = Application::make('entry.export');
+        assert($this->entryExportHelper instanceof \Acms\Services\Entry\Export);
     }
 
     /**
@@ -33,73 +33,16 @@ class CopyEntryArchive
      */
     public function copy($eid)
     {
-        $field = loadEntryField($eid);
-        $this->copyUnitArchives($eid);
-        $this->fieldDupe($field);
-    }
+        $fileList = $this->entryExportHelper->exportEntryAssets([$eid]);
 
-    /**
-     * @param int $eid
-     * @return void
-     */
-    protected function copyUnitArchives($eid)
-    {
-        $collection = $this->unitRepository->loadUnits($eid);
-
-        foreach ($collection->flat() as $unit) {
-            if ($unit instanceof \Acms\Services\Unit\Contracts\StaticExport) {
-                $paths = $unit->outputAssetPaths();
-                foreach ($paths as $path) {
-                    $this->allCopy($path);
-                }
-            }
-            if ($unit::getUnitType() === 'custom') {
-                $field = acmsDangerUnserialize($unit->getField6());
-                $this->fieldDupe($field);
-            }
+        foreach ($fileList['archives'] as $path) {
+            $this->allCopy(ARCHIVES_DIR . $path);
         }
-    }
-
-    /**
-     * @param \Field $Field
-     */
-    protected function fieldDupe($Field)
-    {
-        foreach ($Field->listFields() as $fd) {
-            if (preg_match('/(.*?)@path$/', $fd, $match)) {
-                $_fd = $match[1];
-
-                // カスタムフィールドグループ対応
-                $ary_path = $Field->getArray($_fd . '@path');
-                if (is_array($ary_path) && count($ary_path) > 0) {
-                    $fieldIndex = 0;
-                    foreach ($ary_path as $path) {
-                        if (
-                            1
-                            and LocalStorage::isFile(ARCHIVES_DIR . $path)
-                            and preg_match('@^(.*?)([^/]+)(\.[^.]+)$@', $path, $match)
-                        ) {
-                            foreach (
-                                [
-                                    '' => '@path',
-                                    'large-' => '@largePath',
-                                    'tiny-' => '@tinyPath',
-                                    'square-' => '@squarePath',
-                                ] as $pfx => $name
-                            ) {
-                                if (
-                                    1
-                                    and $path = $Field->get($_fd . $name, null, $fieldIndex)
-                                    and LocalStorage::isFile(ARCHIVES_DIR . $path)
-                                ) {
-                                    $this->allCopy(ARCHIVES_DIR . $path);
-                                }
-                            }
-                            $fieldIndex++;
-                        }
-                    }
-                }
-            }
+        foreach ($fileList['media'] as $path) {
+            $this->allCopy(MEDIA_LIBRARY_DIR . $path);
+        }
+        foreach ($fileList['storage'] as $path) {
+            $this->allCopy(MEDIA_STORAGE_DIR . $path);
         }
     }
 

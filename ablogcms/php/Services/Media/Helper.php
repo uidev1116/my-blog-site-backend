@@ -1108,7 +1108,9 @@ class Helper
      *  permalink: string,
      *  icon: string,
      *  iconWidth: string,
-     *  iconHeight: string
+     *  iconHeight: string,
+     *  extension: string,
+     *  fileSize: int,
      * }[]
      */
     public function getMediaList(array $midiaIds): array
@@ -1149,6 +1151,8 @@ class Helper
                 'icon' => $iconFullPath,
                 'iconWidth' => $iconWidth,
                 'iconHeight' => $iconHeight,
+                'extension' => $media['media_extension'],
+                'fileSize' => $media['media_file_size'],
             ];
         }, $mediaList);
     }
@@ -1522,8 +1526,8 @@ class Helper
 
         $extension = $match[1];
         $dir = PublicStorage::archivesDir();
-        $mimeType = Common::getMimeType($src);
-        if ($mimeType === false) {
+        $mimeType = LocalStorage::getMimeType($src);
+        if (is_null($mimeType)) {
             throw new RuntimeException('不正なアップロードを検知しました');
         }
         $isPublicStorage = preg_match('/svg/', strtolower($mimeType));

@@ -144,7 +144,7 @@ export const ImageBlockMenu = ({ editor, appendTo }: MenuProps): JSX.Element => 
         <Toolbar.Button type="button" tooltip="メディア選択" onClick={handleSelectClick} aria-label="メディアを選択">
           <Icon name="perm_media" />
         </Toolbar.Button>
-        {targetMediaId && (
+        {targetMediaId != null && targetMediaId > 0 && (
           <Toolbar.Button
             type="button"
             tooltip="メディアを編集"
@@ -154,7 +154,7 @@ export const ImageBlockMenu = ({ editor, appendTo }: MenuProps): JSX.Element => 
             <Icon name="edit" />
           </Toolbar.Button>
         )}
-        {!targetMediaId && selfImgSrc && (
+        {targetMediaId == null && selfImgSrc && (
           <Toolbar.Button
             type="button"
             tooltip="アップロード"
@@ -223,12 +223,14 @@ export const ImageBlockMenu = ({ editor, appendTo }: MenuProps): JSX.Element => 
         files={files}
         filetype="image"
       />
-      <MediaUpdate
-        isOpen={isUpdateModalOpen}
-        mid={targetMediaId || ''}
-        onClose={handleUpdateModalClose}
-        onUpdate={handleUpdateMedia}
-      />
+      {targetMediaId != null && targetMediaId > 0 && (
+        <MediaUpdate
+          isOpen={isUpdateModalOpen}
+          mid={targetMediaId}
+          onClose={handleUpdateModalClose}
+          onUpdate={handleUpdateMedia}
+        />
+      )}
     </BaseBubbleMenu>
   );
 };

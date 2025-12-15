@@ -1,22 +1,3 @@
-// ---------------
-// メディアブロック
-// ---------------
-.acms-block-editor-wrapper {
-  display: flex;
-
-  &.acms-block-editor-wrapper-left {
-    justify-content: flex-start;
-  }
-
-  &.acms-block-editor-wrapper-center {
-    justify-content: center;
-  }
-
-  &.acms-block-editor-wrapper-right {
-    justify-content: flex-end;
-  }
-}
-
 // ドロップエリア
 // ------------
 .acms-block-editor-image-drop {

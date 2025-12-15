@@ -80,10 +80,11 @@ class ACMS_GET_Admin_Config_Media_Banner extends ACMS_GET_Admin
 
         foreach ($aryStatus as $i => $status) {
             $type = $Config->get('media_banner_type', '', $i);
-            $mid = $Config->get('media_banner_mid', '', $i);
+            $mid = (int)$Config->get('media_banner_mid', '', $i);
+            $mid = $mid > 0 ? $mid : null;
             $source = $Config->get('media_banner_source', '', $i);
 
-            if ($type === 'image') {
+            if ($type === 'image' && $mid > 0) {
                 $mids[] = $mid;
             }
 
@@ -156,6 +157,7 @@ class ACMS_GET_Admin_Config_Media_Banner extends ACMS_GET_Admin
         if ($hide2 === 'true') {
             $ary_vars['media_banner_hide_attr2:checked#' . $hide2 ] = config('attr_checked');
         }
+
 
         $ary_vars['media_banner_json'] = json_encode($items);
 

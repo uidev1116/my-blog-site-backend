@@ -9,6 +9,19 @@ x_content_type_options: on # on | off
 strict_transport_security: max-age=86400; # max-age=86400; includeSubDomains | off
 content_security_policy: off # default-src 'self'; script-src 'self' | off
 forbid_direct_access_tpl: off # off | /^_/  パスのディレクトリまたはファイルがこの正規表現に一致したものは直接表示させない
+forbid_direct_access_file: [
+    '/^package\.json$/',
+    '/^package-lock\.json$/',
+    '/^composer\.json$/',
+    '/^composer\.lock$/',
+    '/^yarn\.lock$/',
+    '/^pnpm-lock\.yaml$/',
+    '/^\./', # ドットから始まるファイル（.env, .eslintrc, .stylelintrc, .babelrc, .prettierrc, .npmrc など）
+    '/^webpack\..*\.(js|mjs|cjs|ts|mts|cts)$/',
+    '/^vite\..*\.(js|mjs|cjs|ts|mts|cts)$/',
+    '/^tsconfig\.jsonc?$/',
+    '/^.*\.config\.(js|mjs|cjs|ts|mts|cts|json|jsonc)$/', # *.config.* 形式のファイル（jest.config.js, postcss.config.cjs, eslint.config.mjs, build.config.json など）
+  ] # 配列  ファイルがこの設定に一致したものは直接表示させない。正規表現パターン（/pattern/形式）を指定。
 forbid_tpl_url_context: off # on | off URLコンテキストのtplを無効にする。（例: https://example.com/news/tpl/custom.html）
 allow_tpl_path: [] # forbid_tpl_inheritance_when_path_unresolved や forbid_tpl_url_context が on の場合、除外する tpl を設定します。例: [news.html,hoge/custom.html] カンマ区切りで指定
 forbid_tpl_inheritance_when_path_unresolved: off # on | off パス解決に失敗した時にテンプレートを継承しないようにする
@@ -21,6 +34,7 @@ strip_dangerous_tag: off # on | off 変数から標準で危険なタグ（dange
 dangerous_tags: ['script', 'iframe', 'form'] # 変数から標準で削除するタグを指定。注意点としてここで指定されていないタグでも、非推奨・廃止されたタグ（例:<font>）は削除されます。
 secret_file_name: [config.server.php, .env, .htaccess] # CMSのStorageサービスで取得できないファイル名を指定
 ajax_security_level: 1 # ajaxリクエストのセキュリティレベルを設定します。（0: チェックなし 1: RefererとHttpヘッダーを確認 2: CSRFトークン確認）
+referrer_validation: allow_empty # リファラー必須（常にチェック）: 'require' | チェックしない: 'none' | 空の場合は許可する: 'allow_empty'
 
 ## ログイン・セッション
 subscribe_login_anywhere: off # on | off
@@ -104,8 +118,6 @@ remove_blank: off
 mailmagazine: off
 generator: off
 generator_end_tag: on
-jquery_version: 3.6.1 # (3.6.1|3.5.1|3.4.1|2.2.3|2.1.1|2.0.3|1.12.3|1.11.1|1.10.1|1.9.1|1.8.3|1.7.2|1.6.4) 2.xはIE9〜
-jquery_migrate: migrate-3.0.1 # migrate-3.0.1
 session_contributor_only_own_entry: off
 tpl_find_from_ascendants_ccd: on
 query_keyword: on

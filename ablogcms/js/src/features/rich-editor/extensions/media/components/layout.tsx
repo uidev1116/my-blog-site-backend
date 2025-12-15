@@ -6,7 +6,8 @@ import { setBlockType } from 'smartblock/pm/commands';
 
 import { EditorState } from 'smartblock/pm/state';
 import { Node } from 'smartblock/pm/model';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { MediaItem } from '@features/media/types';
 import CenterIcon from '../icons/center';
 import FullIcon from '../icons/full';
 import EditIcon from '../icons/edit';
@@ -63,6 +64,19 @@ const Layout = ({ state, dispatch, dom }: LayoutProps) => {
 
   const node = findSelectedNodeWithType(state.schema.nodes.media, state);
   const [modalOpen, setModalOpen] = useState(false);
+
+  const handleMediaUpdate = useCallback(
+    (media: MediaItem) => {
+      setModalOpen(false);
+      const attr = {
+        ...node.attrs,
+        media_id: media.media_id,
+        src: media.media_edited,
+      };
+      setBlockType(state.schema.nodes.media, attr)(state, dispatch);
+    },
+    [node?.attrs, state, dispatch]
+  );
 
   return (
     <>
@@ -174,22 +188,16 @@ const Layout = ({ state, dispatch, dom }: LayoutProps) => {
           />
         </MediaMenu>
       )}
-      <MediaUpdate
-        isOpen={modalOpen}
-        mid={node.attrs.media_id}
-        onClose={() => {
-          setModalOpen(false);
-        }}
-        onUpdate={(item) => {
-          setModalOpen(false);
-          const attr = {
-            ...node.attrs,
-            media_id: item.media_id,
-            src: item.media_edited,
-          };
-          setBlockType(state.schema.nodes.media, attr)(state, dispatch);
-        }}
-      />
+      {parseInt(node?.attrs.media_id, 10) > 0 && (
+        <MediaUpdate
+          isOpen={modalOpen}
+          mid={parseInt(node.attrs.media_id, 10)}
+          onClose={() => {
+            setModalOpen(false);
+          }}
+          onUpdate={handleMediaUpdate}
+        />
+      )}
     </>
   );
 };

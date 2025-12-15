@@ -68,6 +68,11 @@
       border-top-color: rgb(0 0 0 / 40%);
     }
   }
+
+  a {
+    // エディター内のリンクをクリックできないようにする
+    pointer-events: none;
+  }
 }
 
 /**
@@ -237,21 +242,6 @@
   /* テーブル操作時用にデフォルトのスタイルを付与（テーマで上書きされる前提） */
   border-collapse: collapse;
 
-  th,
-  td {
-    text-align: left;
-    vertical-align: top;
-    border: 1px solid var(--acms-block-editor-gray-400);
-  }
-
-  th {
-    background-color: var(--acms-block-editor-gray-100);
-  }
-
-  td {
-    background-color: var(--acms-block-editor-white);
-  }
-
   /* テーブル操作UI */
 
   .column-resize-handle {
@@ -342,7 +332,10 @@
 
     /* 行列操作用UI出現時 */
     &:has(.ProseMirror-widget) {
-      background-color: var(--acms-block-editor-gray-200);
+      .grip-column,
+      .grip-row {
+        background-color: var(--acms-block-editor-gray-200);
+      }
     }
   }
 

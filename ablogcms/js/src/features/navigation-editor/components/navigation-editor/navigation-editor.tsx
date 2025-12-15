@@ -1,4 +1,4 @@
-import React, { Fragment, useState, useCallback } from 'react';
+import React, { Fragment, useState, useCallback, useEffect } from 'react';
 import Nestable from 'react-nestable';
 import classNames from 'classnames';
 import MediaInsert from '@features/media/components/media-insert/media-insert';
@@ -18,7 +18,7 @@ interface NavigationItem extends BaseNestableItem {
   navigation_a_attr: string;
   navigation_target: boolean;
   navigation_publish: boolean;
-  navigation_media: string;
+  navigation_media: MediaItem['media_id'] | null;
   navigation_media_type: MediaType;
   navigation_media_thumbnail: string;
   toggle: boolean;
@@ -47,7 +47,7 @@ export const NavigationEditor: React.FC<NavigationEditorProps> = ({ items: initi
     navigation_a_attr: '',
     navigation_target: false,
     navigation_publish: true,
-    navigation_media: '',
+    navigation_media: null,
     navigation_media_type: '',
     navigation_media_thumbnail: '',
     toggle: false,
@@ -83,7 +83,7 @@ export const NavigationEditor: React.FC<NavigationEditorProps> = ({ items: initi
           item.id === data.id
             ? {
                 ...data,
-                navigation_media: media?.media_id ?? '',
+                navigation_media: media?.media_id ?? null,
                 navigation_media_type: media?.media_type ?? ('' as MediaType),
                 navigation_media_thumbnail: media?.media_thumbnail ?? '',
               }
@@ -285,7 +285,7 @@ export const NavigationEditor: React.FC<NavigationEditorProps> = ({ items: initi
                     <div className="acms-admin-nested-item-media">
                       <div>
                         <MediaDropArea
-                          mid={item.navigation_media}
+                          mid={item.navigation_media ?? undefined}
                           thumbnail={item.navigation_media_thumbnail}
                           mediaType={item.navigation_media_type}
                           accept="image"
@@ -317,6 +317,33 @@ export const NavigationEditor: React.FC<NavigationEditorProps> = ({ items: initi
     ),
     [message, enableMedia, handleInsertMedia, updateItem, addChild, removeItem, handleSelectClick]
   );
+
+  useEffect(() => {
+    const listener = (event: Event) => {
+      if (!(event instanceof CustomEvent)) {
+        return;
+      }
+      const media = event.detail.data as MediaItem;
+      const updatedItems = items.filter((item) => item.navigation_media === media.media_id);
+      const updatedItemIds = updatedItems.map((item) => item.id);
+      setItems(
+        items.map((data) =>
+          updatedItemIds.includes(data.id)
+            ? {
+                ...data,
+                navigation_media: media?.media_id ?? null,
+                navigation_media_type: media?.media_type ?? ('' as MediaType),
+                navigation_media_thumbnail: media?.media_thumbnail ?? '',
+              }
+            : data
+        )
+      );
+    };
+    document.addEventListener('acms.media-updated', listener);
+    return () => {
+      document.removeEventListener('acms.media-updated', listener);
+    };
+  }, [items, setItems]);
 
   return (
     <div>

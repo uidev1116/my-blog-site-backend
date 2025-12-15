@@ -28,7 +28,14 @@ import Menu from './menu';
 import BannerItemEditor from './banner-item-editor';
 import MediaInsert from '../../media/components/media-insert/media-insert';
 import MediaUpdate from '../../media/components/media-update/media-update';
-import type { BannerItem, BannerType, SortableBannerItem } from '../types';
+import {
+  isImageBannerItem,
+  type BannerItem,
+  type BannerItemInterface,
+  type BannerType,
+  type ImageBannerItem,
+  type SortableBannerItem,
+} from '../types';
 
 interface BannerEditorProps {
   attr1: string;
@@ -40,26 +47,38 @@ interface BannerEditorProps {
   items: BannerItem[];
 }
 
-const createBannerItem = (data: Partial<BannerItem> = {}): BannerItem => ({
-  id: random(10),
-  media_banner_type: 'image',
-  media_banner_attr1: '',
-  media_banner_attr2: '',
-  media_banner_source: '',
-  media_banner_status: 'true',
-  media_banner_target: 'false',
-  media_banner_preview: '',
-  media_banner_datestart: dayjs().format('YYYY-MM-DD'),
-  media_banner_timestart: '00:00:00',
-  media_banner_dateend: '9999-12-31',
-  media_banner_timeend: '23:59:59',
-  media_banner_mid: '',
-  media_banner_alt: '',
-  media_banner_link: '',
-  media_banner_override_link: '',
-  toggle: true,
-  ...data,
-});
+const createBannerItem = (data: Partial<BannerItem> = {}): BannerItem => {
+  const type = data.media_banner_type || 'image';
+  const baseItem: BannerItemInterface = {
+    id: random(10),
+    media_banner_type: type,
+    media_banner_status: 'true',
+    media_banner_datestart: dayjs().format('YYYY-MM-DD'),
+    media_banner_timestart: '00:00:00',
+    media_banner_dateend: '9999-12-31',
+    media_banner_timeend: '23:59:59',
+  };
+  if (type === 'image') {
+    return {
+      ...baseItem,
+      media_banner_alt: '',
+      media_banner_link: '',
+      media_banner_override_link: '',
+      media_banner_preview: '',
+      media_banner_target: 'false',
+      media_banner_attr1: '',
+      media_banner_attr2: '',
+      ...data,
+      media_banner_type: 'image',
+    };
+  }
+  return {
+    ...baseItem,
+    media_banner_source: '',
+    ...data,
+    media_banner_type: 'source',
+  };
+};
 
 const createSortableBannerItem = (data: Partial<BannerItem>): SortableBannerItem => {
   const id = data.id || random(10);
@@ -69,7 +88,7 @@ const createSortableBannerItem = (data: Partial<BannerItem>): SortableBannerItem
   };
 };
 
-const mergeMediaItemToBannerItem = (mediaItem: MediaItem, bannerItem: BannerItem): BannerItem => {
+const mergeMediaItemToBannerItem = (mediaItem: MediaItem, bannerItem: ImageBannerItem): ImageBannerItem => {
   let media_banner_landscape = true;
 
   if (mediaItem.media_size) {
@@ -91,7 +110,7 @@ const mergeMediaItemToBannerItem = (mediaItem: MediaItem, bannerItem: BannerItem
 const BannerEditor = (props: BannerEditorProps) => {
   const [insertModalOpened, setInsertModalOpened] = useState(false);
   const [updateModalOpened, setUpdateModalOpened] = useState(false);
-  const [targetItem, setTargetItem] = useState<BannerItem | null>(null);
+  const [targetItem, setTargetItem] = useState<ImageBannerItem | null>(null);
   const [modalType, setModalType] = useState<'select' | 'upload'>('upload');
   const [sortableItems, setSortableItems] = useState<SortableBannerItem[]>([
     {
@@ -125,7 +144,7 @@ const BannerEditor = (props: BannerEditorProps) => {
     setChanged(true);
   };
 
-  const updateBannerItem = (id: string, key: keyof BannerItem, value: unknown) => {
+  const updateBannerItem = <T extends BannerItem = BannerItem>(id: string, key: keyof T, value: unknown) => {
     setSortableItems((prevItems) =>
       prevItems.map((item) =>
         item.id === id ? ({ id, data: { ...item.data, [key]: value } } as SortableBannerItem) : item
@@ -134,19 +153,19 @@ const BannerEditor = (props: BannerEditorProps) => {
     setChanged(true);
   };
 
-  const openInsertModal = (item: BannerItem) => {
+  const openInsertModal = (item: ImageBannerItem) => {
     setTargetItem(item);
     setModalType('select');
     setInsertModalOpened(true);
   };
 
-  const openUploadModal = (item: BannerItem) => {
+  const openUploadModal = (item: ImageBannerItem) => {
     setTargetItem(item);
     setModalType('upload');
     setInsertModalOpened(true);
   };
 
-  const openUpdateModal = (item: BannerItem) => {
+  const openUpdateModal = (item: ImageBannerItem) => {
     setTargetItem(item);
     setUpdateModalOpened(true);
   };
@@ -169,7 +188,9 @@ const BannerEditor = (props: BannerEditorProps) => {
       const middleItems = [
         ...newItems
           .slice(1)
-          .map((item) => createSortableBannerItem(mergeMediaItemToBannerItem(item, createBannerItem()))),
+          .map((item) =>
+            createSortableBannerItem(mergeMediaItemToBannerItem(item, createBannerItem() as ImageBannerItem))
+          ),
       ];
       newSortableItems = [...firstItems, ...middleItems, ...lastItems];
     }
@@ -180,19 +201,22 @@ const BannerEditor = (props: BannerEditorProps) => {
     setFiles([]);
   };
 
-  const handleMediaUpdate = (item: MediaItem) => {
-    if (targetItem === null) {
-      return;
-    }
-    const newBannerItem = mergeMediaItemToBannerItem(item, targetItem);
-    const newSortableItem = createSortableBannerItem(newBannerItem);
-    const newSortableItems = sortableItems.map((sortableItem) =>
-      sortableItem.id === newSortableItem.id ? newSortableItem : sortableItem
-    );
-    setSortableItems(newSortableItems);
-    setUpdateModalOpened(false);
-    setChanged(true);
-  };
+  const handleMediaUpdate = useCallback(
+    (item: MediaItem) => {
+      if (targetItem === null) {
+        return;
+      }
+      const newBannerItem = mergeMediaItemToBannerItem(item, targetItem);
+      const newSortableItem = createSortableBannerItem(newBannerItem);
+      const newSortableItems = sortableItems.map((sortableItem) =>
+        sortableItem.id === newSortableItem.id ? newSortableItem : sortableItem
+      );
+      setSortableItems(newSortableItems);
+      setUpdateModalOpened(false);
+      setChanged(true);
+    },
+    [targetItem, sortableItems]
+  );
 
   const handleMediaInsertModalClose = () => {
     setInsertModalOpened(false);
@@ -259,21 +283,21 @@ const BannerEditor = (props: BannerEditorProps) => {
     </tr>
   );
 
-  const clearMediaItem = (id: string) => {
+  const clearMediaItem = (id: BannerItem['id']) => {
     setSortableItems((prevItems) =>
       prevItems.map((item) =>
-        item.id === id ? ({ id, data: { ...item.data, media_banner_mid: '' } } as SortableBannerItem) : item
+        item.id === id ? ({ id, data: { ...item.data, media_banner_mid: undefined } } as SortableBannerItem) : item
       )
     );
     setChanged(true);
   };
 
-  const handleComplete = useCallback((files: ExtendedFile[], item: BannerItem) => {
+  const handleComplete = useCallback((files: ExtendedFile[], item: ImageBannerItem) => {
     setFiles(files.map((file) => file.file));
     openUploadModal(item);
   }, []);
 
-  const handleFileInputChage = useCallback((files: File[], item: BannerItem) => {
+  const handleFileInputChage = useCallback((files: File[], item: ImageBannerItem) => {
     setFiles(files);
     openUploadModal(item);
   }, []);
@@ -321,6 +345,37 @@ const BannerEditor = (props: BannerEditorProps) => {
     [sortableItems]
   );
 
+  useEffect(() => {
+    const listener = (event: Event) => {
+      if (!(event instanceof CustomEvent)) {
+        return;
+      }
+      const media = event.detail.data as MediaItem;
+      const updatedBannerItems = items.filter(
+        (item) => isImageBannerItem(item) && item.media_banner_mid === media.media_id
+      );
+      const updatedBannerItemIds = updatedBannerItems.map((item) => item.id);
+      setSortableItems((prevItems) =>
+        prevItems.map((sortableItem) => {
+          if (
+            sortableItem.data &&
+            updatedBannerItemIds.includes(sortableItem.data.id) &&
+            isImageBannerItem(sortableItem.data)
+          ) {
+            const newBannerItem = mergeMediaItemToBannerItem(media, sortableItem.data);
+            const newSortableItem = createSortableBannerItem(newBannerItem);
+            return newSortableItem;
+          }
+          return sortableItem;
+        })
+      );
+    };
+    document.addEventListener('acms.media-updated', listener);
+    return () => {
+      document.removeEventListener('acms.media-updated', listener);
+    };
+  }, [items]);
+
   return (
     <div>
       <div className="acms-admin-banner-edit-container">
@@ -334,7 +389,7 @@ const BannerEditor = (props: BannerEditorProps) => {
             {sortableItems.map((sortableItem) => {
               if (sortableItem.data) {
                 return (
-                  <BannerItemEditor
+                  <BannerItemEditor<typeof sortableItem.data>
                     key={sortableItem.id}
                     item={sortableItem.data}
                     index={items.findIndex((item) => item.id === sortableItem.id) + 1}
@@ -399,7 +454,7 @@ const BannerEditor = (props: BannerEditorProps) => {
         files={files}
         filetype="image"
       />
-      {targetItem && (
+      {targetItem && isImageBannerItem(targetItem) && targetItem.media_banner_mid !== undefined && (
         <MediaUpdate
           isOpen={updateModalOpened}
           mid={targetItem.media_banner_mid}

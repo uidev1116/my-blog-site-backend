@@ -98,7 +98,7 @@ interface MediaListState {
   labels: MediaTag[];
   selectedLabels: MediaTag[];
   style: DisplayStyle;
-  oldItemId: string | null;
+  oldItemId: MediaItem['media_id'] | null;
   items: MediaItem[];
   limit: number;
   displayPage: number;
@@ -232,7 +232,7 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
     this.props.actions.updateMediaList({ ...item, checked: !item.checked });
   }
 
-  toggleCheckFrom(fromItemId: string, toItem: MediaItem) {
+  toggleCheckFrom(fromItemId: MediaItem['media_id'], toItem: MediaItem) {
     const { items, radioMode } = this.props;
     const { updateMediaList } = this.props.actions;
     if (radioMode) {
