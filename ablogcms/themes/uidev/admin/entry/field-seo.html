@@ -1,6 +1,9 @@
-<div class="acms-admin-accordion">
-  <h3 class="acms-admin-accordion-title"><a href="#fadeSeoInfo" class="js-fader acms-admin-accordion-title-link">SEO設定<span class="acms-admin-icon-arrow-small-down"></span></a></h3>
-  <div id="fadeSeoInfo" class="acms-admin-accordion-inner">
+<details class="acms-admin-accordion">
+  <summary class="acms-admin-accordion-button">
+    <!--T-->SEO設定<!--/T-->
+    <span class="acms-admin-icon-arrow-small-down acms-admin-margin-left-mini" aria-hidden="true"></span>
+  </summary>
+  <div class="acms-admin-accordion-panel">
     <table class="entryFormTable acms-admin-table-entry">
       <tr>
         <th>タイトル - <small>title</small><i data-acms-tooltip="エントリーの titleタグを設定します。" class="acms-admin-icon-tooltip acms-admin-inline-space-left js-acms-tooltip"></i>
@@ -9,7 +12,7 @@
           </div>
         </th>
         <td>
-          <input type="text" name="entry_meta_title" value="{entry_meta_title}" class="js-countup acms-admin-form-width-medium" data-max="9999" data-label-target=".keyword_countup" /> | %{ROOT_BLOG_NAME}
+          <input type="text" name="entry_meta_title" value="{entry_meta_title}" class="js-countup acms-admin-form-width-medium" data-max="9999" data-label-target=".keyword_countup" />
           <input type="hidden" name="field[]" value="entry_meta_title" />
           <input type="hidden" name="entry_meta_title:search" value="0" />
         </td>
@@ -66,4 +69,4 @@
       </tr>
     </table>
   </div>
-</div>
+</details>
