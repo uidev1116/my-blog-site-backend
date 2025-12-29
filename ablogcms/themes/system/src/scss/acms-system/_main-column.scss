@@ -8,9 +8,6 @@
   z-index: global.zIndex(acms-main);
   height: 100%;
   padding: 0;
-}
-
-.acms-nav + #acms-admin-main {
   padding-right: calc(global.$grid-space / 2);
   padding-right: calc((global.$grid-space / 2) + constant(safe-area-inset-right));
   padding-left: calc(global.$grid-space / 2);

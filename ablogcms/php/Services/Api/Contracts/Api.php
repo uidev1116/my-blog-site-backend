@@ -120,6 +120,8 @@ abstract class Api
      */
     protected function response(string $json): void
     {
+        acmsBenchmarkEmitHeaders();
+
         header(PROTOCOL . ' ' . httpStatusCode());
         header("Content-Type: application/json; charset=utf-8");
         header('X-Robots-Tag: noindex');

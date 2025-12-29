@@ -53,6 +53,26 @@ const EditorContent = ({ editor }: EditorContentProps): JSX.Element => {
   const elementRef = useRef<HTMLDivElement>(null);
   const [clonedItems, setClonedItems] = useState<UnitTreeNode[] | null>(null);
 
+  /**
+   * dnd-kit の DragOver は高頻度で発火し、そこで state/editor の更新をすると
+   * レンダリングが追いつかずループ的な挙動になりやすい。
+   *
+   * 特に「グループ内の最後の1ユニットを外へ移動」などの境界ケースで
+   * move が何度も実行されると、ユニットの再マウントが連打されて
+   * SSR/フォームの状態が競合しやすくなるため、ここで move を合流・抑制する。
+   */
+  const moveTimeoutRef = useRef<number | null>(null);
+
+  /**
+   * 直前に予約/実行しようとしていた move。
+   * DragOver 連打で同じ move が何度も積まれるのを防ぐために使用する。
+   */
+  const lastMoveRef = useRef<{
+    activeId: UnitTreeNode['id'];
+    rootId: UnitTreeNode['id'] | undefined;
+    index: number;
+  } | null>(null);
+
   useEffect(() => {
     editor.setOptions({
       element: elementRef.current,
@@ -171,11 +191,36 @@ const EditorContent = ({ editor }: EditorContentProps): JSX.Element => {
       }
 
       if (newPosition !== null && activeId !== newPosition.rootId) {
+        // DragOver は同一座標でも繰り返し発火するため、すでに同じ位置なら何もしない
+        const currentPosition = editor.selectors.findUnitPosition(activeId);
+        if (
+          currentPosition &&
+          currentPosition.index === newPosition.index &&
+          (currentPosition.rootId ?? undefined) === (newPosition.rootId ?? undefined)
+        ) {
+          return;
+        }
+
+        // 直前と同じ move 指示ならスキップ（setTimeout キューが積まれて move が連打されるのを防ぐ）
+        if (
+          lastMoveRef.current &&
+          lastMoveRef.current.activeId === activeId &&
+          lastMoveRef.current.index === newPosition.index &&
+          (lastMoveRef.current.rootId ?? undefined) === (newPosition.rootId ?? undefined)
+        ) {
+          return;
+        }
+        lastMoveRef.current = { activeId, index: newPosition.index, rootId: newPosition.rootId };
+
         /**
          * Reactの Maximum update depth exceeded エラーを回避するために setTimeout を使用
          * see: https://github.com/clauderic/dnd-kit/issues/496
          */
-        setTimeout(() => {
+        if (moveTimeoutRef.current !== null) {
+          window.clearTimeout(moveTimeoutRef.current);
+        }
+        // 最新の move だけ残す（DragOver で古い move が後から実行されると状態が揺れる）
+        moveTimeoutRef.current = window.setTimeout(() => {
           editor.commands.moveUnitToPosition(activeId, newPosition);
         }, 0);
       }
@@ -185,6 +230,11 @@ const EditorContent = ({ editor }: EditorContentProps): JSX.Element => {
 
   const handleDragEnd = useCallback(() => {
     setActiveId(null);
+    lastMoveRef.current = null;
+    if (moveTimeoutRef.current !== null) {
+      window.clearTimeout(moveTimeoutRef.current);
+      moveTimeoutRef.current = null;
+    }
   }, []);
 
   const handleDragCancel = () => {
@@ -195,6 +245,11 @@ const EditorContent = ({ editor }: EditorContentProps): JSX.Element => {
     }
     setActiveId(null);
     setClonedItems(null);
+    lastMoveRef.current = null;
+    if (moveTimeoutRef.current !== null) {
+      window.clearTimeout(moveTimeoutRef.current);
+      moveTimeoutRef.current = null;
+    }
   };
 
   const renderDragOverlay = useCallback(() => {

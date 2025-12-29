@@ -86,7 +86,7 @@ class EntryBodyHelper extends BaseHelper
             $summaryRange = 0;
         }
         if (count($collection) > 0 && $summaryRange > 0) {
-            $collection = $collection->slice(0, $summaryRange);
+            $collection = $collection->sliceRoots(0, $summaryRange);
         }
         return $collection;
     }
@@ -101,7 +101,7 @@ class EntryBodyHelper extends BaseHelper
     {
         if ($this->isMembersOnlyEntry && $summaryRange !== null) {
             // 会員限定ユニットを除外
-            $collection = $collection->slice(0, $summaryRange);
+            $collection = $collection->sliceRoots(0, $summaryRange);
         }
         if (($this->config['micropagerEnabled'] ?? false) && $this->page > 0) {
             $collection = $this->filterUnitsByMicroPage($collection, $this->page);

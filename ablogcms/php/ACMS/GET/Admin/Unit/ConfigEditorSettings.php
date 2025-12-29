@@ -91,10 +91,6 @@ class ACMS_GET_Admin_Unit_ConfigEditorSettings extends ACMS_GET_Admin_Config
             $config->getArray('unit_group_class'),
             $config->getArray('unit_group_label')
         );
-        $options = array_filter($options, function ($option) {
-            return $option['value'] !== '';
-        });
-        $options = array_values($options);
         return [
             'enable' => $config->get('unit_group') === 'on',
             'options' => $options,

@@ -208,6 +208,16 @@ class Engine
         }
 
         if ($txt && !LocalStorage::isDirectory(DOCUMENT_ROOT . $path)) {
+            // ベンチマークモード時、テンプレートパスを収集（ajaxでないときのみ）
+            if (function_exists('isBenchMarkMode') && function_exists('is_ajax') && isBenchMarkMode() && !is_ajax()) {
+                global $bench_template;
+                if (!isset($bench_template)) {
+                    $bench_template = [];
+                }
+                $bench_template[] = $path;
+                $bench_template = array_unique($bench_template);
+            }
+
             $charset = mb_detect_encoding($txt, 'UTF-8, EUC-JP, SJIS-win, SJIS');
             if ($charset && 'UTF-8' != $charset) {
                 $txt = mb_convert_encoding($txt, 'UTF-8', $charset);

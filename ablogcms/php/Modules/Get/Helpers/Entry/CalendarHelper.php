@@ -13,11 +13,40 @@ class CalendarHelper extends BaseHelper
     use \Acms\Traits\Utilities\FieldTrait;
     use \Acms\Traits\Utilities\EagerLoadingTrait;
 
-    protected $entries;
-    protected $ymd;
-    protected $y;
-    protected $m;
-    protected $d;
+    /**
+     * エントリー一覧
+     *
+     * @var array<int, array<string, mixed>>
+     */
+    protected array $entries = [];
+
+    /**
+     * 日付コンテキスト（YYYY-MM-DD形式）
+     *
+     * @var string
+     */
+    protected string $ymd = '';
+
+    /**
+     * 年（YYYY形式）
+     *
+     * @var string
+     */
+    protected string $y = '';
+
+    /**
+     * 月（MM形式）
+     *
+     * @var string
+     */
+    protected string $m = '';
+
+    /**
+     * 日（DD形式）
+     *
+     * @var string
+     */
+    protected string $d = '';
 
     /**
      * カレンダーの開始日
@@ -25,7 +54,7 @@ class CalendarHelper extends BaseHelper
      *
      * @var string
      */
-    protected $startDate;
+    protected string $startDate = '';
 
     /**
      * カレンダーの終了日
@@ -33,56 +62,56 @@ class CalendarHelper extends BaseHelper
      *
      * @var string
      */
-    protected $endDate;
+    protected string $endDate = '';
 
     /**
      * エントリーの開始日
      *
      * @var string
      */
-    protected $entryStartDate;
+    protected string $entryStartDate = '';
 
     /**
      * エントリーの終了日
      *
      * @var string
      */
-    protected $entryEndDate;
+    protected string $entryEndDate = '';
 
     /**
      * day:loop ブロックの中で最も若い日
      *
      * @var int
      */
-    protected $firstDay;
+    protected int $firstDay = 0;
 
     /**
      * day:loop ブロックのループ回数
      *
      * @var int
      */
-    protected $loopCount;
+    protected int $loopCount = 0;
 
     /**
      * day:loop ブロックの中で最も若い日の曜日（数値）
      *
      * @var int
      */
-    protected $firstW;
+    protected int $firstW = 0;
 
     /**
      * 前後月を考慮した最初の曜日（数値）
      *
      * @var int
      */
-    protected $beginW;
+    protected int $beginW = 0;
 
     /**
      * week:loopブロックの区切りの曜日（数値）
      *
      * @var int
      */
-    protected $separateWeek;
+    protected int $separateWeek = 0;
 
     /**
      * sqlの組み立て
@@ -301,7 +330,7 @@ class CalendarHelper extends BaseHelper
     /**
      * 曜日ラベルの取得
      *
-     * @return array
+     * @return array<int, array{w: int, label: string}>
      */
     public function getWeekLabel(): array
     {
@@ -321,9 +350,18 @@ class CalendarHelper extends BaseHelper
     /**
      * 指定した日付のエントリーを取得
      *
-     * @param string $date
-     * @param array $entries
-     * @return array
+     * @param string $date 日付（YYYY-MM-DD形式）
+     * @param array<int, array<string, mixed>> $entries エントリー一覧
+     * @return list<array{
+     *   title: string,
+     *   eid: int,
+     *   cid: int,
+     *   bid: int,
+     *   status: mixed,
+     *   datetime: mixed,
+     *   url?: mixed,
+     *   fields: array<string, mixed>|null
+     * }>
      */
     protected function getEntriesByDate(string $date, array $entries): array
     {
@@ -381,6 +419,21 @@ class CalendarHelper extends BaseHelper
         return $buildEntries;
     }
 
+    /**
+     * カレンダーの日付データを週単位でグループ化して取得
+     *
+     * @param array<int, array<string, mixed>> $entries エントリー一覧
+     * @return list<non-empty-list<array{
+     *   week: mixed,
+     *   w: int,
+     *   day: int,
+     *   date: string,
+     *   padding: false,
+     *   url: string|false,
+     *   today?: mixed,
+     *   entries: list<array{title: string, eid: int, cid: int, bid: int, status: mixed, datetime: mixed, url?: mixed, fields: array<string, mixed>|null}>
+     * }>> 週単位でグループ化された日付データの二次元配列
+     */
     public function getDays(array $entries): array
     {
         $weeks = [];
@@ -439,8 +492,16 @@ class CalendarHelper extends BaseHelper
     /**
      * 前月のパディング日を取得
      *
-     * @param array $entries
-     * @return array
+     * @param array<int, array<string, mixed>> $entries エントリー一覧
+     * @return list<array{
+     *   day: int,
+     *   date: string,
+     *   w: int,
+     *   week: mixed,
+     *   url: string|false,
+     *   padding: true,
+     *   entries: list<array{title: string, eid: int, cid: int, bid: int, status: mixed, datetime: mixed, url?: mixed, fields: array<string, mixed>|null}>
+     * }>
      */
     public function getPrevMonthPaddingDays(array $entries): array
     {
@@ -491,8 +552,16 @@ class CalendarHelper extends BaseHelper
     /**
      * 次月のパディング日を取得
      *
-     * @param array $entries
-     * @return array
+     * @param array<int, array<string, mixed>> $entries エントリー一覧
+     * @return list<array{
+     *   day: int,
+     *   date: string,
+     *   w: int,
+     *   week: mixed,
+     *   url: string|false,
+     *   padding: true,
+     *   entries: list<array{title: string, eid: int, cid: int, bid: int, status: mixed, datetime: mixed, url?: mixed, fields: array<string, mixed>|null}>
+     * }>
      */
     public function getNextMonthPaddingDays(array $entries): array
     {
@@ -540,7 +609,17 @@ class CalendarHelper extends BaseHelper
     /**
      * dateブロックの変数の取得
      *
-     * @return array
+     * @return array{
+     *   year: string,
+     *   month: string,
+     *   day: string,
+     *   prevDate: string,
+     *   nextDate: string,
+     *   date: string,
+     *   prevMonth: string,
+     *   nextMonth: string,
+     *   firstWeekDay?: int
+     * }
      */
     public function getDate(): array
     {
@@ -609,6 +688,14 @@ class CalendarHelper extends BaseHelper
         return $vars;
     }
 
+    /**
+     * 日付をフォーマットして文字列として返す
+     *
+     * @param string $format date() 関数のフォーマット文字列
+     * @param string $datetime 日付文字列（strtotime() で解析可能な形式）
+     * @return string フォーマットされた日付文字列
+     * @throws RuntimeException 日付の解析に失敗した場合
+     */
     protected function formatDate(string $format, string $datetime): string
     {
         $time = strtotime($datetime);

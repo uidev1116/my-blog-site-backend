@@ -913,9 +913,6 @@ a:active {
   z-index: 100006;
   height: 100%;
   padding: 0;
-}
-
-.acms-admin-nav + #acms-admin-main {
   padding-right: 0.625rem;
   padding-right: calc(0.625rem + constant(safe-area-inset-right));
   padding-left: 0.625rem;

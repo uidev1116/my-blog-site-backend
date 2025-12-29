@@ -83,7 +83,7 @@ class ACMS_GET_Entry_Continue extends ACMS_GET_Entry
             // unit
             $collection = $unitService->loadUnits($eid);
             if (count($collection) > 0) {
-                $displayUnitCollection = $collection->slice(0, (int) ($row['entry_summary_range'] ?? 0));
+                $displayUnitCollection = $collection->sliceRoots(0, (int) ($row['entry_summary_range'] ?? 0));
                 if (count($displayUnitCollection) > 0) {
                     $unitRenderingService->render($displayUnitCollection, $Tpl, $eid);
                 }

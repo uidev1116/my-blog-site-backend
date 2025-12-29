@@ -833,6 +833,14 @@ class ACMS_CorrectorBody
         return mb_substr($escapeTxt, 1, mb_strlen($escapeTxt) - 2);
     }
 
+    public function jsonNumber($txt, $args = [])
+    {
+        if (is_numeric($txt)) {
+            return intval($txt, 10);
+        }
+        return isset($args[0]) ? $args[0] : 'null';
+    }
+
     public function substring($txt, $args = [])
     {
         $start = isset($args[0]) ? $args[0] : 0;

@@ -308,6 +308,9 @@ class UnitCollection implements \Countable
     }
 
     /**
+     * フラット配列に対してsliceを実行する
+     * ツリー構造は考慮されず、ユニットの並び順に基づいてsliceされる
+     *
      * @param int $offset
      * @param int|null $length
      * @param bool $preserveKeys
@@ -316,6 +319,23 @@ class UnitCollection implements \Countable
     public function slice(int $offset, ?int $length = null, bool $preserveKeys = false): UnitCollection
     {
         return new UnitCollection(array_slice($this->units, $offset, $length, $preserveKeys));
+    }
+
+    /**
+     * ツリー構造を考慮したsliceを実行する
+     * ルートノード配列に対してsliceを適用し、選ばれたrootはサブツリーごと丸ごと含まれる
+     *
+     * @param int $offset
+     * @param int|null $length
+     * @param bool $preserveKeys
+     * @return UnitCollection
+     */
+    public function sliceRoots(int $offset, ?int $length = null, bool $preserveKeys = false): UnitCollection
+    {
+        $tree = $this->tree();
+        $roots = $tree->getRoots();
+        $slicedRoots = array_slice($roots, $offset, $length, $preserveKeys);
+        return new UnitCollection(new UnitTree($slicedRoots));
     }
 
     /**

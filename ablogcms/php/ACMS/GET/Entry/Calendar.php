@@ -126,7 +126,7 @@ class ACMS_GET_Entry_Calendar extends ACMS_GET
         $prevPaddingDays = $this->entryCalendarHelper->getPrevMonthPaddingDays($entries);
 
         foreach ($prevPaddingDays as $paddingDay) {
-            $paddingEntries = $paddingDay['entries'] ?? [];
+            $paddingEntries = $paddingDay['entries'];
             $this->buildEntries($tpl, $paddingEntries, array_merge(['foreEntry:loop', 'foreSpacer'], [$rootBlock]));
             $tpl->add(array_merge(['foreSpacer'], [$rootBlock]), [
                 'prevDay' => $paddingDay['day'],
@@ -150,7 +150,7 @@ class ACMS_GET_Entry_Calendar extends ACMS_GET
         $paddingDays = $this->entryCalendarHelper->getNextMonthPaddingDays($entries);
 
         foreach ($paddingDays as $paddingDay) {
-            $paddingEntries = $paddingDay['entries'] ?? [];
+            $paddingEntries = $paddingDay['entries'];
             $this->buildEntries($tpl, $paddingEntries, array_merge(['rearSpacer:loop', 'rearSpacer'], [$rootBlock]));
             $tpl->add(array_merge(['rearSpacer'], [$rootBlock]), [
                 'nextDay' => $paddingDay['day'],
@@ -201,8 +201,10 @@ class ACMS_GET_Entry_Calendar extends ACMS_GET
                 $tpl->add('week:loop');
             }
         } else {
-            foreach ($data as $day) {
-                $this->buildDay($tpl, $day, []);
+            foreach ($data as $week) {
+                foreach ($week as $day) {
+                    $this->buildDay($tpl, $day, []);
+                }
             }
         }
     }

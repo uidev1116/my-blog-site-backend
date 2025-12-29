@@ -78,7 +78,7 @@ class ACMS_GET_Admin_Entry_BulkChange_Confirm extends ACMS_GET_Admin_Entry_BulkC
         $SQL->addLeftJoin('blog', 'blog_id', 'entry_blog_id');
         $SQL->addLeftJoin('category', 'category_id', 'entry_category_id');
         $SQL->addLeftJoin('user', 'user_id', 'entry_user_id');
-        $SQL->addWhereIn('entry_id', $this->eids);
+        $SQL->addWhereIn('entry_id', $this->targetEids);
 
         return $SQL;
     }

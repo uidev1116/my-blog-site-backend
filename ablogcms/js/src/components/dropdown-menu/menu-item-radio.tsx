@@ -74,12 +74,6 @@ const MenuItemRadio = forwardRef<HTMLDivElement, MenuItemRadioProps>(
     );
 
     const checked = useMemo(() => {
-      if (value === '') {
-        return false;
-      }
-      if (valueProp === '') {
-        return false;
-      }
       return value === valueProp;
     }, [value, valueProp]);
 

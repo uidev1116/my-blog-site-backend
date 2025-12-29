@@ -112,7 +112,7 @@ class MoreContent extends Body
     {
         $tpl = $this->getUnitTemplate();
         $allUnitCollection = $this->entryBodyHelper->getAllUnitCollection($eid);
-        $displayUnitCollection = $allUnitCollection->slice(0, $summaryRange);
+        $displayUnitCollection = $allUnitCollection->sliceRoots(0, $summaryRange);
 
         return $this->buildUnitHtml($eid, $displayUnitCollection, $tpl);
     }

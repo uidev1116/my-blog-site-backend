@@ -957,7 +957,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
         if ($this->config['includeDatetime'] ?? false) {
             $vars += TplHelper::buildDate($row['entry_datetime'], $tpl, 'entry:loop');
         }
-        if ($this->config['detail_date_on'] ?? false) {
+        if ($this->config['includeDetailDatetime'] ?? false) {
             $vars += TplHelper::buildDate($row['entry_updated_datetime'], $tpl, 'entry:loop', 'udate#');
             $vars += TplHelper::buildDate($row['entry_posted_datetime'], $tpl, 'entry:loop', 'pdate#');
             $vars += TplHelper::buildDate($row['entry_start_datetime'], $tpl, 'entry:loop', 'sdate#');

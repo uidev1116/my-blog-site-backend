@@ -67,6 +67,18 @@ class ACMS_POST_Form_Submit extends ACMS_POST_Form
             return $this->Post;
         }
 
+        // メール送信前フック
+        if (HOOK_ENABLE) {
+            $Hook = ACMS_Hook::singleton();
+            /** @var bool $abort */
+            $abort = false;
+            $Hook->call('beforeSendAutoReply', [$this, &$abort, $Mail, $Field]);
+            if ($abort) {
+                AcmsLogger::notice('フォームID「' . $id . '」で、beforeSendAutoReplyフックによりメール送信が中止されました');
+                return $this->Post;
+            }
+        }
+
         try {
             // 連番の更新
             $this->updateCount($info['id'], $Field);
