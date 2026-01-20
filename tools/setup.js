@@ -1,8 +1,15 @@
 'use strict'
 
 const { systemCmd } = require('./lib/system.js')
+const fs = require('fs')
+const path = require('path')
 
-const plugins = ['ApiPreview']
+// Automatically discover plugins from plugins directory
+const pluginsDir = path.join(__dirname, '..', 'plugins')
+const plugins = fs
+  .readdirSync(pluginsDir)
+  .filter((item) => fs.statSync(path.join(pluginsDir, item)).isDirectory())
+  .filter((item) => !item.startsWith('.'))
 
 ;(async () => {
   try {
@@ -12,9 +19,12 @@ const plugins = ['ApiPreview']
     await systemCmd('git submodule foreach npm run setup')
     await systemCmd('npm ci')
     await Promise.all(
-      plugins.map((plugin) =>
-        systemCmd(`unlink ablogcms/extension/plugins/${plugin}`),
-      ),
+      plugins.map((plugin) => {
+        if (fs.existsSync(`ablogcms/extension/plugins/${plugin}`)) {
+          return systemCmd(`unlink ablogcms/extension/plugins/${plugin}`)
+        }
+        return Promise.resolve()
+      }),
     )
     await Promise.all(
       plugins.map((plugin) =>

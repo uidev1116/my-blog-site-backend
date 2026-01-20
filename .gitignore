@@ -16,6 +16,7 @@ ablogcms/license.php
 /ablogcms/private/backup*
 /ablogcms/_setup*
 /ablogcms/setup*
+/ablogcms/extension/plugins/*
 # /ablogcms/themes/*/dest/*
 
 ## Backup
@@ -41,3 +42,4 @@ yarn-error.log*
 *.local
 node_modules
 php.ini
+.claude
