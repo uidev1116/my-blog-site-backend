@@ -1,5 +1,6 @@
 import './lib/polyfill';
 
+import React from 'react';
 import dispatchSystemUpdate from './features/system-update';
 import dispatchBackup from './features/backup';
 import dispatchStaticExport from './features/static-export';
@@ -43,6 +44,8 @@ import dispatchModal from './dispatch/dispatch-modal';
 import dispatchResizeImageCF from './dispatch/dispatch-resize-image-cf';
 import dispatchDialog from './dispatch/dispatch-dialog';
 import dispatchUnitConfigEditor from './dispatch/dispatch-unit-config-editor';
+
+ACMS.Library.React = React;
 
 ACMS.Ready(() => {
   __webpack_public_path__ = ACMS.Config.root; // eslint-disable-line

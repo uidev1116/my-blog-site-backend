@@ -365,6 +365,7 @@
               value="{mail}"
               size="30"
               id="input-text-mail"
+              autocomplete="email"
             />
             <input type="hidden" name="user[]" value="mail" />
             <input type="hidden" name="mail:validator#required" id="validator-mail-required" />
@@ -477,7 +478,6 @@
             ></i>
           </th>
           <td class="js-password_strength">
-            <input type="password" name="pass" value="" style="display:none;" />
             <input
               type="password"
               name="pass"
@@ -518,9 +518,8 @@
             <label for="input-text-retype-pass">
               <!--T-->新しいパスワードを確認<!--/T-->
             </label>
-            <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ログイン用のパスワードの確認です。コピー＆ペーストを使用せず手入力で確認してください。<!--/T-->"></i></th>
+            <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ログイン用のパスワードの確認です。<!--/T-->"></i></th>
           <td>
-            <input type="password" name="retype_pass" value="" style="display:none;" />
             <input
               type="password"
               name="retype_pass"

@@ -27,7 +27,7 @@ trait EagerLoadingTrait
             return $eagerLoadingData;
         }
         $db = DB::singleton(dsn());
-        if ($type === 'eid' && ($rvid ?? false)) {
+        if ($rvid !== null && $rvid > 0 && in_array($type, ['eid', 'unit_id'], true)) {
             $sql = SQL::newSelect('field_rev');
             $sql->addWhereOpr('field_rev_id', $rvid);
         } else {

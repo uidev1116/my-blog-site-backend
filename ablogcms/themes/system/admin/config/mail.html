@@ -59,8 +59,7 @@
       <th><!--T-->ホスト名<!--/T--> <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->a-blog cmsからメールを送信するSMTPサーバのホスト名を指定します。指定されない場合はphp.iniのsendmail_pathに従い、sendmailを使用してメールを送信します。<!--/T-->"></i>
       </th>
       <td>
-        <input type="text" name="mail_smtp-host" value="" style="display:none;"/>
-        <input type="text" name="mail_smtp-host" value="{mail_smtp-host}" size="40" autocomplete="off"/>
+        <input type="text" name="mail_smtp-host" value="{mail_smtp-host}" size="40" />
         <input type="hidden" name="config[]" value="mail_smtp-host"/>
       </td>
     </tr>
@@ -68,29 +67,26 @@
       <th><!--T-->ポート<!--/T--> <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->SMTPサーバのポートを指定します。SMTPサーバーを使用する場合は、必ず設定してください。サーバによって異なる場合があります。25や587がよく使われます。<!--/T-->"></i>
       </th>
       <td>
-        <input type="text" name="mail_smtp-port" value="" style="display:none;"/>
-        <input type="text" name="mail_smtp-port" value="{mail_smtp-port}" size="4" autocomplete="off"/>
+        <input type="text" name="mail_smtp-port" value="{mail_smtp-port}" size="4" />
         <input type="hidden" name="config[]" value="mail_smtp-port"/>
       </td>
     </tr>
     <tr>
       <th><!--T-->ユーザー名<!--/T--> <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->SMTP認証が必要な場合にユーザー名を指定します。<!--/T-->"></i></th>
       <td>
-        <input type="text" name="mail_smtp-user" value="" style="display:none;"/>
-        <input type="text" name="mail_smtp-user" value="{mail_smtp-user}" size="20" autocomplete="off"/>
+        <input type="text" name="mail_smtp-user" value="{mail_smtp-user}" size="20" autocomplete="username"/>
         <input type="hidden" name="config[]" value="mail_smtp-user"/>
       </td>
     </tr>
     <tr>
       <th><!--T-->パスワード<!--/T--> <i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->SMTP認証が必要な場合にパスワードを指定します。<!--/T-->"></i></th>
       <td>
-        <input type="password" name="mail_smtp-pass" value="" style="display:none;"/>
-        <input type="password" name="mail_smtp-pass" value="{mail_smtp-pass}" size="20" autocomplete="off" class="mail_stmp-pass_target"/>
+        <input type="password" name="mail_smtp-pass" value="{mail_smtp-pass}" size="20" class="mail_smtp-pass_target" autocomplete="new-password"/>
         <input type="hidden" name="config[]" value="mail_smtp-pass"/>
 
         <div class="acms-admin-form-checkbox">
-          <input type="checkbox" id="mail_stmp-pass-disclose_password" class="js-disclose_password" data-target=".mail_stmp-pass_target" />
-          <label class="acms-admin-form-checkbox" for="mail_stmp-pass-disclose_password">
+          <input type="checkbox" id="mail_smtp-pass-disclose_password" class="js-disclose_password" data-target=".mail_smtp-pass_target" />
+          <label class="acms-admin-form-checkbox" for="mail_smtp-pass-disclose_password">
             <i class="acms-admin-ico-checkbox"></i> <!--T-->パスワードを表示<!--/T-->
           </label>
         </div>

@@ -39,8 +39,10 @@ class Export extends ExportBase
             'module',
             'rule',
             'tag',
+            'entry_sub_category',
             'schedule',
             'layout_grid',
+            'geo',
             'blog',
         ]);
         $dsn = dsn();
@@ -308,6 +310,62 @@ class Export extends ExportBase
         $SQL->addSelect('blog_editor_set_id');
         $SQL->addSelect('blog_editor_set_scope');
         $SQL->addWhereOpr('blog_id', $bid);
+
+        return $SQL;
+    }
+
+    /**
+     * サブカテゴリーデータからゴミ箱のデータを除外
+     * This method is called dynamically via call_user_func_array().
+     *
+     * @param \SQL_Select $SQL
+     * @param int $bid
+     * @return \SQL_Select
+     * @phpstan-ignore-next-line
+     */
+    private function fixQueryEntry_sub_category($SQL, $bid = 0)
+    {
+        $columns = DB::query([
+            'sql' => 'SHOW COLUMNS FROM ' . $this->prefix . 'entry_sub_category',
+            'params' => []
+        ], 'all');
+        foreach ($columns as $column) {
+            $SQL->addSelect($column['Field']);
+        }
+        $SQL->addLeftJoin('entry', 'entry_sub_category_eid', 'entry_id');
+        $SQL->addWhereOpr('entry_status', 'trash', '<>');
+
+        return $SQL;
+    }
+
+    /**
+     * 位置情報データを取得（ユーザーの位置情報は除外）
+     * エントリーの位置情報はゴミ箱のデータを除外
+     * This method is called dynamically via call_user_func_array().
+     *
+     * @param \SQL_Select $SQL
+     * @param int $bid
+     * @return \SQL_Select
+     * @phpstan-ignore-next-line
+     */
+    private function fixQueryGeo($SQL, $bid = 0)
+    {
+        $SQL = SQL::newSelect('geo');
+        $SQL->addSelect('geo_eid');
+        $SQL->addSelect('geo_bid');
+        $SQL->addSelect('geo_cid');
+        $SQL->addSelect('geo_zoom');
+        $SQL->addSelect('geo_blog_id');
+        $SQL->addSelect('geo_geometry', 'geo_lng', null, 'ST_X');
+        $SQL->addSelect('geo_geometry', 'geo_lat', null, 'ST_Y');
+        $SQL->addWhereOpr('geo_blog_id', $bid);
+
+        // エントリーの位置情報はゴミ箱のデータを除外
+        $SQL->addLeftJoin('entry', 'geo_eid', 'entry_id');
+        $SUB = SQL::newWhere();
+        $SUB->addWhereOpr('entry_status', 'trash', '<>', 'OR');
+        $SUB->addWhereOpr('geo_eid', null, '=', 'OR');
+        $SQL->addWhere($SUB);
 
         return $SQL;
     }

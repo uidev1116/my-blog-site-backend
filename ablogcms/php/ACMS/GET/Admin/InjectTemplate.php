@@ -13,6 +13,7 @@ class ACMS_GET_Admin_InjectTemplate extends ACMS_GET
         }
 
         $acmsTplEngine = Application::make('template.acms');
+        assert($acmsTplEngine instanceof \Acms\Services\Template\Acms);
         $inject = InjectTemplate::singleton();
         $all = $inject->get($type);
         $template = '';

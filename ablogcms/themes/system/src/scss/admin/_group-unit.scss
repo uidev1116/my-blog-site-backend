@@ -4,10 +4,22 @@
 =============================== */
 
 .acms-group-unit {
+  // CSS変数のデフォルト値（JavaScript側から動的に設定される）
   --acms-group-unit-level-color: transparent;
-}
+  --acms-group-unit-text-color: #{global.$acms-color-system-gray80};
+  --acms-group-unit-text-light: #{global.$acms-color-white};
+  --acms-group-unit-text-dark: #{global.$acms-color-system-gray80};
+  --acms-group-unit-color-level1: #{global.$acms-color-system-gray70};
+  --acms-group-unit-color-level2: #{global.$acms-color-system-gray50};
+  --acms-group-unit-color-level3: #{global.$acms-color-system-gray30};
+  --acms-group-unit-gradient-start: var(--acms-group-unit-color-level3);
+  --acms-group-unit-gradient-end: #{global.$acms-color-system-gray10};
 
-.acms-group-unit {
+  // Sticky Scroll用のCSS変数
+  --acms-group-unit-depth: 0;
+  --acms-group-unit-sticky-header-height: 32px;
+  --acms-group-unit-sticky-footer-height: 32px;
+
   position: relative;
   padding-left: 8px;
 
@@ -22,44 +34,29 @@
 
 /* 非表示のとき */
 .acms-unit[data-unit-status='close'] .acms-group-unit {
-  $level-color: global.$acms-color-system-gray20;
-
-  --acms-group-unit-level-color: #{$level-color};
+  --acms-group-unit-level-color: #{global.$acms-color-system-gray20};
+  --acms-group-unit-text-color: #{global.$acms-color-system-gray80};
 
   .acms-group-unit-start .acms-unit-toolbar,
   .acms-group-unit-end .acms-unit-toolbar {
     --acms-unit-toolbar-color: #{global.$acms-color-system-gray80};
     --acms-unit-toolbar-vr-color: #{global.$acms-color-system-gray40};
-
-    // --acms-unit-toolbar-color: #{global.color-contrast(
-    //     $background: $level-color,
-    //     $color-contrast-light: global.$acms-color-system-gray80
-    //   )};
-    // --acms-unit-toolbar-vr-color: #{global.color-contrast(
-    //     $background: $level-color,
-    //     $color-contrast-dark: global.$acms-color-system-gray80,
-    //     $color-contrast-light: global.$acms-color-system-gray40
-    //   )};
   }
 
-  .acms-group-unit-start.acms-unit-toolbar-button,
-  .acms-group-unit-end.acms-unit-toolbar-button {
+  .acms-group-unit-start .acms-unit-toolbar-button,
+  .acms-group-unit-end .acms-unit-toolbar-button {
     --acms-unit-toolbar-button-disabled-color: #{global.$acms-color-system-gray40};
-
-    // --acms-unit-toolbar-button-disabled-color: #{global.color-contrast(
-    //     $background: $level-color,
-    //     $color-contrast-dark: global.$acms-color-system-gray20,
-    //     $color-contrast-light: global.$acms-color-system-gray40
-    //   )};
   }
 }
 
-.acms-group-unit-start,
-.acms-group-unit-end {
+.acms-group-unit-start {
   position: relative;
+
+  // z-indexはReact側でstyle属性として設定される
   display: flex;
   align-items: center;
-  height: 32px;
+  height: var(--acms-group-unit-sticky-header-height);
+  margin-bottom: 16px;
   background-color: var(--acms-group-unit-level-color);
   border-radius: 6px;
   box-shadow: 0 1px 4px 0 #3333;
@@ -74,105 +71,51 @@
     content: '';
     background-color: var(--acms-group-unit-level-color);
   }
+
+  // ツールバーのカラーをCSS変数から継承
+  .acms-unit-toolbar {
+    --acms-unit-toolbar-color: var(--acms-group-unit-text-color);
+    --acms-unit-toolbar-vr-color: var(--acms-group-unit-text-color);
+  }
+
+  .acms-unit-toolbar-button {
+    --acms-unit-toolbar-button-hover-color: var(--acms-group-unit-text-color);
+  }
 }
 
-.acms-group-unit-start {
-  margin-bottom: 16px;
+.acms-group-unit-end {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: var(--acms-group-unit-sticky-footer-height);
+  background-color: var(--acms-group-unit-level-color);
+  border-radius: 6px;
+  box-shadow: 0 1px 4px 0 #3333;
+
+  &::before {
+    position: absolute;
+    top: 15px;
+    left: -8px;
+    display: block;
+    width: 9px;
+    height: 2px;
+    content: '';
+    background-color: var(--acms-group-unit-level-color);
+  }
+
+  // ツールバーのカラーをCSS変数から継承
+  .acms-unit-toolbar {
+    --acms-unit-toolbar-color: var(--acms-group-unit-text-color);
+    --acms-unit-toolbar-vr-color: var(--acms-group-unit-text-color);
+  }
+
+  .acms-unit-toolbar-button {
+    --acms-unit-toolbar-button-hover-color: var(--acms-group-unit-text-color);
+  }
 }
 
 .acms-unit[data-unit-type='group'][data-unit-children-count='0']:not([data-unit-collapsed='true']) > .acms-group-unit {
   .acms-group-unit-start {
     margin-bottom: 0;
-  }
-}
-
-.acms-group-unit.acms-group-unit-level1 {
-  $level-color: global.$acms-color-system-gray90;
-
-  --acms-group-unit-level-color: #{$level-color};
-
-  .acms-group-unit-start .acms-unit-toolbar,
-  .acms-group-unit-end .acms-unit-toolbar {
-    --acms-unit-toolbar-color: #{global.$acms-color-white};
-    --acms-unit-toolbar-vr-color: #{global.$acms-color-system-gray40};
-
-    // --acms-unit-toolbar-color: #{global.color-contrast(
-    //     $background: $level-color,
-    //     $color-contrast-light: global.$acms-color-system-gray80
-    //   )};
-    // --acms-unit-toolbar-vr-color: #{global.color-contrast(
-    //     $background: $level-color,
-    //     $color-contrast-dark: global.$acms-color-system-gray80,
-    //     $color-contrast-light: global.$acms-color-system-gray40
-    //   )};
-  }
-
-  .acms-group-unit-start .acms-unit-toolbar-button,
-  .acms-group-unit-end .acms-unit-toolbar-button {
-    --acms-unit-toolbar-button-hover-color: #{global.$acms-color-system-gray80};
-
-    // --acms-unit-toolbar-button-hover-color: #{global.color-contrast(
-    //     $background: $level-color,
-    //     $color-contrast-light: global.$acms-color-system-gray80,
-    //     $color-contrast-dark: global.$acms-color-system-gray20
-    //   )};
-  }
-}
-
-.acms-group-unit.acms-group-unit-level2 {
-  $level-color: global.$acms-color-system-gray70;
-
-  --acms-group-unit-level-color: #{$level-color};
-
-  // z-index: 2;
-
-  .acms-group-unit-start .acms-unit-toolbar,
-  .acms-group-unit-end .acms-unit-toolbar {
-    --acms-unit-toolbar-color: #{global.color-contrast(
-        $background: $level-color,
-        $color-contrast-light: global.$acms-color-system-gray80
-      )};
-    --acms-unit-toolbar-vr-color: #{global.color-contrast(
-        $background: $level-color,
-        $color-contrast-light: global.$acms-color-system-gray80,
-        $color-contrast-dark: global.$acms-color-system-gray40
-      )};
-  }
-
-  .acms-group-unit-start .acms-unit-toolbar-button,
-  .acms-group-unit-end .acms-unit-toolbar-button {
-    --acms-unit-toolbar-button-hover-color: #{global.color-contrast(
-        $background: $level-color,
-        $color-contrast-light: global.$acms-color-system-gray20,
-        $color-contrast-dark: global.$acms-color-system-gray80
-      )};
-  }
-}
-
-.acms-group-unit.acms-group-unit-level3 {
-  $level-color: global.$acms-color-system-gray40;
-
-  --acms-group-unit-level-color: #{$level-color};
-
-  .acms-group-unit-start .acms-unit-toolbar,
-  .acms-group-unit-end .acms-unit-toolbar {
-    --acms-unit-toolbar-color: #{global.color-contrast(
-        $background: $level-color,
-        $color-contrast-light: global.$acms-color-system-gray80
-      )};
-    --acms-unit-toolbar-vr-color: #{global.color-contrast(
-        $background: $level-color,
-        $color-contrast-light: global.$acms-color-system-gray80,
-        $color-contrast-dark: global.$acms-color-system-gray40
-      )};
-  }
-
-  .acms-group-unit-start .acms-unit-toolbar-button,
-  .acms-group-unit-end .acms-unit-toolbar-button {
-    --acms-unit-toolbar-button-hover-color: #{global.color-contrast(
-        $background: $level-color,
-        $color-contrast-light: global.$acms-color-system-gray20,
-        $color-contrast-dark: global.$acms-color-system-gray80
-      )};
   }
 }

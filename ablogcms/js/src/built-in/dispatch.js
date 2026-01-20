@@ -5,7 +5,7 @@ import axiosLib from '../lib/axios';
 import lazyLoad from '../lib/lazy-load';
 import dispatchScrollAnimation from '../dispatch/dispatch-scroll-animation';
 import { addClass, removeClass } from '../lib/dom';
-import { contrastColor, rgb2hex } from '../utils';
+import { contrastColor, rgb2hex } from '../utils/color';
 import dispatchFlatpicker from '../dispatch/dispatch-flatpicker';
 
 /**

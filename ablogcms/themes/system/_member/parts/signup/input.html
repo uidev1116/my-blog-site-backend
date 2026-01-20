@@ -24,7 +24,6 @@
       <!-- BEGIN_IF [{email_auth_signin}/neq/on] -->
       <label for="input-password-pass" class="acms-member-form-label"><!--T-->パスワード<!--/T--></label>
       <div class="js-password_strength">
-        <input type="password" name="pass" value="" style="display:none;" />
         <input type="password" name="pass" value="{pass}" id="input-password-pass" class="js-input acms-form-large acms-form-block acms-form-width-full validator-result-{pass:validator#required} validator-result-{pass:validator#password}"<!-- BEGIN_IF [{passwordPolicyMessage}[delnl]/nem] --> aria-describedby="describe-input-text-pass"<!-- END_IF --> autocomplete="new-password" />
         <input type="hidden" name="user[]" value="pass" />
         <input type="hidden" name="pass:validator#required" />
@@ -35,7 +34,6 @@
       </div>
 
       <label for="input-password-retype_pass" class="acms-member-form-label"><!--T-->パスワードを確認<!--/T--></label>
-      <input type="password" name="retype_pass" value="" style="display:none;" />
       <input type="password" name="retype_pass" value="{retype_pass}" id="input-password-retype_pass" class="acms-form-large acms-form-block acms-form-width-full validator-result-{retype_pass:validator#equalTo}" autocomplete="new-password" />
       <input type="hidden" name="user[]" value="retype_pass" />
       <input type="hidden" name="retype_pass:validator#equalTo" value="pass" id="validator-retype_pass-equalTo" />

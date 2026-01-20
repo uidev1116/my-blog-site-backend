@@ -5,7 +5,7 @@ namespace Acms\Services\Facades;
 /**
  * @method static bool validate(?int $bid = null) 指定したブログでメディアライブラリが有効かどうかを確認
  * @method static bool canEdit(int $mid) 指定したメディアを編集できるかどうかを確認
- * @method static false|array{tags: string[], name: string, file: array{name: string, tmp_name: string, type: string, size: int}, size: int, type: string, extension: string} getBaseInfo(array{name: string, tmp_name: string, type: string, size: int} $fileObj, string $tags, string $name) メディアの基本情報を取得
+ * @method static array{tags: string[], name: string, file: array{name: string, tmp_name: string, type: string, size: int}, size: int, type: string, extension: string} getBaseInfo(array{name: string, tmp_name: string, type: string, size: int} $fileObj, string $tags) メディアの基本情報を取得
  * @method static array{path: string, name: string, original: string} copyImages(int $mid, string $filename = '') メディアの画像をコピー
  * @method static array{path: string, name: string} copyFiles(int $mid, string $filename = '') メディアのファイルをコピー
  * @method static array{path: string, type: string, name: string, size: string, filesize: int, extension: string} uploadImage(string $fieldName = 'file', bool $original = true) 画像をアップロード
@@ -50,6 +50,7 @@ namespace Acms\Services\Facades;
  * @method static void injectMediaField(\Field $Field, array $mediaList, string[] $useMediaField) \Fieldにメディアデータを注入
  * @method static never|void downloadFile(int $mid) ファイルをダウンロード
  * @method static string sanitizeSvg(string $input) SVGをサニタイズ
+ * @method static array{valid: true}|array{valid: false, error: string, errorCode: string} validateFileName(string $fileName) ファイル名を検証
  */
 class Media extends Facade
 {

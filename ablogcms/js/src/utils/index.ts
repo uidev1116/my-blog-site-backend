@@ -193,34 +193,6 @@ export const isOldIE = () => {
   return false;
 };
 
-export const contrastColor = (hex: string, black = '#000000', white = '#ffffff') => {
-  const rgb = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-
-  if (rgb === null) {
-    return white;
-  }
-  const a = 1 - (0.299 * parseInt(rgb[1], 16) + 0.587 * parseInt(rgb[2], 16) + 0.114 * parseInt(rgb[3], 16)) / 255;
-
-  if (a < 0.4) {
-    // bright colors - black font
-    return black;
-  }
-  // dark colors - white font
-  return white;
-};
-
-export const rgb2hex = (rgb: string) => {
-  const rgbAry = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-  const hexDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
-  if (!rgbAry) {
-    return '';
-  }
-  return `#${[rgbAry[1], rgbAry[2], rgbAry[3]]
-    // @ts-expect-error typescript のisNaNの引数はnumber型のみだが、JavaScriptのisNaNはstring型を受け付ける
-    .map((x) => (isNaN(x) ? '00' : hexDigits[(x - (x % 16)) / 16] + hexDigits[x % 16]))
-    .join('')}`;
-};
-
 export const random = (length = 8) => {
   const quotient = Math.floor(length / 8);
   let remainder = length % 8;

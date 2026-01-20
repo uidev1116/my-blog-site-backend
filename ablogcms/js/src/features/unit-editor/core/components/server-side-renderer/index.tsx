@@ -146,33 +146,38 @@ export interface ServerSideRendererProps extends React.HTMLAttributes<HTMLDivEle
 const ServerSideRenderer = forwardRef<HTMLElement, ServerSideRendererProps>(
   ({ unit, onRender, editor, httpMethod = 'GET', ...props }, forwardedRef) => {
     const ref = useRef<HTMLElement>(null);
-    const isEffected = useRef(false);
     const [html, setHtml] = useState<string>('');
 
     useEffectOnce(() => {
-      if (isEffected.current) {
-        // StrictMode の2回目のレンダリングでは実行しない
-        // 2回目のレンダリングでは、unit.defaultHtml が削除されているため、初期表示のデータが失われてしまう
-        return;
-      }
-      isEffected.current = true;
+      let ignore = false;
       if (unit.defaultHtml !== undefined && unit.defaultHtml !== '') {
-        setHtml(unit.defaultHtml);
-        delete unit.defaultHtml;
-        return;
+        if (!ignore) {
+          setHtml(unit.defaultHtml);
+        }
+        return () => {
+          ignore = true;
+        };
       }
 
       (async () => {
         const newHtml = await fetchUnitHtml({ unit: normalizeUnit(unit) }, { method: httpMethod });
-        if (newHtml !== html) {
+        if (newHtml !== html && !ignore) {
           setHtml(newHtml);
         }
       })();
+
+      return () => {
+        ignore = true;
+      };
     });
 
     useUpdateEffect(() => {
+      if (unit.defaultHtml !== undefined && unit.defaultHtml !== '') {
+        delete unit.defaultHtml;
+      }
       let cleanup: void | (() => void);
-      if (ref.current) {
+      if (ref.current && ref.current.innerHTML !== '') {
+        // HTMLが空の場合は、attributesを更新すると、データが失われてしまうため、更新しない
         const attributes = extract(ref.current);
         unit.attributes = { ...attributes };
         editor.emit('serverSideUnitRender', {
@@ -191,7 +196,8 @@ const ServerSideRenderer = forwardRef<HTMLElement, ServerSideRendererProps>(
 
     useEffect(() => {
       const handleBeforeTransaction = () => {
-        if (ref.current) {
+        if (ref.current && ref.current.innerHTML !== '') {
+          // HTMLが空の場合は、attributesを更新すると、データが失われてしまうため、更新しない
           const attributes = extract(ref.current);
           unit.attributes = { ...attributes };
         }

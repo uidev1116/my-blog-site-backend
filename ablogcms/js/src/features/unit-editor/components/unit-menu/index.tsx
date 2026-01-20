@@ -1,5 +1,6 @@
 import type { UnitMenuItem } from '@features/unit-editor/core/types/unit';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useFrequentlyUsedUnits } from '@features/unit-editor/hooks/use-frequently-used-units';
 import { useSettings } from '@features/unit-editor/stores/settings';
 import { UnitEditorSettings } from '@features/unit-editor/types';
 import { type Editor } from '@features/unit-editor/core';
@@ -49,16 +50,25 @@ interface UnitMenuProps extends React.ComponentPropsWithoutRef<typeof Menu> {
 
 const UnitMenu = ({ renderTrigger, onSelect, editor, ...props }: UnitMenuProps): JSX.Element => {
   const { unitDefs } = useSettings();
+  const { frequentlyUsed, recordUsage } = useFrequentlyUsedUnits();
+
+  const frequentlyUsedDefs = useMemo(() => {
+    if (frequentlyUsed.length === 0) return [];
+    const byId = new Map(unitDefs.map((def) => [def.id, def] as const));
+    return frequentlyUsed.map((id) => byId.get(id)).filter((v): v is UnitMenuItem => v !== undefined);
+  }, [frequentlyUsed, unitDefs]);
+
   const handleSelect = useCallback(
     (event: MenuItemSelectEvent) => {
-      if (onSelect) {
-        const unitDef = unitDefs.find((def) => def.id === event.detail.value);
-        if (unitDef) {
+      const unitDef = unitDefs.find((def) => def.id === event.detail.value);
+      if (unitDef) {
+        recordUsage(unitDef.id);
+        if (onSelect) {
           onSelect(unitDef);
         }
       }
     },
-    [onSelect, unitDefs]
+    [onSelect, unitDefs, recordUsage]
   );
 
   const getIcon = useCallback(
@@ -87,6 +97,15 @@ const UnitMenu = ({ renderTrigger, onSelect, editor, ...props }: UnitMenuProps):
       {renderTrigger({ SubmenuTriggerItem, MenuTrigger })}
       <MenuPopover scrollable size="large">
         <MenuList>
+          {frequentlyUsedDefs.length > 0 && (
+            <MenuGroup title="よく使うユニット">
+              {frequentlyUsedDefs.map((def) => (
+                <MenuItem key={def.id} icon={getIcon(def)} value={def.id} onSelect={handleSelect}>
+                  {getLabel(def)}
+                </MenuItem>
+              ))}
+            </MenuGroup>
+          )}
           {Object.entries(groupUnitDefsByCategory(unitDefs)).map(([category, defs]) => (
             <MenuGroup key={category} title={defs[0]?.category?.name || category}>
               {defs.map((def) => (

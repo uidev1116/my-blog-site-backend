@@ -4,6 +4,7 @@ use Acms\Services\Facades\PublicStorage;
 use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Facades\Logger;
 use Acms\Services\Facades\Application;
+use Acms\Services\Common\MimeTypeValidator;
 use Exception;
 
 class ACMS_CorrectorBody
@@ -522,9 +523,6 @@ class ACMS_CorrectorBody
         $src = $parsedSrc['path'];
         $query = isset($parsedSrc['query']) ? '?' . $parsedSrc['query'] : '';
         $src = explode('?', $src, 2)[0];
-        if (strpos($src, '..') !== false) {
-            return ''; // 不正なパス
-        }
         $hasLeadingSlash = isset($src[0]) && $src[0] === '/';
         if ($hasLeadingSlash) {
             $src = ltrim($src, '/'); // パスの先頭にスラッシュがあるとrealpathがfalseになるため、ltrimで削除
@@ -546,18 +544,27 @@ class ACMS_CorrectorBody
             $pfx .= '_' . $color;
         }
 
+        $mimeValidator = new MimeTypeValidator();
         foreach (['', MEDIA_LIBRARY_DIR, ARCHIVES_DIR] as $archive_dir) {
             $tmpPath = $archive_dir . normalSizeImagePath($src);
+            // パストラバーサルチェック: 各ディレクトリと結合した後のパスを検証
+            // $publicDirを空にすることでSCRIPT_DIR全体をチェック
+            // $checkExistsをfalseにすることで、ファイルが存在しない場合でもパスが有効であれば処理を続行
+            if (!PublicStorage::validateDirectoryTraversalPath($tmpPath, '', false)) {
+                continue; // 不正なパスはスキップ
+            }
             $destPath = trim(dirname($tmpPath), '/') . '/' . $pfx . '-' . PublicStorage::mbBasename($tmpPath);
             $destPathVars = trim(dirname($src), '/') . '/' . $pfx . '-' . PublicStorage::mbBasename($tmpPath);
             $largePath = otherSizeImagePath($tmpPath, 'large'); // large path
             $realTmpPath = LocalStorage::safeRealpath($tmpPath);
-            if (!$realTmpPath || strpos($realTmpPath, LocalStorage::safeRealpath(SCRIPT_DIR)) !== 0 || is_link($realTmpPath)) { // @phpstan-ignore-line
+            if (!$realTmpPath || is_link($realTmpPath)) {
                 continue;
             }
-            $ext = strtolower(pathinfo($tmpPath, PATHINFO_EXTENSION));
-            if (!in_array($ext, $allowedExtensions, true)) {
-                continue; // 不正な拡張子
+            // ファイルが存在する場合のみMIMEタイプ検証を行う（拡張子チェックより安全）
+            if (PublicStorage::isReadable($tmpPath)) {
+                if (!$mimeValidator->validateAllowedByContent($realTmpPath, $allowedExtensions)) {
+                    continue; // 不正なMIMEタイプ
+                }
             }
             if (PublicStorage::isReadable($destPath)) {
                 return $hasLeadingSlash ? '/' . Media::urlencode($destPathVars) . $query : Media::urlencode($destPathVars) . $query;

@@ -14,6 +14,8 @@ import {
   getSelectedUnits,
   getNextUnit,
   getPreviousUnit,
+  getGroupUnitLevel,
+  getMaxGroupUnitDepth,
 } from './selectors';
 import { createMockEditor, createMockUnit } from './test-utils';
 
@@ -532,6 +534,151 @@ describe('selectors', () => {
 
         expect(result).toBeNull();
       });
+    });
+  });
+
+  describe('getGroupUnitLevel', () => {
+    it('should return 1 for a group unit at root level', () => {
+      const editor = createMockEditor({
+        units: [createMockUnit({ id: '1', type: 'group' })],
+      });
+      const result = getGroupUnitLevel(editor, '1');
+      expect(result).toBe(1);
+    });
+
+    it('should return 2 for a group unit nested in another group', () => {
+      const editor = createMockEditor({
+        units: [
+          createMockUnit({
+            id: '1',
+            type: 'group',
+            children: [createMockUnit({ id: '1-1', type: 'group' })],
+          }),
+        ],
+      });
+      const result = getGroupUnitLevel(editor, '1-1');
+      expect(result).toBe(2);
+    });
+
+    it('should return 3 for a group unit nested two levels deep', () => {
+      const editor = createMockEditor({
+        units: [
+          createMockUnit({
+            id: '1',
+            type: 'group',
+            children: [
+              createMockUnit({
+                id: '1-1',
+                type: 'group',
+                children: [createMockUnit({ id: '1-1-1', type: 'group' })],
+              }),
+            ],
+          }),
+        ],
+      });
+      const result = getGroupUnitLevel(editor, '1-1-1');
+      expect(result).toBe(3);
+    });
+  });
+
+  describe('getMaxGroupUnitDepth', () => {
+    it('should return 0 when no group units exist', () => {
+      const editor = createMockEditor({
+        units: [createMockUnit({ id: '1', type: 'mock' })],
+      });
+      const result = getMaxGroupUnitDepth(editor);
+      expect(result).toBe(0);
+    });
+
+    it('should return 0 when a single group unit exists at root level', () => {
+      const editor = createMockEditor({
+        units: [createMockUnit({ id: '1', type: 'group' })],
+      });
+      const result = getMaxGroupUnitDepth(editor);
+      expect(result).toBe(0);
+    });
+
+    it('should return 1 when a group unit is nested one level deep', () => {
+      const editor = createMockEditor({
+        units: [
+          createMockUnit({
+            id: '1',
+            type: 'group',
+            children: [createMockUnit({ id: '1-1', type: 'group' })],
+          }),
+        ],
+      });
+      const result = getMaxGroupUnitDepth(editor);
+      expect(result).toBe(1);
+    });
+
+    it('should return 2 when a group unit is nested two levels deep', () => {
+      const editor = createMockEditor({
+        units: [
+          createMockUnit({
+            id: '1',
+            type: 'group',
+            children: [
+              createMockUnit({
+                id: '1-1',
+                type: 'group',
+                children: [createMockUnit({ id: '1-1-1', type: 'group' })],
+              }),
+            ],
+          }),
+        ],
+      });
+      const result = getMaxGroupUnitDepth(editor);
+      expect(result).toBe(2);
+    });
+
+    it('should return the maximum depth when multiple group units exist at different depths', () => {
+      const editor = createMockEditor({
+        units: [
+          createMockUnit({
+            id: '1',
+            type: 'group',
+            children: [
+              createMockUnit({ id: '1-1', type: 'group' }),
+              createMockUnit({
+                id: '1-2',
+                type: 'group',
+                children: [
+                  createMockUnit({
+                    id: '1-2-1',
+                    type: 'group',
+                    children: [createMockUnit({ id: '1-2-1-1', type: 'group' })],
+                  }),
+                ],
+              }),
+            ],
+          }),
+          createMockUnit({ id: '2', type: 'group' }),
+        ],
+      });
+      const result = getMaxGroupUnitDepth(editor);
+      expect(result).toBe(3);
+    });
+
+    it('should ignore non-group units when calculating max depth', () => {
+      const editor = createMockEditor({
+        units: [
+          createMockUnit({
+            id: '1',
+            type: 'group',
+            children: [
+              createMockUnit({ id: '1-1', type: 'mock' }),
+              createMockUnit({
+                id: '1-2',
+                type: 'group',
+                children: [createMockUnit({ id: '1-2-1', type: 'mock' })],
+              }),
+            ],
+          }),
+        ],
+      });
+      const result = getMaxGroupUnitDepth(editor);
+      expect(result).toBe(1);
     });
   });
 });

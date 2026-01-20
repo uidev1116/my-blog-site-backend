@@ -1,39 +1,65 @@
 <?php
 
+/**
+ * ユーザーCSVインポート用モデルクラス
+ *
+ * ユーザーのCSVインポート処理を実装するクラス
+ */
 class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
 {
-    protected $user;
-    protected $fields;
-    protected $idLabel = 'user_id';
+    /** @var array<string, mixed> ユーザーデータ */
+    protected array $user = [];
+
+    /** @var array<int, array<string, mixed>> フィールドデータ配列 */
+    protected array $fields = [];
+
+    /** @var string IDラベル名 */
+    protected string $idLabel = 'user_id';
 
     /**
-     * ユーザー名の存在チェック
+     * ユーザーの存在チェック
      *
-     * @return boolean
+     * CSVから取得したIDが存在し、更新可能な状態かを確認する
+     *
+     * @return bool 存在し更新可能な場合true
      */
-    function exist()
+    protected function exist(): bool
     {
-        return ACMS_RAM::userBlog($this->csvId) == BID && !!ACMS_RAM::userName($this->csvId);
+        if (is_null($this->csvId)) {
+            return false;
+        }
+        $userBlogId = ACMS_RAM::userBlog($this->csvId);
+        $userName = ACMS_RAM::userName($this->csvId);
+        if ($userBlogId !== BID) {
+            // 実行ブログに存在しないユーザーは更新できない
+            return false;
+        }
+        if ($userName === null || $userName === '') {
+            return false;
+        }
+        return true;
     }
 
     /**
-     * 次発行されるidを設定
+     * 次発行されるユーザーIDを設定
      *
-     * @void
+     * @return void
      */
-    function nextId()
+    protected function nextId(): void
     {
         $DB = DB::singleton(dsn());
         $this->nextId = intval($DB->query(SQL::nextval('user_id', dsn()), 'seq'));
     }
 
     /**
-     * validate
+     * バリデーション処理
+     *
+     * 必須フィールドの存在確認、データフォーマットの検証、重複チェックを実行する
      *
      * @return void
-     * @throws \RuntimeException
+     * @throws RuntimeException バリデーションエラー時
      */
-    function validate()
+    protected function validate(): void
     {
         if (array_search('user_code', $this->labels, true) === false) {
             throw new RuntimeException('コード (user_code) フィールドがありません。');
@@ -98,10 +124,12 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
     /**
      * 重複チェック
      *
+     * ユーザーコードまたはメールアドレスが既に存在するかを確認する
+     *
      * @return void
-     * @throws \RuntimeException
+     * @throws RuntimeException 重複するユーザーが見つかった場合
      */
-    function duplicateCheck()
+    protected function duplicateCheck(): void
     {
         $DB = DB::singleton(dsn());
 
@@ -123,11 +151,13 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
     }
 
     /**
-     * insert user
+     * ユーザーデータの挿入
+     *
+     * ユーザー本体とフィールドを挿入する
      *
      * @return void
      */
-    function insert()
+    protected function insert(): void
     {
         $this->insertUser();
         $this->insertUserField();
@@ -136,24 +166,30 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
     }
 
     /**
-     * update user
+     * ユーザーデータの更新
+     *
+     * ユーザー本体とフィールドを更新する
      *
      * @return void
      */
-    function update()
+    protected function update(): void
     {
+        if ($this->csvId === null) {
+            throw new RuntimeException('更新対象のユーザーIDが設定されていません。');
+        }
+        $uid = $this->csvId;
         $this->updateUser();
         $this->updateUserField();
 
-        Common::saveFulltext('uid', $this->csvId, Common::loadUserFulltext($this->csvId));
+        Common::saveFulltext('uid', $uid, Common::loadUserFulltext($uid));
     }
 
     /**
-     * insert user data
+     * ユーザー本体を挿入
      *
      * @return void
      */
-    function insertUser()
+    protected function insertUser(): void
     {
         $DB = DB::singleton(dsn());
 
@@ -165,11 +201,11 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
     }
 
     /**
-     * insert user field
+     * ユーザーフィールドを挿入
      *
      * @return void
      */
-    function insertUserField()
+    protected function insertUserField(): void
     {
         $uid = $this->nextId;
 
@@ -189,12 +225,15 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
     }
 
     /**
-     * update user data
+     * ユーザー本体を更新
      *
      * @return void
      */
-    function updateUser()
+    protected function updateUser(): void
     {
+        if ($this->csvId === null) {
+            return;
+        }
         $DB = DB::singleton(dsn());
         $uid = $this->csvId;
         $SQL = SQL::newUpdate('user');
@@ -208,12 +247,15 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
     }
 
     /**
-     * update user field
+     * ユーザーフィールドを更新
      *
      * @return void
      */
-    function updateUserField()
+    protected function updateUserField(): void
     {
+        if ($this->csvId === null) {
+            return;
+        }
         $uid = $this->csvId;
 
         if (!empty($this->fields)) {
@@ -246,9 +288,11 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
     /**
      * ユーザーデータの組み立て
      *
-     * @return void;
+     * CSVデータからユーザーとフィールドのデータを組み立てる
+     *
+     * @return void
      */
-    function build()
+    protected function build(): void
     {
         $this->user = $this->userBase();
         $field = $this->fieldBase();
@@ -282,9 +326,9 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
     /**
      * 次発行されるユーザーのソート番号を取得
      *
-     * @return int
+     * @return int ソート番号
      */
-    function nextSortId()
+    protected function nextSortId(): int
     {
         $DB = DB::singleton(dsn());
 
@@ -298,13 +342,13 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
     }
 
     /**
-     * ユーザーデータの組み立て
+     * ユーザーフィールドの組み立て
      *
-     * @param string $key
-     * @param string $value
+     * @param string $key フィールドキー
+     * @param string $value フィールド値
      * @return void
      */
-    function buildUser($key, $value)
+    protected function buildUser(string $key, string $value): void
     {
         switch ($key) {
             case 'user_updated_datetime':
@@ -343,12 +387,12 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
     /**
      * ユーザーフィールドの組み立て
      *
-     * @param array $field
-     * @param string $key
-     * @param string $value
+     * @param array<string, mixed> $field フィールドベースデータ
+     * @param string $key フィールドキー
+     * @param string $value フィールド値
      * @return void
      */
-    function buildField($field, $key, $value)
+    protected function buildField(array $field, string $key, string $value): void
     {
         $sort = 1;
         if (preg_match('@\[\d+\]$@', $key, $matchs)) {
@@ -371,11 +415,11 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
     }
 
     /**
-     * ユーザーデータのベースを取得
+     * ユーザーベースデータを取得
      *
-     * @return array
+     * @return array<string, mixed> ユーザーベースデータ
      */
-    function userBase()
+    protected function userBase(): array
     {
         $base = [
             'user_id'               => $this->nextId,
@@ -410,11 +454,11 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
     }
 
     /**
-     * ユーザーフィールドのベースを取得
+     * フィールドベースデータを取得
      *
-     * @return array
+     * @return array<string, mixed> フィールドベースデータ
      */
-    function fieldBase()
+    protected function fieldBase(): array
     {
         return [
             'field_key'     => null,

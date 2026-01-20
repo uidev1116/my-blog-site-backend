@@ -30,9 +30,13 @@ class ACMS_POST_Media_UpdateAsNew extends ACMS_POST_Media_Update
             if (isset($_FILES[$this->uploadFieldName])) {
                 // ファイルアップロードがある場合（メディアを変更機能 or メディア画像編集機能利用時）
                 $name = $Media->get('file_name');
+                $validation = Media::validateFileName($name);
+                if (!$validation['valid']) {
+                    throw new \RuntimeException($validation['error']);
+                }
                 Common::validateFileUpload($this->uploadFieldName);
 
-                $info = Media::getBaseInfo($_FILES[$this->uploadFieldName], $tags, $name);
+                $info = Media::getBaseInfo($_FILES[$this->uploadFieldName], $tags);
                 $replaced = $Media->get('replaced') === 'true';
                 $type = mime_content_type($_FILES[$this->uploadFieldName]['tmp_name']);
 
@@ -50,6 +54,10 @@ class ACMS_POST_Media_UpdateAsNew extends ACMS_POST_Media_Update
                 $data['upload_date'] = $oldData['upload_date'];
             } else {
                 $filename = $Media->get('file_name');
+                $validation = Media::validateFileName($filename);
+                if (!$validation['valid']) {
+                    throw new \RuntimeException($validation['error']);
+                }
                 if (in_array($oldData['type'], ['file', 'svg'], true)) {
                     $data = array_merge($oldData, Media::copyFiles($mid, $filename));
                 } else {

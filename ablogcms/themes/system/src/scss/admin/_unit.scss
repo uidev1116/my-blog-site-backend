@@ -3,6 +3,15 @@
 /* ------------------------------
  ユニット（Ver.3.2~）
 ------------------------------- */
+
+.acms-unit-editor {
+  --acms-unit-editor-offset: 0px;
+}
+
+.entry_editor .acms-unit-editor {
+  --acms-unit-editor-offset: 36px;
+}
+
 .acms-unit {
   --acms-unit-editor-unit-gap: 0px;
 }

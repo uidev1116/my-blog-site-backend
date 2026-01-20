@@ -1,16 +1,276 @@
 <div id="js-entry-admin"></div>
 
 @section("entry-index-custom")
-<!-- <script>
-  ACMS.Ready(function() {
-    ACMS.Config.entryAdminConfig = {
-      ...ACMS.Config.entryAdminConfig,
-      // カスタマイズしたい設定を記述
-    }
-    // 1ページあたりの表示件数の選択肢をカスタマイズ
-    ACMS.Config.limitOptions = [10, 20, 50, 100, 200, 500, 1000];
-    // デフォルトの表示件数をカスタマイズ
-    ACMS.Config.defaultLimit = 500;
-  });
-</script> -->
+<script>
+  // ACMS.Ready(function() {
+  //   ACMS.Config.entryAdminConfig = {
+  //     ...ACMS.Config.entryAdminConfig,
+
+  //     // =========================================
+  //     // getColumns: 表示カラムのカスタマイズ
+  //     // =========================================
+  //     getColumns: function (columns) {
+  //       // 例1: 特定のカラムを非表示にする
+  //       return columns.filter(function (column) {
+  //         return column.id !== 'code'; // コードカラムを非表示
+  //       });
+
+  //       // 例2: カラムの順序を変更する
+  //       const sortColumn = columns.find(function (c) { return c.id === 'sort'; });
+  //       const otherColumns = columns.filter(function (c) { return c.id !== 'sort'; });
+  //       return [sortColumn, ...otherColumns]; // sortカラムを最初に移動
+
+  //       // 例3: カスタムカラムを追加する
+  //       return [
+  //         ...columns,
+  //         {
+  //           id: 'custom-column',
+  //           label: 'カスタム',
+  //           type: 'text',
+  //           accessorKey: 'customField',
+  //           enableSorting: false,
+  //           enableHiding: true,
+  //         },
+  //       ];
+
+  //       return columns;
+  //     },
+
+  //     // =========================================
+  //     // getValues: カスタムカラムの値取得関数のカスタマイズ
+  //     // =========================================
+  //     getValues: function (getValues) {
+  //       return {
+  //         ...getValues,
+  //         // 例1: text型のカラムの表示をカスタマイズ
+  //         text: function (info) {
+  //           const value = info.getValue();
+  //           // 文字数制限を追加
+  //           if (typeof value === 'string' && value.length > 50) {
+  //             return value.substring(0, 50) + '...';
+  //           }
+  //           return value;
+  //         },
+  //         // 例2: datetime型のカラムの表示をカスタマイズ
+  //         datetime: function (info) {
+  //           const value = info.getValue();
+  //           if (!value) return '';
+  //           const date = new Date(value);
+  //           return date.toLocaleDateString('ja-JP', {
+  //             year: 'numeric',
+  //             month: '2-digit',
+  //             day: '2-digit',
+  //             hour: '2-digit',
+  //             minute: '2-digit'
+  //           });
+  //         },
+  //       };
+  //     },
+
+  //     // =========================================
+  //     // getValuesOptions: カラム値のフォーマット関数
+  //     // =========================================
+  //     getValuesOptions: {
+  //       // text型のフォーマット
+  //       formatText: function (value) {
+  //         return value ? value.toUpperCase() : ''; // 大文字に変換
+  //       },
+  //       // textarea型のフォーマット
+  //       formatTextarea: function (value) {
+  //         return value ? value.replace(/\n/g, '<br>') : ''; // 改行をbrタグに変換
+  //       },
+  //       // number型のフォーマット
+  //       formatNumber: function (value) {
+  //         return value ? value.toLocaleString('ja-JP') : '0'; // 3桁区切り
+  //       },
+  //       // date型のフォーマット
+  //       formatDate: function (value) {
+  //         if (!value) return '';
+  //         const date = new Date(value);
+  //         return date.toLocaleDateString('ja-JP');
+  //       },
+  //       // ファイル名のフォーマット
+  //       formatFileName: function (value) {
+  //         return value ? value.substring(0, 20) + '...' : '';
+  //       },
+  //     },
+
+  //     // =========================================
+  //     // getActions: 各行のアクションのカスタマイズ
+  //     // =========================================
+  //     getActions: function (actions, context) {
+  //       // 例1: 既存のアクションを削除
+  //       const filteredActions = actions.filter(function (action) {
+  //         return action.id !== 'duplicate'; // 複製アクションを削除
+  //       });
+
+  //       // 例2: カスタムアクションを追加
+  //       return [
+  //         ...actions,
+  //         {
+  //           id: 'custom-action',
+  //           label: 'カスタム処理',
+  //           onAction: function (data) {
+  //             console.log('カスタムアクション実行:', data);
+  //             // APIを呼び出す例
+  //             // fetch('/api/custom-action', {
+  //             //   method: 'POST',
+  //             //   body: JSON.stringify({ entryId: data.id }),
+  //             // }).then(function () {
+  //             //   context.invalidate(); // データを再取得
+  //             // });
+  //           },
+  //           type: 'secondary',
+  //           condition: function (data) {
+  //             return data.status === 'open'; // 公開中のエントリーのみ表示
+  //           },
+  //         },
+  //         // 例3: リンクアクションを追加
+  //         {
+  //           id: 'preview',
+  //           label: 'プレビュー',
+  //           getHref: function (data) {
+  //             return data.url; // エントリーのURLにリンク
+  //           },
+  //           linkProps: {
+  //             target: '_blank',
+  //           },
+  //         },
+  //       ];
+
+  //       return actions;
+  //     },
+
+  //     // =========================================
+  //     // getBulkActions: 一括操作のカスタマイズ
+  //     // =========================================
+  //     getBulkActions: function (bulkActions, context) {
+  //       // 例1: 既存の一括操作を削除
+  //       const filteredActions = bulkActions.filter(function (action) {
+  //         return action.id !== 'trash'; // ゴミ箱への移動を削除
+  //       });
+
+  //       // 例2: カスタム一括操作を追加
+  //       return [
+  //         ...bulkActions,
+  //         {
+  //           id: 'custom-bulk-action',
+  //           label: 'カスタム一括処理',
+  //           onAction: async function (formData, selectedData) {
+  //             console.log('選択されたエントリー:', selectedData);
+  //             // FormDataから選択されたエントリーIDを取得
+  //             const checks = formData.getAll('checks[]');
+  //             console.log('選択されたID:', checks);
+
+  //             // APIを呼び出す例
+  //             // await fetch('/api/bulk-custom-action', {
+  //             //   method: 'POST',
+  //             //   body: formData,
+  //             // });
+  //             // context.invalidate(); // データを再取得
+  //           },
+  //           renderForm: function (selectedData) {
+  //             return ACMS.Library.React.createElement(
+  //               'button',
+  //               {
+  //                 type: 'submit',
+  //                 name: 'ACMS_POST_Custom_BulkAction',
+  //                 className: 'acms-admin-btn-admin acms-admin-btn-admin-primary',
+  //               },
+  //               '実行'
+  //             );
+  //           },
+  //           condition: function (selectedData) {
+  //             return selectedData.length > 0; // 選択されている場合のみ表示
+  //           },
+  //         },
+  //       ];
+
+  //       return bulkActions;
+  //     },
+
+  //     // =========================================
+  //     // getMenus: ヘッダーメニューのカスタマイズ
+  //     // =========================================
+  //     getMenus: function (menus, context) {
+  //       // 例1: カスタムボタンを追加
+  //       return [
+  //         ...menus,
+  //         {
+  //           id: 'custom-button',
+  //           label: 'カスタムボタン',
+  //           onAction: function () {
+  //             alert('カスタムボタンがクリックされました');
+  //           },
+  //           buttonProps: {
+  //             className: 'acms-admin-btn',
+  //           },
+  //         },
+  //         // 例2: リンクメニューを追加
+  //         {
+  //           id: 'help-link',
+  //           label: 'ヘルプ',
+  //           getHref: function () {
+  //             return 'https://developer.a-blogcms.jp/';
+  //           },
+  //           linkProps: {
+  //             target: '_blank',
+  //             className: 'acms-admin-btn',
+  //           },
+  //         },
+  //         // 例3: ドロップダウンメニューを追加
+  //         {
+  //           id: 'custom-dropdown',
+  //           label: 'カスタムメニュー',
+  //           buttonProps: {
+  //             className: 'acms-admin-btn',
+  //           },
+  //           menus: [
+  //             {
+  //               id: 'custom-menu-1',
+  //               label: 'メニュー1',
+  //               onAction: function () {
+  //                 alert('メニュー1がクリックされました');
+  //               },
+  //             },
+  //             {
+  //               id: 'custom-menu-2',
+  //               label: 'メニュー2',
+  //               onAction: function () {
+  //                 alert('メニュー2がクリックされました');
+  //               },
+  //             },
+  //           ],
+  //         },
+  //         // 例4: 特定の条件下でのみ表示されるメニュー
+  //         {
+  //           id: 'admin-only-menu',
+  //           label: '管理者専用',
+  //           onAction: function () {
+  //             alert('管理者専用メニュー');
+  //           },
+  //           buttonProps: {
+  //             className: 'acms-admin-btn acms-admin-btn-danger',
+  //           },
+  //           condition: function () {
+  //             return ACMS.Config.auth === 'administrator';
+  //           },
+  //         },
+  //       ];
+
+  //       return menus;
+  //     },
+
+  //     // =========================================
+  //     // その他の設定
+  //     // =========================================
+
+  //     // リンク先URLの最大表示文字数
+  //     linkMaxLength: 50,
+  //   }
+
+  //   // 1ページあたりの表示件数の選択肢をカスタマイズ
+  //   ACMS.Config.limitOptions = [10, 20, 50, 100, 200, 500, 1000];
+  // });
+</script>
 @endsection

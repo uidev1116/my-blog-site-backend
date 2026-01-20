@@ -109,6 +109,55 @@ export const findParentUnit = (editor: Editor, id: UnitTreeNode['id']): UnitTree
 };
 
 /**
+ * グループユニットの階層レベルを計算する
+ * @param editor エディタインスタンス
+ * @param id ユニットID
+ * @returns 階層レベル（1から開始）
+ */
+export const getGroupUnitLevel = (editor: Editor, id: UnitTreeNode['id']): number => {
+  let level = 1;
+  let currentId: string | null = id;
+
+  while (currentId) {
+    const parent = findParentUnit(editor, currentId);
+    if (!parent) break;
+    if (parent.type === 'group') {
+      level++;
+    }
+    currentId = parent.id;
+  }
+
+  return level;
+};
+
+/**
+ * 全グループユニットの最大depthを計算する
+ * @param editor エディタインスタンス
+ * @returns 最大depth（0始まり、グループユニットが存在しない場合は0）
+ */
+export const getMaxGroupUnitDepth = (editor: Editor): number => {
+  const flattenRecursive = (units: UnitTree): UnitTreeNode[] => {
+    return units.reduce((acc, unit) => {
+      return [...acc, unit, ...flattenRecursive(unit.children ?? [])];
+    }, [] as UnitTreeNode[]);
+  };
+
+  const allUnits = flattenRecursive(editor.state.units);
+  const groupUnits = allUnits.filter((unit) => unit.type === 'group');
+
+  if (groupUnits.length === 0) {
+    return 0;
+  }
+
+  const depths = groupUnits.map((unit) => {
+    const level = getGroupUnitLevel(editor, unit.id);
+    return Math.max(level - 1, 0); // levelをdepthに変換（0始まり）
+  });
+
+  return Math.max(...depths);
+};
+
+/**
  * 最初のpositionのユニットかどうか判定する
  * @param editor エディタインスタンス
  * @param id 探すユニットのID

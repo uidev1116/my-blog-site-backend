@@ -191,6 +191,7 @@ class ACMS_GET_User_Search extends ACMS_GET
                 'i' => $i,
                 'id' => (int) $row['user_id'],
                 'code' => $row['user_code'] ?? null,
+                'status' => $row['user_status'] ?? null,
                 'name' => $row['user_name'] ?? null,
                 'mail' => $row['user_mail'] ?? null,
                 'mail_magaginze' => $row['user_mail_magazine'] ?? null,

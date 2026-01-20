@@ -1,12 +1,18 @@
 import { Editor } from '@tiptap/react';
 import { useCallback } from 'react';
+import { isCellSelection } from '@features/block-editor/extensions/Table/utils';
 import { ShouldShowProps } from '../../types';
 import { isCustomNodeSelected, isTextSelected } from '../../../../lib/utils';
 
 export const useTextmenuStates = (editor: Editor) => {
   const shouldShow = useCallback(
-    ({ view, from }: ShouldShowProps) => {
-      if (!view) {
+    ({ view, state, from }: ShouldShowProps) => {
+      if (!view || !state) {
+        return false;
+      }
+
+      // セル選択の場合は、テーブルメニューを優先するため非表示にする
+      if (isCellSelection(state.selection)) {
         return false;
       }
 

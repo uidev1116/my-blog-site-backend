@@ -1,27 +1,53 @@
 <?php
 
-class ACMS_POST_Import_Model extends ACMS_POST_Import
+/**
+ * CSVインポート用のモデル基底クラス
+ *
+ * エントリーやユーザーなどのCSVインポート処理の共通ロジックを提供する抽象クラス
+ */
+abstract class ACMS_POST_Import_Model extends ACMS_POST_Import
 {
-    protected $data;
-    protected $labels;
-    protected $csvId;
-    protected $nextId;
-    protected $isUpdate;
-    protected $idLabel;
+    /** @var array<string, string> CSVデータの連想配列（ラベル => 値） */
+    protected array $data = [];
 
-    function __construct($csv, $labels)
+    /** @var array<int, string> CSVのラベル（カラム名）配列 */
+    protected array $labels = [];
+
+    /** @var int|null CSVから取得したID（更新時に使用） */
+    protected ?int $csvId = null;
+
+    /** @var int 次に発行されるID（新規作成時に使用） */
+    protected int $nextId = 0;
+
+    /** @var bool 更新フラグ（true: 更新, false: 新規作成） */
+    protected bool $isUpdate = false;
+
+    /** @var string IDラベル名（サブクラスで設定、例: 'entry_id', 'user_id'） */
+    protected string $idLabel = '';
+
+    /**
+     * コンストラクタ
+     *
+     * CSVデータとラベルを受け取り、データを初期化する
+     *
+     * @param array<int, string> $csv CSV行データ
+     * @param array<int, string> $labels CSVラベル配列
+     * @throws RuntimeException CSV項目が足りない場合
+     */
+    public function __construct(array $csv, array $labels)
     {
         $this->isUpdate = false;
         $this->labels = $labels;
+        $data = $this->normalize($csv);
 
         foreach ($labels as $i => $label) {
-            if (!isset($csv[$i])) {
+            if (!isset($data[$i])) {
                 throw new RuntimeException('CSVの項目が足りません。');
             }
-            if ($label === $this->idLabel) {
-                $this->csvId = $csv[$i];
+            if ($label === $this->idLabel && $data[$i] !== '' && is_numeric($data[$i])) {
+                $this->csvId = intval($data[$i]);
             }
-            $this->data[$label] = $csv[$i];
+            $this->data[$label] = $data[$i];
         }
 
         if ($this->exist()) {
@@ -33,21 +59,59 @@ class ACMS_POST_Import_Model extends ACMS_POST_Import
         $this->validate();
     }
 
-    function exist()
-    {
-        if (empty($this->csvId)) {
-            return false;
-        }
+    /**
+     * 存在チェック
+     *
+     * CSVから取得したIDが存在し、更新可能な状態かを確認する
+     *
+     * @return bool 存在し更新可能な場合true
+     */
+    abstract protected function exist(): bool;
 
-        return !!ACMS_RAM::entryCode($this->csvId) && ACMS_RAM::entryStatus($this->csvId) !== 'trash';
-    }
+    /**
+     * 次発行されるIDを設定
+     *
+     * 新規作成時に使用するIDを設定する
+     *
+     * @return void
+     */
+    abstract protected function nextId(): void;
 
-    function nextId()
-    {
-        $this->nextId = 0;
-    }
+    /**
+     * データの組み立て
+     *
+     * CSVデータから実際のデータ構造を組み立てる
+     *
+     * @return void
+     */
+    abstract protected function build(): void;
 
-    function save($line = false)
+    /**
+     * データの挿入
+     *
+     * 新規データをデータベースに挿入する
+     *
+     * @return void
+     */
+    abstract protected function insert(): void;
+
+    /**
+     * データの更新
+     *
+     * 既存データをデータベースで更新する
+     *
+     * @return void
+     */
+    abstract protected function update(): void;
+
+    /**
+     * 保存処理
+     *
+     * データを組み立て、更新または挿入を実行する
+     *
+     * @return void
+     */
+    public function save(): void
     {
         $this->build();
 
@@ -58,19 +122,34 @@ class ACMS_POST_Import_Model extends ACMS_POST_Import
         }
     }
 
-    function validate()
+    /**
+     * バリデーション
+     *
+     * サブクラスでオーバーライドして実装可能
+     *
+     * @return void
+     */
+    protected function validate(): void
     {
     }
 
-    function build()
+    /**
+     * データの正規化
+     *
+     * データを正規化する
+     *
+     * @param array<int, string> $data データ
+     * @return array<int, string> 正規化されたデータ
+     */
+    private function normalize(array $data): array
     {
-    }
-
-    function insert()
-    {
-    }
-
-    function update()
-    {
+        $normalized = array_map(function ($value) {
+            $newValue = preg_replace('/^str-data\_/', '', $value);
+            if ($newValue !== null) {
+                return $newValue;
+            }
+            return $value;
+        }, $data);
+        return $normalized;
     }
 }

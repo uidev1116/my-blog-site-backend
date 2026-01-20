@@ -60,6 +60,7 @@ class ACMS_POST_Form_Duplicate extends ACMS_POST_Form
         $base['form_id'] = $newId;
         $base['form_code'] .= config('form_code_duplicate_suffix') . $newId;
         $base['form_name'] .= config('form_name_duplicate_suffix');
+        $base['form_current_serial'] = 0;
 
         $sql = SQL::newInsert('form');
         foreach ($base as $key => $val) {

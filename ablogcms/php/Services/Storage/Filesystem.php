@@ -5,9 +5,7 @@ namespace Acms\Services\Storage;
 use Acms\Services\Storage\Contracts\Filesystem as FilesystemInterface;
 use Acms\Services\Storage\Contracts\Base;
 use Acms\Services\Facades\Logger;
-use Alchemy\Zippy\Adapter\ZipExtensionAdapter;
 use Symfony\Component\Filesystem\Path;
-use Acms\Services\Facades\Cache;
 use DirectoryIterator;
 use RuntimeException;
 
@@ -255,7 +253,7 @@ class Filesystem extends Base implements FilesystemInterface
      */
     public function validateDirectoryTraversal(string $baseDir, string $fileName): string
     {
-        $fileName = basename($fileName);
+        $fileName = $this->mbBasename($fileName);
         $realBaseDir = $this->safeRealpath($baseDir);
 
         if ($realBaseDir === false) {
@@ -308,7 +306,7 @@ class Filesystem extends Base implements FilesystemInterface
         }
 
         $absolutePath = Path::makeAbsolute($path, SCRIPT_DIR);
-        $fileName = basename($path);
+        $fileName = $this->mbBasename($path);
 
         if ($absolutePath === false) {
             return false;
@@ -583,16 +581,117 @@ class Filesystem extends Base implements FilesystemInterface
         $source = $this->convertStrToLocal($source);
         $destination = $this->convertStrToLocal($destination);
         $root = $this->convertStrToLocal($root);
-        $zippy = ZipExtensionAdapter::newInstance();
 
-        if ($root) {
-            $list = [$root => $source];
-        } else {
-            $list = [basename($destination, '.zip') => $source];
+        if (!$this->exists($source)) {
+            throw new RuntimeException(sprintf('Source path does not exist: %s', $source));
         }
-        $archive = $zippy->create($destination, $list, true);
-        foreach ($exclude as $path) {
-            $archive->removeMembers($path);
+
+        $zip = new \ZipArchive();
+
+        // 既存ファイルがあれば追記、なければ新規作成
+        // ZipArchive::CREATEのみを使用することで、既存ファイルへの追記が可能
+        $mode = \ZipArchive::CREATE;
+
+        $result = $zip->open($destination, $mode);
+        if ($result !== true) {
+            throw new RuntimeException(sprintf('Failed to open ZIP archive: %s (error code: %d)', $destination, $result));
+        }
+
+        try {
+            // ZIP内のルートディレクトリ名を決定
+            $zipRoot = $root !== '' ? $root : $this->mbBasename($destination, '.zip');
+
+            // ソースがディレクトリの場合
+            if ($this->isDirectory($source)) {
+                $sourcePath = $this->safeRealpath($source);
+                if ($sourcePath === false) {
+                    throw new RuntimeException(sprintf('Failed to resolve source path: %s', $source));
+                }
+
+                $iterator = new \RecursiveIteratorIterator(
+                    new \RecursiveDirectoryIterator($sourcePath, \RecursiveDirectoryIterator::SKIP_DOTS),
+                    \RecursiveIteratorIterator::SELF_FIRST
+                );
+
+                foreach ($iterator as $item) {
+                    $filePath = $item->getRealPath();
+                    if ($filePath === false) {
+                        continue;
+                    }
+
+                    // 除外パスのチェック（前方一致のみ）
+                    $relativePath = str_replace($sourcePath . DIRECTORY_SEPARATOR, '', $filePath);
+                    $normalizedRelativePath = str_replace('\\', '/', $relativePath);
+                    // PHPStan: str_replaceの戻り値が配列型と推論されないように明示的に文字列型を保証
+                    assert(is_string($normalizedRelativePath));
+                    $shouldExclude = false;
+                    foreach ($exclude as $excludePath) {
+                        if (!is_string($excludePath)) {
+                            continue;
+                        }
+                        $normalizedExcludePath = str_replace('\\', '/', $excludePath);
+                        // 前方一致でチェック（部分一致を避ける）
+                        if (strpos($normalizedRelativePath, $normalizedExcludePath) === 0) {
+                            $shouldExclude = true;
+                            break;
+                        }
+                    }
+                    if ($shouldExclude) {
+                        continue;
+                    }
+
+                    // ZIP内のパスを構築
+                    $zipPath = $zipRoot . '/' . str_replace($sourcePath . DIRECTORY_SEPARATOR, '', $filePath);
+                    $zipPath = str_replace('\\', '/', $zipPath);
+
+                    if ($item->isDir()) {
+                        // ディレクトリの場合は空のエントリを追加
+                        if ($zipPath !== $zipRoot . '/') {
+                            $zip->addEmptyDir($zipPath);
+                        }
+                    } else {
+                        // ファイルを追加
+                        if ($zip->addFile($filePath, $zipPath) === false) {
+                            throw new RuntimeException(sprintf('Failed to add file to ZIP: %s', $filePath));
+                        }
+                    }
+                }
+            } else {
+                // ソースがファイルの場合
+                $filePath = $this->safeRealpath($source);
+                if ($filePath === false) {
+                    throw new RuntimeException(sprintf('Failed to resolve source file: %s', $source));
+                }
+
+                // 除外パスのチェック（前方一致）
+                $shouldExclude = false;
+                $normalizedFilePath = str_replace('\\', '/', $filePath);
+                foreach ($exclude as $excludePath) {
+                    if (!is_string($excludePath)) {
+                        continue;
+                    }
+                    $normalizedExcludePath = str_replace('\\', '/', $excludePath);
+                    if (strpos($normalizedFilePath, $normalizedExcludePath) === 0) {
+                        $shouldExclude = true;
+                        break;
+                    }
+                }
+                if (!$shouldExclude) {
+                    $zipPath = $zipRoot . '/' . $this->mbBasename($filePath);
+                    if ($zip->addFile($filePath, $zipPath) === false) {
+                        throw new RuntimeException(sprintf('Failed to add file to ZIP: %s', $filePath));
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // エラー発生時はZIPファイルをクローズしてから例外を再スロー
+            $zip->close();
+            throw $e;
+        }
+
+        // ZIPファイルをクローズ
+        if ($zip->close() === false) {
+            throw new RuntimeException(sprintf('Failed to close ZIP archive: %s', $destination));
         }
     }
 
@@ -607,9 +706,35 @@ class Filesystem extends Base implements FilesystemInterface
     {
         $source = $this->convertStrToLocal($source);
         $destination = $this->convertStrToLocal($destination);
-        $zippy = ZipExtensionAdapter::newInstance();
-        $archive = $zippy->open($source);
-        $archive->extract($destination);
+
+        if (!$this->exists($source)) {
+            throw new RuntimeException(sprintf('ZIP file does not exist: %s', $source));
+        }
+
+        if (!$this->isReadable($source)) {
+            throw new RuntimeException(sprintf('ZIP file is not readable: %s', $source));
+        }
+
+        // 解凍先ディレクトリが存在しない場合は作成
+        if (!$this->isDirectory($destination)) {
+            if (!$this->makeDirectory($destination)) {
+                throw new RuntimeException(sprintf('Failed to create destination directory: %s', $destination));
+            }
+        }
+
+        $zip = new \ZipArchive();
+        $result = $zip->open($source);
+        if ($result !== true) {
+            throw new RuntimeException(sprintf('Failed to open ZIP archive: %s (error code: %d)', $source, $result));
+        }
+
+        try {
+            if ($zip->extractTo($destination) === false) {
+                throw new RuntimeException(sprintf('Failed to extract ZIP archive to: %s', $destination));
+            }
+        } finally {
+            $zip->close();
+        }
     }
 
     /**

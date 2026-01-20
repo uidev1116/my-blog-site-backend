@@ -252,6 +252,6 @@ abstract class Api
      */
     protected function jsonValidate(string $json): bool
     {
-        return jsonValidate($json);
+        return json_validate($json);
     }
 }

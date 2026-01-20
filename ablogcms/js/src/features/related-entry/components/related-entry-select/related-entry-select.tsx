@@ -66,6 +66,7 @@ const RelatedEntrySelect = (
       isLoading={!!keyword && isLoading}
       onInputChange={handleInputChange}
       onChange={handleChange}
+      menuPortalTarget={document.body}
       {...props}
     />
   );

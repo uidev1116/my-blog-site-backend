@@ -69,14 +69,16 @@ class Import
         $this->ids = [];
         $this->yaml = $data;
 
-        $this->dropData();
         $this->registerNewIDs();
+        $this->dropData();
 
         $tables = [
             'category', 'entry', 'tag',
+            'entry_sub_category',
             'module', 'layout_grid',
             'rule', 'config', 'column', 'config_set',
             'dashboard', 'field', 'media', 'media_tag',
+            'geo',
         ];
         foreach ($tables as $table) {
             $this->insertData($table);
@@ -133,6 +135,16 @@ class Import
                 }
                 if ($value !== false) {
                     $SQL->addInsert($field, $value);
+                }
+            }
+            // geo テーブルの場合、geo_lat と geo_lng から geo_geometry を再構築
+            if ($table === 'geo') {
+                $lat = $record['geo_lat'] ?? null;
+                $lng = $record['geo_lng'] ?? null;
+                if ($lat !== null && $lng !== null) {
+                    $SQL->addInsert('geo_geometry', SQL::newGeometry($lat, $lng));
+                } else {
+                    continue; // 位置情報がない場合はスキップ
                 }
             }
             try {
@@ -437,6 +449,51 @@ class Import
     }
 
     /**
+     * This method is called dynamically via call_user_func_array().
+     *
+     * @param string $field
+     * @param string|null $value
+     * @param array $record
+     *
+     * @return mixed
+     * @phpstan-ignore-next-line
+     */
+    private function entry_sub_categoryFix($field, $value, $record)
+    {
+        if (!is_null($value) && $field === 'entry_sub_category_eid') {
+            $value = $this->getNewID('entry', $value);
+        } elseif (!is_null($value) && $field === 'entry_sub_category_id') {
+            $value = $this->getNewID('category', $value);
+        }
+        return $value;
+    }
+
+    /**
+     * This method is called dynamically via call_user_func_array().
+     *
+     * @param string $field
+     * @param string|null $value
+     * @param array $record
+     *
+     * @return mixed
+     * @phpstan-ignore-next-line
+     */
+    private function geoFix($field, $value, $record)
+    {
+        if (!is_null($value) && $field === 'geo_eid') {
+            $value = $this->getNewID('entry', $value);
+        } elseif (!is_null($value) && $field === 'geo_cid') {
+            $value = $this->getNewID('category', $value);
+        } elseif ($field === 'geo_lat' || $field === 'geo_lng') {
+            // geo_lat と geo_lng はエクスポート時に ST_X/ST_Y で抽出した値
+            // geo_geometry は insertData で再構築するため、ここではスキップ
+            $value = false;
+        }
+        // 注: geo_uid はブログエクスポートに含まれないため処理不要
+        return $value;
+    }
+
+    /**
      * @param string $table
      * @param int|string $id
      *
@@ -470,7 +527,7 @@ class Import
     private function registerNewIDs()
     {
         $tables = [
-            'category', 'column', 'alias',
+            'column', 'alias',
             'entry', 'fulltext', 'media',
             'module', 'rule', 'media', 'config_set',
         ];
@@ -478,6 +535,8 @@ class Import
         foreach ($tables as $table) {
             $this->registerNewID($table);
         }
+
+        $this->registerCategoryNewId();
     }
 
     /**
@@ -502,6 +561,96 @@ class Import
                 $this->ids[$table][$id] = uuidv4();
             } else {
                 $this->ids[$table][$id] = DB::query(SQL::nextval($table . '_id', dsn()), 'seq');
+            }
+        }
+    }
+
+    /**
+     * カテゴリーの新しいIDをマッピング
+     *
+     * インポートするカテゴリーデータのIDを、既存のカテゴリーIDにマッピングする。
+     * 同じカテゴリーコードが異なる親カテゴリーに存在する可能性があるため、
+     * カテゴリーコードと親カテゴリーIDの組み合わせで既存カテゴリーを検索する。
+     *
+     * 処理の流れ:
+     * 1. YAMLデータからカテゴリーコードを収集
+     * 2. 既存のカテゴリーをDBから検索（現在のブログ、グローバルスコープ、親ブログが対象）
+     * 3. 既存カテゴリーを「カテゴリーコード:親ID」の形式でテーブル化
+     * 4. YAMLのカテゴリーを親ID順にソート（親が先に処理されるようにする）
+     * 5. 各カテゴリーについて、親IDをマッピング後のIDに変換し、既存カテゴリーとマッチング
+     *
+     * @return void
+     */
+    private function registerCategoryNewId()
+    {
+        if (!$this->existsYaml('category')) {
+            return;
+        }
+
+        // ステップ1: YAMLデータからカテゴリーコードを収集
+        $codeArray = [];
+        foreach ($this->yaml['category'] as $record) {
+            $codeArray[] = $record['category_code'];
+        }
+        $codeArray = array_unique($codeArray);
+
+        // ステップ2: 既存のカテゴリーをDBから検索
+        // 検索対象: 現在のブログ
+        $sql = SQL::newSelect('category');
+        $sql->addWhereOpr('category_blog_id', $this->bid);
+        $sql->addWhereIn('category_code', $codeArray);
+        $q = $sql->get(dsn());
+        $statement = DB::query($q, 'exec');
+
+        // ステップ3: 既存カテゴリーを「カテゴリーコード:親ID」の形式でテーブル化
+        // 例: "news:0" => 100, "news:50" => 200（同じコードでも親が違えば別エントリー）
+        $categoryTable = [];
+        while ($row = DB::next($statement)) {
+            $code = $row['category_code'];
+            $parent = intval($row['category_parent']);
+            // コードと親IDの組み合わせをキーにすることで、親が異なる同一コードを区別
+            $key = $code . ':' . $parent;
+            $categoryTable[$key] = $row['category_id'];
+        }
+
+        // ステップ4: YAMLのカテゴリーを親ID順にソート
+        // 親が先に処理されることで、子カテゴリーの処理時に親のマッピングが完了している
+        $categories = $this->yaml['category'];
+        usort($categories, function ($a, $b) {
+            $parentA = intval($a['category_parent']);
+            $parentB = intval($b['category_parent']);
+            return $parentA <=> $parentB;
+        });
+
+        // ステップ5: 各カテゴリーのIDマッピング
+        foreach ($categories as $record) {
+            $id = $record['category_id'];
+            $code = $record['category_code'];
+            $oldParentId = intval($record['category_parent']);
+
+            // 親IDを新しいIDにマッピング
+            // 例: YAMLの親ID=10が既存のID=100にマッピング済みの場合、$newParentId=100
+            $newParentId = 0;
+            if ($oldParentId > 0 && isset($this->ids['category'][$oldParentId])) {
+                // 親が既にマッピング済み → マッピング後のIDを使用
+                $newParentId = $this->ids['category'][$oldParentId];
+            } elseif ($oldParentId > 0) {
+                // 親カテゴリーがYAMLデータに含まれていない、または循環参照などの異常な状態。
+                // データ不整合を避けるため、ルートカテゴリー（parent=0）として扱う。
+                // 通常、親IDでソートしているためこの分岐には到達しない。
+                $newParentId = 0;
+            }
+
+            // カテゴリーコードとマッピング後の親IDでキーを作成し、既存カテゴリーを検索
+            // 例: "news:100" → 既存のカテゴリーID=200
+            $key = $code . ':' . $newParentId;
+
+            if (isset($categoryTable[$key])) {
+                // 既存カテゴリーが見つかった → そのIDを使用（新規作成しない）
+                $this->ids['category'][$id] = $categoryTable[$key];
+            } else {
+                // 既存カテゴリーが見つからない → 新規作成されるIDを使用
+                $this->ids['category'][$id] = DB::query(SQL::nextval('category_id', dsn()), 'seq');
             }
         }
     }
@@ -534,10 +683,12 @@ class Import
     {
         $tables = [
             'category', 'entry', 'column', 'tag',
+            'entry_sub_category',
             'fulltext', 'field', 'media', 'media_tag',
             'approval', 'cache_reserve', 'column_rev', 'entry_rev',
             'field_rev', 'tag_rev',
             'dashboard', 'module', 'layout_grid', 'rule', 'config', 'config_set',
+            'geo',
         ];
 
         foreach ($tables as $table) {

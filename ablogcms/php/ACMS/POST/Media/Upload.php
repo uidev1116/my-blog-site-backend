@@ -15,13 +15,14 @@ class ACMS_POST_Media_Upload extends ACMS_POST
                 throw new \RuntimeException('メディア機能が有効でないか、権限がありません');
             }
             $tags = $this->Post->get('tags');
-            $name = $this->Post->get('name');
             Common::validateFileUpload('file');
 
-            $info = Media::getBaseInfo($_FILES['file'], $tags, $name);
-            if ($info === false) {
-                throw new \RuntimeException('アップロードファイルの情報が取得できませんでした');
+            $validation = Media::validateFileName($_FILES['file']['name']);
+            if (!$validation['valid']) {
+                throw new \RuntimeException($validation['error']);
             }
+
+            $info = Media::getBaseInfo($_FILES['file'], $tags);
             $type = mime_content_type($_FILES['file']['tmp_name']);
             if (Media::isImageFile($type)) {
                 $data = Media::uploadImage('file');

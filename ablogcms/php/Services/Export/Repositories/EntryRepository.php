@@ -188,6 +188,7 @@ class EntryRepository
     protected function getUnitTemplate(string $templatePath): string
     {
         $acmsTplEngine = Application::make('template.acms');
+        assert($acmsTplEngine instanceof \Acms\Services\Template\Acms);
         $acmsTplEngine->load($templatePath, config('theme'), BID);
         return $acmsTplEngine->render();
     }

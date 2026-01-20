@@ -111,7 +111,8 @@
                   "defaultValue": "{category_id}",
                   "narrowDown": "true",
                   "isCreatable": "{category_creatable}",
-                  "inputId": "entry-category"
+                  "inputId": "entry-category",
+                  "menuPortalTarget": "body"
                 })
               </div>
               <input
@@ -142,6 +143,7 @@
                 "defaultLabel": "{sub_category_label}",
                 "categoryId": "#entry-category-value",
                 "inputId": "entry-sub-category",
+                "menuPortalTarget": "body",
                 "limit": "true"
               })
               <input id="entry-sub-category-value" type="hidden" name="sub_category_id" value="{sub_category_id}">
@@ -169,7 +171,8 @@
               @include("/admin/include/tag/select.html", {
                 "target": "#entry-tag-value",
                 "defaultValue": "{tag}",
-                "inputId": "entry-tag"
+                "inputId": "entry-tag",
+                "menuPortalTarget": "body"
               })
               <input id="entry-tag-value" type="hidden" name="tag" value="{tag}">
               <input type="hidden" name="entry[]" value="tag">

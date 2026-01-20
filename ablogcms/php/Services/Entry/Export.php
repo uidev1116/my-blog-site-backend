@@ -75,6 +75,7 @@ class Export extends ExportBase
             'media',
             'media_tag',
             'module',
+            'geo',
         ]);
         $dsn = dsn();
         $this->prefix = $dsn['prefix'];
@@ -312,6 +313,25 @@ class Export extends ExportBase
     protected function getQueryMedia_tag($sql)
     {
         $sql->addWhereIn('media_tag_media_id', $this->targetMediaIds);
+
+        return $sql;
+    }
+
+    /**
+     * @param \SQL_Select $sql
+     * @return \SQL_Select
+     */
+    protected function getQueryGeo($sql)
+    {
+        $sql->addSelect('geo_eid');
+        $sql->addSelect('geo_bid');
+        $sql->addSelect('geo_uid');
+        $sql->addSelect('geo_cid');
+        $sql->addSelect('geo_zoom');
+        $sql->addSelect('geo_blog_id');
+        $sql->addSelect('geo_geometry', 'geo_lng', null, 'ST_X');
+        $sql->addSelect('geo_geometry', 'geo_lat', null, 'ST_Y');
+        $sql->addWhereIn('geo_eid', $this->targetEntryIds);
 
         return $sql;
     }

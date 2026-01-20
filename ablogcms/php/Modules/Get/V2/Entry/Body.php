@@ -352,6 +352,7 @@ class Body extends Base
     protected function getUnitTemplate(): string
     {
         $acmsTplEngine = Application::make('template.acms');
+        assert($acmsTplEngine instanceof \Acms\Services\Template\Acms);
         $acmsTplEngine->load('/include/unit.html', config('theme'), BID);
         return $acmsTplEngine->getTemplate();
     }

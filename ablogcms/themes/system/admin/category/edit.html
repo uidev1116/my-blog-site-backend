@@ -390,7 +390,8 @@
             <div class="acms-admin-form-width-large">
               @include("/admin/include/category/select.html", {
                 "target": "#parent-category-value",
-                "defaultValue": "<!-- BEGIN_IF [{parent}/isset] -->{parent}<!-- ELSE -->0<!-- END_IF -->"
+                "defaultValue": "<!-- BEGIN_IF [{parent}/isset] -->{parent}<!-- ELSE -->0<!-- END_IF -->",
+                "menuPortalTarget": "body"
               })
             </div>
             <input id="parent-category-value" type="hidden" name="parent" value="<!-- BEGIN_IF [{parent}/isset] -->{parent}<!-- ELSE -->0<!-- END_IF -->">

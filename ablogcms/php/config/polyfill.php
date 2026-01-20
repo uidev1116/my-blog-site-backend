@@ -219,3 +219,24 @@ if (!function_exists('array_find_key')) {
         return null;
     }
 }
+
+// polyfill for PHP < 8.3
+if (!function_exists('json_validate')) {
+    /**
+     * Polyfill of PHP 8.3 json_validate()
+     * Signature: json_validate(string $json, int $depth = 512, int $flags = 0): bool
+     */
+    function json_validate(string $json, int $depth = 512, int $flags = 0): bool
+    {
+        // json_decode の depth は 1 以上が必須（PHPStan対策）
+        $depth = max(1, $depth);
+        // 本家 json_validate は例外を投げない（JSON_THROW_ON_ERROR が来ても false で返す）
+        if (defined('JSON_THROW_ON_ERROR')) {
+            $flags &= ~JSON_THROW_ON_ERROR;
+        }
+        // パースだけさせる（結果は捨てる）
+        json_decode($json, false, $depth, $flags);
+
+        return json_last_error() === JSON_ERROR_NONE;
+    }
+}

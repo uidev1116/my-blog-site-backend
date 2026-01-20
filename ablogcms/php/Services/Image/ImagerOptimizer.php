@@ -4,13 +4,13 @@ namespace Acms\Services\Image;
 
 use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Facades\PublicStorage;
-use ImageOptimizer\OptimizerFactory;
-use ImageOptimizer\Optimizer;
+use Spatie\ImageOptimizer\OptimizerChainFactory;
+use Spatie\ImageOptimizer\OptimizerChain;
 
 class ImagerOptimizer
 {
     /**
-     * @var Optimizer
+     * @var OptimizerChain
      */
     private $optimizer;
 
@@ -19,8 +19,7 @@ class ImagerOptimizer
      */
     public function __construct()
     {
-        $factory = new OptimizerFactory(['ignore_errors' => false]);
-        $this->optimizer = $factory->get();
+        $this->optimizer = OptimizerChainFactory::create();
     }
 
     /**
@@ -54,17 +53,20 @@ class ImagerOptimizer
                 $test = ARCHIVES_DIR . uniqueString() . '.' . $ext;
                 if ($content = PublicStorage::get($path)) {
                     LocalStorage::put($test, $content);
+                    $before = LocalStorage::getFileSize($test);
                     $this->optimizer->optimize($test);
-                    $size = LocalStorage::getFileSize($test);
+                    $after = LocalStorage::getFileSize($test);
                     LocalStorage::remove($test);
-                    if (empty($size)) {
+                    if ($after >= $before) {
                         return false;
                     }
                     return true;
                 }
             }
         } catch (\Exception $e) {
-            LocalStorage::remove($test);
+            if ($test) {
+                LocalStorage::remove($test);
+            }
         }
         return false;
     }

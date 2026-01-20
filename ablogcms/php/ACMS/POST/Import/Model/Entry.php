@@ -1,65 +1,137 @@
 <?php
 
+/**
+ * エントリーCSVインポート用モデルクラス
+ *
+ * エントリーのCSVインポート処理を実装するクラス
+ */
 class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
 {
     use \Acms\Traits\Unit\UnitModelTrait;
 
-    protected $entry;
-    protected $units;
-    protected $fields;
+    /** @var array<string, mixed> エントリーデータ */
+    protected array $entry = [];
+
+    /** @var array<int, array<string, mixed>> ユニットデータ配列 */
+    protected array $units = [];
+
+    /** @var array<int, array<string, mixed>> フィールドデータ配列 */
+    protected array $fields = [];
+
+    /** @var int インポート先ブログID */
     protected int $importBid = BID;
-    protected $subCategories = [];
-    protected $geoLat = 0;
-    protected $geoLng = 0;
-    protected $geoZoom = 11;
-    protected $tags = [];
-    protected $idLabel = 'entry_id';
+
+    /** @var array<int> サブカテゴリーID配列 */
+    protected array $subCategories = [];
+
+    /** @var float 緯度 */
+    protected float $geoLat = 0.0;
+
+    /** @var float 経度 */
+    protected float $geoLng = 0.0;
+
+    /** @var int 地図のズームレベル */
+    protected int $geoZoom = 11;
+
+    /** @var array<int, string> タグ配列 */
+    protected array $tags = [];
+
+    /** @var string IDラベル名 */
+    protected string $idLabel = 'entry_id';
 
     /**
-     * set target category id
+     * インポート先カテゴリーIDを設定
      *
-     * @param int|null $cid
+     * @param int|null $cid カテゴリーID
+     * @return void
      */
-    public function setTargetCid($cid)
+    public function setTargetCid(?int $cid): void
     {
         $this->importCid = $cid;
     }
 
     /**
-     * set target blog id
+     * インポート先ブログIDを設定
      *
-     * @param int $bid
+     * @param int $bid ブログID
+     * @return void
      */
-    public function setTargetBid($bid)
+    public function setTargetBid(int $bid): void
     {
         $this->importBid = $bid;
     }
 
-    function exist()
+    /**
+     * エントリーの存在チェック
+     *
+     * CSVから取得したIDが存在し、更新可能な状態かを確認する
+     *
+     * @return bool 存在し更新可能な場合true
+     */
+    protected function exist(): bool
     {
-        return ACMS_RAM::entryBlog($this->csvId) == $this->importBid && !!ACMS_RAM::entryCode($this->csvId) && ACMS_RAM::entryStatus($this->csvId) !== 'trash';
+        if (is_null($this->csvId)) {
+            return false;
+        }
+        $entryBlogId = ACMS_RAM::entryBlog($this->csvId);
+        $entryCode = ACMS_RAM::entryCode($this->csvId);
+        $entryStatus = ACMS_RAM::entryStatus($this->csvId);
+        if ($entryBlogId !== BID) {
+            // 実行ブログに存在しないエントリーは更新できない
+            return false;
+        }
+        if ($entryCode === null) {
+            // コードが null = 存在しないエントリー
+            return false;
+        }
+        if ($entryStatus === null || $entryStatus === '' || $entryStatus === 'trash') {
+            // ステータスが存在しない、または削除されたエントリーは更新できない
+            return false;
+        }
+        return true;
     }
 
-    function nextId()
+    /**
+     * 次発行されるエントリーIDを設定
+     *
+     * @return void
+     */
+    protected function nextId(): void
     {
         $DB = DB::singleton(dsn());
         $this->nextId = intval($DB->query(SQL::nextval('entry_id', dsn()), 'seq'));
     }
 
-    function saveEntry()
+    /**
+     * 保存処理
+     *
+     * フォーマットチェック、更新キー処理、データ組み立てを行い、更新または挿入を実行する
+     *
+     * @return void
+     * @throws RuntimeException フォーマットエラーまたは重複キーエラー時
+     */
+    public function save(): void
     {
         $this->formatCheck();
         $this->updateKey();
         $this->build();
 
         if ($this->isUpdate) {
-            return $this->update();
+            $this->update();
         } else {
-            return $this->insert();
+            $this->insert();
         }
     }
 
-    function formatCheck()
+    /**
+     * データフォーマットの検証
+     *
+     * 各フィールドの値が適切なフォーマットかを検証する
+     *
+     * @return void
+     * @throws RuntimeException フォーマットが不正な場合
+     */
+    protected function formatCheck(): void
     {
         foreach ($this->data as $key => $value) {
             switch ($key) {
@@ -99,7 +171,15 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         }
     }
 
-    function updateKey()
+    /**
+     * 更新キーの処理
+     *
+     * プロ版限定機能。フィールドキーを使用してエントリーを特定し、更新対象として設定する
+     *
+     * @return bool 処理が実行された場合true、プロ版でない場合はfalse
+     * @throws RuntimeException 重複するキーが見つかった場合
+     */
+    protected function updateKey(): bool
     {
         // プロ版以上限定
         if (!editionWithProfessional()) {
@@ -134,9 +214,17 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
                 throw new RuntimeException('重複するキーがあったためこのエントリーのインポートを中止しました。');
             }
         }
+        return false;
     }
 
-    function insert()
+    /**
+     * エントリーデータの挿入
+     *
+     * エントリー本体、サブカテゴリー、タグ、位置情報、ユニット、フィールドを挿入する
+     *
+     * @return void
+     */
+    protected function insert(): void
     {
         $this->_insertEntry();
         $this->_insertSubCategory($this->nextId);
@@ -151,22 +239,39 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         }
     }
 
-    function update()
+    /**
+     * エントリーデータの更新
+     *
+     * エントリー本体、サブカテゴリー、タグ、位置情報、ユニット、フィールドを更新する
+     *
+     * @return void
+     * @throws RuntimeException エントリーが見つからない場合
+     */
+    protected function update(): void
     {
-        $this->_updateEntry();
-        $this->_insertSubCategory($this->csvId);
-        $this->_insertTag($this->csvId);
-        $this->_insertGeo($this->csvId);
+        if ($this->csvId === null) {
+            throw new RuntimeException('更新対象のエントリーIDが設定されていません。');
+        }
+        $eid = $this->csvId;
+        $this->_updateEntry($eid);
+        $this->_insertSubCategory($eid);
+        $this->_insertTag($eid);
+        $this->_insertGeo($eid);
         $this->_updateUnit();
         $this->_updateField();
-        Common::saveFulltext('eid', $this->csvId, Common::loadEntryFulltext($this->csvId), ACMS_RAM::entryBlog($this->csvId));
+        Common::saveFulltext('eid', $eid, Common::loadEntryFulltext($eid), ACMS_RAM::entryBlog($eid));
         if (HOOK_ENABLE) {
             $Hook = ACMS_Hook::singleton();
-            $Hook->call('saveEntry', [$this->csvId, 0]);
+            $Hook->call('saveEntry', [$eid, 0]);
         }
     }
 
-    function _insertEntry()
+    /**
+     * エントリー本体を挿入
+     *
+     * @return void
+     */
+    private function _insertEntry(): void
     {
         $DB = DB::singleton(dsn());
 
@@ -177,10 +282,16 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         $DB->query($SQL->get(dsn()), 'exec');
     }
 
-    function _updateEntry()
+    /**
+     * エントリー本体を更新
+     *
+     * @param int $eid エントリーID
+     * @return void
+     * @throws RuntimeException エントリーが見つからない場合
+     */
+    private function _updateEntry(int $eid): void
     {
         $DB = DB::singleton(dsn());
-        $eid = $this->csvId;
 
         if (!ACMS_RAM::entryStatus($eid)) {
             throw new RuntimeException('Not Found Entry.');
@@ -207,7 +318,13 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         }
     }
 
-    function _insertSubCategory($eid)
+    /**
+     * サブカテゴリーを挿入
+     *
+     * @param int $eid エントリーID
+     * @return void
+     */
+    private function _insertSubCategory(int $eid): void
     {
         if (empty($this->subCategories)) {
             return;
@@ -230,7 +347,13 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         }
     }
 
-    function _insertTag($eid)
+    /**
+     * タグを挿入
+     *
+     * @param int $eid エントリーID
+     * @return void
+     */
+    private function _insertTag(int $eid): void
     {
         if (empty($this->tags)) {
             return;
@@ -254,7 +377,13 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         }
     }
 
-    function _insertGeo($eid)
+    /**
+     * 位置情報を挿入
+     *
+     * @param int $eid エントリーID
+     * @return void
+     */
+    private function _insertGeo(int $eid): void
     {
         if (empty($this->geoLat) || empty($this->geoLng)) {
             return;
@@ -272,7 +401,12 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         $DB->query($SQL->get(dsn()), 'exec');
     }
 
-    function _insertUnit()
+    /**
+     * ユニットを挿入
+     *
+     * @return void
+     */
+    private function _insertUnit(): void
     {
         if (!empty($this->units)) {
             $sql = SQL::newBulkInsert('column');
@@ -286,8 +420,16 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         }
     }
 
-    function _updateUnit()
+    /**
+     * ユニットを更新
+     *
+     * @return void
+     */
+    private function _updateUnit(): void
     {
+        if ($this->csvId === null) {
+            return;
+        }
         $eid = $this->csvId;
 
         if (!empty($this->units)) {
@@ -308,7 +450,12 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         }
     }
 
-    function _insertField()
+    /**
+     * フィールドを挿入
+     *
+     * @return void
+     */
+    private function _insertField(): void
     {
         $eid = $this->nextId;
 
@@ -325,8 +472,16 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         }
     }
 
-    function _updateField()
+    /**
+     * フィールドを更新
+     *
+     * @return void
+     */
+    private function _updateField(): void
     {
+        if ($this->csvId === null) {
+            return;
+        }
         $eid = $this->csvId;
 
         if (!empty($this->fields)) {
@@ -356,16 +511,33 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         }
     }
 
-    function getPostedDatetime()
+    /**
+     * 投稿日時を取得
+     *
+     * 現在日時にランダムな秒数を設定した日時を返す
+     *
+     * @return string 日時文字列（Y-m-d H:i:s形式）
+     */
+    private function getPostedDatetime(): string
     {
         $posted_datetime = date('Y-m-d H:i:s');
         $second = sprintf('%02d', rand(1, 59));
-        $posted_datetime = preg_replace('@[0-9]{2}$@', $second, $posted_datetime);
+        $result = preg_replace('@[0-9]{2}$@', $second, $posted_datetime);
+        if ($result === null) {
+            return $posted_datetime;
+        }
 
-        return $posted_datetime;
+        return $result;
     }
 
-    function build()
+    /**
+     * エントリーデータの組み立て
+     *
+     * CSVデータからエントリー、ユニット、フィールドのデータを組み立てる
+     *
+     * @return void
+     */
+    protected function build(): void
     {
         $this->entry = $this->entryBase();
         $unit = $this->unitBase();
@@ -415,7 +587,14 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         }
     }
 
-    function buildEntry($key, $value)
+    /**
+     * エントリーフィールドの組み立て
+     *
+     * @param string $key フィールドキー
+     * @param string $value フィールド値
+     * @return void
+     */
+    private function buildEntry(string $key, string $value): void
     {
         switch ($key) {
             case 'entry_id':
@@ -440,11 +619,12 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
                 }
                 break;
             case 'entry_category_id':
-                $ccode = ACMS_RAM::categoryCode($value);
+                $cid = intval($value);
+                $ccode = ACMS_RAM::categoryCode($cid);
                 if (empty($ccode)) {
                     $this->entry[$key] = null;
                 } else {
-                    $this->entry[$key] = $value;
+                    $this->entry[$key] = $cid;
                 }
                 break;
             default:
@@ -452,22 +632,35 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         }
     }
 
-    function buildGeo($key, $value)
+    /**
+     * 位置情報の組み立て
+     *
+     * @param string $key 位置情報キー（geo_lat, geo_lng, geo_zoom）
+     * @param string $value 位置情報値
+     * @return void
+     */
+    private function buildGeo(string $key, string $value): void
     {
         switch ($key) {
             case 'geo_lat':
-                $this->geoLat = $value;
+                $this->geoLat = (float)$value;
                 break;
             case 'geo_lng':
-                $this->geoLng = $value;
+                $this->geoLng = (float)$value;
                 break;
             case 'geo_zoom':
-                $this->geoZoom = $value;
+                $this->geoZoom = (int)$value;
                 break;
         }
     }
 
-    function buildSubCategory($value)
+    /**
+     * サブカテゴリーの組み立て
+     *
+     * @param string $value カンマ区切りのカテゴリーID文字列
+     * @return void
+     */
+    private function buildSubCategory(string $value): void
     {
         $subCategoryIds = explode(',', $value);
         if ($subCategoryIds === false) {
@@ -485,7 +678,13 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         }
     }
 
-    function buildTag($value)
+    /**
+     * タグの組み立て
+     *
+     * @param string $value タグ文字列
+     * @return void
+     */
+    private function buildTag(string $value): void
     {
         $tags = Common::getTagsFromString($value);
         if (empty($tags)) {
@@ -496,7 +695,15 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         }
     }
 
-    function buildUnit($unit, $key, $value)
+    /**
+     * ユニットの組み立て
+     *
+     * @param array<string, mixed> $unit ユニットベースデータ
+     * @param string $key ユニットキー（unit@で始まる）
+     * @param string $value ユニット値
+     * @return void
+     */
+    private function buildUnit(array $unit, string $key, string $value): void
     {
         $type   = substr($key, strlen('unit@'));
         $sort   = 1;
@@ -504,7 +711,7 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
             $sort   = intval(preg_replace('@\[|\]@', '', $matchs[0]));
             $type    = preg_replace('@\[\d+\]$@', '', $type);
         }
-        if ($type === null) {
+        if ($type === null || $type === '') {
             return;
         }
         if ($type === 'block-editor') {
@@ -547,12 +754,23 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         $this->units[] = $unit;
     }
 
-    function buildField($field, $key, $value)
+    /**
+     * フィールドの組み立て
+     *
+     * @param array<string, mixed> $field フィールドベースデータ
+     * @param string $key フィールドキー
+     * @param string $value フィールド値
+     * @return void
+     */
+    private function buildField(array $field, string $key, string $value): void
     {
         $sort = 1;
         if (preg_match('@\[\d+\]$@', $key, $matchs)) {
             $sort = intval(preg_replace('@\[|\]@', '', $matchs[0]));
             $key = preg_replace('@\[\d+\]$@', '', $key);
+        }
+        if ($key === null || $key === '') {
+            return;
         }
         $fieldTypeValue = null;
         if (preg_match('/@(html|media|title)$/', $key, $matches)) {
@@ -566,7 +784,12 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         $this->fields[] = $field;
     }
 
-    function entryBase()
+    /**
+     * エントリーベースデータを取得
+     *
+     * @return array<string, mixed> エントリーベースデータ
+     */
+    private function entryBase(): array
     {
         $posted_datetime = $this->getPostedDatetime();
 
@@ -595,7 +818,12 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         ];
     }
 
-    function unitBase()
+    /**
+     * ユニットベースデータを取得
+     *
+     * @return array<string, mixed> ユニットベースデータ
+     */
+    private function unitBase(): array
     {
         return [
             'column_id'         => $this->generateNewIdTrait(),
@@ -614,7 +842,12 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         ];
     }
 
-    function fieldBase()
+    /**
+     * フィールドベースデータを取得
+     *
+     * @return array<string, mixed> フィールドベースデータ
+     */
+    private function fieldBase(): array
     {
         return [
             'field_key'     => null,
@@ -626,7 +859,12 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         ];
     }
 
-    protected function getExtension()
+    /**
+     * エントリーコードの拡張子を取得
+     *
+     * @return string 拡張子（先頭にドットを含む）
+     */
+    protected function getExtension(): string
     {
         $extension = config('entry_code_extension');
 

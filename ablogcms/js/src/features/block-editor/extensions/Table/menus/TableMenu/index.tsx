@@ -11,6 +11,7 @@ import { ColorPicker } from '@features/block-editor/components/panels';
 import { isColumnGripSelected } from '../TableColumn/utils';
 import { isRowGripSelected } from '../TableRow/utils';
 import { useTableStyle } from '../hooks';
+import { isCellSelection } from '../../utils';
 
 export const TableMenu = ({ editor, appendTo }: MenuProps): JSX.Element => {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -22,8 +23,11 @@ export const TableMenu = ({ editor, appendTo }: MenuProps): JSX.Element => {
       if (!state || !from) {
         return false;
       }
+      // テーブル内にいて、セル選択か、またはテキスト選択がない場合に表示
+      const hasTextSelection = !state.selection.empty && !isCellSelection(state.selection);
       return (
         editor.isActive('table') &&
+        !hasTextSelection &&
         !isColumnGripSelected({ editor, view, from: from || 0 }) &&
         !isRowGripSelected({ editor, view, from })
       );
@@ -40,6 +44,7 @@ export const TableMenu = ({ editor, appendTo }: MenuProps): JSX.Element => {
       tippyOptions={{
         offset: [0, 15],
         appendTo: () => appendTo?.current,
+        zIndex: 100019, // TextMenu (100018) より高いz-indexを設定
         popperOptions: {
           modifiers: [{ name: 'flip', enabled: true }],
         },

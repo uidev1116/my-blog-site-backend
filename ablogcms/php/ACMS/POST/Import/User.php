@@ -83,6 +83,9 @@ class ACMS_POST_Import_User extends ACMS_POST_Import_Csv
             if ($i === 0) {
                 continue; // header行を飛ばす
             }
+            if (!is_array($line)) {
+                continue;
+            }
             $logger->addMessage("$i / $count", $increase, 1, false);
             try {
                 $this->save($line);
@@ -119,13 +122,14 @@ class ACMS_POST_Import_User extends ACMS_POST_Import_Csv
         $logger->terminate();
     }
 
-    function save($line = false)
+    /**
+     * CSV行を保存
+     *
+     * @param array<int, string> $line CSV行データ
+     * @return void
+     */
+    private function save(array $line)
     {
-        if (is_array($line)) {
-            foreach ($line as & $value) {
-                $value = preg_replace('/^str-data\_/', '', $value);
-            }
-        }
         $user = new ACMS_POST_Import_Model_User($line, $this->csvLabels);
         $user->save();
     }

@@ -658,6 +658,8 @@ class Helper
         // コンテンツ出力
         echo $out;
 
+        sleep(2);
+
         // 環境に応じた終了処理
         if (function_exists('fastcgi_finish_request')) {
             // PHP-FPM環境
@@ -667,7 +669,6 @@ class Helper
             litespeed_finish_request();
         } else {
             // その他の環境
-            sleep(2);
             ob_flush();
             flush();
             ob_end_flush();

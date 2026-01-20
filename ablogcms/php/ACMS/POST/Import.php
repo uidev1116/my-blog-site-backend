@@ -43,7 +43,6 @@ class ACMS_POST_Import extends ACMS_POST
         $this->locale = setlocale(LC_ALL, '0');
         setlocale(LC_ALL, 'ja_JP.UTF-8');
 
-        $path = null;
         $this->init();
         $this->unitType = $this->Post->get('unit_type');
 

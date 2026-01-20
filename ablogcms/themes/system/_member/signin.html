@@ -131,7 +131,7 @@
         </div>
         <!-- END_IF -->
         <label for="input-text-code" class="acms-member-form-label"><!--T-->確認コード<!--/T--></label>
-        <input type="text" name="code" value="{code}" id="input-text-code" class="acms-form-large acms-form-block acms-form-width-full validator-result-{code:validator#auth}" placeholder="" />
+        <input type="text" name="code" value="{code}" id="input-text-code" class="acms-form-large acms-form-block acms-form-width-full validator-result-{code:validator#auth}" placeholder="" autocomplete="one-time-code" inputmode="numeric" />
         <input type="hidden" name="login[]" value="code" />
         <input type="hidden" name="takeover" value="{signin:takeover}" />
 
@@ -158,8 +158,8 @@
         <!-- END_IF -->
         <p class="acms-member-notice-text"><!--T-->認証用アプリに表示されている、認証コードを入力してください。<!--/T--></p>
 
-        <label for="input-password-code" class="acms-member-form-label"><!--T-->認証コード<!--/T--></label>
-        <input type="password" name="code" value="{code}" id="input-password-code" class="acms-form-large acms-form-block acms-form-width-full validator-result-{code:validator#auth}" placeholder="" />
+        <label for="input-text-code" class="acms-member-form-label"><!--T-->認証コード<!--/T--></label>
+        <input type="text" name="code" value="{code}" id="input-text-code" class="acms-form-large acms-form-block acms-form-width-full validator-result-{code:validator#auth}" placeholder="" autocomplete="one-time-code" inputmode="numeric" />
         <input type="hidden" name="login[]" value="code" />
         <input type="hidden" name="takeover" value="{signin:takeover}" />
         <p class="acms-member-action">

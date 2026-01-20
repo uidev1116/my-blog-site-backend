@@ -13733,9 +13733,17 @@ button.acms-admin-filter-detail-btn [class*=material-symbols] {
 =============================== */
 .acms-admin-group-unit {
   --acms-admin-group-unit-level-color: transparent;
-}
-
-.acms-admin-group-unit {
+  --acms-admin-group-unit-text-color: #595963;
+  --acms-admin-group-unit-text-light: #fff;
+  --acms-admin-group-unit-text-dark: #595963;
+  --acms-admin-group-unit-color-level1: #7e7e8b;
+  --acms-admin-group-unit-color-level2: #b2b2c0;
+  --acms-admin-group-unit-color-level3: #d2d2db;
+  --acms-admin-group-unit-gradient-start: var(--acms-admin-group-unit-color-level3);
+  --acms-admin-group-unit-gradient-end: #f2f2f5;
+  --acms-admin-group-unit-depth: 0;
+  --acms-admin-group-unit-sticky-header-height: 32px;
+  --acms-admin-group-unit-sticky-footer-height: 32px;
   position: relative;
   padding-left: 8px;
 }
@@ -13750,28 +13758,55 @@ button.acms-admin-filter-detail-btn [class*=material-symbols] {
 /* 非表示のとき */
 .acms-admin-unit[data-unit-status=close] .acms-admin-group-unit {
   --acms-admin-group-unit-level-color: #e2e2e8;
+  --acms-admin-group-unit-text-color: #595963;
 }
 .acms-admin-unit[data-unit-status=close] .acms-admin-group-unit .acms-admin-group-unit-start .acms-admin-unit-toolbar,
 .acms-admin-unit[data-unit-status=close] .acms-admin-group-unit .acms-admin-group-unit-end .acms-admin-unit-toolbar {
   --acms-admin-unit-toolbar-color: #595963;
   --acms-admin-unit-toolbar-vr-color: #c2c2ce;
 }
-.acms-admin-unit[data-unit-status=close] .acms-admin-group-unit .acms-admin-group-unit-start.acms-admin-unit-toolbar-button,
-.acms-admin-unit[data-unit-status=close] .acms-admin-group-unit .acms-admin-group-unit-end.acms-admin-unit-toolbar-button {
+.acms-admin-unit[data-unit-status=close] .acms-admin-group-unit .acms-admin-group-unit-start .acms-admin-unit-toolbar-button,
+.acms-admin-unit[data-unit-status=close] .acms-admin-group-unit .acms-admin-group-unit-end .acms-admin-unit-toolbar-button {
   --acms-admin-unit-toolbar-button-disabled-color: #c2c2ce;
 }
 
-.acms-admin-group-unit-start,
-.acms-admin-group-unit-end {
+.acms-admin-group-unit-start {
   position: relative;
   display: flex;
   align-items: center;
-  height: 32px;
+  height: var(--acms-admin-group-unit-sticky-header-height);
+  margin-bottom: 16px;
   background-color: var(--acms-admin-group-unit-level-color);
   border-radius: 6px;
   box-shadow: 0 1px 4px 0 rgba(51, 51, 51, 0.2);
 }
-.acms-admin-group-unit-start::before,
+.acms-admin-group-unit-start::before {
+  position: absolute;
+  top: 15px;
+  left: -8px;
+  display: block;
+  width: 9px;
+  height: 2px;
+  content: "";
+  background-color: var(--acms-admin-group-unit-level-color);
+}
+.acms-admin-group-unit-start .acms-admin-unit-toolbar {
+  --acms-admin-unit-toolbar-color: var(--acms-admin-group-unit-text-color);
+  --acms-admin-unit-toolbar-vr-color: var(--acms-admin-group-unit-text-color);
+}
+.acms-admin-group-unit-start .acms-admin-unit-toolbar-button {
+  --acms-admin-unit-toolbar-button-hover-color: var(--acms-admin-group-unit-text-color);
+}
+
+.acms-admin-group-unit-end {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: var(--acms-admin-group-unit-sticky-footer-height);
+  background-color: var(--acms-admin-group-unit-level-color);
+  border-radius: 6px;
+  box-shadow: 0 1px 4px 0 rgba(51, 51, 51, 0.2);
+}
 .acms-admin-group-unit-end::before {
   position: absolute;
   top: 15px;
@@ -13782,52 +13817,16 @@ button.acms-admin-filter-detail-btn [class*=material-symbols] {
   content: "";
   background-color: var(--acms-admin-group-unit-level-color);
 }
-
-.acms-admin-group-unit-start {
-  margin-bottom: 16px;
+.acms-admin-group-unit-end .acms-admin-unit-toolbar {
+  --acms-admin-unit-toolbar-color: var(--acms-admin-group-unit-text-color);
+  --acms-admin-unit-toolbar-vr-color: var(--acms-admin-group-unit-text-color);
+}
+.acms-admin-group-unit-end .acms-admin-unit-toolbar-button {
+  --acms-admin-unit-toolbar-button-hover-color: var(--acms-admin-group-unit-text-color);
 }
 
 .acms-admin-unit[data-unit-type=group][data-unit-children-count="0"]:not([data-unit-collapsed=true]) > .acms-admin-group-unit .acms-admin-group-unit-start {
   margin-bottom: 0;
-}
-
-.acms-admin-group-unit.acms-admin-group-unit-level1 {
-  --acms-admin-group-unit-level-color: #35353a;
-}
-.acms-admin-group-unit.acms-admin-group-unit-level1 .acms-admin-group-unit-start .acms-admin-unit-toolbar,
-.acms-admin-group-unit.acms-admin-group-unit-level1 .acms-admin-group-unit-end .acms-admin-unit-toolbar {
-  --acms-admin-unit-toolbar-color: #fff;
-  --acms-admin-unit-toolbar-vr-color: #c2c2ce;
-}
-.acms-admin-group-unit.acms-admin-group-unit-level1 .acms-admin-group-unit-start .acms-admin-unit-toolbar-button,
-.acms-admin-group-unit.acms-admin-group-unit-level1 .acms-admin-group-unit-end .acms-admin-unit-toolbar-button {
-  --acms-admin-unit-toolbar-button-hover-color: #595963;
-}
-
-.acms-admin-group-unit.acms-admin-group-unit-level2 {
-  --acms-admin-group-unit-level-color: #7e7e8b;
-}
-.acms-admin-group-unit.acms-admin-group-unit-level2 .acms-admin-group-unit-start .acms-admin-unit-toolbar,
-.acms-admin-group-unit.acms-admin-group-unit-level2 .acms-admin-group-unit-end .acms-admin-unit-toolbar {
-  --acms-admin-unit-toolbar-color: #fff;
-  --acms-admin-unit-toolbar-vr-color: #fff;
-}
-.acms-admin-group-unit.acms-admin-group-unit-level2 .acms-admin-group-unit-start .acms-admin-unit-toolbar-button,
-.acms-admin-group-unit.acms-admin-group-unit-level2 .acms-admin-group-unit-end .acms-admin-unit-toolbar-button {
-  --acms-admin-unit-toolbar-button-hover-color: #fff;
-}
-
-.acms-admin-group-unit.acms-admin-group-unit-level3 {
-  --acms-admin-group-unit-level-color: #c2c2ce;
-}
-.acms-admin-group-unit.acms-admin-group-unit-level3 .acms-admin-group-unit-start .acms-admin-unit-toolbar,
-.acms-admin-group-unit.acms-admin-group-unit-level3 .acms-admin-group-unit-end .acms-admin-unit-toolbar {
-  --acms-admin-unit-toolbar-color: #333;
-  --acms-admin-unit-toolbar-vr-color: #333;
-}
-.acms-admin-group-unit.acms-admin-group-unit-level3 .acms-admin-group-unit-start .acms-admin-unit-toolbar-button,
-.acms-admin-group-unit.acms-admin-group-unit-level3 .acms-admin-group-unit-end .acms-admin-unit-toolbar-button {
-  --acms-admin-unit-toolbar-button-hover-color: #333;
 }
 
 /* ------------------------------
@@ -16596,6 +16595,14 @@ td.acms-admin-media-row-image::before {
 /* ------------------------------
  ユニット（Ver.3.2~）
 ------------------------------- */
+.acms-admin-unit-editor {
+  --acms-admin-unit-editor-offset: 0px;
+}
+
+.entry_editor .acms-admin-unit-editor {
+  --acms-admin-unit-editor-offset: 36px;
+}
+
 .acms-admin-unit {
   --acms-admin-unit-editor-unit-gap: 0px;
 }

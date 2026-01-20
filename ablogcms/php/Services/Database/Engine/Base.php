@@ -83,11 +83,11 @@ abstract class Base
      * @param array{
      *  sql: string,
      *  params: list<mixed>|array<string, mixed>,
-     * } $sql
+     * }|string $sql
      * @param string $mode
      * @return mixed
      */
-    abstract public function query($sql, $mode = 'row');
+    abstract public function query(array|string $sql, string $mode = 'row'): mixed;
 
     /**
      * リソースを指定して1行ずつfetchされた値を返す

@@ -9,11 +9,12 @@ class EagerLoadingHelper
     /**
      * @param int[]|string[] $ids
      * @param 'eid'|'uid'|'bid'|'cid'|'mid'|'unit_id' $type
+     * @param ?int $rvid
      * @return ($ids is int[] ? array<int, \Field> : array<string, \Field>)
      */
-    public function eagerLoadFieldPublic(array $ids, $type): array
+    public function eagerLoadFieldPublic(array $ids, $type, ?int $rvid = null): array
     {
-        return $this->eagerLoadFieldTrait($ids, $type);
+        return $this->eagerLoadFieldTrait($ids, $type, $rvid);
     }
 
     /**

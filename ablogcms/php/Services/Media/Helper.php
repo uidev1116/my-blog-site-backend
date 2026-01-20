@@ -11,11 +11,13 @@ use Acms\Services\Facades\PrivateStorage;
 use Acms\Services\Facades\Common;
 use Acms\Services\Unit\UnitCollection;
 use Acms\Services\Common\MimeTypeValidator;
+use Acms\Services\Media\Enums\FileNameValidationError;
 use SQL;
 use SQL_Select;
 use ACMS_RAM;
 use ACMS_Hook;
 use RuntimeException;
+use InvalidArgumentException;
 
 class Helper
 {
@@ -67,16 +69,89 @@ class Helper
     }
 
     /**
+     * ファイル名のバリデーション(全角・半角両対応版)
+     *
+     * @param string $fileName 検証するファイル名（拡張子含む）
+     * @return array{valid: true}|array{valid: false, error: string, errorCode: string}
+     */
+    public function validateFileName(string $fileName): array
+    {
+        // 入力値の前後の空白を除去
+        $fileName = trim($fileName);
+
+        // 1. 空文字チェック
+        if ($fileName === '') {
+            return ['valid' => false, 'error' => 'ファイル名を入力してください', 'errorCode' => FileNameValidationError::EMPTY->value];
+        }
+
+        // 2. ヌルバイトチェック
+        if (strpos($fileName, "\0") !== false) {
+            return ['valid' => false, 'error' => '不正な文字が含まれています', 'errorCode' => FileNameValidationError::NULL_BYTE->value];
+        }
+
+        // 3. パストラバーサル・パス区切り文字チェック
+        if ($fileName !== PublicStorage::mbBasename($fileName)) {
+            return ['valid' => false, 'error' => 'ファイル名にパス情報を含めることはできません', 'errorCode' => FileNameValidationError::PATH_TRAVERSAL->value];
+        }
+
+        // 4. 先頭・末尾のドット・句点チェック(半角・全角両方)
+        if (preg_match('/^[\.。]|[\.。]$/u', $fileName)) {
+            return ['valid' => false, 'error' => 'ファイル名の先頭または末尾にドットは使用できません', 'errorCode' => FileNameValidationError::LEADING_TRAILING_DOT->value];
+        }
+
+        // 5. 禁止文字チェック(Windows互換)
+        // < > : " | ? *
+        if (preg_match('/[<>:"|?*]/', $fileName)) {
+            return ['valid' => false, 'error' => '使用できない文字が含まれています(< > : " | ? *)', 'errorCode' => FileNameValidationError::INVALID_CHARACTER->value];
+        }
+
+        // 6. 制御文字チェック(ASCII 0-31 および DEL 127)
+        if (preg_match('/[\x00-\x1F\x7F]/', $fileName)) {
+            return ['valid' => false, 'error' => '制御文字は使用できません', 'errorCode' => FileNameValidationError::INVALID_CHARACTER->value];
+        }
+
+        // 7. UTF-8エンコーディングチェック
+        if (!mb_check_encoding($fileName, 'UTF-8')) {
+            return ['valid' => false, 'error' => 'ファイル名のエンコーディングが不正です', 'errorCode' => FileNameValidationError::INVALID_ENCODING->value];
+        }
+
+        // 8. 文字数チェック（バイト数チェック）
+        // MySQLのvarchar(255)はバイト数で制限されるため、strlen()を使用
+        // mb_strlen()は文字数を返すため、日本語の場合にバイト数が255を超えても検証を通過してしまう
+        if (strlen($fileName) > 255) {
+            return ['valid' => false, 'error' => 'ファイル名が長すぎます(255バイト以内)', 'errorCode' => FileNameValidationError::TOO_LONG->value];
+        }
+
+        // 9. Windows予約語チェック
+        $basename = pathinfo($fileName, PATHINFO_FILENAME);
+        $reserved = [
+            'CON', 'PRN', 'AUX', 'NUL',
+            'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
+            'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'
+        ];
+        // 全角も含めて予約語チェック
+        $basenameUpper = strtoupper(mb_convert_kana($basename, 'a', 'UTF-8')); // 全角英数を半角に変換
+        if (in_array($basenameUpper, $reserved, true)) {
+            return ['valid' => false, 'error' => 'この名前はシステムで予約されているため使用できません', 'errorCode' => FileNameValidationError::WINDOWS_RESERVED->value];
+        }
+
+        return ['valid' => true];
+    }
+
+    /**
      * メディアの基本情報を取得
      * @param array{name: string, tmp_name: string, type: string, size: int} $fileObj
      * @param string $tags
-     * @param string $name
-     * @return false|array{tags: string, name: string, file: array{name: string, tmp_name: string, type: string, size: int}, size: int, type: string, extension: string}
+     * @return array{tags: string, name: string, file: array{name: string, tmp_name: string, type: string, size: int}, size: int, type: string, extension: string}
      */
-    public function getBaseInfo($fileObj, $tags, $name)
+    public function getBaseInfo($fileObj, $tags)
     {
-        if (!preg_match('@\.([^.]+)$@', $fileObj['name'], $match) && $fileObj['name'] !== 'blob') {
-            return false;
+        // 'blob'は特殊なケースなので検証をスキップ
+        if ($fileObj['name'] !== 'blob') {
+            $validation = $this->validateFileName($fileObj['name']);
+            if (!$validation['valid']) {
+                throw new InvalidArgumentException($validation['error']);
+            }
         }
         $info = getimagesize($fileObj['tmp_name']);
         $mimeType = $info['mime'] ?? null;
@@ -84,7 +159,7 @@ class Helper
 
         return [
             'tags' => $tags,
-            'name' => $name,
+            'name' => $fileObj['name'],
             'file' => $fileObj,
             'size' => $fileObj['size'],
             'type' => $fileObj['type'],
@@ -107,6 +182,11 @@ class Helper
         $oldData = $this->getMedia($mid);
         $oldPath = $oldData['path'];
         $filename = $filename ?: $oldData['name'];
+
+        $validation = $this->validateFileName($filename);
+        if (!$validation['valid']) {
+            throw new InvalidArgumentException($validation['error']);
+        }
 
         $oldPath = MEDIA_LIBRARY_DIR . $oldPath;
         $info = pathinfo($oldPath);
@@ -147,6 +227,11 @@ class Helper
         $storage = $status ? PrivateStorage::getInstance() : PublicStorage::getInstance();
         assert($storage instanceof \Acms\Services\Storage\Filesystem);
         $filename = $filename ?: $oldData['name'];
+
+        $validation = $this->validateFileName($filename);
+        if (!$validation['valid']) {
+            throw new InvalidArgumentException($validation['error']);
+        }
 
         $oldPath = $baseDir . $oldPath;
         $info = pathinfo($oldPath);
@@ -378,6 +463,10 @@ class Helper
     {
         if ($data['name'] === $rename) {
             return $data;
+        }
+        $validation = $this->validateFileName($rename);
+        if (!$validation['valid']) {
+            throw new InvalidArgumentException($validation['error']);
         }
         $type = $data['type'];
         $basename = preg_replace("/(.+)(\.[^.]+$)/", "$1", $rename) . '.' . strtolower($data['extension']);
@@ -785,7 +874,6 @@ class Helper
                 $SQL->addInsert('media_status', $data['status']);
             } else {
                 $SQL->addInsert('media_status', config('media_default_status', 'entry'));
-                $data['status'];
             }
         } else {
             $SQL->addInsert('media_original', otherSizeImagePath($data['path'], 'large'));

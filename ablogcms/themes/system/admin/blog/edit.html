@@ -107,8 +107,50 @@
 </div>
 <!-- END blog:validator#subBlogExists -->
 
-<!-- BEGIN headline#insert --><!-- END headline#insert -->
-<!-- BEGIN headline#update --><!-- END headline#update -->
+
+<!-- BEGIN success -->
+<div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+  <span
+    class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before"
+    aria-hidden="true"
+  ></span>
+  <!--T-->インポートが完了しました。<!--/T-->
+</div>
+<!-- END success -->
+
+<!-- BEGIN_IF [{error}/nem/] -->
+<div class="acms-admin-alert acms-admin-alert-danger acms-admin-alert-icon">
+  <span class="acms-admin-alert-icon-before acms-admin-icon-news"></span>
+  <!--T-->エラーが発生しました<!--/T-->
+  {error}
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after acms-admin-margin-right-mini"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+</div>
+<!-- END_IF -->
+
+<!-- BEGIN_MODULE Admin_Errors -->
+<div
+  class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger"
+>
+  <span
+    class="acms-admin-icon-attention acms-admin-alert-icon-before"
+  ></span>
+  <button type="button" class="js-acms-alert-close acms-admin-alert-icon-after">
+    <span aria-hidden="true">×</span>
+    <span class="acms-admin-hide-visually">アラートを閉じる</span>
+  </button>
+  <ul>
+    <!-- BEGIN error:loop -->
+    <li>{error}</li>
+    <!-- END error:loop -->
+  </ul>
+</div>
+<!-- END_MODULE Admin_Errors -->
 
 <form
   action=""
@@ -746,24 +788,9 @@
 
     <!-- BEGIN_MODULE Touch_SessionWithAdministration -->
     <div id="acms_import" class="acms-admin-tabs-panel">
-      <!-- BEGIN_IF [{error}/nem/] -->
-      <div class="acms-admin-alert acms-admin-alert-danger acms-admin-alert-icon">
-        <span class="acms-admin-alert-icon-before acms-admin-icon-news"></span>
-        <!--T-->エラーが発生しました<!--/T-->
-        {error}
-        <button
-          type="button"
-          class="js-acms-alert-close acms-admin-alert-icon-after acms-admin-margin-right-mini"
-          aria-label="アラートを閉じる"
-        >
-          ×
-        </button>
-      </div>
-      <!-- END_IF -->
 
       <p>
-        <!--T-->以下のデータがインポートされます。<!--/T--><br />
-        <strong><!--T-->インポート時にこれらのデータは削除されるのでお気をつけください。<!--/T--></strong>
+        <!--T-->以下のデータがインポート・エクスポートされます。<!--/T--><br />
       </p>
       <ul class="acms-admin-list-inline acms-admin-exported-list">
         <li>
@@ -773,7 +800,16 @@
           <span class="acms-admin-label acms-admin-exported-label"><!--T-->エントリー<!--/T--></span>
         </li>
         <li>
+          <span class="acms-admin-label acms-admin-exported-label"><!--T-->ユニット<!--/T--></span>
+        </li>
+        <li>
           <span class="acms-admin-label acms-admin-exported-label"><!--T-->タグ<!--/T--></span>
+        </li>
+        <li>
+          <span class="acms-admin-label acms-admin-exported-label"><!--T-->位置情報<!--/T--></span>
+        </li>
+        <li>
+          <span class="acms-admin-label acms-admin-exported-label"><!--T-->サブカテゴリー<!--/T--></span>
         </li>
         <li>
           <span class="acms-admin-label acms-admin-exported-label"><!--T-->メディア<!--/T--></span>
@@ -798,34 +834,19 @@
         </li>
       </ul>
 
-      <!-- BEGIN success -->
-      <div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
-        <span
-          class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before"
-          aria-hidden="true"
-        ></span>
-        <!--T-->インポートが完了しました。<!--/T-->
+      <div class="acms-admin-panel">
+        <div class="acms-admin-panel-header">
+          <h3 class="acms-admin-panel-title"><!--T-->注意事項<!--/T--></h3>
+        </div>
+        <div class="acms-admin-panel-body">
+          <ul>
+            <li><!--T-->インポート時にインポート対象のデータはすべて削除されます。<!--/T--></li>
+            <li><!--T-->グローバルカテゴリーはインポートされません。<!--/T--></li>
+            <li><!--T-->関連エントリーはインポートされません。<!--/T--></li>
+            <li><!--T-->リッチテキストのメディアは、変換されてインポートされません。<!--/T--></li>
+          </ul>
+        </div>
       </div>
-      <!-- END success -->
-
-      <!-- BEGIN_MODULE Admin_Errors -->
-      <div
-        class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger"
-      >
-        <span
-          class="acms-admin-icon-attention acms-admin-alert-icon-before"
-        ></span>
-        <button type="button" class="js-acms-alert-close acms-admin-alert-icon-after">
-          <span atia-hidden="true">×</span>
-          <span class="acms-admin-hide-visually">アラートを閉じる</span>
-        </button>
-        <ul>
-          <!-- BEGIN error:loop -->
-          <li>{error}</li>
-          <!-- END error:loop -->
-        </ul>
-      </div>
-      <!-- END_MODULE Admin_Errors -->
 
       <h3 class="acms-admin-admin-title2">
         <!--T-->ブログのエクスポート<!--/T-->

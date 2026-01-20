@@ -94,8 +94,6 @@ export default class MediaUploader extends Component<MediaUploaderProps, MediaUp
           fd.append('pdf_page', '1');
         }
       }
-      const randomName = random(10);
-      fd.append('name', `${randomName}.${ext}`);
       fd.append('size', `${largeSize}`);
       fd.append('file', blob, name);
       fd.append('formToken', window.csrfToken);

@@ -93,11 +93,21 @@ class UserHelper extends BaseHelper
         $sql = SQL::newSelect('user', 'user');
         $sql->addLeftJoin('blog', 'blog_id', 'user_blog_id', 'blog', 'user');
 
+        $userColumns = [
+            'user_id', 'user_code', 'user_status', 'user_sort', 'user_name',
+            'user_mail', 'user_mail_magazine', 'user_mail_mobile', 'user_url',
+            'user_icon', 'user_auth', 'user_indexing', 'user_login_expire',
+            'user_login_datetime', 'user_updated_datetime', 'user_blog_id'
+        ];
+        foreach ($userColumns as $column) {
+            $sql->addSelect($column, null, 'user');
+        }
+
         if ($this->config['geolocation_on'] === 'on') {
             $sql->addLeftJoin('geo', 'geo_uid', 'user_id', 'geo', 'user');
-            $sql->addSelect('user.*');
             $sql->addSelect('geo_geometry', 'longitude', null, 'ST_X');
             $sql->addSelect('geo_geometry', 'latitude', null, 'ST_Y');
+            $sql->addSelect('geo_zoom', null, 'geo');
         }
 
         $this->filterQuery($sql);
@@ -241,6 +251,8 @@ class UserHelper extends BaseHelper
             $vars = [
                 'uid' => (int) $row['user_id'],
                 'code' => $row['user_code'] ?? null,
+                'status' => $row['user_status'] ?? null,
+                'sort' => $row['user_sort'] ?? null,
                 'name' => $row['user_name'] ?? null,
                 'mail' => $row['user_mail'] ?? null,
                 'mail_magaginze' => $row['user_mail_magazine'] ?? null,

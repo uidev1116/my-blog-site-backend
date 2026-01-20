@@ -1,4 +1,4 @@
-import { contrastColor } from '../utils';
+import { contrastColor } from '../utils/color';
 
 /**
  * ブラウザネイティブのカラーピッカー（input type="color"）を初期化

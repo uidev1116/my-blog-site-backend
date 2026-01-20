@@ -6,7 +6,7 @@ namespace Acms\Services\Facades;
  * @method static \Acms\Services\Database\Engine\Base connect(array $dsn) データベース接続
  * @method static \Acms\Services\Database\Engine\Base reconnect(array $dsn) データベース再接続
  * @method static string getVersion() データベースバージョン取得
- * @method static mixed query(array{sql: string, params: list<mixed>|array<string, mixed>} $query, string $mode = 'row') クエリ実行
+ * @method static mixed query(array{sql: string, params: list<mixed>|array<string, mixed>}|string $query, string $mode = 'row') クエリ実行
  * @method static mixed fetch(array{sql: string, params: list<mixed>|array<string, mixed>} | null $sql = null, bool $reset = false) クエリ結果取得
  * @method static mixed next(\PDOStatement $response) クエリ結果取得
  * @method static array columnMeta(int $column) カラムメタデータ取得

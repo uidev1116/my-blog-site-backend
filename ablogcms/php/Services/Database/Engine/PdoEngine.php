@@ -187,20 +187,23 @@ class PdoEngine extends Base
      * @param array{
      *  sql: string,
      *  params: list<mixed>|array<string, mixed>,
-     * } $sql
+     * }|string $sql
      * @param string $mode
      * @param boolean $buffered
      * @param boolean $auditLog
-     * @return array|bool|resource|int|string
+     * @return mixed
      *
      * @throws \ErrorException
      */
-    public function query($sql, $mode = 'row', $buffered = true, $auditLog = true)
+    public function query(array|string $sql, string $mode = 'row', bool $buffered = true, bool $auditLog = true): mixed
     {
         global $query_result_count;
         $query_result_count++;
 
         try {
+            if (is_string($sql)) {
+                $sql = ['sql' => $sql, 'params' => []];
+            }
             if (!isset($sql['sql'])) { // @phpstan-ignore-line
                 throw new \InvalidArgumentException('Invalid SQL format');
             }

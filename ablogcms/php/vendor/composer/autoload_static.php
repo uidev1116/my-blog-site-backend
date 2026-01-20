@@ -4,19 +4,19 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
+class ComposerStaticInitf8ccaf1e37d7bd1e769ec0f894271827
 {
     public static $files = array (
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
         'ad155f8f1cf0d418fe49e248db8c661b' => __DIR__ . '/..' . '/react/promise/src/functions_include.php',
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
-        'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
-        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
-        '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
         'e69f7f6ee287b969198c3c9d6777bd38' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/bootstrap.php',
+        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
+        '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
         'f598d06aa772fa33d905e87be6398fb1' => __DIR__ . '/..' . '/symfony/polyfill-intl-idn/bootstrap.php',
-        '0d59ee240a4cd96ddbb4ff164fccea4d' => __DIR__ . '/..' . '/symfony/polyfill-php73/bootstrap.php',
+        'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
+        '662a729f963d39afe703c9d9b7ab4a8c' => __DIR__ . '/..' . '/symfony/polyfill-php83/bootstrap.php',
         '2cffec82183ee1cea088009cef9a6fc3' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
         '1f87db08236948d07391152dccb70f04' => __DIR__ . '/..' . '/google/apiclient-services/autoload.php',
         'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
@@ -47,8 +47,8 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         ),
         'S' => 
         array (
+            'Symfony\\Polyfill\\Php83\\' => 23,
             'Symfony\\Polyfill\\Php80\\' => 23,
-            'Symfony\\Polyfill\\Php73\\' => 23,
             'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Symfony\\Polyfill\\Intl\\Normalizer\\' => 33,
             'Symfony\\Polyfill\\Intl\\Idn\\' => 26,
@@ -60,7 +60,6 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
             'Symfony\\Component\\Yaml\\' => 23,
             'Symfony\\Component\\VarExporter\\' => 30,
             'Symfony\\Component\\Process\\' => 26,
-            'Symfony\\Component\\OptionsResolver\\' => 34,
             'Symfony\\Component\\Mime\\' => 23,
             'Symfony\\Component\\Mailer\\' => 25,
             'Symfony\\Component\\HttpClient\\' => 29,
@@ -68,6 +67,7 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
             'Symfony\\Component\\Filesystem\\' => 29,
             'Symfony\\Component\\EventDispatcher\\' => 34,
             'Symfony\\Component\\Cache\\' => 24,
+            'Spatie\\ImageOptimizer\\' => 22,
         ),
         'R' => 
         array (
@@ -140,7 +140,6 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
             'Doctrine\\Deprecations\\' => 22,
             'Doctrine\\DBAL\\' => 14,
             'Doctrine\\Common\\Lexer\\' => 22,
-            'Doctrine\\Common\\Collections\\' => 28,
         ),
         'C' => 
         array (
@@ -150,7 +149,6 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         array (
             'AsyncAws\\S3\\' => 12,
             'AsyncAws\\Core\\' => 14,
-            'Alchemy\\Zippy\\' => 14,
             'Acms\\Plugins\\' => 13,
             'Acms\\Custom\\' => 12,
             'Acms\\' => 5,
@@ -174,13 +172,13 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         array (
             0 => __DIR__ . '/..' . '/twig/twig/src',
         ),
+        'Symfony\\Polyfill\\Php83\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-php83',
+        ),
         'Symfony\\Polyfill\\Php80\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php80',
-        ),
-        'Symfony\\Polyfill\\Php73\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/polyfill-php73',
         ),
         'Symfony\\Polyfill\\Mbstring\\' => 
         array (
@@ -226,10 +224,6 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         array (
             0 => __DIR__ . '/..' . '/symfony/process',
         ),
-        'Symfony\\Component\\OptionsResolver\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/options-resolver',
-        ),
         'Symfony\\Component\\Mime\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/mime',
@@ -257,6 +251,10 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         'Symfony\\Component\\Cache\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/cache',
+        ),
+        'Spatie\\ImageOptimizer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/spatie/image-optimizer/src',
         ),
         'RobThree\\Auth\\' => 
         array (
@@ -308,7 +306,7 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         ),
         'Psr\\Log\\' => 
         array (
-            0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
+            0 => __DIR__ . '/..' . '/psr/log/src',
         ),
         'Psr\\Http\\Message\\' => 
         array (
@@ -439,10 +437,6 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         array (
             0 => __DIR__ . '/..' . '/doctrine/lexer/src',
         ),
-        'Doctrine\\Common\\Collections\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/doctrine/collections/lib/Doctrine/Common/Collections',
-        ),
         'Composer\\CaBundle\\' => 
         array (
             0 => __DIR__ . '/..' . '/composer/ca-bundle/src',
@@ -454,10 +448,6 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         'AsyncAws\\Core\\' => 
         array (
             0 => __DIR__ . '/..' . '/async-aws/core/src',
-        ),
-        'Alchemy\\Zippy\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/alchemy/zippy/src',
         ),
         'Acms\\Plugins\\' => 
         array (
@@ -479,13 +469,6 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
             'ML\\IRI' => 
             array (
                 0 => __DIR__ . '/..' . '/ml/iri',
-            ),
-        ),
-        'I' => 
-        array (
-            'ImageOptimizer' => 
-            array (
-                0 => __DIR__ . '/..' . '/ps/image-optimizer/src',
             ),
         ),
         'H' => 
@@ -719,6 +702,7 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         'Acms\\Services\\Mailer\\MailerServiceProvider' => __DIR__ . '/../../..' . '/php/Services/Mailer/MailerServiceProvider.php',
         'Acms\\Services\\Mailer\\Transport\\GoogleApi' => __DIR__ . '/../../..' . '/php/Services/Mailer/Transport/GoogleApi.php',
         'Acms\\Services\\Media\\Download' => __DIR__ . '/../../..' . '/php/Services/Media/Download.php',
+        'Acms\\Services\\Media\\Enums\\FileNameValidationError' => __DIR__ . '/../../..' . '/php/Services/Media/Enums/FileNameValidationError.php',
         'Acms\\Services\\Media\\Helper' => __DIR__ . '/../../..' . '/php/Services/Media/Helper.php',
         'Acms\\Services\\Media\\MediaServiceProvider' => __DIR__ . '/../../..' . '/php/Services/Media/MediaServiceProvider.php',
         'Acms\\Services\\Module\\Helper' => __DIR__ . '/../../..' . '/php/Services/Module/Helper.php',
@@ -887,87 +871,6 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         'Acms\\Traits\\Utilities\\EagerLoadingTrait' => __DIR__ . '/../../..' . '/php/Traits/Utilities/EagerLoadingTrait.php',
         'Acms\\Traits\\Utilities\\FieldTrait' => __DIR__ . '/../../..' . '/php/Traits/Utilities/FieldTrait.php',
         'Acms\\Traits\\Utilities\\PaginationTrait' => __DIR__ . '/../../..' . '/php/Traits/Utilities/PaginationTrait.php',
-        'Alchemy\\Zippy\\Adapter\\AbstractAdapter' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/AbstractAdapter.php',
-        'Alchemy\\Zippy\\Adapter\\AbstractBinaryAdapter' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/AbstractBinaryAdapter.php',
-        'Alchemy\\Zippy\\Adapter\\AbstractTarAdapter' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/AbstractTarAdapter.php',
-        'Alchemy\\Zippy\\Adapter\\AdapterContainer' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/AdapterContainer.php',
-        'Alchemy\\Zippy\\Adapter\\AdapterInterface' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/AdapterInterface.php',
-        'Alchemy\\Zippy\\Adapter\\BSDTar\\TarBSDTarAdapter' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/BSDTar/TarBSDTarAdapter.php',
-        'Alchemy\\Zippy\\Adapter\\BSDTar\\TarBz2BSDTarAdapter' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/BSDTar/TarBz2BSDTarAdapter.php',
-        'Alchemy\\Zippy\\Adapter\\BSDTar\\TarGzBSDTarAdapter' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/BSDTar/TarGzBSDTarAdapter.php',
-        'Alchemy\\Zippy\\Adapter\\BinaryAdapterInterface' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/BinaryAdapterInterface.php',
-        'Alchemy\\Zippy\\Adapter\\GNUTar\\TarBz2GNUTarAdapter' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/GNUTar/TarBz2GNUTarAdapter.php',
-        'Alchemy\\Zippy\\Adapter\\GNUTar\\TarGNUTarAdapter' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/GNUTar/TarGNUTarAdapter.php',
-        'Alchemy\\Zippy\\Adapter\\GNUTar\\TarGzGNUTarAdapter' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/GNUTar/TarGzGNUTarAdapter.php',
-        'Alchemy\\Zippy\\Adapter\\Resource\\FileResource' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/Resource/FileResource.php',
-        'Alchemy\\Zippy\\Adapter\\Resource\\ResourceInterface' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/Resource/ResourceInterface.php',
-        'Alchemy\\Zippy\\Adapter\\Resource\\ZipArchiveResource' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/Resource/ZipArchiveResource.php',
-        'Alchemy\\Zippy\\Adapter\\VersionProbe\\AbstractTarVersionProbe' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/VersionProbe/AbstractTarVersionProbe.php',
-        'Alchemy\\Zippy\\Adapter\\VersionProbe\\BSDTarVersionProbe' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/VersionProbe/BSDTarVersionProbe.php',
-        'Alchemy\\Zippy\\Adapter\\VersionProbe\\GNUTarVersionProbe' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/VersionProbe/GNUTarVersionProbe.php',
-        'Alchemy\\Zippy\\Adapter\\VersionProbe\\VersionProbeInterface' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/VersionProbe/VersionProbeInterface.php',
-        'Alchemy\\Zippy\\Adapter\\VersionProbe\\ZipExtensionVersionProbe' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/VersionProbe/ZipExtensionVersionProbe.php',
-        'Alchemy\\Zippy\\Adapter\\VersionProbe\\ZipVersionProbe' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/VersionProbe/ZipVersionProbe.php',
-        'Alchemy\\Zippy\\Adapter\\ZipAdapter' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/ZipAdapter.php',
-        'Alchemy\\Zippy\\Adapter\\ZipExtensionAdapter' => __DIR__ . '/..' . '/alchemy/zippy/src/Adapter/ZipExtensionAdapter.php',
-        'Alchemy\\Zippy\\Archive\\Archive' => __DIR__ . '/..' . '/alchemy/zippy/src/Archive/Archive.php',
-        'Alchemy\\Zippy\\Archive\\ArchiveInterface' => __DIR__ . '/..' . '/alchemy/zippy/src/Archive/ArchiveInterface.php',
-        'Alchemy\\Zippy\\Archive\\Member' => __DIR__ . '/..' . '/alchemy/zippy/src/Archive/Member.php',
-        'Alchemy\\Zippy\\Archive\\MemberInterface' => __DIR__ . '/..' . '/alchemy/zippy/src/Archive/MemberInterface.php',
-        'Alchemy\\Zippy\\Exception\\ExceptionInterface' => __DIR__ . '/..' . '/alchemy/zippy/src/Exception/ExceptionInterface.php',
-        'Alchemy\\Zippy\\Exception\\FormatNotSupportedException' => __DIR__ . '/..' . '/alchemy/zippy/src/Exception/FormatNotSupportedException.php',
-        'Alchemy\\Zippy\\Exception\\IOException' => __DIR__ . '/..' . '/alchemy/zippy/src/Exception/IOException.php',
-        'Alchemy\\Zippy\\Exception\\InvalidArgumentException' => __DIR__ . '/..' . '/alchemy/zippy/src/Exception/InvalidArgumentException.php',
-        'Alchemy\\Zippy\\Exception\\NoAdapterOnPlatformException' => __DIR__ . '/..' . '/alchemy/zippy/src/Exception/NoAdapterOnPlatformException.php',
-        'Alchemy\\Zippy\\Exception\\NotSupportedException' => __DIR__ . '/..' . '/alchemy/zippy/src/Exception/NotSupportedException.php',
-        'Alchemy\\Zippy\\Exception\\RuntimeException' => __DIR__ . '/..' . '/alchemy/zippy/src/Exception/RuntimeException.php',
-        'Alchemy\\Zippy\\Exception\\TargetLocatorException' => __DIR__ . '/..' . '/alchemy/zippy/src/Exception/TargetLocatorException.php',
-        'Alchemy\\Zippy\\FileStrategy\\AbstractFileStrategy' => __DIR__ . '/..' . '/alchemy/zippy/src/FileStrategy/AbstractFileStrategy.php',
-        'Alchemy\\Zippy\\FileStrategy\\FileStrategyInterface' => __DIR__ . '/..' . '/alchemy/zippy/src/FileStrategy/FileStrategyInterface.php',
-        'Alchemy\\Zippy\\FileStrategy\\TB2FileStrategy' => __DIR__ . '/..' . '/alchemy/zippy/src/FileStrategy/TB2FileStrategy.php',
-        'Alchemy\\Zippy\\FileStrategy\\TBz2FileStrategy' => __DIR__ . '/..' . '/alchemy/zippy/src/FileStrategy/TBz2FileStrategy.php',
-        'Alchemy\\Zippy\\FileStrategy\\TGzFileStrategy' => __DIR__ . '/..' . '/alchemy/zippy/src/FileStrategy/TGzFileStrategy.php',
-        'Alchemy\\Zippy\\FileStrategy\\TarBz2FileStrategy' => __DIR__ . '/..' . '/alchemy/zippy/src/FileStrategy/TarBz2FileStrategy.php',
-        'Alchemy\\Zippy\\FileStrategy\\TarFileStrategy' => __DIR__ . '/..' . '/alchemy/zippy/src/FileStrategy/TarFileStrategy.php',
-        'Alchemy\\Zippy\\FileStrategy\\TarGzFileStrategy' => __DIR__ . '/..' . '/alchemy/zippy/src/FileStrategy/TarGzFileStrategy.php',
-        'Alchemy\\Zippy\\FileStrategy\\ZipFileStrategy' => __DIR__ . '/..' . '/alchemy/zippy/src/FileStrategy/ZipFileStrategy.php',
-        'Alchemy\\Zippy\\Parser\\BSDTarOutputParser' => __DIR__ . '/..' . '/alchemy/zippy/src/Parser/BSDTarOutputParser.php',
-        'Alchemy\\Zippy\\Parser\\GNUTarOutputParser' => __DIR__ . '/..' . '/alchemy/zippy/src/Parser/GNUTarOutputParser.php',
-        'Alchemy\\Zippy\\Parser\\ParserFactory' => __DIR__ . '/..' . '/alchemy/zippy/src/Parser/ParserFactory.php',
-        'Alchemy\\Zippy\\Parser\\ParserInterface' => __DIR__ . '/..' . '/alchemy/zippy/src/Parser/ParserInterface.php',
-        'Alchemy\\Zippy\\Parser\\ZipOutputParser' => __DIR__ . '/..' . '/alchemy/zippy/src/Parser/ZipOutputParser.php',
-        'Alchemy\\Zippy\\ProcessBuilder\\ProcessBuilder' => __DIR__ . '/..' . '/alchemy/zippy/src/ProcessBuilder/ProcessBuilder.php',
-        'Alchemy\\Zippy\\ProcessBuilder\\ProcessBuilderFactory' => __DIR__ . '/..' . '/alchemy/zippy/src/ProcessBuilder/ProcessBuilderFactory.php',
-        'Alchemy\\Zippy\\ProcessBuilder\\ProcessBuilderFactoryInterface' => __DIR__ . '/..' . '/alchemy/zippy/src/ProcessBuilder/ProcessBuilderFactoryInterface.php',
-        'Alchemy\\Zippy\\ProcessBuilder\\ProcessBuilderInterface' => __DIR__ . '/..' . '/alchemy/zippy/src/ProcessBuilder/ProcessBuilderInterface.php',
-        'Alchemy\\Zippy\\Resource\\PathUtil' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/PathUtil.php',
-        'Alchemy\\Zippy\\Resource\\Reader\\Guzzle\\GuzzleReader' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/Reader/Guzzle/GuzzleReader.php',
-        'Alchemy\\Zippy\\Resource\\Reader\\Guzzle\\GuzzleReaderFactory' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/Reader/Guzzle/GuzzleReaderFactory.php',
-        'Alchemy\\Zippy\\Resource\\Reader\\Guzzle\\LegacyGuzzleReader' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/Reader/Guzzle/LegacyGuzzleReader.php',
-        'Alchemy\\Zippy\\Resource\\Reader\\Guzzle\\LegacyGuzzleReaderFactory' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/Reader/Guzzle/LegacyGuzzleReaderFactory.php',
-        'Alchemy\\Zippy\\Resource\\Reader\\Stream\\StreamReader' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/Reader/Stream/StreamReader.php',
-        'Alchemy\\Zippy\\Resource\\Reader\\Stream\\StreamReaderFactory' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/Reader/Stream/StreamReaderFactory.php',
-        'Alchemy\\Zippy\\Resource\\RequestMapper' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/RequestMapper.php',
-        'Alchemy\\Zippy\\Resource\\Resource' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/Resource.php',
-        'Alchemy\\Zippy\\Resource\\ResourceCollection' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/ResourceCollection.php',
-        'Alchemy\\Zippy\\Resource\\ResourceLocator' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/ResourceLocator.php',
-        'Alchemy\\Zippy\\Resource\\ResourceManager' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/ResourceManager.php',
-        'Alchemy\\Zippy\\Resource\\ResourceReader' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/ResourceReader.php',
-        'Alchemy\\Zippy\\Resource\\ResourceReaderFactory' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/ResourceReaderFactory.php',
-        'Alchemy\\Zippy\\Resource\\ResourceTeleporter' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/ResourceTeleporter.php',
-        'Alchemy\\Zippy\\Resource\\ResourceWriter' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/ResourceWriter.php',
-        'Alchemy\\Zippy\\Resource\\TargetLocator' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/TargetLocator.php',
-        'Alchemy\\Zippy\\Resource\\TeleporterContainer' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/TeleporterContainer.php',
-        'Alchemy\\Zippy\\Resource\\Teleporter\\AbstractTeleporter' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/Teleporter/AbstractTeleporter.php',
-        'Alchemy\\Zippy\\Resource\\Teleporter\\GenericTeleporter' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/Teleporter/GenericTeleporter.php',
-        'Alchemy\\Zippy\\Resource\\Teleporter\\GuzzleTeleporter' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/Teleporter/GuzzleTeleporter.php',
-        'Alchemy\\Zippy\\Resource\\Teleporter\\LegacyGuzzleTeleporter' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/Teleporter/LegacyGuzzleTeleporter.php',
-        'Alchemy\\Zippy\\Resource\\Teleporter\\LocalTeleporter' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/Teleporter/LocalTeleporter.php',
-        'Alchemy\\Zippy\\Resource\\Teleporter\\StreamTeleporter' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/Teleporter/StreamTeleporter.php',
-        'Alchemy\\Zippy\\Resource\\Teleporter\\TeleporterInterface' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/Teleporter/TeleporterInterface.php',
-        'Alchemy\\Zippy\\Resource\\Writer\\FilesystemWriter' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/Writer/FilesystemWriter.php',
-        'Alchemy\\Zippy\\Resource\\Writer\\StreamWriter' => __DIR__ . '/..' . '/alchemy/zippy/src/Resource/Writer/StreamWriter.php',
-        'Alchemy\\Zippy\\Zippy' => __DIR__ . '/..' . '/alchemy/zippy/src/Zippy.php',
         'AsyncAws\\Core\\AbstractApi' => __DIR__ . '/..' . '/async-aws/core/src/AbstractApi.php',
         'AsyncAws\\Core\\AwsClientFactory' => __DIR__ . '/..' . '/async-aws/core/src/AwsClientFactory.php',
         'AsyncAws\\Core\\AwsError\\AwsError' => __DIR__ . '/..' . '/async-aws/core/src/AwsError/AwsError.php',
@@ -1200,19 +1103,15 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Composer\\CaBundle\\CaBundle' => __DIR__ . '/..' . '/composer/ca-bundle/src/CaBundle.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
-        'Doctrine\\Common\\Collections\\AbstractLazyCollection' => __DIR__ . '/..' . '/doctrine/collections/lib/Doctrine/Common/Collections/AbstractLazyCollection.php',
-        'Doctrine\\Common\\Collections\\ArrayCollection' => __DIR__ . '/..' . '/doctrine/collections/lib/Doctrine/Common/Collections/ArrayCollection.php',
-        'Doctrine\\Common\\Collections\\Collection' => __DIR__ . '/..' . '/doctrine/collections/lib/Doctrine/Common/Collections/Collection.php',
-        'Doctrine\\Common\\Collections\\Criteria' => __DIR__ . '/..' . '/doctrine/collections/lib/Doctrine/Common/Collections/Criteria.php',
-        'Doctrine\\Common\\Collections\\Expr\\ClosureExpressionVisitor' => __DIR__ . '/..' . '/doctrine/collections/lib/Doctrine/Common/Collections/Expr/ClosureExpressionVisitor.php',
-        'Doctrine\\Common\\Collections\\Expr\\Comparison' => __DIR__ . '/..' . '/doctrine/collections/lib/Doctrine/Common/Collections/Expr/Comparison.php',
-        'Doctrine\\Common\\Collections\\Expr\\CompositeExpression' => __DIR__ . '/..' . '/doctrine/collections/lib/Doctrine/Common/Collections/Expr/CompositeExpression.php',
-        'Doctrine\\Common\\Collections\\Expr\\Expression' => __DIR__ . '/..' . '/doctrine/collections/lib/Doctrine/Common/Collections/Expr/Expression.php',
-        'Doctrine\\Common\\Collections\\Expr\\ExpressionVisitor' => __DIR__ . '/..' . '/doctrine/collections/lib/Doctrine/Common/Collections/Expr/ExpressionVisitor.php',
-        'Doctrine\\Common\\Collections\\Expr\\Value' => __DIR__ . '/..' . '/doctrine/collections/lib/Doctrine/Common/Collections/Expr/Value.php',
-        'Doctrine\\Common\\Collections\\ExpressionBuilder' => __DIR__ . '/..' . '/doctrine/collections/lib/Doctrine/Common/Collections/ExpressionBuilder.php',
-        'Doctrine\\Common\\Collections\\ReadableCollection' => __DIR__ . '/..' . '/doctrine/collections/lib/Doctrine/Common/Collections/ReadableCollection.php',
-        'Doctrine\\Common\\Collections\\Selectable' => __DIR__ . '/..' . '/doctrine/collections/lib/Doctrine/Common/Collections/Selectable.php',
+        'DateError' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateError.php',
+        'DateException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateException.php',
+        'DateInvalidOperationException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateInvalidOperationException.php',
+        'DateInvalidTimeZoneException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateInvalidTimeZoneException.php',
+        'DateMalformedIntervalStringException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateMalformedIntervalStringException.php',
+        'DateMalformedPeriodStringException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateMalformedPeriodStringException.php',
+        'DateMalformedStringException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateMalformedStringException.php',
+        'DateObjectError' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateObjectError.php',
+        'DateRangeError' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateRangeError.php',
         'Doctrine\\Common\\Lexer\\AbstractLexer' => __DIR__ . '/..' . '/doctrine/lexer/src/AbstractLexer.php',
         'Doctrine\\Common\\Lexer\\Token' => __DIR__ . '/..' . '/doctrine/lexer/src/Token.php',
         'Doctrine\\DBAL\\ArrayParameterType' => __DIR__ . '/..' . '/doctrine/dbal/src/ArrayParameterType.php',
@@ -1810,7 +1709,6 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         'Google\\Auth\\CacheTrait' => __DIR__ . '/..' . '/google/auth/src/CacheTrait.php',
         'Google\\Auth\\Cache\\FileSystemCacheItemPool' => __DIR__ . '/..' . '/google/auth/src/Cache/FileSystemCacheItemPool.php',
         'Google\\Auth\\Cache\\InvalidArgumentException' => __DIR__ . '/..' . '/google/auth/src/Cache/InvalidArgumentException.php',
-        'Google\\Auth\\Cache\\Item' => __DIR__ . '/..' . '/google/auth/src/Cache/Item.php',
         'Google\\Auth\\Cache\\MemoryCacheItemPool' => __DIR__ . '/..' . '/google/auth/src/Cache/MemoryCacheItemPool.php',
         'Google\\Auth\\Cache\\SysVCacheItemPool' => __DIR__ . '/..' . '/google/auth/src/Cache/SysVCacheItemPool.php',
         'Google\\Auth\\Cache\\TypedItem' => __DIR__ . '/..' . '/google/auth/src/Cache/TypedItem.php',
@@ -1842,6 +1740,9 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         'Google\\Auth\\HttpHandler\\HttpHandlerFactory' => __DIR__ . '/..' . '/google/auth/src/HttpHandler/HttpHandlerFactory.php',
         'Google\\Auth\\Iam' => __DIR__ . '/..' . '/google/auth/src/Iam.php',
         'Google\\Auth\\IamSignerTrait' => __DIR__ . '/..' . '/google/auth/src/IamSignerTrait.php',
+        'Google\\Auth\\Logging\\LoggingTrait' => __DIR__ . '/..' . '/google/auth/src/Logging/LoggingTrait.php',
+        'Google\\Auth\\Logging\\RpcLogEvent' => __DIR__ . '/..' . '/google/auth/src/Logging/RpcLogEvent.php',
+        'Google\\Auth\\Logging\\StdOutLogger' => __DIR__ . '/..' . '/google/auth/src/Logging/StdOutLogger.php',
         'Google\\Auth\\MetricsTrait' => __DIR__ . '/..' . '/google/auth/src/MetricsTrait.php',
         'Google\\Auth\\Middleware\\AuthTokenMiddleware' => __DIR__ . '/..' . '/google/auth/src/Middleware/AuthTokenMiddleware.php',
         'Google\\Auth\\Middleware\\ProxyAuthTokenMiddleware' => __DIR__ . '/..' . '/google/auth/src/Middleware/ProxyAuthTokenMiddleware.php',
@@ -2085,6 +1986,7 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         'HTMLPurifier_AttrDef_CSS_Multiple' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier/AttrDef/CSS/Multiple.php',
         'HTMLPurifier_AttrDef_CSS_Number' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier/AttrDef/CSS/Number.php',
         'HTMLPurifier_AttrDef_CSS_Percentage' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier/AttrDef/CSS/Percentage.php',
+        'HTMLPurifier_AttrDef_CSS_Ratio' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier/AttrDef/CSS/Ratio.php',
         'HTMLPurifier_AttrDef_CSS_TextDecoration' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier/AttrDef/CSS/TextDecoration.php',
         'HTMLPurifier_AttrDef_CSS_URI' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier/AttrDef/CSS/URI.php',
         'HTMLPurifier_AttrDef_Clone' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier/AttrDef/Clone.php',
@@ -2327,22 +2229,6 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         'HTMLPurifier_VarParser_Native' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier/VarParser/Native.php',
         'HTMLPurifier_Zipper' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier/Zipper.php',
         'HtmlParser\\Parser' => __DIR__ . '/..' . '/oscarotero/html-parser/src/Parser.php',
-        'ImageOptimizer\\ChainOptimizer' => __DIR__ . '/..' . '/ps/image-optimizer/src/ImageOptimizer/ChainOptimizer.php',
-        'ImageOptimizer\\ChangedOutputOptimizer' => __DIR__ . '/..' . '/ps/image-optimizer/src/ImageOptimizer/ChangedOutputOptimizer.php',
-        'ImageOptimizer\\Command' => __DIR__ . '/..' . '/ps/image-optimizer/src/ImageOptimizer/Command.php',
-        'ImageOptimizer\\CommandOptimizer' => __DIR__ . '/..' . '/ps/image-optimizer/src/ImageOptimizer/CommandOptimizer.php',
-        'ImageOptimizer\\Exception\\CommandNotFound' => __DIR__ . '/..' . '/ps/image-optimizer/src/ImageOptimizer/Exception/CommandNotFound.php',
-        'ImageOptimizer\\Exception\\Exception' => __DIR__ . '/..' . '/ps/image-optimizer/src/ImageOptimizer/Exception/Exception.php',
-        'ImageOptimizer\\Optimizer' => __DIR__ . '/..' . '/ps/image-optimizer/src/ImageOptimizer/Optimizer.php',
-        'ImageOptimizer\\OptimizerFactory' => __DIR__ . '/..' . '/ps/image-optimizer/src/ImageOptimizer/OptimizerFactory.php',
-        'ImageOptimizer\\SmartOptimizer' => __DIR__ . '/..' . '/ps/image-optimizer/src/ImageOptimizer/SmartOptimizer.php',
-        'ImageOptimizer\\SuppressErrorOptimizer' => __DIR__ . '/..' . '/ps/image-optimizer/src/ImageOptimizer/SuppressErrorOptimizer.php',
-        'ImageOptimizer\\TypeGuesser\\ExtensionTypeGuesser' => __DIR__ . '/..' . '/ps/image-optimizer/src/ImageOptimizer/TypeGuesser/ExtensionTypeGuesser.php',
-        'ImageOptimizer\\TypeGuesser\\GdTypeGuesser' => __DIR__ . '/..' . '/ps/image-optimizer/src/ImageOptimizer/TypeGuesser/GdTypeGuesser.php',
-        'ImageOptimizer\\TypeGuesser\\SmartTypeGuesser' => __DIR__ . '/..' . '/ps/image-optimizer/src/ImageOptimizer/TypeGuesser/SmartTypeGuesser.php',
-        'ImageOptimizer\\TypeGuesser\\TypeGuesser' => __DIR__ . '/..' . '/ps/image-optimizer/src/ImageOptimizer/TypeGuesser/TypeGuesser.php',
-        'ImageOptimizer\\WrapperOptimizer' => __DIR__ . '/..' . '/ps/image-optimizer/src/ImageOptimizer/WrapperOptimizer.php',
-        'JsonException' => __DIR__ . '/..' . '/symfony/polyfill-php73/Resources/stubs/JsonException.php',
         'League\\Flysystem\\AsyncAwsS3\\AsyncAwsS3Adapter' => __DIR__ . '/..' . '/league/flysystem-async-aws-s3/AsyncAwsS3Adapter.php',
         'League\\Flysystem\\AsyncAwsS3\\PortableVisibilityConverter' => __DIR__ . '/..' . '/league/flysystem-async-aws-s3/PortableVisibilityConverter.php',
         'League\\Flysystem\\AsyncAwsS3\\VisibilityConverter' => __DIR__ . '/..' . '/league/flysystem-async-aws-s3/VisibilityConverter.php',
@@ -2587,6 +2473,7 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         'Monolog\\Test\\TestCase' => __DIR__ . '/..' . '/monolog/monolog/src/Monolog/Test/TestCase.php',
         'Monolog\\Utils' => __DIR__ . '/..' . '/monolog/monolog/src/Monolog/Utils.php',
         'Normalizer' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php',
+        'Override' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/Override.php',
         'ParagonIE\\ConstantTime\\Base32' => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src/Base32.php',
         'ParagonIE\\ConstantTime\\Base32Hex' => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src/Base32Hex.php',
         'ParagonIE\\ConstantTime\\Base64' => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src/Base64.php',
@@ -2630,17 +2517,14 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         'Psr\\Http\\Message\\UploadedFileInterface' => __DIR__ . '/..' . '/psr/http-message/src/UploadedFileInterface.php',
         'Psr\\Http\\Message\\UriFactoryInterface' => __DIR__ . '/..' . '/psr/http-factory/src/UriFactoryInterface.php',
         'Psr\\Http\\Message\\UriInterface' => __DIR__ . '/..' . '/psr/http-message/src/UriInterface.php',
-        'Psr\\Log\\AbstractLogger' => __DIR__ . '/..' . '/psr/log/Psr/Log/AbstractLogger.php',
-        'Psr\\Log\\InvalidArgumentException' => __DIR__ . '/..' . '/psr/log/Psr/Log/InvalidArgumentException.php',
-        'Psr\\Log\\LogLevel' => __DIR__ . '/..' . '/psr/log/Psr/Log/LogLevel.php',
-        'Psr\\Log\\LoggerAwareInterface' => __DIR__ . '/..' . '/psr/log/Psr/Log/LoggerAwareInterface.php',
-        'Psr\\Log\\LoggerAwareTrait' => __DIR__ . '/..' . '/psr/log/Psr/Log/LoggerAwareTrait.php',
-        'Psr\\Log\\LoggerInterface' => __DIR__ . '/..' . '/psr/log/Psr/Log/LoggerInterface.php',
-        'Psr\\Log\\LoggerTrait' => __DIR__ . '/..' . '/psr/log/Psr/Log/LoggerTrait.php',
-        'Psr\\Log\\NullLogger' => __DIR__ . '/..' . '/psr/log/Psr/Log/NullLogger.php',
-        'Psr\\Log\\Test\\DummyTest' => __DIR__ . '/..' . '/psr/log/Psr/Log/Test/DummyTest.php',
-        'Psr\\Log\\Test\\LoggerInterfaceTest' => __DIR__ . '/..' . '/psr/log/Psr/Log/Test/LoggerInterfaceTest.php',
-        'Psr\\Log\\Test\\TestLogger' => __DIR__ . '/..' . '/psr/log/Psr/Log/Test/TestLogger.php',
+        'Psr\\Log\\AbstractLogger' => __DIR__ . '/..' . '/psr/log/src/AbstractLogger.php',
+        'Psr\\Log\\InvalidArgumentException' => __DIR__ . '/..' . '/psr/log/src/InvalidArgumentException.php',
+        'Psr\\Log\\LogLevel' => __DIR__ . '/..' . '/psr/log/src/LogLevel.php',
+        'Psr\\Log\\LoggerAwareInterface' => __DIR__ . '/..' . '/psr/log/src/LoggerAwareInterface.php',
+        'Psr\\Log\\LoggerAwareTrait' => __DIR__ . '/..' . '/psr/log/src/LoggerAwareTrait.php',
+        'Psr\\Log\\LoggerInterface' => __DIR__ . '/..' . '/psr/log/src/LoggerInterface.php',
+        'Psr\\Log\\LoggerTrait' => __DIR__ . '/..' . '/psr/log/src/LoggerTrait.php',
+        'Psr\\Log\\NullLogger' => __DIR__ . '/..' . '/psr/log/src/NullLogger.php',
         'React\\Async\\FiberFactory' => __DIR__ . '/..' . '/react/async/src/FiberFactory.php',
         'React\\Async\\FiberInterface' => __DIR__ . '/..' . '/react/async/src/FiberInterface.php',
         'React\\Async\\FiberMap' => __DIR__ . '/..' . '/react/async/src/FiberMap.php',
@@ -2787,6 +2671,20 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         'RobThree\\Auth\\Providers\\Time\\TimeException' => __DIR__ . '/..' . '/robthree/twofactorauth/lib/Providers/Time/TimeException.php',
         'RobThree\\Auth\\TwoFactorAuth' => __DIR__ . '/..' . '/robthree/twofactorauth/lib/TwoFactorAuth.php',
         'RobThree\\Auth\\TwoFactorAuthException' => __DIR__ . '/..' . '/robthree/twofactorauth/lib/TwoFactorAuthException.php',
+        'SQLite3Exception' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/SQLite3Exception.php',
+        'Spatie\\ImageOptimizer\\DummyLogger' => __DIR__ . '/..' . '/spatie/image-optimizer/src/DummyLogger.php',
+        'Spatie\\ImageOptimizer\\Image' => __DIR__ . '/..' . '/spatie/image-optimizer/src/Image.php',
+        'Spatie\\ImageOptimizer\\Optimizer' => __DIR__ . '/..' . '/spatie/image-optimizer/src/Optimizer.php',
+        'Spatie\\ImageOptimizer\\OptimizerChain' => __DIR__ . '/..' . '/spatie/image-optimizer/src/OptimizerChain.php',
+        'Spatie\\ImageOptimizer\\OptimizerChainFactory' => __DIR__ . '/..' . '/spatie/image-optimizer/src/OptimizerChainFactory.php',
+        'Spatie\\ImageOptimizer\\Optimizers\\Avifenc' => __DIR__ . '/..' . '/spatie/image-optimizer/src/Optimizers/Avifenc.php',
+        'Spatie\\ImageOptimizer\\Optimizers\\BaseOptimizer' => __DIR__ . '/..' . '/spatie/image-optimizer/src/Optimizers/BaseOptimizer.php',
+        'Spatie\\ImageOptimizer\\Optimizers\\Cwebp' => __DIR__ . '/..' . '/spatie/image-optimizer/src/Optimizers/Cwebp.php',
+        'Spatie\\ImageOptimizer\\Optimizers\\Gifsicle' => __DIR__ . '/..' . '/spatie/image-optimizer/src/Optimizers/Gifsicle.php',
+        'Spatie\\ImageOptimizer\\Optimizers\\Jpegoptim' => __DIR__ . '/..' . '/spatie/image-optimizer/src/Optimizers/Jpegoptim.php',
+        'Spatie\\ImageOptimizer\\Optimizers\\Optipng' => __DIR__ . '/..' . '/spatie/image-optimizer/src/Optimizers/Optipng.php',
+        'Spatie\\ImageOptimizer\\Optimizers\\Pngquant' => __DIR__ . '/..' . '/spatie/image-optimizer/src/Optimizers/Pngquant.php',
+        'Spatie\\ImageOptimizer\\Optimizers\\Svgo' => __DIR__ . '/..' . '/spatie/image-optimizer/src/Optimizers/Svgo.php',
         'Stringable' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Stringable.php',
         'Symfony\\Component\\Cache\\Adapter\\AbstractAdapter' => __DIR__ . '/..' . '/symfony/cache/Adapter/AbstractAdapter.php',
         'Symfony\\Component\\Cache\\Adapter\\AbstractTagAwareAdapter' => __DIR__ . '/..' . '/symfony/cache/Adapter/AbstractTagAwareAdapter.php',
@@ -2835,16 +2733,19 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         'Symfony\\Component\\Cache\\Psr16Cache' => __DIR__ . '/..' . '/symfony/cache/Psr16Cache.php',
         'Symfony\\Component\\Cache\\ResettableInterface' => __DIR__ . '/..' . '/symfony/cache/ResettableInterface.php',
         'Symfony\\Component\\Cache\\Traits\\AbstractAdapterTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/AbstractAdapterTrait.php',
+        'Symfony\\Component\\Cache\\Traits\\CachedValueInterface' => __DIR__ . '/..' . '/symfony/cache/Traits/CachedValueInterface.php',
         'Symfony\\Component\\Cache\\Traits\\ContractsTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/ContractsTrait.php',
         'Symfony\\Component\\Cache\\Traits\\FilesystemCommonTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/FilesystemCommonTrait.php',
         'Symfony\\Component\\Cache\\Traits\\FilesystemTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/FilesystemTrait.php',
         'Symfony\\Component\\Cache\\Traits\\ProxyTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/ProxyTrait.php',
         'Symfony\\Component\\Cache\\Traits\\Redis5Proxy' => __DIR__ . '/..' . '/symfony/cache/Traits/Redis5Proxy.php',
+        'Symfony\\Component\\Cache\\Traits\\Redis61ProxyTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/Redis61ProxyTrait.php',
+        'Symfony\\Component\\Cache\\Traits\\Redis62ProxyTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/Redis62ProxyTrait.php',
         'Symfony\\Component\\Cache\\Traits\\Redis6Proxy' => __DIR__ . '/..' . '/symfony/cache/Traits/Redis6Proxy.php',
-        'Symfony\\Component\\Cache\\Traits\\Redis6ProxyTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/Redis6ProxyTrait.php',
         'Symfony\\Component\\Cache\\Traits\\RedisCluster5Proxy' => __DIR__ . '/..' . '/symfony/cache/Traits/RedisCluster5Proxy.php',
+        'Symfony\\Component\\Cache\\Traits\\RedisCluster61ProxyTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/RedisCluster61ProxyTrait.php',
+        'Symfony\\Component\\Cache\\Traits\\RedisCluster62ProxyTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/RedisCluster62ProxyTrait.php',
         'Symfony\\Component\\Cache\\Traits\\RedisCluster6Proxy' => __DIR__ . '/..' . '/symfony/cache/Traits/RedisCluster6Proxy.php',
-        'Symfony\\Component\\Cache\\Traits\\RedisCluster6ProxyTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/RedisCluster6ProxyTrait.php',
         'Symfony\\Component\\Cache\\Traits\\RedisClusterNodeProxy' => __DIR__ . '/..' . '/symfony/cache/Traits/RedisClusterNodeProxy.php',
         'Symfony\\Component\\Cache\\Traits\\RedisClusterProxy' => __DIR__ . '/..' . '/symfony/cache/Traits/RedisClusterProxy.php',
         'Symfony\\Component\\Cache\\Traits\\RedisProxy' => __DIR__ . '/..' . '/symfony/cache/Traits/RedisProxy.php',
@@ -2853,12 +2754,19 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         'Symfony\\Component\\Cache\\Traits\\RelayProxyTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/RelayProxyTrait.php',
         'Symfony\\Component\\Cache\\Traits\\Relay\\BgsaveTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/Relay/BgsaveTrait.php',
         'Symfony\\Component\\Cache\\Traits\\Relay\\CopyTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/Relay/CopyTrait.php',
+        'Symfony\\Component\\Cache\\Traits\\Relay\\FtTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/Relay/FtTrait.php',
         'Symfony\\Component\\Cache\\Traits\\Relay\\GeosearchTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/Relay/GeosearchTrait.php',
+        'Symfony\\Component\\Cache\\Traits\\Relay\\GetWithMetaTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/Relay/GetWithMetaTrait.php',
         'Symfony\\Component\\Cache\\Traits\\Relay\\GetrangeTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/Relay/GetrangeTrait.php',
         'Symfony\\Component\\Cache\\Traits\\Relay\\HsetTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/Relay/HsetTrait.php',
+        'Symfony\\Component\\Cache\\Traits\\Relay\\IsTrackedTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/Relay/IsTrackedTrait.php',
         'Symfony\\Component\\Cache\\Traits\\Relay\\MoveTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/Relay/MoveTrait.php',
         'Symfony\\Component\\Cache\\Traits\\Relay\\NullableReturnTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/Relay/NullableReturnTrait.php',
         'Symfony\\Component\\Cache\\Traits\\Relay\\PfcountTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/Relay/PfcountTrait.php',
+        'Symfony\\Component\\Cache\\Traits\\Relay\\Relay11Trait' => __DIR__ . '/..' . '/symfony/cache/Traits/Relay/Relay11Trait.php',
+        'Symfony\\Component\\Cache\\Traits\\Relay\\Relay121Trait' => __DIR__ . '/..' . '/symfony/cache/Traits/Relay/Relay121Trait.php',
+        'Symfony\\Component\\Cache\\Traits\\Relay\\Relay12Trait' => __DIR__ . '/..' . '/symfony/cache/Traits/Relay/Relay12Trait.php',
+        'Symfony\\Component\\Cache\\Traits\\Relay\\SwapdbTrait' => __DIR__ . '/..' . '/symfony/cache/Traits/Relay/SwapdbTrait.php',
         'Symfony\\Component\\EventDispatcher\\Attribute\\AsEventListener' => __DIR__ . '/..' . '/symfony/event-dispatcher/Attribute/AsEventListener.php',
         'Symfony\\Component\\EventDispatcher\\Debug\\TraceableEventDispatcher' => __DIR__ . '/..' . '/symfony/event-dispatcher/Debug/TraceableEventDispatcher.php',
         'Symfony\\Component\\EventDispatcher\\Debug\\WrappedListener' => __DIR__ . '/..' . '/symfony/event-dispatcher/Debug/WrappedListener.php',
@@ -3095,19 +3003,6 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         'Symfony\\Component\\Mime\\Test\\Constraint\\EmailHtmlBodyContains' => __DIR__ . '/..' . '/symfony/mime/Test/Constraint/EmailHtmlBodyContains.php',
         'Symfony\\Component\\Mime\\Test\\Constraint\\EmailSubjectContains' => __DIR__ . '/..' . '/symfony/mime/Test/Constraint/EmailSubjectContains.php',
         'Symfony\\Component\\Mime\\Test\\Constraint\\EmailTextBodyContains' => __DIR__ . '/..' . '/symfony/mime/Test/Constraint/EmailTextBodyContains.php',
-        'Symfony\\Component\\OptionsResolver\\Debug\\OptionsResolverIntrospector' => __DIR__ . '/..' . '/symfony/options-resolver/Debug/OptionsResolverIntrospector.php',
-        'Symfony\\Component\\OptionsResolver\\Exception\\AccessException' => __DIR__ . '/..' . '/symfony/options-resolver/Exception/AccessException.php',
-        'Symfony\\Component\\OptionsResolver\\Exception\\ExceptionInterface' => __DIR__ . '/..' . '/symfony/options-resolver/Exception/ExceptionInterface.php',
-        'Symfony\\Component\\OptionsResolver\\Exception\\InvalidArgumentException' => __DIR__ . '/..' . '/symfony/options-resolver/Exception/InvalidArgumentException.php',
-        'Symfony\\Component\\OptionsResolver\\Exception\\InvalidOptionsException' => __DIR__ . '/..' . '/symfony/options-resolver/Exception/InvalidOptionsException.php',
-        'Symfony\\Component\\OptionsResolver\\Exception\\MissingOptionsException' => __DIR__ . '/..' . '/symfony/options-resolver/Exception/MissingOptionsException.php',
-        'Symfony\\Component\\OptionsResolver\\Exception\\NoConfigurationException' => __DIR__ . '/..' . '/symfony/options-resolver/Exception/NoConfigurationException.php',
-        'Symfony\\Component\\OptionsResolver\\Exception\\NoSuchOptionException' => __DIR__ . '/..' . '/symfony/options-resolver/Exception/NoSuchOptionException.php',
-        'Symfony\\Component\\OptionsResolver\\Exception\\OptionDefinitionException' => __DIR__ . '/..' . '/symfony/options-resolver/Exception/OptionDefinitionException.php',
-        'Symfony\\Component\\OptionsResolver\\Exception\\UndefinedOptionsException' => __DIR__ . '/..' . '/symfony/options-resolver/Exception/UndefinedOptionsException.php',
-        'Symfony\\Component\\OptionsResolver\\OptionConfigurator' => __DIR__ . '/..' . '/symfony/options-resolver/OptionConfigurator.php',
-        'Symfony\\Component\\OptionsResolver\\Options' => __DIR__ . '/..' . '/symfony/options-resolver/Options.php',
-        'Symfony\\Component\\OptionsResolver\\OptionsResolver' => __DIR__ . '/..' . '/symfony/options-resolver/OptionsResolver.php',
         'Symfony\\Component\\Process\\Exception\\ExceptionInterface' => __DIR__ . '/..' . '/symfony/process/Exception/ExceptionInterface.php',
         'Symfony\\Component\\Process\\Exception\\InvalidArgumentException' => __DIR__ . '/..' . '/symfony/process/Exception/InvalidArgumentException.php',
         'Symfony\\Component\\Process\\Exception\\LogicException' => __DIR__ . '/..' . '/symfony/process/Exception/LogicException.php',
@@ -3192,9 +3087,9 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
         'Symfony\\Polyfill\\Intl\\Idn\\Resources\\unidata\\Regex' => __DIR__ . '/..' . '/symfony/polyfill-intl-idn/Resources/unidata/Regex.php',
         'Symfony\\Polyfill\\Intl\\Normalizer\\Normalizer' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/Normalizer.php',
         'Symfony\\Polyfill\\Mbstring\\Mbstring' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/Mbstring.php',
-        'Symfony\\Polyfill\\Php73\\Php73' => __DIR__ . '/..' . '/symfony/polyfill-php73/Php73.php',
         'Symfony\\Polyfill\\Php80\\Php80' => __DIR__ . '/..' . '/symfony/polyfill-php80/Php80.php',
         'Symfony\\Polyfill\\Php80\\PhpToken' => __DIR__ . '/..' . '/symfony/polyfill-php80/PhpToken.php',
+        'Symfony\\Polyfill\\Php83\\Php83' => __DIR__ . '/..' . '/symfony/polyfill-php83/Php83.php',
         'Twig\\AbstractTwigCallable' => __DIR__ . '/..' . '/twig/twig/src/AbstractTwigCallable.php',
         'Twig\\Attribute\\AsTwigFilter' => __DIR__ . '/..' . '/twig/twig/src/Attribute/AsTwigFilter.php',
         'Twig\\Attribute\\AsTwigFunction' => __DIR__ . '/..' . '/twig/twig/src/Attribute/AsTwigFunction.php',
@@ -3817,10 +3712,10 @@ class ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInitc8d124751fc818bdfc06b0d588e3e993::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitf8ccaf1e37d7bd1e769ec0f894271827::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitf8ccaf1e37d7bd1e769ec0f894271827::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInitf8ccaf1e37d7bd1e769ec0f894271827::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInitf8ccaf1e37d7bd1e769ec0f894271827::$classMap;
 
         }, null, ClassLoader::class);
     }

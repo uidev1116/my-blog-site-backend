@@ -15,6 +15,12 @@ declare module '@features/unit-editor/core' {
     findParentUnit: {
       findParentUnit: (id: UnitTreeNode['id']) => ReturnType<typeof selectors.findParentUnit>;
     };
+    getGroupUnitLevel: {
+      getGroupUnitLevel: (id: UnitTreeNode['id']) => ReturnType<typeof selectors.getGroupUnitLevel>;
+    };
+    getMaxGroupUnitDepth: {
+      getMaxGroupUnitDepth: () => ReturnType<typeof selectors.getMaxGroupUnitDepth>;
+    };
     isFirstIndexUnit: {
       isFirstIndexUnit: (id: UnitTreeNode['id']) => ReturnType<typeof selectors.isFirstIndexUnit>;
     };
@@ -83,6 +89,9 @@ const coreSelectors: AnyEditorSelectors = {
   findUnitPosition: (id: UnitTreeNode['id']) => (props: SelectorProps) => selectors.findUnitPosition(props.editor, id),
   findUnitIndex: (id: UnitTreeNode['id']) => (props: SelectorProps) => selectors.findUnitIndex(props.editor, id),
   findParentUnit: (id: UnitTreeNode['id']) => (props: SelectorProps) => selectors.findParentUnit(props.editor, id),
+  getGroupUnitLevel: (id: UnitTreeNode['id']) => (props: SelectorProps) =>
+    selectors.getGroupUnitLevel(props.editor, id),
+  getMaxGroupUnitDepth: () => (props: SelectorProps) => selectors.getMaxGroupUnitDepth(props.editor),
   isFirstIndexUnit: (id: UnitTreeNode['id']) => (props: SelectorProps) => selectors.isFirstIndexUnit(props.editor, id),
   isLastIndexUnit: (id: UnitTreeNode['id']) => (props: SelectorProps) => selectors.isLastIndexUnit(props.editor, id),
   isFirstPositionUnit: (id: UnitTreeNode['id']) => (props: SelectorProps) =>

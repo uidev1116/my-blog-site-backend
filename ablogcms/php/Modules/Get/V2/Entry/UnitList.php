@@ -138,6 +138,7 @@ class UnitList extends Summary
         $mediaEagerLoading = Media::mediaEagerLoadFromUnit($collection);
 
         $acmsTplEngine = Application::make('template.acms');
+        assert($acmsTplEngine instanceof \Acms\Services\Template\Acms);
         $acmsTplEngine->load('/include/unit.html', config('theme'), BID);
         $tpl = $acmsTplEngine->getTemplate();
 

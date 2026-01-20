@@ -6,6 +6,19 @@ import { replaceLast } from '../../../../utils/string';
 import { EditorState } from '../types';
 
 /**
+ * 指定されたIDがユニットまたはその子孫に含まれているかを判定する
+ */
+const isDescendantOrSelf = (unit: UnitTreeNode, rootId: UnitTreeNode['id']): boolean => {
+  if (unit.id === rootId) {
+    return true;
+  }
+  if (unit.children) {
+    return unit.children.some((child) => isDescendantOrSelf(child, rootId));
+  }
+  return false;
+};
+
+/**
  * 指定位置にユニットを挿入する
  * @param editor エディタインスタンス
  * @param newUnit 追加するユニット
@@ -227,14 +240,14 @@ export const toggleUnitStatus = (editor: Editor, id: UnitTreeNode['id']): Editor
  * @returns 更新されたユニット配列
  */
 export const moveUnitToPosition = (editor: Editor, id: UnitTreeNode['id'], newPosition: UnitPosition): EditorState => {
-  if (id === newPosition.rootId) {
-    // 移動先が自分自身の場合は何もしない
-    return editor.state;
-  }
-
   // 移動対象のユニットを探す
   const unit = findUnitById(editor, id);
   if (unit === null) {
+    return editor.state;
+  }
+
+  // 移動先が自分自身または自分の子孫の場合は何もしない
+  if (newPosition.rootId !== undefined && isDescendantOrSelf(unit, newPosition.rootId)) {
     return editor.state;
   }
 

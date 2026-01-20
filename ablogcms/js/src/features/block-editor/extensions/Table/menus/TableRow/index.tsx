@@ -33,6 +33,7 @@ export const TableRowMenu = React.memo(({ editor, appendTo }: MenuProps): JSX.El
         appendTo: () => appendTo?.current,
         placement: 'bottom-end',
         offset: [0, 15],
+        zIndex: 100019, // TextMenu (100018) より高いz-indexを設定
         popperOptions: {
           modifiers: [{ name: 'flip', enabled: false }],
         },

@@ -12,12 +12,12 @@ interface actionCommand {
   isActive: (editor: Editor) => boolean;
 }
 
-const resolveCommands = (commands: CommandItem[], recordUsage: (command: string) => void): CommandItem[] => {
+const resolveCommands = (commands: CommandItem[], recordUsage: (command: CommandItem) => void): CommandItem[] => {
   const actions: Record<string, (cmd: CommandItem) => actionCommand> = {
     paragraph: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           editor.chain().focus().setParagraph().run();
           const { $from } = editor.state.selection;
           const pos = $from.before($from.depth);
@@ -57,7 +57,7 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
     heading1: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           editor.chain().focus().setHeading({ level: 1 }).run();
           const { $from } = editor.state.selection;
           const pos = $from.before($from.depth);
@@ -100,7 +100,7 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
     heading2: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           editor.chain().focus().setHeading({ level: 2 }).run();
           const { $from } = editor.state.selection;
           const pos = $from.before($from.depth);
@@ -143,7 +143,7 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
     heading3: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           editor.chain().focus().setHeading({ level: 3 }).run();
           const { $from } = editor.state.selection;
           const pos = $from.before($from.depth);
@@ -186,7 +186,7 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
     heading4: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           editor.chain().focus().setHeading({ level: 4 }).run();
           const { $from } = editor.state.selection;
           const pos = $from.before($from.depth);
@@ -229,7 +229,7 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
     heading5: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           editor.chain().focus().setHeading({ level: 5 }).run();
           const { $from } = editor.state.selection;
           const pos = $from.before($from.depth);
@@ -272,7 +272,7 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
     heading6: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           editor.chain().focus().setHeading({ level: 6 }).run();
           const { $from } = editor.state.selection;
           const pos = $from.before($from.depth);
@@ -315,7 +315,7 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
     bulletList: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           editor.chain().focus().toggleBulletList().run();
           const { $from } = editor.state.selection;
           // カーソル位置から上へ順に探索して `bulletList` を見つける
@@ -360,7 +360,7 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
     numberedList: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           editor.chain().focus().toggleOrderedList().run();
           const { $from } = editor.state.selection;
           // カーソル位置から上へ順に探索して `orderedList` を見つける
@@ -405,7 +405,7 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
     blockquote: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           editor.chain().focus().setBlockquote().run();
           const { $from } = editor.state.selection;
           // カーソル位置から上へ順に探索して `blockquote` を見つける
@@ -449,7 +449,7 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
     codeBlock: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           editor.chain().focus().setCodeBlock().run();
           const { $from } = editor.state.selection;
           // カーソル位置から上へ順に探索して `codeBlock` を見つける
@@ -493,7 +493,7 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
     image: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           const { $from } = editor.state.selection;
           const pos = $from.before($from.depth);
           editor.chain().focus().uploadMediaImage().setBlockAttrs(pos, { class: cmd.class }).run();
@@ -530,7 +530,7 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
     file: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           const { $from } = editor.state.selection;
           const pos = $from.before($from.depth);
           editor.chain().focus().uploadMediaFile().setBlockAttrs(pos, { class: cmd.class }).run();
@@ -567,7 +567,7 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
     linkButton: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           const { $from } = editor.state.selection;
           const pos = $from.before($from.depth);
           editor.chain().focus().setLinkButtonBlock().setBlockAttrs(pos, { class: cmd.class }).run();
@@ -604,7 +604,7 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
     table: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: false }).run();
           const { $from } = editor.state.selection;
           // カーソル位置から上へ順に探索して `orderedList` を見つける
@@ -649,7 +649,7 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
     columns2: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           const { $from } = editor.state.selection;
           const pos = $from.before($from.depth);
           editor
@@ -670,7 +670,7 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
     columns3: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           const { $from } = editor.state.selection;
           const pos = $from.before($from.depth);
           editor
@@ -691,7 +691,7 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: string)
     horizontalRule: (cmd) => {
       return {
         action: (editor) => {
-          recordUsage(cmd.name);
+          recordUsage(cmd);
           const { $from } = editor.state.selection;
           const pos = $from.before($from.depth);
           editor.chain().focus().setHorizontalRule().run();
@@ -783,13 +783,30 @@ export function useBlockMenus({ blockMenus }: UseBlockMenusOptions): UseBlockMen
 
       // よく使うコマンドグループ
       if (frequentlyUsed.length > 0) {
+        // ルックアップマップを作成（O(n)）
+        const frequentlyUsedMap = new Map<string, number>();
+        frequentlyUsed.forEach((f, index) => {
+          const key = `${f.name}:${f.class ?? ''}`;
+          frequentlyUsedMap.set(key, index);
+        });
+
         const frequentlyUsedCommands: CommandItem[] = resolvedGroups
           .flatMap((group) => group.commands)
-          .filter(
-            (cmd, index, self) =>
-              frequentlyUsed.includes(cmd.name) && self.findIndex((c) => c.name === cmd.name) === index // 重複除去
-          )
-          .sort((a, b) => frequentlyUsed.indexOf(a.name) - frequentlyUsed.indexOf(b.name));
+          .filter((cmd, index, self) => {
+            // name と class の両方が一致するかチェック
+            const key = `${cmd.name}:${cmd.class ?? ''}`;
+            const isFrequentlyUsed = frequentlyUsedMap.has(key);
+            // 重複除去（name と class の両方が一致するもの）
+            const firstIndex = self.findIndex((c) => c.name === cmd.name && (c.class ?? '') === (cmd.class ?? ''));
+            return isFrequentlyUsed && firstIndex === index;
+          })
+          .toSorted((a, b) => {
+            const aKey = `${a.name}:${a.class ?? ''}`;
+            const bKey = `${b.name}:${b.class ?? ''}`;
+            const aIndex = frequentlyUsedMap.get(aKey) ?? Infinity;
+            const bIndex = frequentlyUsedMap.get(bKey) ?? Infinity;
+            return aIndex - bIndex;
+          });
 
         if (frequentlyUsedCommands.length > 0) {
           const frequentlyUsedGroup: BlockMenuItem = {

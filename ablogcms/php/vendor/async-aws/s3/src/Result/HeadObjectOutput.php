@@ -256,8 +256,10 @@ class HeadObjectOutput extends Result
     private $websiteRedirectLocation;
 
     /**
-     * The server-side encryption algorithm used when you store this object in Amazon S3 (for example, `AES256`, `aws:kms`,
-     * `aws:kms:dsse`).
+     * The server-side encryption algorithm used when you store this object in Amazon S3 or Amazon FSx.
+     *
+     * > When accessing data stored in Amazon FSx file systems using S3 access points, the only valid server side encryption
+     * > option is `aws:fsx`.
      *
      * @var ServerSideEncryption::*|null
      */
@@ -366,6 +368,19 @@ class HeadObjectOutput extends Result
      * @var int|null
      */
     private $partsCount;
+
+    /**
+     * The number of tags, if any, on the object, when you have the relevant permission to read object tags.
+     *
+     * You can use GetObjectTagging [^1] to retrieve the tag set associated with an object.
+     *
+     * > This functionality is not supported for directory buckets.
+     *
+     * [^1]: https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObjectTagging.html
+     *
+     * @var int|null
+     */
+    private $tagCount;
 
     /**
      * The Object Lock mode, if any, that's in effect for this object. This header is only returned if the requester has the
@@ -674,6 +689,13 @@ class HeadObjectOutput extends Result
         return $this->storageClass;
     }
 
+    public function getTagCount(): ?int
+    {
+        $this->initialize();
+
+        return $this->tagCount;
+    }
+
     public function getVersionId(): ?string
     {
         $this->initialize();
@@ -725,6 +747,7 @@ class HeadObjectOutput extends Result
         $this->requestCharged = $headers['x-amz-request-charged'][0] ?? null;
         $this->replicationStatus = $headers['x-amz-replication-status'][0] ?? null;
         $this->partsCount = isset($headers['x-amz-mp-parts-count'][0]) ? (int) $headers['x-amz-mp-parts-count'][0] : null;
+        $this->tagCount = isset($headers['x-amz-tagging-count'][0]) ? (int) $headers['x-amz-tagging-count'][0] : null;
         $this->objectLockMode = $headers['x-amz-object-lock-mode'][0] ?? null;
         $this->objectLockRetainUntilDate = isset($headers['x-amz-object-lock-retain-until-date'][0]) ? new \DateTimeImmutable($headers['x-amz-object-lock-retain-until-date'][0]) : null;
         $this->objectLockLegalHoldStatus = $headers['x-amz-object-lock-legal-hold'][0] ?? null;

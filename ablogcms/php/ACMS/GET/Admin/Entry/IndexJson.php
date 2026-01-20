@@ -8,7 +8,7 @@ class ACMS_GET_Admin_Entry_IndexJson extends ACMS_GET_Admin_Entry_Index
     protected function render(\Template $tpl, array $vars): string
     {
         $json = (string)json_encode($vars);
-        if (jsonValidate($json)) {
+        if (json_validate($json)) {
             return $json;
         }
         return '{}';

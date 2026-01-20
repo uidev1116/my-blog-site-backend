@@ -1,12 +1,9 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
 import { findParentNode } from '@tiptap/core';
 import { Selection, Transaction } from '@tiptap/pm/state';
-import { CellSelection, TableMap } from '@tiptap/pm/tables';
+import { CellSelection, Rect, TableMap } from '@tiptap/pm/tables';
 import { Node, ResolvedPos } from '@tiptap/pm/model';
 
-// eslint-disable-next-line
-export const isRectSelected = (rect: any) => (selection: CellSelection) => {
+export const isRectSelected = (rect: Rect) => (selection: CellSelection) => {
   const map = TableMap.get(selection.$anchorCell.node(-1));
   const start = selection.$anchorCell.start(-1);
   const cells = map.cellsInRect(rect);
@@ -26,11 +23,9 @@ export const isRectSelected = (rect: any) => (selection: CellSelection) => {
 export const findTable = (selection: Selection) =>
   findParentNode((node) => node.type.spec.tableRole && node.type.spec.tableRole === 'table')(selection);
 
-// eslint-disable-next-line
-export const isCellSelection = (selection: any) => selection instanceof CellSelection;
+export const isCellSelection = (selection: unknown): selection is CellSelection => selection instanceof CellSelection;
 
-// eslint-disable-next-line
-export const isColumnSelected = (columnIndex: number) => (selection: any) => {
+export const isColumnSelected = (columnIndex: number) => (selection: Selection) => {
   if (isCellSelection(selection)) {
     const map = TableMap.get(selection.$anchorCell.node(-1));
 
@@ -46,7 +41,7 @@ export const isColumnSelected = (columnIndex: number) => (selection: any) => {
 };
 
 // eslint-disable-next-line
-export const isRowSelected = (rowIndex: number) => (selection: any) => {
+export const isRowSelected = (rowIndex: number) => (selection: Selection) => {
   if (isCellSelection(selection)) {
     const map = TableMap.get(selection.$anchorCell.node(-1));
 
@@ -62,7 +57,7 @@ export const isRowSelected = (rowIndex: number) => (selection: any) => {
 };
 
 // eslint-disable-next-line
-export const isTableSelected = (selection: any) => {
+export const isTableSelected = (selection: Selection) => {
   if (isCellSelection(selection)) {
     const map = TableMap.get(selection.$anchorCell.node(-1));
 
