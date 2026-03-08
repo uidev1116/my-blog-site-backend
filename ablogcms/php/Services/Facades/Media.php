@@ -5,13 +5,16 @@ namespace Acms\Services\Facades;
 /**
  * @method static bool validate(?int $bid = null) 指定したブログでメディアライブラリが有効かどうかを確認
  * @method static bool canEdit(int $mid) 指定したメディアを編集できるかどうかを確認
- * @method static array{tags: string[], name: string, file: array{name: string, tmp_name: string, type: string, size: int}, size: int, type: string, extension: string} getBaseInfo(array{name: string, tmp_name: string, type: string, size: int} $fileObj, string $tags) メディアの基本情報を取得
+ * @method static array{tags: string, name: string, file: array{name: string, tmp_name: string, type: string, size: int}, size: int, type: string, extension: string} getBaseInfo(array{name: string, tmp_name: string, type: string, size: int} $fileObj, string $tags) メディアの基本情報を取得
  * @method static array{path: string, name: string, original: string} copyImages(int $mid, string $filename = '') メディアの画像をコピー
  * @method static array{path: string, name: string} copyFiles(int $mid, string $filename = '') メディアのファイルをコピー
  * @method static array{path: string, type: string, name: string, size: string, filesize: int, extension: string} uploadImage(string $fieldName = 'file', bool $original = true) 画像をアップロード
  * @method static array{path: string, type: string, name: string, size: string} uploadPdfThumbnail(string $name) PDFのサムネイルをアップロード
  * @method static array{path: string, type: string, name: string, size: string, filesize: int, extension: string} uploadSvg(string $size, string $fieldName = 'file') SVGをアップロード
  * @method static array{path: string, type: string, name: string, size: string, filesize: int, extension: string}|false uploadFile(string $size, string $fieldName = 'file') ファイルをアップロード
+ * @method static array{path: string, type: string, name: string, size: string} storeFile(string $archivesDir, string $filepath, string $filename, bool $random = true) ファイルを保存
+ * @method static array{path: string, type: string, name: string, size: string} storeImage(string $filepath, string $filename, ?int $angle = null, bool $original = true) 画像ファイルを保存
+ * @method static array{path: string, type: string, name: string, size: string} storePdfThumbnailImage(string $filepath, string $filename) PDFサムネイル画像を保存
  * @method static void deleteImage(int $mid, bool $removeOriginal = true) 画像ファイルを削除
  * @method static void deleteThumbnail(int $mid) サムネイル画像を削除
  * @method static void deleteFile(int $mid) ファイルを削除
@@ -21,7 +24,7 @@ namespace Acms\Services\Facades;
  * @method static bool isImageFile(string $type) 指定したファイルが画像かどうかを確認
  * @method static bool isSvgFile(string $type) 指定したファイルがSVGかどうかを確認
  * @method static bool isFile(string $type) 指定したファイルがファイルかどうかを確認
- * @method static string getEdited(string $path)
+ * @method static string getEditedIcon(string $path) 編集済みアイコンのURLを取得
  * @method static string getImageThumbnail(string $path) 画像のサムネイルを取得
  * @method static string getSvgThumbnail(string $path) SVGのサムネイルパスを取得
  * @method static string getFileThumbnail(string $extension) ファイルのサムネイルパスを取得
@@ -45,7 +48,7 @@ namespace Acms\Services\Facades;
  * @method static array<int, array<string, mixed>> mediaEagerLoad(int[] $midiaIds) メディアIDからメディア情報を取得
  * @method static array<int, array<string, mixed>> mediaEagerLoadFromUnit(\Acms\Services\Unit\UnitCollection $collection) ユニットモデル一覧からメディア情報を取得
  * @method static array{ path: string, width: string, height: string, permalink: string, icon: string, iconWidth: string, iconHeight: string, extension: string, fileSize: int}[] getMediaList(int[] $midiaIds) メディアIDから整形されたメディア一覧を取得
- * @method static array{mid: int, bid: int, status: string, path: string, thumbnail: string, name: string, size: string, filesize: int, type: string, extension: string, original: string, update_date: string, upload_date: string, field1: string, field2: string, field3: string, field4: string, field5: string, field6: string, blog_name: string, user_id: int, user_name: string, last_update_user_id: int, last_update_user_name: string, editable: bool}|array{} getMedia(int $mid) メディアを取得
+ * @method static array{mid: int, bid: int, status: string, path: string, thumbnail: string, name: string, size: string, filesize: int, type: string, extension: string, original: string, update_date: string, upload_date: string, field_1: string, field_2: string, field_3: string, field_4: string, field_5: string, field_6: string, blog_name: string, user_id: int, user_name: string, last_update_user_id: int, last_update_user_name: string, editable: bool}|array{} getMedia(int $mid) メディアを取得
  * @method static void deleteItem(int $mid) メディアを削除
  * @method static void injectMediaField(\Field $Field, array $mediaList, string[] $useMediaField) \Fieldにメディアデータを注入
  * @method static never|void downloadFile(int $mid) ファイルをダウンロード

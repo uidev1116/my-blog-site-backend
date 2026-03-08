@@ -285,16 +285,11 @@ class Helper
      */
     public function uploadImage($fieldName = 'file', $original = true)
     {
-        $size = [
-            'normal' => 0,
-            'tiny' => 330,
-            'square' => -1,
-        ];
-        if ($original) {
-            $size['large'] = 99999;
+        if (!is_uploaded_file($_FILES[$fieldName]['tmp_name'])) {
+            throw new \InvalidArgumentException('ファイルがアップロードされていません');
         }
-        $isRamdomFileName = config('media_image_ramdom_filename', 'off') === 'on';
-        $forceLarge = isset($size['large']);
+        $filepath = $_FILES[$fieldName]['tmp_name'];
+        $filename = $_FILES[$fieldName]['name'];
 
         /**
          * @var array{
@@ -304,13 +299,11 @@ class Helper
          *  size: string
          * } $data
          */
-        $data = Image::createImages(
-            $_FILES[$fieldName],
-            $size,
-            MEDIA_LIBRARY_DIR,
-            $isRamdomFileName,
-            null,
-            $forceLarge
+        $data = $this->storeImage(
+            filepath: $filepath,
+            filename: $filename,
+            angle: null,
+            original: $original,
         );
         return [
             'path' => $data['path'],
@@ -334,13 +327,14 @@ class Helper
      */
     public function uploadPdfThumbnail($name)
     {
-        return Image::createImages(
-            $_FILES[$name],
-            ['normal' => 99999],
-            MEDIA_LIBRARY_DIR,
-            true,
-            null,
-            true
+        $filepath = $_FILES[$name]['tmp_name'];
+        $filename = $_FILES[$name]['name'];
+        if (!is_uploaded_file($filepath)) {
+            throw new \InvalidArgumentException('ファイルがアップロードされていません');
+        }
+        return $this->storePdfThumbnailImage(
+            filepath: $filepath,
+            filename: $filename
         );
     }
 
@@ -1577,7 +1571,7 @@ class Helper
     }
 
     /**
-     * ファイルをアップロードする
+     * $_FILES のフィールドからファイルをアップロードする
      *
      * @param string $archivesDir
      * @param string $fieldName
@@ -1588,35 +1582,64 @@ class Helper
     protected function createFile(string $archivesDir, string $fieldName = 'file', bool $random = true): array
     {
         if (!isset($_FILES[$fieldName])) {
-            throw new RuntimeException('ファイルアップロードに失敗しました');
+            throw new RuntimeException('ファイルフィールドが存在しないため、アップロードに失敗しました');
         }
-        $File = $_FILES[$fieldName];
-        if (!isset($File['tmp_name'])) {
-            throw new RuntimeException('ファイルアップロードに失敗しました');
+        $fileData = $_FILES[$fieldName];
+        if (!isset($fileData['tmp_name'])) {
+            throw new RuntimeException('一時ファイル情報が不足しているため、アップロードに失敗しました');
         }
-        if (is_uploaded_file($File['tmp_name']) === false) {
-            throw new RuntimeException('ファイルアップロードに失敗しました');
+        if (!isset($fileData['name'])) {
+            throw new RuntimeException('ファイル名情報が不足しているため、アップロードに失敗しました');
         }
-        $src = $File['tmp_name'];
-        $fileName = $File['name'];
-        if (!$src) {
-            throw new RuntimeException('ファイルアップロードに失敗しました');
+        if (!isset($fileData['size'])) {
+            throw new RuntimeException('ファイルサイズ情報が不足しているため、アップロードに失敗しました');
         }
-        if (!preg_match('@\.([^.]+)$@', $fileName, $match)) {
-            throw new RuntimeException('不正なアップロードを検知しました');
+        if ($fileData['tmp_name'] === '') {
+            throw new RuntimeException('一時ファイルのパスが空のため、アップロードに失敗しました');
         }
-        $nameParts = preg_split('/\./', $fileName);
+        if (is_uploaded_file($fileData['tmp_name']) === false) {
+            throw new RuntimeException('アップロードされたファイルが確認できないため、アップロードに失敗しました');
+        }
+
+        return $this->storeFile(
+            $archivesDir,
+            $fileData['tmp_name'],
+            $fileData['name'],
+            $random
+        );
+    }
+
+    /**
+     * ファイルを保存する
+     *
+     * @param string $archivesDir
+     * @param string $path 読み取り元のファイルパス（一時ファイルまたは既存ファイル）
+     * @param string $filename 元のファイル名（拡張子を含む）
+     * @param bool $random
+     * @return array{path: string, type: string, name: string, size: string}
+     * @throws RuntimeException
+     */
+    public function storeFile(
+        string $archivesDir,
+        string $filepath,
+        string $filename,
+        bool $random = true
+    ): array {
+        if (!preg_match('@\.([^.]+)$@', $filename, $match)) {
+            throw new RuntimeException('拡張子を取得できなかったため、ファイルの保存に失敗しました: ' . $filename);
+        }
+        $nameParts = preg_split('/\./', $filename);
         if ($nameParts === false) {
-            throw new RuntimeException('不正なアップロードを検知しました');
+            throw new RuntimeException('ファイル名を分割できなかったため、ファイルの保存に失敗しました: ' . $filename);
         }
         array_pop($nameParts);
         $name = implode('.', $nameParts);
 
         $extension = $match[1];
         $dir = PublicStorage::archivesDir();
-        $mimeType = LocalStorage::getMimeType($src);
+        $mimeType = LocalStorage::getMimeType($filepath);
         if (is_null($mimeType)) {
-            throw new RuntimeException('不正なアップロードを検知しました');
+            throw new RuntimeException('MIMEタイプを取得できなかったため、ファイルの保存に失敗しました: ' . $filename);
         }
         $isPublicStorage = preg_match('/svg/', strtolower($mimeType));
 
@@ -1638,9 +1661,6 @@ class Helper
         }
         $file = $archivesDir . $path;
 
-        if (!is_uploaded_file($src)) {
-            throw new RuntimeException('不正なアップロードを検知しました');
-        }
         $allowedExtensions = array_merge(
             ['svg'],
             configArray('file_extension_document'),
@@ -1649,27 +1669,99 @@ class Helper
             configArray('file_extension_audio')
         );
         $mimeValidator = new MimeTypeValidator();
-        if (!$mimeValidator->validateAllowedByContent($src, $allowedExtensions)) {
-            throw new RuntimeException('許可されていないファイルです');
+        if (!$mimeValidator->validateAllowedByContent($filepath, $allowedExtensions)) {
+            throw new RuntimeException('許可されていないファイル形式のため、ファイルの保存に失敗しました: ' . $filename);
         }
         if ($isPublicStorage) {
             // SVGの場合、サニタイズ処理をする
-            $dirty = LocalStorage::get($src, dirname($src));
+            $dirty = LocalStorage::get($filepath, dirname($filepath));
             $clean = $this->sanitizeSvg($dirty);
             PublicStorage::put($file, $clean);
-        } elseif ($content = file_get_contents($src)) {
+        } elseif ($content = file_get_contents($filepath)) {
             PrivateStorage::put($file, $content);
         }
         if (HOOK_ENABLE) {
             $Hook = ACMS_Hook::singleton();
             $Hook->call('mediaCreate', $file);
         }
+        $fileSize = filesize($filepath);
+
         return [
             'path' => $path,
             'type' => strtoupper($extension),
             'name' => $name . '.' . $extension,
-            'size' => byteConvert($File['size']),
+            'size' => $fileSize !== false ? byteConvert($fileSize) : '0B',
         ];
+    }
+
+    /**
+     * 画像ファイルを保存する
+     *
+     * @param string $filepath ソース画像のパス
+     * @param string $filename 元のファイル名
+     * @param int|null $angle
+     * @param bool $original
+     * @return array{path: string, type: string, name: string, size: string}
+     */
+    public function storeImage(
+        string $filepath,
+        string $filename,
+        ?int $angle = null,
+        bool $original = true,
+    ): array {
+        if ($filepath === '') {
+            throw new \InvalidArgumentException('ファイルパスが空のため、ファイルの保存に失敗しました');
+        }
+        if ($filename === '') {
+            throw new \InvalidArgumentException('ファイル名が空のため、ファイルの保存に失敗しました');
+        }
+        $sizes = [
+            'normal' => 0,
+            'tiny' => 330,
+            'square' => -1,
+        ];
+        if ($original) {
+            $sizes['large'] = 99999;
+        }
+        $isRandomFileName = config('media_image_ramdom_filename', 'off') === 'on';
+        $forceLarge = isset($sizes['large']);
+        return Image::createImages(
+            filepath: $filepath,
+            filename: $filename,
+            sizes: $sizes,
+            destDir: MEDIA_LIBRARY_DIR,
+            isRandomFileName: $isRandomFileName,
+            angle: $angle,
+            forceLarge: $forceLarge
+        );
+    }
+
+    /**
+     * 画像を保存する
+     *
+     * @param string $filepath
+     * @param string $filename
+     * @return array{path: string, type: string, name: string, size: string}
+     */
+    public function storePdfThumbnailImage(
+        string $filepath,
+        string $filename,
+    ): array {
+        if ($filepath === '') {
+            throw new \InvalidArgumentException('ファイルパスが空のため、ファイルの保存に失敗しました');
+        }
+        if ($filename === '') {
+            throw new \InvalidArgumentException('ファイル名が空のため、ファイルの保存に失敗しました');
+        }
+        return Image::createImages(
+            filepath: $filepath,
+            filename: $filename,
+            sizes: ['normal' => 99999],
+            destDir: MEDIA_LIBRARY_DIR,
+            isRandomFileName: true,
+            angle: null,
+            forceLarge: true
+        );
     }
 
     /**

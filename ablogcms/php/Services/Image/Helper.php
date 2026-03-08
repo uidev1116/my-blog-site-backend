@@ -157,13 +157,8 @@ class Helper
     /**
      * サイズ違い（tiny, square, large, normal）の画像を生成
      *
-     * @param array{
-     *   name: string,
-     *   type: string,
-     *   tmp_name: string,
-     *   error: int,
-     *   size: int
-     * } $File $_FILES[$name] で取得したファイル情報
+     * @param string $filepath
+     * @param string $filename
      * @param array{
      *   normal?: int,
      *   tiny?: int,
@@ -182,7 +177,8 @@ class Helper
      * }
      */
     public function createImages(
-        array $File,
+        string $filepath,
+        string $filename,
         array $sizes,
         string $destDir,
         bool $isRandomFileName = true,
@@ -190,7 +186,8 @@ class Helper
         bool $forceLarge = false
     ): array {
         $config = $this->createCreateImagesConfig(
-            $File,
+            $filepath,
+            $filename,
             $sizes,
             $destDir,
             $isRandomFileName,
@@ -202,13 +199,8 @@ class Helper
     }
 
     /**
-     * @param array{
-     *   name: string,
-     *   type: string,
-     *   tmp_name: string,
-     *   error: int,
-     *   size: int
-     * } $File $_FILES[$name] で取得したファイル情報
+     * @param string $filepath
+     * @param string $filename
      * @param array{
      *   normal?: int,
      *   tiny?: int,
@@ -249,23 +241,18 @@ class Helper
      * }
      */
     protected function createCreateImagesConfig(
-        array $File,
+        string $filepath,
+        string $filename,
         array $sizes,
         string $destDir,
         bool $isRandomFileName = true,
         ?int $angle = null,
         bool $forceLarge = false
     ): array {
-        $tempPath = $File['tmp_name'];
-
-        if ($tempPath === '') {
-            throw new \InvalidArgumentException('Uploaded image file not found.');
-        }
-        if (is_uploaded_file($tempPath) === false) {
+        if ($filepath === '') {
             throw new \InvalidArgumentException('Uploaded image file not found.');
         }
 
-        $path = '';
         $ext = '';
         $edit = [];
 
@@ -309,8 +296,6 @@ class Helper
             $tinySize = $normalSize;
         }
 
-        $fileName = $File['name'];
-
         /**
          * @var array{
          *  0: int,
@@ -322,9 +307,9 @@ class Helper
          *  mime: string
          * }|false $imageInfo
          * */
-        $imageInfo = LocalStorage::getImageSize($tempPath);
+        $imageInfo = LocalStorage::getImageSize($filepath);
         if (!$imageInfo) {
-            throw new \RuntimeException('Failed to get image info.');
+            throw new \RuntimeException(sprintf('画像情報の取得に失敗しました（パス: %s）', $filepath));
         }
 
         /** @var int $longSide */
@@ -363,18 +348,18 @@ class Helper
         PublicStorage::makeDirectory($destDir . $archivesDir);
         $ext = $this->engine->detectImageExtenstion($mime);
 
-        $fileNameParts = preg_split('/\./', $fileName);
+        $fileNameParts = preg_split('/\./', $filename);
         if ($fileNameParts === false) {
-            throw new \RuntimeException('Failed to split file name.');
+            throw new \RuntimeException(sprintf('ファイル名を分割できなかったため、画像の生成に失敗しました: %s', $filename));
         }
         array_pop($fileNameParts);
-        $fileName = implode('.', $fileNameParts);
-        $fileName = preg_replace('/\s/u', '_', $fileName);
-        if (preg_match('@^(large|tiny|square)@', $fileName)) {
-            $fileName = "img_{$fileName}";
+        $filename = implode('.', $fileNameParts);
+        $filename = preg_replace('/\s/u', '_', $filename);
+        if (preg_match('@^(large|tiny|square)@', $filename)) {
+            $filename = "img_{$filename}";
         }
         if (!$isRandomFileName) {
-            $path = "{$archivesDir}{$fileName}.{$ext}";
+            $path = "{$archivesDir}{$filename}.{$ext}";
             $path = $this->engine->uniqueFilePath($path, $destDir);
         } else {
             $path = $archivesDir . uniqueString(8) . '.' . $ext;
@@ -383,11 +368,11 @@ class Helper
 
         return [
             'edit' => $edit,
-            'srcPath' => $tempPath,
+            'srcPath' => $filepath,
             'destPath' => $destPath,
             'path' => $path,
             'ext' => $ext,
-            'fileName' => $fileName,
+            'fileName' => $filename,
         ];
     }
 
@@ -430,11 +415,11 @@ class Helper
     protected function createResizedImages(array $config): array
     {
         if ($config['srcPath'] === '') {
-            throw new \RuntimeException('Source file path not found.');
+            throw new \InvalidArgumentException('Source file path not found.');
         }
 
         if ($config['destPath'] === '') {
-            throw new \RuntimeException('Destination file path not found.');
+            throw new \InvalidArgumentException('Destination file path not found.');
         }
 
         $normalSize = '';
@@ -501,11 +486,9 @@ class Helper
                 (is_null($width) && is_null($height) && is_null($size)) // オリジナルのアップロード画像
                 || $isOriginalUpload && $sizeType === 'large'
             ) {
-                if (is_uploaded_file($config['srcPath'])) {
-                    $this->engine->copyImage($config['srcPath'], $destPath, $ext);
-                    $this->engine->copyImageAsWebp($destPath, "{$destPath}.webp");
-                    $isOriginalUpload = true;
-                }
+                $this->engine->copyImage($config['srcPath'], $destPath, $ext);
+                $this->engine->copyImageAsWebp($destPath, "{$destPath}.webp");
+                $isOriginalUpload = true;
             } else {
                 $this->resizeImg($config['srcPath'], $destPath, $ext, $width, $height, $size, $angle);
             }

@@ -15,7 +15,7 @@ namespace Acms\Services\Facades;
  * @method static void editImageForImagick(string $rsrc, string $file, ?int $width = null, ?int $height = null, ?int $size = null, ?int $angle = null) 画像を編集（Imagick使用）
  * @method static void deleteImageAllSize(string $path) 全サイズの画像削除
  * @method static string detectImageExtenstion(string $mimeType) 画像の拡張子を検出
- * @method static array{path: string, type: string, name: string, size: string} createImages(array{name: string, type: string, tmp_name: string, error: int, size: int} $File, array{normal?: int, tiny?: int, large?: int, square?: int} $sizes, string $destDir, bool $isRandomFileName = true, ?int $angle = null, bool $forceLarge = false) 画サイズ違い（tiny, square, large, normal）の画像を生成
+ * @method static array{path: string, type: string, name: string, size: string} createImages(string $filepath, string $filename, array{normal?: int, tiny?: int, large?: int, square?: int} $sizes, string $destDir, bool $isRandomFileName = true, ?int $angle = null, bool $forceLarge = false) 画サイズ違い（tiny, square, large, normal）の画像を生成
  * @method static array|null getImageDimensions(string $path) 画像の幅と高さを取得
  */
 class Image extends Facade
