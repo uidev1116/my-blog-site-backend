@@ -1,0 +1,79 @@
+{% set entrySummary =
+  module(
+    'V2_Entry_Summary',
+    moduleId,
+    {
+      bid: null,
+      cid: null,
+      eid: null,
+      uid: null,
+      page: null,
+      limit: null,
+      keyword: null,
+      tag: [],
+      field: null,
+      order: null,
+      start: '1000-01-01 00:00:00',
+      end: '9999-12-31 23:59:59'
+    }
+  )
+%}
+
+<div>
+  {{ include('/admin/module/setting.twig', { moduleInfo: entrySummary.moduleInfo }) }}
+
+  {% if entrySummary.items is empty %}
+    <p class="text-sm">
+      記事が見つかりませんでした。
+    </p>
+  {% endif %}
+
+  {% if entrySummary.items is not empty %}
+    <ul class="{{ wrapper_class|default('grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4') }}">
+      {% for entry in entrySummary.items %}
+        <li>
+          <a href="{{ entry.url }}" class="flex items-start gap-2 hover:opacity-70">
+            <div class="w-24 aspect-square overflow-hidden rounded-md">
+              {% if entry.mainImage and entry.mainImage.path %}
+                <img
+                  src="{{ entry.mainImage.path|resizeImg(192, 192) }}"
+                  width="192"
+                  height="192"
+                  alt="{{ entry.mainImage.alt }}"
+                  loading="lazy"
+                  decoding="async"
+                  class="object-cover w-full h-full"
+                />
+              {% else %}
+                <img
+                  src="/images/default/noimage.gif"
+                  alt=""
+                  width="640"
+                  height="480"
+                  loading="lazy"
+                  decoding="async"
+                  class="object-cover w-full h-full"
+                />
+              {% endif %}
+            </div>
+            <div class="flex-1 flex flex-col items-start justify-center">
+              <h3 class="text-gray-900 font-bold line-clamp-3 text-sm">{{ entry.title }}</h3>
+              <div class="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
+                <p class="text-gray-500 text-sm">
+                  <span class="sr-only">公開日</span><time datetime="{{ entry.datetime|date('Y-m-d') }}">{{
+                      entry.datetime|date('Y年m月d日')
+                    }}</time>
+                </p>
+                {% if entry.isNew %}
+                  <p class="px-2 py-1 rounded-full bg-gray-50 text-gray-900 text-xs">
+                    NEW
+                  </p>
+                {% endif %}
+              </div>
+            </div>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
