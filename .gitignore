@@ -36,6 +36,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+
+## Docker
+compose.override.yaml
+
 ## Etc
 .env
 .stylelintcache
