@@ -24,3 +24,4 @@ services:
 
 volumes:
   mariadb-data:
+    name: my-blog-site-backend-mariadb
