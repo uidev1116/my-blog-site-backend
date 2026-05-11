@@ -38,13 +38,12 @@ class ImageFileManager
     /**
      * コンストラクタ
      * @param string $id ユニットID
-     * @param bool $removeOld 古い画像を削除するかどうか
      */
-    public function __construct(string $id, bool $removeOld = true)
+    public function __construct(string $id)
     {
         $this->id = $id;
         $this->hook = ACMS_Hook::singleton();
-        $this->imageHelper = new ACMS_POST_Image($removeOld);
+        $this->imageHelper = new ACMS_POST_Image();
     }
 
     /**

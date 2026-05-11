@@ -115,13 +115,6 @@
   }
 }
 
-// タブ内の見出しはmarginを外す
-.acms-tabs-panel {
-  .acms-table-admin-edit:last-child {
-    margin-bottom: 5px;
-  }
-}
-
 @include global.media-breakpoint-up(md) {
   .acms-tabs {
     .acms-tabs-panel {

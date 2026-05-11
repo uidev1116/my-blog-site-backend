@@ -7,7 +7,16 @@
     <input type="text" name="name" value="{name}" class="acms-admin-form-width-medium" placeholder="例）CMS太郎"/>
     <input type="hidden" name="comment[]" value="name" />
     <input type="hidden" name="name:validator#required" id="validator-name-required" />
-    <p class="validator-result-{name:validator#required}">名前を入力してください。</p></td>
+    <input type="hidden" name="name:validator#maxlength" value="255" id="validator-name-maxlength" />
+    <div role="alert" aria-live="assertive">
+      <div data-validator-label="validator-name-required" class="validator-result-{name:validator#required}">
+        <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>名前を入力してください。</p>
+      </div>
+      <div data-validator-label="validator-name-maxlength" class="validator-result-{name:validator#maxlength}">
+        <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>名前は255文字以内で入力してください。</p>
+      </div>
+    </div>
+  </td>
   </tr>
   <tr>
   <th>メールアドレス</th>
@@ -15,7 +24,16 @@
     <input type="text" name="mail" value="{mail}" class="acms-admin-form-width-mini" placeholder="mail@example.com" />
     <input type="hidden" name="comment[]" value="mail" />
     <input type="hidden" name="mail:validator#email" id="validator-mail-email" />
-    <p class="validator-result-{mail:validator#email}">正しいメールアドレスを入力してください。</p></td>
+    <input type="hidden" name="mail:validator#maxlength" value="255" id="validator-mail-maxlength" />
+    <div role="alert" aria-live="assertive">
+      <div data-validator-label="validator-mail-maxlength" class="validator-result-{mail:validator#maxlength}">
+        <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>メールアドレスは255文字以内で入力してください。</p>
+      </div>
+      <div data-validator-label="validator-mail-email" class="validator-result-{mail:validator#email}">
+        <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>正しいメールアドレスを入力してください。</p>
+      </div>
+    </div>
+  </td>
   </tr>
   <tr>
   <th>URL</th>
@@ -23,7 +41,16 @@
     <input type="text" name="url" value="{url}" class="acms-admin-form-width-mini" />
     <input type="hidden" name="comment[]" value="url" />
     <input type="hidden" name="url:validator#url" id="validator-url-url" />
-    <p class="validator-result-{url:validator#url}">正しいURLを入力してください。</p></td></tr>
+    <input type="hidden" name="url:validator#maxlength" value="255" id="validator-url-maxlength" />
+    <div role="alert" aria-live="assertive">
+      <div data-validator-label="validator-url-maxlength" class="validator-result-{url:validator#maxlength}">
+        <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>URLは255文字以内で入力してください。</p>
+      </div>
+      <div data-validator-label="validator-url-url" class="validator-result-{url:validator#url}">
+        <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>正しいURLを入力してください。</p>
+      </div>
+    </div>
+  </td></tr>
   <tr>
     <th>タイトル</th>
     <td>
@@ -31,8 +58,18 @@
     <input type="hidden" name="comment[]" value="title" />
     <input type="hidden" name="title:validator#required" id="validator-title-required" />
     <input type="hidden" name="title:validator#blackList" id="validator-title-blackList" />
-    <p class="validator-result-{title:validator#required}">タイトルを入力してください。</p>
-    <p class="validator-result-{title:validator#blackList}">タイトルに不適切な言葉が含まれています。</p>
+    <input type="hidden" name="title:validator#maxlength" value="255" id="validator-title-maxlength" />
+    <div role="alert" aria-live="assertive">
+      <div data-validator-label="validator-title-required" class="validator-result-{title:validator#required}">
+        <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>タイトルを入力してください。</p>
+      </div>
+      <div data-validator-label="validator-title-maxlength" class="validator-result-{title:validator#maxlength}">
+        <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>タイトルは255文字以内で入力してください。</p>
+      </div>
+      <div data-validator-label="validator-title-blackList" class="validator-result-{title:validator#blackList}">
+        <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>タイトルに不適切な言葉が含まれています。</p>
+      </div>
+    </div>
   </td></tr>
   <tr>
     <th>コメント<span class="base-required-label">必須</span></th>

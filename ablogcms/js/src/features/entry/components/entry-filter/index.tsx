@@ -200,9 +200,9 @@ const EntryFilter = forwardRef<HTMLFormElement, EntryFilterProps>(
                           data-tooltip-id="tooltip-category-axis"
                           data-tooltip-html={nl2br(ACMS.i18n('entry_index.filter.tooltip.category_axis'))}
                         />
-                        {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
                         <label
                           htmlFor="input-checkbox-axis-descendant-or-self-category"
+                          aria-label={ACMS.i18n('entry_index.filter.category_axis.descendant-or-self')}
                           className="acms-admin-btn-axis"
                           data-tooltip-id="tooltip-category-axis"
                           data-tooltip-html={nl2br(ACMS.i18n('entry_index.filter.tooltip.category_axis'))}
@@ -244,9 +244,9 @@ const EntryFilter = forwardRef<HTMLFormElement, EntryFilterProps>(
                           data-tooltip-id="tooltip-blog-axis"
                           data-tooltip-html={nl2br(ACMS.i18n('entry_index.filter.tooltip.blog_axis'))}
                         />
-                        {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
                         <label
                           htmlFor="input-checkbox-axis-descendant-or-self-blog"
+                          aria-label={ACMS.i18n('entry_index.filter.blog_axis.descendant-or-self')}
                           className="acms-admin-btn-axis"
                           data-tooltip-id="tooltip-blog-axis"
                           data-tooltip-html={nl2br(ACMS.i18n('entry_index.filter.tooltip.blog_axis'))}

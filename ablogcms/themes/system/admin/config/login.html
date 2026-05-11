@@ -56,6 +56,28 @@
   <h3 class="acms-admin-admin-title2"><!--T-->基本設定<!--/T--></h3>
   <table class="adminTable acms-admin-table-admin-edit">
     <tr>
+      <th><!--T-->ログイン禁止<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->チェックをつけることで、このブログからログインできないようになります。ルートブログは禁止にできません。<!--/T-->"></i></th>
+      <td>
+        <input type="hidden" name="deny_blog_login" value="off" />
+        <div class="acms-admin-form-checkbox">
+          <input id="input-checkbox-deny_blog_login" type="checkbox" name="deny_blog_login" value="on"{deny_blog_login:checked#on} />
+          <label for="input-checkbox-deny_blog_login"><i class="acms-admin-ico-checkbox"></i><!--T-->このブログではログイン画面を表示せず、ログイン処理自体を受け付けない（ルートブログは禁止にできません）<!--/T--></label>
+        </div><br />
+        <input type="hidden" name="config[]" value="deny_blog_login" />
+      </td>
+    </tr>
+    <tr>
+      <th><!--T-->ログイン画面固定<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ログイン画面を、ブログのトップのみに固定します。<!--/T-->"></i></th>
+      <td>
+        <input type="hidden" name="fix_login_url" value="off" />
+        <div class="acms-admin-form-checkbox">
+          <input id="input-checkbox-fix_login_url" type="checkbox" name="fix_login_url" value="on"{fix_login_url:checked#on} />
+          <label for="input-checkbox-fix_login_url"><i class="acms-admin-ico-checkbox"></i><!--T-->ログイン画面をブログトップに固定します（例: https://example.com/login/）<!--/T--></label>
+        </div><br />
+        <input type="hidden" name="config[]" value="fix_login_url" />
+      </td>
+    </tr>
+    <tr>
       <th><!--T-->現在のURLでログイン<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ログイン後にリダイレクトされずに、そのままのページでログインします。<!--/T-->"></i></th>
       <td>
         <div class="acms-admin-form-checkbox">
@@ -73,21 +95,6 @@
         <!--T-->※ログイン後に表示したい管理ページのacmsパスを指定できます。<!--/T-->
       </td>
     </tr>
-    <!-- BEGIN_MODULE Touch_SslEnable -->
-    <tr>
-      <th><!--T-->ログイン後ページのSSL<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ログイン後に表示するページでSSLを使用します。<!--/T-->"></i></th>
-      <td>
-        <input type="hidden" name="login_ssl" value="off" />
-        <div class="acms-admin-form-checkbox">
-          <input type="checkbox" name="login_ssl" value="on"{login_ssl:checked#on} id="input-checkbox-login_ssl" />
-          <label for="input-checkbox-login_ssl">
-            <i class="acms-admin-ico-checkbox"></i>
-            <!--T-->ログイン後に表示するページでSSLを使用する。<!--/T-->
-          </label>
-        </div>
-        <input type="hidden" name="config[]" value="login_ssl" />
-      </td>
-    </tr><!-- END_MODULE Touch_SslEnable -->
     <tr>
       <th><!--T-->ログイン中の投稿者<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->チェックをすると投稿者権限ユーザーがログインしている場合、自身が投稿したエントリーのみ表示されるようになります。<!--/T-->"></i></th>
       <td>

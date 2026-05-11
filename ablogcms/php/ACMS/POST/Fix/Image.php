@@ -136,7 +136,7 @@ class ACMS_POST_Fix_Image extends ACMS_POST_Fix
             }
         }
 
-        Image::resizeImg($editTarget, $_file, $ext, $_width, $_height, $_size, $_angle);
+        Image::resizeImg($editTarget, $_file, $_width, $_height, $_size, $_angle);
 
         if ($type == 'normal') {
             $DB     = DB::singleton(dsn());

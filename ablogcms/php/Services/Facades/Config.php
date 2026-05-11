@@ -25,6 +25,7 @@ namespace Acms\Services\Facades;
  * @method static ?int getCurrentConfigSetId() 現在のコンフィグセットのidを取得する
  * @method static ?int getCurrentThemeSetId() 現在のテーマセットのidを取得する
  * @method static ?int getCurrentEditorSetId() 現在の編集画面セットのidを取得する
+ * @method static ?int getEffectiveConfigSetIdByType(?string $type) コンフィグセット種別に応じた現在ブログで有効なセットIDを取得する
  * @method static ?string getCurrentConfigSetName() 現在のコンフィグセットの名前を取得する
  * @method static ?string getCurrentThemeSetName() 現在のテーマセットの名前を取得する
  * @method static ?string getCurrentEditorSetName() 現在の編集画面セットの名前を取得する

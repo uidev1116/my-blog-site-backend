@@ -136,11 +136,18 @@
           <input type="hidden" name="usergroup[]" value="name" />
           <input type="hidden" name="name:validator#required" id="validator-name-required" />
           <input type="hidden" name="name:validator#double" id="validator-name-double" />
+          <input type="hidden" name="name:validator#maxlength" value="255" id="validator-name-maxlength" />
           <div role="alert" aria-live="assertive">
             <div data-validator-label="validator-name-required" class="validator-result-{name:validator#required}">
               <p class="error-text">
-                <span class="acms-admin-icon acms-admin-icon-attentionf" aria-hidden="true"></span>
+                <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
                 <!--T-->名前が入力されていません。<!--/T-->
+              </p>
+            </div>
+            <div data-validator-label="validator-name-maxlength" class="validator-result-{name:validator#maxlength}">
+              <p class="error-text">
+                <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                <!--T-->ユーザーグループ名は255文字以内で入力してください。<!--/T-->
               </p>
             </div>
             <div data-validator-label="validator-name-double" class="validator-result-{name:validator#double}">
@@ -163,6 +170,15 @@
         <td>
           <textarea name="description" class="acms-admin-form-width-full" rows="3">{description}</textarea>
           <input type="hidden" name="usergroup[]" value="description" />
+          <input type="hidden" name="description:validator#maxlength" value="512" id="validator-description-maxlength" />
+          <div role="alert" aria-live="assertive">
+            <div data-validator-label="validator-description-maxlength" class="validator-result-{description:validator#maxlength}">
+              <p class="error-text">
+                <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                <!--T-->説明は512文字以内で入力してください。<!--/T-->
+              </p>
+            </div>
+          </div>
         </td>
       </tr>
       <tr>

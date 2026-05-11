@@ -73,6 +73,7 @@ class ModalManager {
     this.handleSubmit = this.handleSubmit.bind(this);
     this.open = this.open.bind(this);
     this.close = this.close.bind(this);
+    this.reset = this.reset.bind(this);
     this.init();
   }
 
@@ -166,7 +167,19 @@ class ModalManager {
   }
 
   close() {
-    // 状態を更新
+    // 閉じるトランジション中は size などの modalProps を保持する必要があるため、
+    // isOpen のみを切り替える。完全な初期化は reset() を onAfterClose 経由で呼ぶ
+    this.setState((prev) => ({
+      ...prev,
+      modalProps: {
+        ...prev.modalProps,
+        isOpen: false,
+      },
+    }));
+  }
+
+  reset() {
+    // 閉じるトランジション完了後に呼ばれることを想定し、コンテンツと props をクリアする
     this.setState({
       content: {
         raw: '',

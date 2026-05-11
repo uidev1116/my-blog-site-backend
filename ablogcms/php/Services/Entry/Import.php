@@ -69,11 +69,13 @@ class Import
 
     /**
      * Import constructor
+     *
+     * @param int|null $userId 省略時は SUID を使用する（テストから明示指定する場合に利用）
      */
-    public function __construct()
+    public function __construct(?int $userId = null)
     {
         /** @var int|null $sessionUserId */
-        $sessionUserId = SUID;
+        $sessionUserId = $userId ?? SUID;
         if ($sessionUserId === null) {
             throw new \LogicException('You must be logged in to perform this action.');
         }
@@ -169,14 +171,19 @@ class Import
             }
         }
         foreach ($this->mediaFieldFix as $data) {
+            $type = $data['type'];
+            if (!$type) {
+                continue;
+            }
             $sql = SQL::newUpdate('field');
             $sql->addUpdate('field_value', $data['value']);
-            $sql->addWhereOpr('field_key', $data['name']);
-            $sql->addWhereOpr('field_eid', $data['eid']);
+            $sql->addWhereOpr('field_key', $data['key']);
             $sql->addWhereOpr('field_sort', $data['sort']);
+            $sql->addWhereOpr("field_{$type}", $data['id']);
             $sql->addWhereOpr('field_blog_id', $this->bid);
             DB::query($sql->get(dsn()), 'exec');
-            Common::deleteFieldCache('eid', $data['eid']);
+
+            Common::deleteFieldCache($type, $data['id']);
         }
     }
 
@@ -235,13 +242,24 @@ class Import
             $this->entrySort++;
         } elseif ($field === 'entry_user_sort') {
             $value = $this->userSort;
-            $this->userSort;
+            $this->userSort++;
         } elseif ($field === 'entry_status') {
             if ($this->entryStatus) {
                 $value = $this->entryStatus;
             }
         } elseif ($field === 'entry_category_sort') {
-            $value = $this->entryRepository->nextCategorySort($record['entry_category_id'], $this->bid);
+            $categoryId = $record['entry_category_id'] ?? null;
+            $mappedRaw = $categoryId !== null
+                ? $this->getNewID('category', $categoryId)
+                : null;
+            // PDO 等で category_id が文字列になる場合がある
+            $mappedCategoryId = null;
+            if (is_int($mappedRaw)) {
+                $mappedCategoryId = $mappedRaw;
+            } elseif (is_string($mappedRaw) && ctype_digit($mappedRaw)) {
+                $mappedCategoryId = (int) $mappedRaw;
+            }
+            $value = $this->entryRepository->nextCategorySort($mappedCategoryId, $this->bid);
         } elseif ($field === 'entry_code' && !empty($value)) {
             $sql = SQL::newSelect('entry');
             $sql->setSelect('entry_id');
@@ -319,12 +337,19 @@ class Import
         } elseif ($field === 'field_value' && $value) {
             if (preg_match('/@media$/', $record['field_key'])) {
                 if ($value = $this->getNewID('media', $value)) {
-                    $this->mediaFieldFix[] = [
-                        'name' => substr($record['field_key'], 0, -6),
+                    $mediaFieldFixData = [
+                        'key' => substr($record['field_key'], 0, -6),
                         'value' => $value,
-                        'eid' => $this->getNewID('entry', $record['field_eid']),
                         'sort' => $record['field_sort'],
                     ];
+                    if ($record['field_eid']) {
+                        $mediaFieldFixData['type'] = 'eid';
+                        $mediaFieldFixData['id'] = $this->getNewID('entry', $record['field_eid']);
+                    } elseif ($record['field_unit_id']) {
+                        $mediaFieldFixData['type'] = 'unit_id';
+                        $mediaFieldFixData['id'] = $this->getNewID('column', $record['field_unit_id']);
+                    }
+                    $this->mediaFieldFix[] = $mediaFieldFixData;
                 }
             } elseif ($record['field_type'] === 'block-editor') {
                 $value = $this->fixBlockEditorMedia($value);

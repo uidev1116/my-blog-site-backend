@@ -116,6 +116,7 @@ export const OpenStreetMapUnitContent = ({ editor, unit }: OpenStreetMapUnitCont
                 />
               </VStack>
             </td>
+            {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
             <td className="entryFormFileControl">
               <table>
                 <tbody>

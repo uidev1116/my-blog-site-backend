@@ -7,7 +7,9 @@ class ACMS_POST_Role_Update extends ACMS_POST
         $roleId = (int)$this->Get->get('rid');
         $Role = $this->extract('role');
         $Role->setMethod('name', 'required');
+        $Role->setMethod('name', 'maxlength', '128');
         $Role->setMethod('role', 'operable', $this->isOperable($roleId));
+        $Role->setMethod('description', 'maxlength', '512');
 
         $Role->validate(new ACMS_Validator());
 

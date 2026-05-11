@@ -64,9 +64,13 @@
         <input type="text" name="name" value="{name}" size="50" class="acms-admin-form-width-full">
         <input type="hidden" name="webhook[]" value="name">
         <input type="hidden" name="name:validator#required" id="validator-name-required">
+        <input type="hidden" name="name:validator#maxlength" value="255" id="validator-name-maxlength">
         <div role="alert" aria-live="assertive">
-          <div data-validator-name="validator-name-required" class="validator-result-{name:validator#required}">
-            <p class="acms-admin-text-danger"><!--T-->名前を入力してください。<!--/T--></p>
+          <div data-validator-label="validator-name-required" class="validator-result-{name:validator#required}">
+            <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->名前を入力してください。<!--/T--></p>
+          </div>
+          <div data-validator-label="validator-name-maxlength" class="validator-result-{name:validator#maxlength}">
+            <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->名前は255文字以内で入力してください。<!--/T--></p>
           </div>
         </div>
       </td>
@@ -81,9 +85,10 @@
           <!-- END type_group:loop -->
         </select>
         <input type="hidden" name="webhook[]" value="type">
+        <input type="hidden" name="type:validator#required" id="validator-type-required">
         <div role="alert" aria-live="assertive">
-          <div data-validator-label="validator-identifier-type" class="validator-result-{type:validator#required}">
-            <p class="acms-admin-text-danger"><!--T-->タイプを選択してください。<!--/T--></p>
+          <div data-validator-label="validator-type-required" class="validator-result-{type:validator#required}">
+            <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->タイプを選択してください。<!--/T--></p>
           </div>
         </div>
       </td>
@@ -100,13 +105,20 @@
           ></div>
           <input type="hidden" name="events" value="{events}" id="webhook-event-value">
           <input type="hidden" name="webhook[]" value="events">
-          <input type="hidden" name="event:validator#required" id="validator-events-required">
+          <input type="hidden" name="events:validator#required" id="validator-events-required">
+          <input type="hidden" name="events:validator#maxlength" value="128" id="validator-events-maxlength">
         </div>
         <div role="alert" aria-live="assertive">
-          <div class="validator-result-{events:validator#required}">
+          <div data-validator-label="validator-events-required" class="validator-result-{events:validator#required}">
             <p class="error-text">
               <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
               <!--T-->イベントを選択してください。<!--/T-->
+            </p>
+          </div>
+          <div data-validator-label="validator-events-maxlength" class="validator-result-{events:validator#maxlength}">
+            <p class="error-text">
+              <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+              <!--T-->これ以上のイベントは登録できません。<!--/T-->
             </p>
           </div>
         </div>

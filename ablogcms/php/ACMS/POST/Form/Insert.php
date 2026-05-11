@@ -6,9 +6,11 @@ class ACMS_POST_Form_Insert extends ACMS_POST_Form
     {
         $Form = $this->extract('form');
         $Form->setMethod('code', 'required');
+        $Form->setMethod('code', 'maxlength', '64');
         $Form->setMethod('code', 'regex', '@[a-zA-Z0-9_-]@');
         $Form->setMethod('code', 'double', $this->double($Form->get('code'), null, $Form->get('scope')));
         $Form->setMethod('name', 'required');
+        $Form->setMethod('name', 'maxlength', '255');
         if (roleAvailableUser()) {
             $Form->setMethod('form', 'operative', roleAuthorization('form_edit', BID));
         } else {

@@ -217,7 +217,12 @@ const BannerItemEditor = <T extends BannerItem>({
                             </tr>
                             <tr>
                               <th className="acms-admin-table-nowrap">
-                                {ACMS.i18n('media.alt')}
+                                <label
+                                  id={`media_banner-item-alt-label-${item.id}`}
+                                  htmlFor={`media_banner-item-alt-${item.id}`}
+                                >
+                                  {ACMS.i18n('media.alt')}
+                                </label>
                                 <i
                                   className="acms-admin-icon-tooltip js-acms-tooltip-hover acms-admin-margin-left-mini"
                                   data-acms-tooltip={ACMS.i18n('media.tooltip_alt')}
@@ -228,6 +233,7 @@ const BannerItemEditor = <T extends BannerItem>({
                                   type="text"
                                   className="acms-admin-form-width-full"
                                   id={`media_banner-item-alt-${item.id}`}
+                                  aria-labelledby={`media_banner-item-alt-label-${item.id}`}
                                   value={item.media_banner_alt}
                                   onInput={(e: React.FormEvent<HTMLInputElement>) => {
                                     updateBannerItem<ImageBannerItem>(
@@ -241,7 +247,9 @@ const BannerItemEditor = <T extends BannerItem>({
                             </tr>
                             <tr>
                               <th className="acms-admin-table-nowrap">
-                                {ACMS.i18n('media.url_link_to')}
+                                <label htmlFor={`media_banner-item-override-link-${item.id}`}>
+                                  {ACMS.i18n('media.url_link_to')}
+                                </label>
                                 <i
                                   className="acms-admin-icon-tooltip js-acms-tooltip-hover acms-admin-margin-left-mini"
                                   data-acms-tooltip={ACMS.i18n('media.tooltip_link')}
@@ -250,6 +258,7 @@ const BannerItemEditor = <T extends BannerItem>({
                               <td>
                                 <input
                                   type="text"
+                                  id={`media_banner-item-override-link-${item.id}`}
                                   value={item.media_banner_override_link}
                                   className="acms-admin-form-width-full"
                                   placeholder={item.media_banner_link ? `メディア: ${item.media_banner_link}` : ''}
@@ -287,7 +296,12 @@ const BannerItemEditor = <T extends BannerItem>({
                             {hide1 !== 'true' && (
                               <tr>
                                 <th className="acms-admin-table-nowrap">
-                                  {attr1 || ACMS.i18n('media.attr1')}{' '}
+                                  <label
+                                    id={`media_banner-item-attr1-label-${item.id}`}
+                                    htmlFor={`media_banner-item-attr1-${item.id}`}
+                                  >
+                                    {attr1 || ACMS.i18n('media.attr1')}
+                                  </label>{' '}
                                   <i
                                     className="acms-admin-icon-tooltip js-acms-tooltip-hover acms-admin-margin-left-mini"
                                     data-acms-tooltip={tooltip1 || ACMS.i18n('media.tooltip_attr1')}
@@ -298,6 +312,7 @@ const BannerItemEditor = <T extends BannerItem>({
                                     type="text"
                                     className="acms-admin-form-width-full"
                                     id={`media_banner-item-attr1-${item.id}`}
+                                    aria-labelledby={`media_banner-item-attr1-label-${item.id}`}
                                     value={item.media_banner_attr1}
                                     onInput={(e) => {
                                       updateBannerItem<ImageBannerItem>(
@@ -314,7 +329,12 @@ const BannerItemEditor = <T extends BannerItem>({
                             {hide2 !== 'true' && (
                               <tr>
                                 <th className="acms-admin-table-nowrap">
-                                  {attr2 || ACMS.i18n('media.attr2')}{' '}
+                                  <label
+                                    id={`media_banner-item-attr2-label-${item.id}`}
+                                    htmlFor={`media_banner-item-attr2-${item.id}`}
+                                  >
+                                    {attr2 || ACMS.i18n('media.attr2')}
+                                  </label>{' '}
                                   <i
                                     className="acms-admin-icon-tooltip js-acms-tooltip-hover acms-admin-margin-left-mini"
                                     data-acms-tooltip={tooltip2 || ACMS.i18n('media.tooltip_attr2')}
@@ -325,6 +345,7 @@ const BannerItemEditor = <T extends BannerItem>({
                                     type="text"
                                     className="acms-admin-form-width-full"
                                     id={`media_banner-item-attr2-${item.id}`}
+                                    aria-labelledby={`media_banner-item-attr2-label-${item.id}`}
                                     value={item.media_banner_attr2}
                                     onInput={(e) => {
                                       updateBannerItem<ImageBannerItem>(

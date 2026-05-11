@@ -10,6 +10,16 @@ class ACMS_POST_Member_ResetPasswordAuth extends ACMS_POST_Member
     use Acms\Services\Login\Traits\ValidateAuthUrl;
 
     /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @inheritDoc
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return Login::canLoginPage(BID, RESET_PASSWORD_AUTH_SEGMENT);
+    }
+
+    /**
      * トークンのキーを取得
      *
      * @return string
@@ -54,7 +64,7 @@ class ACMS_POST_Member_ResetPasswordAuth extends ACMS_POST_Member
             return $this->Post;
         }
         $uid = $this->findUser($data);
-        $user->setMethod('reset', 'isOperable', !SUID && $uid > 0);
+        $user->setMethod('reset', 'isOperable', $this->canResetPassword($uid));
         $this->validate($user);
 
         if ($this->Post->isValidAll()) {
@@ -63,7 +73,8 @@ class ACMS_POST_Member_ResetPasswordAuth extends ACMS_POST_Member
                 'uid' => $uid,
                 'name' => ACMS_RAM::userName($uid),
             ]);
-            if (Tfa::isAvailableAccount($uid)) {
+            $tfaAvailable = Tfa::isAvailableAccount($uid);
+            if ($tfaAvailable) {
                 $login->set('reset', 'success');
                 $login->set('tfa', 'on');
                 return $this->Post;
@@ -155,6 +166,23 @@ class ACMS_POST_Member_ResetPasswordAuth extends ACMS_POST_Member
             return -1;
         }
         return intval($row['user_id']);
+    }
+
+    /**
+     * パスワードをリセットできるか判定
+     *
+     * @param int $uid
+     * @return bool
+     */
+    private function canResetPassword(int $uid): bool
+    {
+        if (Login::isLoggedIn()) {
+            return false;
+        }
+        if ($uid <= 0) {
+            return false;
+        }
+        return true;
     }
 
     /**

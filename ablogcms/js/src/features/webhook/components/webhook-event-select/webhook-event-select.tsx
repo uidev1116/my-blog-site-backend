@@ -5,6 +5,8 @@ import useWebhookEventOptionsSWR from '../../hooks/use-webhook-event-options-swr
 import { WebhookEventOption } from '../../types';
 import useFirstMountState from '../../../../hooks/use-first-mount-state';
 
+const EMPTY_WEBHOOK_EVENT_OPTIONS: WebhookEventOption[] = [];
+
 interface WebhookEventSelectProps
   extends Partial<
     Pick<
@@ -20,13 +22,13 @@ interface WebhookEventSelectProps
 const WebhookEventSelect = ({
   type = '',
   onChange,
-  defaultValue: defaultValueProp = [],
+  defaultValue: defaultValueProp = EMPTY_WEBHOOK_EVENT_OPTIONS,
   ...props
 }: WebhookEventSelectProps) => {
   const { options, isLoading } = useWebhookEventOptionsSWR(type);
 
   const [value, setValue] = useState<WebhookEventOption[] | null>(null);
-  const [defaultValue, setDefaultValue] = useState<WebhookEventOption[] | null>(null);
+  const initialized = useRef(false);
 
   const handleChange = useCallback(
     (newValue: readonly WebhookEventOption[]) => {
@@ -37,18 +39,13 @@ const WebhookEventSelect = ({
   );
 
   useEffect(() => {
-    if (defaultValue === null && options && options.length > 0) {
-      // Webhookイベントのデフォルト値を設定
-      // Webhookイベントのデータ（option）は、サーバーから全権取得することが保証されている前提
-      setDefaultValue(
+    if (!initialized.current && options && options.length > 0) {
+      initialized.current = true;
+      setValue(
         options.filter((option) => defaultValueProp.map((defaultOption) => defaultOption.value).includes(option.value))
       );
     }
-  }, [options, defaultValue, defaultValueProp]);
-
-  useEffect(() => {
-    setValue(defaultValue);
-  }, [defaultValue]);
+  }, [options, defaultValueProp]);
 
   const ref = useRef<SelectInstance<WebhookEventOption, true>>(null);
   const isFirstMount = useFirstMountState();
@@ -76,6 +73,7 @@ const WebhookEventSelect = ({
       closeMenuOnSelect={false}
       placeholder={ACMS.i18n('webhook.event_select_placeholder')}
       noOptionsMessage={() => ACMS.i18n('webhook.event_select_no_options_message')}
+      hideSelectedOptions
       {...props}
     />
   );

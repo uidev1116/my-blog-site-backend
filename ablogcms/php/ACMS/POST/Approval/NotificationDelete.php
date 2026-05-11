@@ -1,6 +1,6 @@
 <?php
 
-class ACMS_POST_Approval_NotificationDelete extends ACMS_POST_Approval
+class ACMS_POST_Approval_NotificationDelete extends ACMS_POST
 {
     function post()
     {

@@ -3,6 +3,16 @@
 class ACMS_POST_Member_Admin_ResetPassword extends ACMS_POST_Member_ResetPassword
 {
     /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @inheritDoc
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return Login::canLoginPage(BID, ADMIN_RESET_PASSWORD_SEGMENT);
+    }
+
+    /**
      * 認証URLを取得
      *
      * @param string $token

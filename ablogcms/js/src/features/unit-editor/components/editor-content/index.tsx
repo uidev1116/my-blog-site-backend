@@ -252,16 +252,7 @@ const EditorContent = ({ editor }: EditorContentProps): JSX.Element => {
     }
   };
 
-  const renderDragOverlay = useCallback(() => {
-    if (activeId === null) {
-      return null;
-    }
-    const activeUnit = editor.selectors.findUnitById(activeId);
-    if (activeUnit === null) {
-      return null;
-    }
-    return <DraggableClone unit={activeUnit} />;
-  }, [activeId, editor.selectors]);
+  const activeUnit = activeId !== null ? editor.selectors.findUnitById(activeId) : null;
 
   return (
     <div ref={elementRef} className="acms-admin-unit-editor-content">
@@ -287,7 +278,7 @@ const EditorContent = ({ editor }: EditorContentProps): JSX.Element => {
           onDragCancel={handleDragCancel}
         >
           <UnitList editor={editor} units={editor.state.units} />
-          {createPortal(<DragOverlay>{renderDragOverlay()}</DragOverlay>, document.body)}
+          {createPortal(<DragOverlay>{activeUnit && <DraggableClone unit={activeUnit} />}</DragOverlay>, document.body)}
         </DndContext>
       </div>
       <div>

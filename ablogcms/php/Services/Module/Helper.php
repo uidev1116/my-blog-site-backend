@@ -208,6 +208,21 @@ class Helper
     }
 
     /**
+     * モジュールがレイアウト/ユニットで使用可能かどうか
+     *
+     * @param string $moduleName
+     * @return bool
+     */
+    public function canUseInLayout(string $moduleName): bool
+    {
+        // V2_プレフィックスのモジュールは使用不可
+        if (str_starts_with($moduleName, 'V2_')) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * 現在ログイン中のユーザーがモジュールの一括ブログ変更を許可されているかどうか
      *
      * @param int $blogId

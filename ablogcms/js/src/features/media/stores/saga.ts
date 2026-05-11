@@ -1,5 +1,5 @@
 import { call, put, takeEvery, select } from 'redux-saga/effects';
-import axiosLib from '../../../lib/axios';
+import { fetchClient } from '../../../lib/fetch-client';
 
 import * as types from '../constants';
 import {
@@ -15,12 +15,9 @@ import {
 } from './actions';
 import { MediaItem, MediaStateProps } from '../types';
 
-function fetchJSON(url: string) {
-  return new Promise((resolve) => {
-    axiosLib.get(url).then((res) => {
-      resolve(res.data);
-    });
-  });
+async function fetchJSON(url: string) {
+  const { data } = await fetchClient.get(url);
+  return data;
 }
 
 function* fetchTagList() {

@@ -10,15 +10,22 @@ class ACMS_POST_User_Insert extends ACMS_POST_User
         $User->setMethod('status', 'required');
         $User->setMethod('status', 'in', ['open', 'close']);
         $User->setMethod('name', 'required');
+        $User->setMethod('name', 'maxlength', '255');
+        $User->setMethod('code', 'maxlength', '64');
         $User->setMethod('code', 'regex', REGEX_VALID_ID);
         $User->setMethod('code', 'doubleCode');
-        $User->setMethod('code', 'string', isValidCode($User->get('code')));
+        if ($User->get('code') !== '') {
+            $User->setMethod('code', 'string', isValidCode($User->get('code')));
+        }
         $User->setMethod('mail', 'required');
+        $User->setMethod('mail', 'maxlength', '255');
         $User->setMethod('mail', 'email');
         $User->setMethod('mail', 'doubleMail');
         $User->setMethod('mail_magazine', 'in', ['on', 'off']);
         $User->setMethod('mail_mobile_magazine', 'in', ['on', 'off']);
+        $User->setMethod('mail_mobile', 'maxlength', '255');
         $User->setMethod('mail_mobile', 'email');
+        $User->setMethod('url', 'maxlength', '255');
         $User->setMethod('url', 'url');
         $User->setMethod('pass', 'required');
         $User->setMethod('pass', 'password');

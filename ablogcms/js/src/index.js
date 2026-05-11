@@ -14,8 +14,6 @@ import entryAdd from './built-in/dispatch-entry-add';
 import { parseQuery } from './utils';
 import { cacheBusting } from './config';
 
-const underscore = require('underscore');
-
 const doc = window.document;
 const nav = window.navigator;
 const loc = window.location;
@@ -49,23 +47,22 @@ query.Gmap = { sensor: nav.userAgent.match(/iPhone|Android/) ? 'true' : 'false' 
 window.csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
 const path = query.jsRoot; // include path
-const Dispatch = () => {};
-const Library = () => {};
 const { ACMS } = window;
+const Dispatch = ACMS?.Dispatch || (() => {});
+const Library = ACMS?.Library || {};
 const Config = function (key, value) {
   if (!key) {
     return '';
   }
   if (typeof key === 'string') {
     if (!value) {
-      return typeof this.Config[key] !== 'undefined' ? this.Config[key] : '';
+      return typeof Config[key] !== 'undefined' ? Config[key] : '';
     }
-    this.Config[key] = value;
+    Config[key] = value;
     return true;
   }
   for (const prop in key) {
-    // eslint-disable-next-line no-restricted-properties
-    arguments.callee[prop] = key[prop];
+    Config[prop] = key[prop];
   }
 };
 
@@ -76,7 +73,6 @@ ACMS.Dispatch = Dispatch;
 ACMS.Library = Library;
 ACMS.SyncLoader = AcmsSyncLoader;
 window.ACMS = ACMS;
-window._ = underscore;
 
 for (const prop in query) {
   ACMS.Config[prop] = query[prop];

@@ -197,7 +197,7 @@ class Engine implements Base
 
         if ($url = DB::query($SQL->get(dsn()), 'one')) {
             $query = parse_url($url, PHP_URL_QUERY);
-            if ($query) {
+            if ($query !== null && $query !== '') {
                 $url .= "&preview-token={$token}";
             } else {
                 $url .= "?preview-token={$token}";

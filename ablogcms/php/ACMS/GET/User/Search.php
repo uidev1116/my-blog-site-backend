@@ -49,7 +49,7 @@ class ACMS_GET_User_Search extends ACMS_GET
                 throw new \RuntimeException('Failed to set config.');
             }
             $tpl = new Template($this->tpl, new ACMS_Corrector());
-            TemplateHelper::buildModuleField($tpl);
+            TemplateHelper::buildModuleField($tpl, $this->mid, $this->showField);
 
             // 起動
             $this->boot();

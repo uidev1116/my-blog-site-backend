@@ -50,9 +50,13 @@
 				<input type="text" name="name" value="{name}" size="50" />
 				<input type="hidden" name="config_set[]" value="name" />
 				<input type="hidden" name="name:validator#required" id="validator-name-required" />
+				<input type="hidden" name="name:validator#maxlength" value="255" id="validator-name-maxlength" />
 				<div role="alert" aria-live="assertive">
 					<div data-validator-label="validator-name-required" class="validator-result-{name:validator#required}">
 						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->名前が入力されていません。<!--/T--></p>
+					</div>
+					<div data-validator-label="validator-name-maxlength" class="validator-result-{name:validator#maxlength}">
+						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->名前は255文字以内で入力してください。<!--/T--></p>
 					</div>
 				</div>
 			</td>

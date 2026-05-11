@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/acms-code/snippets/src/snippets.css" />
+<script src="/acms-code/snippets/src/snippets.js"></script>
+</head>
+<body>
+<h1>Category_Flat</h1>
+<textarea>
+&lt;!-- BEGIN_MODULE Category_Flat --&gt;
+&lt;div class="acms-margin-bottom-medium"&gt;
+&#64;include("/admin/module/setting.html")
+  &lt;ul class="acms-list-group {parent.loop.class}"&gt;
+    &lt;!-- BEGIN category:loop --&gt;
+    &lt;li class="acms-list-group-item depth-{depth} {category:loop.class}"&gt;
+      &lt;a href="{url}"&gt;{name}&lt;!-- BEGIN amount:veil --&gt;&lt;span class="acms-badge acms-float-right"&gt;{amount}&lt;/span&gt;&lt;!-- END amount:veil --&gt;&lt;/a&gt;
+    &lt;/li&gt;
+    &lt;!-- END category:loop --&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+&lt;!-- END_MODULE Category_Flat --&gt;
+</textarea>
+</body>
+</html>

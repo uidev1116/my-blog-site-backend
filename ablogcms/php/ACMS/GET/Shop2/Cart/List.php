@@ -302,12 +302,14 @@ class ACMS_GET_Shop2_Cart_List extends ACMS_GET_Shop2
             $data = $unit->explodeUnitDataTrait($unit->getField1());
             $mid = $data[0] ?? $data;
             $media = Media::getMedia($mid);
-            $path = MEDIA_LIBRARY_DIR . $media['path'];
+            if ($media !== null) {
+                $path = MEDIA_LIBRARY_DIR . $media['path'];
+            }
         }
         /**
          * if already deleted unit. when return false.
          */
-        if (empty($path) || !PublicStorage::exists($path) || $path === ARCHIVES_DIR || $path === MEDIA_LIBRARY_DIR) {
+        if ($path === false || !PublicStorage::exists($path) || $path === ARCHIVES_DIR || $path === MEDIA_LIBRARY_DIR) {
             return false;
         }
         [$x, $y] = PublicStorage::getImageSize($path);

@@ -1,11 +1,11 @@
 <?php
 
+use Acms\Services\Entry\Enums\EntryApprovalStatus;
 use Acms\Services\Facades\PublicStorage;
 use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Facades\Logger;
 use Acms\Services\Facades\Application;
 use Acms\Services\Common\MimeTypeValidator;
-use Exception;
 
 class ACMS_CorrectorBody
 {
@@ -134,11 +134,13 @@ class ACMS_CorrectorBody
         $decoded = html_entity_decode($txt, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $decoded = urldecode($decoded);
         $trimmed = trim($decoded);
-        $scheme = parse_url($trimmed, PHP_URL_SCHEME);
-        if ($scheme === null || $scheme === false) {
-            return $txt; // URLではない、相対URLはOK
+        // RFC 3986 §3.1: scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+        // スキームは必ず ASCII なので正規表現で抽出する（非 ASCII パスが含まれても正しく検出できる）
+        if (!preg_match('/^([a-z][a-z0-9+\-.]*):/i', $trimmed, $matches)) {
+            return $txt; // スキームなし（相対 URL 等）はそのまま返す
         }
-        if (in_array(strtolower($scheme), $blacklist, true)) {
+        $scheme = strtolower($matches[1]);
+        if (in_array($scheme, $blacklist, true)) {
             return '#'; // 危険なスキーマは完全に無効化
         }
         return $txt;
@@ -510,6 +512,22 @@ class ACMS_CorrectorBody
         return $this->resizeImgBase($src, $args, ImageResize::SCALE_ASPECT_FILL, true);
     }
 
+    /**
+     * http(s)://host を除去し、パスとクエリを分離して返す。
+     * parse_url() は URL でない値に対して予期しない挙動をするため使わない。
+     *
+     * @return array{path: string, query: string}
+     */
+    private function stripHost(string $url): array
+    {
+        $stripped = preg_replace('#^https?://[^/]+#i', '', $url);
+        $parts = explode('?', $stripped ?? $url, 2);
+        return [
+            'path'  => $parts[0],
+            'query' => $parts[1] ?? '',
+        ];
+    }
+
     public function resizeImgBase($src, $args, $mode, $stretch = false)
     {
         if (!isset($args[0])) {
@@ -519,10 +537,8 @@ class ACMS_CorrectorBody
             return '';
         }
         $src = urldecode($src);
-        $parsedSrc = parse_url($src);
-        $src = $parsedSrc['path'];
-        $query = isset($parsedSrc['query']) ? '?' . $parsedSrc['query'] : '';
-        $src = explode('?', $src, 2)[0];
+        ['path' => $src, 'query' => $queryStr] = $this->stripHost($src);
+        $query = $queryStr !== '' ? '?' . $queryStr : '';
         $hasLeadingSlash = isset($src[0]) && $src[0] === '/';
         if ($hasLeadingSlash) {
             $src = ltrim($src, '/'); // パスの先頭にスラッシュがあるとrealpathがfalseになるため、ltrimで削除
@@ -808,9 +824,13 @@ class ACMS_CorrectorBody
         foreach (['', ARCHIVES_DIR, MEDIA_LIBRARY_DIR] as $dir) {
             $size = PublicStorage::getImageSize($dir . $src);
 
-            if ($size) {
+            if (is_array($size)) {
                 $width = isset($args[0]) ? intval($args[0]) : 200;
-                list($x, $y) = $size;
+                $x = intval($size[0]);
+                $y = intval($size[1]);
+                if ($x <= 0 || $y <= 0) {
+                    continue;
+                }
 
                 return intval($width * ($y / $x));
             }
@@ -824,9 +844,13 @@ class ACMS_CorrectorBody
         foreach (['', ARCHIVES_DIR, MEDIA_LIBRARY_DIR] as $dir) {
             $size = PublicStorage::getImageSize($dir . $src);
 
-            if ($size) {
+            if (is_array($size)) {
                 $height = isset($args[0]) ? intval($args[0]) : 200;
-                list($x, $y) = $size;
+                $x = intval($size[0]);
+                $y = intval($size[1]);
+                if ($x <= 0 || $y <= 0) {
+                    continue;
+                }
 
                 return intval($height * ($x / $y));
             }
@@ -868,7 +892,7 @@ class ACMS_CorrectorBody
         $status = $entry['entry_status'];
         $stime = $entry['entry_start_datetime'];
         $etime = $entry['entry_end_datetime'];
-        $approval = $entry['entry_approval'];
+        $approval = EntryApprovalStatus::tryFrom($entry['entry_approval']);
         $txt = '';
 
         switch ($status) {
@@ -886,7 +910,9 @@ class ACMS_CorrectorBody
                 }
                 break;
         }
-        if ($approval === 'pre_approval') {
+        // 承認前の場合は管理画面でステータスを視覚的に示すためプレフィックスを付与する。
+        // entry_status によるプレフィックスより後に評価することで、承認ステータスを優先して上書きする。
+        if ($approval === EntryApprovalStatus::PreApproval) {
             $txt = config('admin_entry_title_prefix_pre_approval');
         }
         if ($stime > date('Y-m-d H:i:s', requestTime())) {

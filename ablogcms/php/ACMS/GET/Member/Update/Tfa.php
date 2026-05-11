@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_GET_Member_Update_Tfa extends ACMS_GET_Member
 {
     /**
@@ -9,7 +11,7 @@ class ACMS_GET_Member_Update_Tfa extends ACMS_GET_Member
      */
     protected function init(): void
     {
-        if (!SUID) { // @phpstan-ignore-line
+        if (!Login::isLoggedIn()) {
             page404();
         }
         if (UID && UID !== SUID) { // @phpstan-ignore-line
@@ -36,11 +38,11 @@ class ACMS_GET_Member_Update_Tfa extends ACMS_GET_Member
             $vars['recoveryCode'] = $recoveryCode;
         }
 
-        if ($secret = Tfa::getSecretKey(SUID)) {
+        if (Tfa::hasValidSecretKey(SUID)) {
             // 登録済み
             $block = 'step#registered';
         } else {
-            // 未登録
+            // 未登録 or 復号失敗 → 再登録に誘導
             $block = 'step#unregistered';
 
             $secret = $tfaField->get('secret');

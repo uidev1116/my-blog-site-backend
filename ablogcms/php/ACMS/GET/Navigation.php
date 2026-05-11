@@ -1,8 +1,9 @@
 <?php
 
-use Acms\Services\Facades\Http;
+use Acms\Services\PageGeneration\PageGenerationService;
 use Acms\Services\Facades\Logger;
 use Acms\Services\Facades\Common;
+use Uri\Rfc3986\Uri as Rfc3986Uri;
 
 class ACMS_GET_Navigation extends ACMS_GET
 {
@@ -122,7 +123,8 @@ class ACMS_GET_Navigation extends ACMS_GET
                 $Tpl->add(['link#rear', 'navigation:loop']);
             }
 
-            $scheme = parse_url($label, PHP_URL_SCHEME);
+            // RFC 3986 §3.1: scheme は小文字に正規化される
+            $scheme = Rfc3986Uri::parse($label)?->getScheme();
             if ($scheme === 'acms') {
                 if (!preg_match('@^ablogcms@', UA)) { // against double load
                     $Q = parseAcmsPath(preg_replace('@^acms://@', '', $label));
@@ -132,18 +134,20 @@ class ACMS_GET_Navigation extends ACMS_GET
                         if ($url === '' || $url === false) {
                             throw new RuntimeException('URL is empty');
                         }
-                        $req = Http::init($url, 'GET');
-                        $req->setRequestHeaders([
-                            'User-Agent: ' . 'ablogcms/' . VERSION,
-                            'Accept-Language: ' . HTTP_ACCEPT_LANGUAGE,
-                        ]);
-                        $response = $req->send();
-                        if (strpos(Http::getResponseHeader('http_code'), '200') === false) {
-                            throw new RuntimeException(Http::getResponseHeader('http_code'));
+                        $pageGenerationService = new PageGenerationService();
+                        $pageGenerationService->addPage(url: $url, destinationPathname: 'get_template', userAgent: 'ablogcms/' . VERSION, withSession: false);
+                        $results = $pageGenerationService->run(maxParallel: 1, listener: null, withData: true);
+                        if (!isset($results[0])) {
+                            throw new RuntimeException('URLからテンプレート取得に失敗しました');
                         }
-                        $label = $response->getResponseBody();
+                        $result = $results[0];
+                        $data = $result->getData();
+
+                        if ($result->isSuccess() && $result->getStatusCode() === 200 && $data !== null && $data !== '') {
+                            $label = $data;
+                        }
                     } catch (Exception $e) {
-                        Logger::warning('ナビゲーションモジュール: HTTPインクルードできませんでした', Common::exceptionArray($e, ['url' => $url]));
+                        Logger::warning('ナビゲーションモジュール: URLからテンプレート取得に失敗しました', Common::exceptionArray($e, ['url' => $url]));
                     }
                 } else {
                     $label  = '';

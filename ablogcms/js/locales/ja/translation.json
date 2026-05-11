@@ -309,13 +309,15 @@
     "add": "追加",
     "error": {
       "name": {
-        "required": "名前が入力されていません。"
+        "required": "名前が入力されていません。",
+        "maxlength": "カテゴリー名は255文字以内で入力してください。"
       },
       "code": {
         "required": "コードネームが入力されていません。",
+        "maxlength": "コードネームは255文字以内で入力してください。",
         "double": "既に使用されているコードネームです。",
         "reserved": "システムで予約されているキーワードです。",
-        "string": "不正な文字が含まれています。"
+        "string": "コードに使用できない文字が含まれています。スラッシュ(/)、../ などの危険な文字列、URL特殊文字、制御文字、空白文字は使用できません。"
       },
       "scope": {
         "tree": "親カテゴリーと異なる共有設定にすることはできません。",
@@ -441,6 +443,7 @@
     "add_tags_to_media_error": "選択されたメディアへのタグの追加に失敗しました。",
     "remove_media_success": "選択されたメディアを削除しました。",
     "remove_media_error": "選択されたメディアの削除に失敗しました。",
+    "get_media_error": "メディアの情報の取得に失敗しました。",
     "more_than_20_not_allowed": "20以上のメディアは一度に登録できません。",
     "sending": "送信中です",
     "no_staged_media": "読み込み待機中のメディアがありません。アップロードしてください。",
@@ -602,7 +605,8 @@
     "reload": "リロードして画面を更新しますか？"
   },
   "drawer": {
-    "close": "ドロワーを閉じる"
+    "close": "ドロワーを閉じる",
+    "reload": "リロードして画面を更新しますか？"
   },
   "entry_index": {
     "id": "ID",
@@ -614,8 +618,8 @@
     "datetime": "日時",
     "posted_datetime": "投稿日時",
     "updated_datetime": "更新日時",
-    "start_datetime": "開始日時",
-    "end_datetime": "終了日時",
+    "start_datetime": "公開日時",
+    "end_datetime": "掲載期限",
     "members_only": "会員限定",
     "approval": "承認ステータス",
     "form_status": "フォームステータス",

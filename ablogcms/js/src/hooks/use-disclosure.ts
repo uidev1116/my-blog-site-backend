@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import useFirstMountState from './use-first-mount-state';
+import useCallbackRef from './use-callback-ref';
 
 interface UseDisclosureProps {
   isOpen?: boolean;
@@ -87,6 +88,10 @@ const useDisclosure = ({
     afterOpen: false,
   });
 
+  // useCallbackRef でラップすることで、コールバック差し替え時の stale closure を回避する
+  const handleAfterOpen = useCallbackRef(onAfterOpen);
+  const handleAfterClose = useCallbackRef(onAfterClose);
+
   useEffect(() => {
     if (controlledIsOpen !== undefined) {
       if (controlledIsOpen) {
@@ -112,9 +117,7 @@ const useDisclosure = ({
           ...prevState,
           afterOpen: true,
         }));
-        if (onAfterOpen) {
-          onAfterOpen();
-        }
+        handleAfterOpen();
       });
     }
     return () => {
@@ -122,9 +125,7 @@ const useDisclosure = ({
         cancelAnimationFrame(animationFrame);
       }
     };
-    // 無限再レンダリング対策でonAfterOpenはdepsから削除
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [internalState.isOpen, internalState.afterOpen]);
+  }, [internalState.isOpen, internalState.afterOpen, handleAfterOpen]);
 
   useEffect(() => {
     let timeoutId: number | undefined;
@@ -135,9 +136,7 @@ const useDisclosure = ({
           beforeClose: false,
           afterOpen: false,
         });
-        if (onAfterClose) {
-          onAfterClose();
-        }
+        handleAfterClose();
       }, closeTimeout);
     }
     return () => {
@@ -145,9 +144,7 @@ const useDisclosure = ({
         clearTimeout(timeoutId);
       }
     };
-    // 無限再レンダリング対策でonAfterCloseはdepsから削除
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [internalState.beforeClose, closeTimeout]);
+  }, [internalState.beforeClose, closeTimeout, handleAfterClose]);
 
   // beforeCloseがtrueの間はisOpenをtrueとすることで、閉じるアニメーションを実行する
   const isOpen = useMemo(
@@ -156,35 +153,45 @@ const useDisclosure = ({
   );
 
   const open = useCallback(() => {
-    if (isOpen) {
-      // すでに開いている場合は何もしない
-      return;
-    }
-    setInternalState({
-      isOpen: true,
-      beforeClose: false,
-      afterOpen: false,
+    // 完全に開いている場合のみ no-op。閉じアニメ中（beforeClose=true）の場合は再開する
+    setInternalState((prev) => {
+      if (prev.isOpen && !prev.beforeClose) {
+        return prev;
+      }
+      return {
+        isOpen: true,
+        beforeClose: false,
+        afterOpen: false,
+      };
     });
-  }, [isOpen]);
+  }, []);
 
   const close = useCallback(() => {
-    if (!isOpen) {
-      // すでに閉じている場合は何もしない
-      return;
-    }
-    setInternalState((prevState) => ({
-      ...prevState,
-      beforeClose: true,
-    }));
-  }, [isOpen]);
+    setInternalState((prev) => {
+      if (!prev.isOpen) {
+        return prev;
+      }
+      if (prev.beforeClose) {
+        return prev;
+      }
+      return { ...prev, beforeClose: true };
+    });
+  }, []);
 
   const toggle = useCallback(() => {
-    if (isOpen) {
-      close();
-    } else {
-      open();
-    }
-  }, [isOpen, open, close]);
+    setInternalState((prev) => {
+      // 完全に開いている → 閉じる
+      if (prev.isOpen && !prev.beforeClose) {
+        return { ...prev, beforeClose: true };
+      }
+      // 閉じている or 閉じアニメ中 → 開く（再開）
+      return {
+        isOpen: true,
+        beforeClose: false,
+        afterOpen: false,
+      };
+    });
+  }, []);
 
   return {
     isOpen,

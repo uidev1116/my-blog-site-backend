@@ -116,9 +116,13 @@
       <input type="text" name="name" value="{name}" class="acms-admin-form-width-full" />
       <input type="hidden" name="schedule[]" value="name" />
       <input type="hidden" name="name:validator#required" id="validator-name-required" />
+      <input type="hidden" name="name:validator#maxlength" value="255" id="validator-name-maxlength" />
       <div role="alert" aria-live="assertive">
         <div data-validator-label="validator-name-required" class="validator-result-{name:validator#required}">
           <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->名前が入力されていません。<!--/T--></p>
+        </div>
+        <div data-validator-label="validator-name-maxlength" class="validator-result-{name:validator#maxlength}">
+          <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->セット名は255文字以内で入力してください。<!--/T--></p>
         </div>
       </div>
     </td>
@@ -128,6 +132,12 @@
     <td>
       <input type="text" name="desc" value="{desc}" class="acms-admin-form-width-full" />
       <input type="hidden" name="schedule[]" value="desc" />
+      <input type="hidden" name="desc:validator#maxlength" value="255" id="validator-desc-maxlength" />
+      <div role="alert" aria-live="assertive">
+        <div data-validator-label="validator-desc-maxlength" class="validator-result-{desc:validator#maxlength}">
+          <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->説明は255文字以内で入力してください。<!--/T--></p>
+        </div>
+      </div>
     </td>
   </tr>
   </table>

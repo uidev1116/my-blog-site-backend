@@ -1,7 +1,8 @@
 import { Component } from 'react';
-import axiosLib from '../../../../lib/axios';
+import { fetchClient } from '../../../../lib/fetch-client';
 import MediaModal from '../media-modal/media-modal';
 import type { MediaStateProps } from '../../types';
+import { notify } from '../../../../lib/notify';
 
 interface MediaUpdateModalProps
   extends MediaStateProps,
@@ -22,14 +23,22 @@ export default class MediaUpdateModal extends Component<MediaUpdateModalProps> {
       },
       false
     );
-    axiosLib
-      .get(url, {
+    fetchClient
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .get<any>(url, {
         params: {
           _mid: mid.toString(),
         },
       })
       .then((res) => {
+        if (res.data.status === 'failure') {
+          notify.danger(ACMS.i18n('media.get_media_error'));
+          return;
+        }
         this.props.actions.setItem(res.data.item);
+      })
+      .catch(() => {
+        notify.danger(ACMS.i18n('media.get_media_error'));
       });
     const tagUrl = ACMS.Library.acmsLink(
       {
@@ -41,7 +50,7 @@ export default class MediaUpdateModal extends Component<MediaUpdateModalProps> {
       },
       false
     );
-    axiosLib.get(tagUrl).then((res) => {
+    fetchClient.get<string[]>(tagUrl).then((res) => {
       this.props.actions.setMediaTags(res.data);
     });
   }

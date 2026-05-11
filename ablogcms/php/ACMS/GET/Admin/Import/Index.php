@@ -17,10 +17,10 @@ class ACMS_GET_Admin_Import_Index extends ACMS_GET_Admin
         $aryAdmin   = [
             'WordPress'    => 'import_wordpress',
             'Movable Type' => 'import_mt',
-            'CSV'          => 'import_csv',
+            'エントリー（CSV）'          => 'import_csv',
         ];
-        if (LICENSE_BLOG_LIMIT == UNLIMITED_NUMBER_OF_USERS) {
-            $aryAdmin['USER']   = 'import_user';
+        if (licenseHasUnlimitedUsers()) {
+            $aryAdmin['ユーザー（CSV）']   = 'import_user';
         }
 
         foreach ($aryAdmin as $label => $admin) {

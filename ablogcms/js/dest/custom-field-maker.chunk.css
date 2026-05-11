@@ -117,8 +117,7 @@ hue-6-2: #e6c07b
 .customFieldGeneratorGroup {
   display: grid;
   row-gap: 24px;
-  -moz-column-gap: 24px;
-       column-gap: 24px;
+  column-gap: 24px;
   grid-template-columns: repeat(3, 1fr);
   grid-template-areas:
     "areaTitle  areaVal ."
@@ -163,8 +162,7 @@ hue-6-2: #e6c07b
 .customFieldGeneratorBasic {
   display: grid;
   row-gap: 24px;
-  -moz-column-gap: 24px;
-       column-gap: 24px;
+  column-gap: 24px;
   grid-template-columns: repeat(3, 1fr);
   grid-template-areas:
     "areaInput   areaTitle       areaField"

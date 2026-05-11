@@ -12,7 +12,6 @@ type MediaUnitProps = {
   primaryImageId: string;
   id: string;
   active: 'on' | 'off';
-  mediaDir: string;
   lang?: string;
   usePdfIcon: 'yes' | 'no';
   primary: 'true' | 'false';
@@ -346,13 +345,16 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
                       {items.length < 2 && (
                         <tr>
                           <th>
-                            <label htmlFor={`unit-media-caption-${id}`}>{ACMS.i18n('media.caption')}</label>
+                            <label id={`unit-media-caption-label-${id}`} htmlFor={`unit-media-caption-${id}`}>
+                              {ACMS.i18n('media.caption')}
+                            </label>
                           </th>
                           <td>
                             <input
                               type="text"
                               name={`media_caption_${id}[]`}
                               id={`unit-media-caption-${id}`}
+                              aria-labelledby={`unit-media-caption-label-${id}`}
                               className="acms-admin-form-width-full"
                               defaultValue={caption}
                               placeholder={item && item.media_caption ? `${item.media_caption}` : ''}
@@ -363,13 +365,16 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
                       {items.length < 2 && (
                         <tr>
                           <th>
-                            <label htmlFor={`unit-media-alt-text-${id}`}>{ACMS.i18n('media.alt')}</label>
+                            <label id={`unit-media-alt-text-label-${id}`} htmlFor={`unit-media-alt-text-${id}`}>
+                              {ACMS.i18n('media.alt')}
+                            </label>
                           </th>
                           <td>
                             <AutoResizeTextarea
                               name={`media_alt_${id}[]`}
                               defaultValue={alt}
                               id={`unit-media-alt-text-${id}`}
+                              aria-labelledby={`unit-media-alt-text-label-${id}`}
                               className="acms-admin-form-width-full"
                               placeholder={item && item.media_alt ? `${item.media_alt}` : ''}
                               maxRows={4}
@@ -382,7 +387,10 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
                         (item.media_type === 'image' || item.media_type === 'svg') && (
                           <tr>
                             <th>
-                              <label htmlFor={`input-text-media_link_${id}_${lang}`}>
+                              <label
+                                id={`input-text-media_link-label-${id}-${lang}`}
+                                htmlFor={`input-text-media_link_${id}_${lang}`}
+                              >
                                 {ACMS.i18n('media.url_link_to')}
                               </label>
                             </th>
@@ -390,6 +398,7 @@ export default class MediaUnit extends Component<MediaUnitProps, MediaUnitState>
                               <input
                                 type="text"
                                 id={`input-text-media_link_${id}_${lang}`}
+                                aria-labelledby={`input-text-media_link-label-${id}-${lang}`}
                                 name={`media_link_${id}[]`}
                                 className="acms-admin-form-width-full"
                                 placeholder={item.media_link || ''}

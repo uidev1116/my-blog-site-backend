@@ -1,6 +1,8 @@
 import { useCallback, useEffect } from 'react';
 import ReactDeviceMode from 'react-device-mode';
-import type { DeviceChangeEvent } from 'react-device-mode';
+import type { DeviceChangeEvent, DeviceType } from 'react-device-mode';
+
+const EMPTY_DEVICES: DeviceType[] = [];
 
 interface DeviceModeProps
   extends Partial<
@@ -39,7 +41,7 @@ const DeviceMode = ({
   onMessage = () => {},
   headerLeft,
   headerRight,
-  devices = [],
+  devices = EMPTY_DEVICES,
   getIframe = () => {},
 }: DeviceModeProps) => {
   const handleDeviceInit = useCallback(

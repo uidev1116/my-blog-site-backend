@@ -209,10 +209,8 @@ class UserHelper extends BaseHelper
      */
     protected function orderQuery(SQL_Select $sql): void
     {
-        if ($this->uid) {
-            ACMS_Filter::userOrder($sql, $this->config['order']);
-            $sql->setGroup('user_id');
-        }
+        ACMS_Filter::userOrder($sql, $this->config['order']);
+        $sql->setGroup('user_id');
     }
 
     /**

@@ -15,6 +15,16 @@ class ACMS_POST_Member_Signin extends ACMS_POST_Member
     protected $lockKey;
 
     /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @inheritDoc
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return Login::canLoginPage(BID, SIGNIN_SEGMENT);
+    }
+
+    /**
      * Run
      *
      * @inheritDoc
@@ -94,7 +104,7 @@ class ACMS_POST_Member_Signin extends ACMS_POST_Member
     protected function checkTowFactorAuthAction(Field_Validation $loginField, int $uid): bool
     {
         if (Tfa::isAvailableAccount($uid)) {
-            $loginField->set('tfa', 'on'); // ２段階認証画面を表示
+            $loginField->set('tfa', 'on');
             return true;
         }
         return false;
@@ -115,9 +125,9 @@ class ACMS_POST_Member_Signin extends ACMS_POST_Member
      *
      * @return bool
      */
-    protected function accessRestricted(): bool
+    protected function canAccessFromCurrentIp(): bool
     {
-        return Login::accessRestricted(false);
+        return Login::canAccessSigninFromCurrentIp();
     }
 
     /**
@@ -184,7 +194,7 @@ class ACMS_POST_Member_Signin extends ACMS_POST_Member
         }
 
         // access restricted
-        if (SUID || !$this->accessRestricted()) {
+        if (Login::isLoggedIn() || !$this->canAccessFromCurrentIp()) {
             $loginField->setMethod('pass', 'auth', false);
             httpStatusCode('403 Forbidden');
         }

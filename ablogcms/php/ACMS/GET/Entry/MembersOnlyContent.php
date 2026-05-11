@@ -1,5 +1,6 @@
 <?php
 
+use Acms\Services\Entry\Enums\EntryApprovalStatus;
 use Acms\Services\Facades\Application;
 use Acms\Services\Unit\UnitCollection;
 
@@ -99,7 +100,9 @@ class ACMS_GET_Entry_MembersOnlyContent extends ACMS_GET_Entry
     protected function buildMembersOnlyUnit(Template $tpl, int $eid, ?int $rvid, array $entry, int $summaryRange): void
     {
         $rvid_ = $rvid;
-        if (!$rvid && $entry['entry_approval'] === 'pre_approval') {
+        // 承認前エントリーはリビジョン1（作業領域）に最新の編集内容が保存されているため、
+        // リビジョンが明示的に指定されていない場合はリビジョン1のユニットを表示する。
+        if (!$rvid && $entry['entry_approval'] === EntryApprovalStatus::PreApproval->value) {
             $rvid_ = 1;
         }
         /** @var \Acms\Services\Unit\Repository $unitService */

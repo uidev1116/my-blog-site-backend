@@ -108,12 +108,19 @@
               class="acms-admin-form-width-full"
             >
             <input type="hidden" name="rule[]" value="name" />
-            <input type="hidden" name="name:validator#required" id="input-text-name" />
+            <input type="hidden" name="name:validator#required" id="validator-name-required" />
+            <input type="hidden" name="name:validator#maxlength" value="64" id="validator-name-maxlength" />
             <div role="alert" aria-live="assertive">
-              <div data-validator-label="name-v-required" class="validator-result-{name:v#required}">
+              <div data-validator-label="validator-name-required" class="validator-result-{name:validator#required}">
                 <p class="error-text">
                   <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
                   <!--T-->名前が入力されていません。<!--/T-->
+                </p>
+              </div>
+              <div data-validator-label="validator-name-maxlength" class="validator-result-{name:validator#maxlength}">
+                <p class="error-text">
+                  <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                  <!--T-->ルール名は64文字以内で入力してください。<!--/T-->
                 </p>
               </div>
             </div>
@@ -159,6 +166,15 @@
           <td>
             <textarea name="description" id="textarea-description" class="acms-admin-form-width-full" rows="3">{description}</textarea>
             <input type="hidden" name="rule[]" value="description" />
+            <input type="hidden" name="description:validator#maxlength" value="255" id="validator-description-maxlength" />
+            <div role="alert" aria-live="assertive">
+              <div data-validator-label="validator-description-maxlength" class="validator-result-{description:validator#maxlength}">
+                <p class="error-text">
+                  <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                  <!--T-->説明は255文字以内で入力してください。<!--/T-->
+                </p>
+              </div>
+            </div>
           </td>
         </tr>
         <tr>

@@ -205,7 +205,8 @@ const EntryAdmin = (props: EntryAdminProps) => {
       search: '',
       sort: getSortFromContext(context, searchParams, columns),
       pageIndex: context.page || 0,
-      pageSize: context.limit || parseInt(ACMS.Config.defaultLimit, 10),
+      // defaultLimit は管理画面のみで出力されるが、このコンポーネントは管理画面専用のため必ず存在する
+      pageSize: context.limit || parseInt(ACMS.Config.defaultLimit!, 10),
       visibility: columnVisibility,
       order: ['sort', ...config.order],
     };
@@ -324,7 +325,8 @@ const EntryAdmin = (props: EntryAdminProps) => {
         enablePagination={enablePagination}
         paginationInfo={{
           totalItems: data?.totalItems || 0,
-          pageSizes: ACMS.Config.limitOptions.map((limit) => parseInt(limit, 10)),
+          // limitOptions は管理画面のみで出力されるが、このコンポーネントは管理画面専用のため必ず存在する
+          pageSizes: ACMS.Config.limitOptions!.map((limit) => parseInt(limit, 10)),
         }}
         components={{
           EmptyState,

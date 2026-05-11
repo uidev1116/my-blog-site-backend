@@ -423,14 +423,17 @@ interface FilterProviderProps<T extends RowData> {
   children?: React.ReactNode;
 }
 
+const EMPTY_FILTERS: Filter[] = [];
+const EMPTY_OPTION_DATA = {} as OptionData<never>;
+
 const FilterProvider = <T extends RowData>({
   columns,
-  optionData = {},
+  optionData = EMPTY_OPTION_DATA,
   filterColumns = () => true,
-  filters: filtersProp = [],
+  filters: filtersProp = EMPTY_FILTERS,
   children,
 }: FilterProviderProps<T>) => {
-  const [filters, setFilters] = useState<IdentifiedFilter[]>(defaultFilters(filtersProp));
+  const [filters, setFilters] = useState<IdentifiedFilter[]>(() => defaultFilters(filtersProp));
 
   useUpdateEffect(() => {
     setFilters(defaultFilters(filtersProp));

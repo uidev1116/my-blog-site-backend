@@ -35,6 +35,9 @@ interface BaseModalProps {
   focusTrapOptions?: Parameters<typeof useFocusTrap>[0];
 }
 
+const EMPTY_STYLE: React.CSSProperties = {};
+const EMPTY_FOCUS_TRAP_OPTIONS: Parameters<typeof useFocusTrap>[0] = {};
+
 const BaseModal = (
   {
     isOpen,
@@ -48,9 +51,9 @@ const BaseModal = (
     className = '',
     backdropClassName = '',
     dialogClassName = '',
-    style = {},
-    backdropStyle = {},
-    dialogStyle = {},
+    style = EMPTY_STYLE,
+    backdropStyle = EMPTY_STYLE,
+    dialogStyle = EMPTY_STYLE,
     afterOpenClassName = 'is-after-open',
     beforeCloseClassName = 'is-before-close',
     preventScroll = true,
@@ -60,7 +63,7 @@ const BaseModal = (
     'aria-describedby': ariaDescribedby,
     'aria-labelledby': ariaLabelledby,
     children,
-    focusTrapOptions = {},
+    focusTrapOptions = EMPTY_FOCUS_TRAP_OPTIONS,
   }: BaseModalProps,
   ref: React.Ref<HTMLDivElement | null>
 ) => {
@@ -150,17 +153,14 @@ const BaseModal = (
 
   const backdropRef = useRef<HTMLDivElement>(null);
 
-  const handleBackdropClick = useCallback(() => {
-    if (shouldCloseOnBackdropClick) {
-      close();
-    }
-  }, [shouldCloseOnBackdropClick, close]);
-
-  const handleDialogClick = (event: MouseEvent<HTMLDivElement>) => {
-    if (event.target !== dialogRef.current) {
-      event.stopPropagation();
-    }
-  };
+  const handleBackdropClick = useCallback(
+    (event: MouseEvent<HTMLDivElement>) => {
+      if (shouldCloseOnBackdropClick && event.target === event.currentTarget) {
+        close();
+      }
+    },
+    [shouldCloseOnBackdropClick, close]
+  );
 
   const handleKeydown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
@@ -193,8 +193,9 @@ const BaseModal = (
 
   return createPortal(
     <div ref={setModalRefs} style={style} className={buildClassName()} id={id}>
-      <div // eslint-disable-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+      <div // eslint-disable-line jsx-a11y/click-events-have-key-events
         ref={backdropRef}
+        role="presentation"
         style={backdropStyle}
         className={backdropClassName}
         onClick={handleBackdropClick}
@@ -209,7 +210,6 @@ const BaseModal = (
           aria-labelledby={ariaLabelledby}
           aria-describedby={ariaDescribedby}
           onKeyDown={handleKeydown}
-          onClick={handleDialogClick}
         >
           {children}
         </div>

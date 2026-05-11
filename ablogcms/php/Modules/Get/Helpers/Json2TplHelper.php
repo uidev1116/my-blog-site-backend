@@ -27,7 +27,14 @@ class Json2TplHelper
     public function getContents($uri)
     {
         try {
-            $contents = file_get_contents($uri);
+            // ignore_errors を true にすることで、4xx・5xx などの HTTP エラーレスポンスでも
+            // file_get_contents() が false ではなくレスポンスボディを返すようにする。
+            // これにより、エラーレスポンスの JSON も正常に取得・表示できる。
+            // また、file_get_contents() を利用することでhttp/https に加え file:// やローカルパスにも対応できる。
+            $context = stream_context_create([
+                'http' => ['ignore_errors' => true],
+            ]);
+            $contents = file_get_contents($uri, false, $context);
             if ($contents === false) {
                 throw new \RuntimeException('Failed to get contents.');
             }

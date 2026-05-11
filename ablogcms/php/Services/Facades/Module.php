@@ -6,6 +6,7 @@ namespace Acms\Services\Facades;
  * @method static bool double(string $identifier, int $mid, string $scope, ?int $bid = null) モジュールが重複しているかどうかを確認
  * @method static int dup(int $mid) モジュールを複製
  * @method static bool isAllowedMultipleArguments(\Field $Module) 複数引数を許可するモジュールかどうかを確認
+ * @method static bool canUseInLayout(string $moduleName) モジュールがレイアウト/ユニットで使用可能かどうか
  * @method static bool canBulkBlogChange(int $blogId) モジュールの一括ブログ変更を許可されているかどうか
  * @method static bool canBulkDelete(int $blogId) モジュールの一括削除を許可されているかどうか
  * @method static bool canBulkExport(int $blogId) モジュールの一括エクスポートを許可されているかどうか

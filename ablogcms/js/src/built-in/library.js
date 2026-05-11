@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import lozad from 'lozad';
 import PrettyScroll from 'pretty-scroll';
 import { parse, serialize } from 'cookie';
+import { throttle, debounce } from 'throttle-debounce';
 import ResizeImage from '../lib/resize-image/resize-image';
 import { setDropArea, getParameterByName, PerfectFormData, triggerEvent } from '../utils';
 import createAcmsPathHelper from '../lib/acmsPath/createAcmsPathHelper';
@@ -173,7 +174,7 @@ export default () => {
     list = list || ['ja', 'en'];
     fallback = fallback || 'ja';
 
-    if (_.indexOf(list, lang) === -1) {
+    if (!list.includes(lang)) {
       lang = fallback;
     }
 
@@ -345,6 +346,10 @@ export default () => {
   ACMS.Library.isDebugMode = function () {
     return ACMS.Config.isDebugMode === '1';
   };
+
+  ACMS.Library.throttle = throttle;
+
+  ACMS.Library.debounce = debounce;
 
   ACMS.Library.deprecated = deprecated;
 

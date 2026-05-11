@@ -2672,7 +2672,7 @@
     Extra:
   module_bid:
     Field: module_bid
-    Type: varchar(32)
+    Type: varchar(1024)
     'Null': YES
     Key:
     Default:
@@ -2686,7 +2686,7 @@
     Extra:
   module_uid:
     Field: module_uid
-    Type: varchar(32)
+    Type: varchar(1024)
     'Null': YES
     Key:
     Default:
@@ -2700,7 +2700,7 @@
     Extra:
   module_cid:
     Field: module_cid
-    Type: varchar(32)
+    Type: varchar(1024)
     'Null': YES
     Key:
     Default:
@@ -2721,7 +2721,7 @@
     Extra:
   module_eid:
     Field: module_eid
-    Type: varchar(32)
+    Type: varchar(1024)
     'Null': YES
     Key:
     Default:

@@ -13,6 +13,8 @@ import type { RelatedEntryOption, RelatedEntryType } from '../../types';
 import RelatedEntrySelect from '../related-entry-select/related-entry-select';
 import useUpdateEffect from '../../../../hooks/use-update-effect';
 
+const EMPTY_ENTRIES: RelatedEntryType[] = [];
+
 interface RelatedEntriesProps {
   entries: RelatedEntryType[];
   moduleId: string;
@@ -28,7 +30,7 @@ const toOptions = (entries: RelatedEntryType[]): RelatedEntryOption[] =>
   entries.map((entry) => ({ ...entry, value: entry.id.toString(), label: entry.title }));
 
 const RelatedEntries = ({
-  entries: entriesProp = [],
+  entries: entriesProp = EMPTY_ENTRIES,
   moduleId,
   ctx,
   thumbnail,

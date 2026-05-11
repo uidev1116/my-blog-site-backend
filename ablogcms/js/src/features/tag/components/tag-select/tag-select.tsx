@@ -4,6 +4,8 @@ import CreatableSelect from '../../../../components/rich-select/creatable-select
 import useTagOptionsSWR from '../../hooks/use-tag-options-swr';
 import { TagOption } from '../../types';
 
+const EMPTY_TAG_OPTIONS: TagOption[] = [];
+
 interface TagSelectProps
   extends Partial<
     Pick<
@@ -15,7 +17,7 @@ interface TagSelectProps
   onChange?: (value: TagOption[]) => void;
 }
 
-const TagSelect = ({ onChange, defaultValue = [], ...props }: TagSelectProps) => {
+const TagSelect = ({ onChange, defaultValue = EMPTY_TAG_OPTIONS, ...props }: TagSelectProps) => {
   const ref = useRef<SelectInstance<TagOption, true>>(null);
   const { options: apiOptions, isLoading } = useTagOptionsSWR();
 

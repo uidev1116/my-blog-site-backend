@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_GET_Comment_Body extends ACMS_GET
 {
     public $map = [];
@@ -114,7 +116,7 @@ class ACMS_GET_Comment_Body extends ACMS_GET
             ];
             if (
                 1
-                and !!SUID
+                and Login::isLoggedIn()
                 and sessionWithContribution()
                 and ( 0
                     or sessionWithCompilation()
@@ -313,6 +315,7 @@ class ACMS_GET_Comment_Body extends ACMS_GET
         $SQL->addSelect('comment_url');
         $SQL->addSelect('comment_parent');
         $SQL->addLeftJoin('user', 'user_id', 'comment_user_id');
+        $SQL->addSelect('user_mail');
         $SQL->addSelect('user_name');
         $SQL->addSelect('user_url');
         $SQL->addWhereOpr('comment_entry_id', EID);

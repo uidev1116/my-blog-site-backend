@@ -2,6 +2,8 @@ import { Table } from '@tanstack/react-table';
 import type { BulkAction, DataviewComponents } from '../../types';
 import HStack from '../../../stack/h-stack';
 
+const EMPTY_BULK_ACTIONS: never[] = [];
+
 interface DataviewBulkActionProps<T> {
   data: T[];
   bulkActions?: BulkAction<T>[];
@@ -12,7 +14,7 @@ interface DataviewBulkActionProps<T> {
 
 const DataviewBulkAction = <T,>({
   data,
-  bulkActions = [],
+  bulkActions = EMPTY_BULK_ACTIONS,
   table,
   className = 'acms-admin-dataview-bulk-action',
   components,

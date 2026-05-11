@@ -130,18 +130,42 @@
 			<th><!--T-->フォームID<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->このフォームに付与するID名です。フォームのテンプレート側にもこのIDと同じ記述が必要になります。（半角英数字）<!--/T-->"></i></th>
 			<td>
 				<input type="text" name="code" value="{code}" class="acms-admin-form-width-small">
-				<input type="hidden" name="form[]" value="code"/><!-- BEGIN code:validator#required -->
-				<p style="color:red;"><!--T-->フォームIDが入力されていません<!--/T--></p><!-- END code:validator#required --><!-- BEGIN code:validator#regex -->
-				<p style="color:red;"><!--T-->フォームIDに使用出来ない文字が含まれています<!--/T--></p><!-- END code:validator#regex --><!-- BEGIN code:validator#double -->
-				<p style="color:red;"><!--T-->フォームIDが既に使用されています<!--/T--></p><!-- END code:validator#double -->
+				<input type="hidden" name="form[]" value="code"/>
+				<input type="hidden" name="code:validator#required" id="validator-code-required" />
+				<input type="hidden" name="code:validator#regex" id="validator-code-regex" />
+				<input type="hidden" name="code:validator#double" id="validator-code-double" />
+				<input type="hidden" name="code:validator#maxlength" value="64" id="validator-code-maxlength" />
+				<div role="alert" aria-live="assertive">
+					<div data-validator-label="validator-code-required" class="validator-result-{code:validator#required}">
+						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->フォームIDが入力されていません<!--/T--></p>
+					</div>
+					<div data-validator-label="validator-code-maxlength" class="validator-result-{code:validator#maxlength}">
+						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->フォームIDは64文字以内で入力してください。<!--/T--></p>
+					</div>
+					<div data-validator-label="validator-code-regex" class="validator-result-{code:validator#regex}">
+						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->フォームIDに使用出来ない文字が含まれています<!--/T--></p>
+					</div>
+					<div data-validator-label="validator-code-double" class="validator-result-{code:validator#double}">
+						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->フォームIDが既に使用されています<!--/T--></p>
+					</div>
+				</div>
 			</td>
 		</tr>
 		<tr>
 			<th><!--T-->フォーム名<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->このフォームIDを管理するための名前です。（日本語可）<!--/T-->"></i></th>
 			<td>
 				<input type="text" name="name" value="{name}" class="acms-admin-form-width-small"/>
-				<input type="hidden" name="form[]" value="name"/><!-- BEGIN name:validator#required -->
-				<p style="color:red;"><!--T-->フォーム名が入力されていません<!--/T--></p><!-- END name:validator#required -->
+				<input type="hidden" name="form[]" value="name"/>
+				<input type="hidden" name="name:validator#required" id="validator-name-required" />
+				<input type="hidden" name="name:validator#maxlength" value="255" id="validator-name-maxlength" />
+				<div role="alert" aria-live="assertive">
+					<div data-validator-label="validator-name-required" class="validator-result-{name:validator#required}">
+						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->フォーム名が入力されていません<!--/T--></p>
+					</div>
+					<div data-validator-label="validator-name-maxlength" class="validator-result-{name:validator#maxlength}">
+						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->フォーム名は255文字以内で入力してください。<!--/T--></p>
+					</div>
+				</div>
 			</td>
 		</tr>
 		<tr>

@@ -3,11 +3,7 @@
 namespace Acms\Services\StaticExport\Generator;
 
 use Acms\Services\Facades\LocalStorage;
-use Acms\Services\StaticExport\Entities\Page;
-use React\Promise\Promise;
-use React\Promise\PromiseInterface;
-
-use function React\Async\await;
+use ACMS_RAM;
 
 class CategoryPageGenerator extends PageGenerator
 {
@@ -30,46 +26,49 @@ class CategoryPageGenerator extends PageGenerator
     /**
      * @inheritDoc
      */
-    public function run(): PromiseInterface
+    public function run(): void
     {
-        return new Promise(
-            function (callable $resolve, callable $reject) {
-                if (is_null($this->categoryId)) {
-                    $reject(new \RuntimeException('no selected category.'));
-                    return;
-                }
-                if (is_null($this->maxPage)) {
-                    $reject(new \RuntimeException('no selected max page.'));
-                    return;
-                }
-                if ($this->maxPage < 2) {
-                    $reject(new \RuntimeException('max page is less than 2.'));
-                    return;
-                }
+        if (is_null($this->categoryId)) {
+            throw new \RuntimeException('no selected category.');
+        }
+        if (is_null($this->maxPage)) {
+            throw new \RuntimeException('no selected max page.');
+        }
+        if ($this->maxPage < 2) {
+            throw new \RuntimeException('max page is less than 2.');
+        }
 
-                $pages = array_map(
-                    function (int $page) {
-                        $url = acmsLink([
-                            'bid' => BID,
-                            'cid' => $this->categoryId,
-                            'page' => $page,
-                        ]);
-                        $blogUrl = acmsLink(['bid' => BID]);
-                        $categoryUrl = acmsLink(['bid' => BID, 'cid' => $this->categoryId]);
-                        $categoryDir = substr($categoryUrl, strlen($blogUrl));
-                        $filepath = $categoryDir . 'page' . $page . '.html';
-                        return new Page($url, $filepath);
-                    },
-                    range(2, $this->maxPage)
-                );
-                $this->logger->start(
-                    'カテゴリーの2ページ目以降を生成 【' . \ACMS_RAM::categoryName($this->categoryId) . '（' . $this->categoryId . '）】',
-                    count($pages)
-                );
-                await($this->handle($pages));
-                $resolve(null);
-            }
+        $pages = range(2, $this->maxPage);
+        array_map(
+            function (int $page) {
+                $url = acmsLink([
+                    'bid' => $this->targetBlogId,
+                    'cid' => $this->categoryId,
+                    'page' => $page,
+                ]);
+                $blogUrl = acmsLink(['bid' => $this->targetBlogId]);
+                $categoryUrl = acmsLink(['bid' => $this->targetBlogId, 'cid' => $this->categoryId]);
+                $categoryDir = substr($categoryUrl, strlen($blogUrl));
+                $filepath = $categoryDir . 'page' . $page . '.html';
+
+                if ($url) {
+                    $this->addPage($url, $filepath);
+                }
+            },
+            $pages,
         );
+
+        if (is_null($this->categoryId)) {
+            throw new \RuntimeException('no selected category.');
+        }
+
+        $bid = ACMS_RAM::categoryBlog($this->categoryId);
+        $blogName = ACMS_RAM::blogName($bid);
+        $this->logger->start(
+            'カテゴリーの2ページ目以降を生成 【' . $blogName . ' > ' . ACMS_RAM::categoryName($this->categoryId) . '】',
+            count($pages)
+        );
+        $this->handle();
     }
 
     /**

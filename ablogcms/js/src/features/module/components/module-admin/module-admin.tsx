@@ -43,7 +43,7 @@ const ModuleAdmin = () => {
   const navigate = useNavigate();
   const { data, isLoading: isModulesLoading, invalidate } = useModulesSWR(context, searchParams);
 
-  const isLoading = useMemo(() => isModulesLoading, [isModulesLoading]);
+  const isLoading = isModulesLoading;
 
   const columns = useMemo<Column<ModuleType>[]>(() => {
     const columns = [...MODULE_COLUMNS];
@@ -76,7 +76,8 @@ const ModuleAdmin = () => {
       search: '',
       sort,
       pageIndex: context.page || 0,
-      pageSize: context.limit || parseInt(ACMS.Config.defaultLimit, 10),
+      // defaultLimit は管理画面のみで出力されるが、このコンポーネントは管理画面専用のため必ず存在する
+      pageSize: context.limit || parseInt(ACMS.Config.defaultLimit!, 10),
       order: MODULE_COLUMN_ORDER,
     };
   }, [context]);

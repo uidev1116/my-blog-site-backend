@@ -18,6 +18,7 @@ class UserServiceProvider extends ServiceProvider
     public function register(Container $container)
     {
         $container->singleton('user', 'Acms\Services\User\Helper');
+        $container->singleton('user.repository', \Acms\Services\User\UserRepository::class);
         $container->singleton('user.import.csv-lock', function () {
             return new Lock(CACHE_DIR . 'user-import-csv-lock');
         });

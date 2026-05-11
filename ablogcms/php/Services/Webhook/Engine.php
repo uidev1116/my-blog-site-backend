@@ -10,6 +10,7 @@ use Acms\Services\Facades\Logger;
 use Acms\Services\Facades\Common;
 use RuntimeException;
 use Exception;
+use Uri\Rfc3986\Uri as Rfc3986Uri;
 
 class Engine
 {
@@ -67,7 +68,7 @@ class Engine
      */
     public function validateUrlScheme(string $url): bool
     {
-        $scheme = parse_url($url, PHP_URL_SCHEME);
+        $scheme = Rfc3986Uri::parse($url)?->getScheme();
         if (in_array($scheme, ['http', 'https'], true)) {
             return true;
         }
@@ -82,11 +83,11 @@ class Engine
      */
     public function validateUrlWhiteList(string $url): bool
     {
-        $host = parse_url($url, PHP_URL_HOST);
-        if (in_array($host, $this->whiteList, true)) {
-            return true;
+        $host = Rfc3986Uri::parse($url)?->getHost();
+        if ($host === null) {
+            return false;
         }
-        return false;
+        return in_array(strtolower($host), array_map('strtolower', $this->whiteList), true);
     }
 
     /**

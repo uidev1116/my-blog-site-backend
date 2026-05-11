@@ -1284,6 +1284,7 @@ ACMS.Config.Admin = {
     Unit_List: ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page', 'order'],
 
     Category_List: ['bid', 'cid', 'keyword', 'field_', 'start', 'end'],
+    Category_Flat: ['bid', 'cid', 'keyword', 'field_', 'start', 'end', 'order'],
     Category_EntryList: ['bid', 'uid', 'cid', 'keyword', 'tag', 'field_', 'start', 'end'],
     Category_GeoList: ['bid', 'cid', 'keyword', 'field_'],
     Category_EntrySummary: ['bid', 'uid', 'cid', 'keyword', 'tag', 'field_', 'start', 'end'],
@@ -1339,6 +1340,7 @@ ACMS.Config.Admin = {
     V2_Entry_UnitList: ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page', 'order'],
     V2_Entry_GeoList: ['bid', 'uid', 'cid', 'eid', 'keyword', 'tag', 'field_', 'start', 'end', 'page'],
     V2_Category_Tree: ['bid', 'cid', 'keyword', 'field_', 'start', 'end', 'order'],
+    V2_Category_Flat: ['bid', 'cid', 'keyword', 'field_', 'start', 'end', 'order'],
     V2_Category_EntrySummary: ['bid', 'uid', 'cid', 'keyword', 'tag', 'field_', 'start', 'end'],
     V2_Category_GeoList: ['bid', 'cid', 'keyword', 'field_', 'page'],
     V2_Media_Banner: [],
@@ -1387,6 +1389,7 @@ ACMS.Config.Admin = {
     Unit_List: ['bid_axis', 'cid_axis'],
 
     Category_List: ['cid_axis'],
+    Category_Flat: ['cid_axis'],
     Category_EntryList: [],
     Category_EntrySummary: ['bid_axis', 'cid_axis'],
     Category_Field: [],
@@ -1442,6 +1445,7 @@ ACMS.Config.Admin = {
     V2_Entry_UnitList: ['bid_axis', 'cid_axis'],
     V2_Entry_GeoList: ['bid_axis', 'cid_axis'],
     V2_Category_Tree: ['cid_axis'],
+    V2_Category_Flat: ['cid_axis'],
     V2_Category_EntrySummary: ['cid_axis'],
     V2_Category_GeoList: [],
     V2_Media_Banner: [],
@@ -1490,6 +1494,7 @@ ACMS.Config.Admin = {
     Unit_List: [],
 
     Category_List: [],
+    Category_Flat: [],
     Category_EntryList: [],
     Category_EntrySummary: [],
     Category_Field: [],
@@ -1545,6 +1550,7 @@ ACMS.Config.Admin = {
     V2_Entry_UnitList: [],
     V2_Entry_GeoList: ['bid', 'uid', 'cid'],
     V2_Category_Tree: [],
+    V2_Category_Flat: [],
     V2_Category_EntrySummary: [],
     V2_Category_GeoList: [],
     V2_Media_Banner: [],

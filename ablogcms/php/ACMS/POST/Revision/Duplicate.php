@@ -12,19 +12,8 @@ class ACMS_POST_Revision_Duplicate extends ACMS_POST_Entry
     public function post()
     {
         try {
-            if (roleAvailableUser()) {
-                if (!roleAuthorization('entry_edit', BID, EID)) {
-                    throw new \RuntimeException('権限がありません');
-                }
-            } else {
-                if (!sessionWithCompilation(BID)) {
-                    if (!sessionWithContribution(BID)) {
-                        throw new \RuntimeException('権限がありません');
-                    }
-                    if (SUID <> ACMS_RAM::entryUser(EID) && !enableApproval(BID, CID)) {
-                        throw new \RuntimeException('権限がありません');
-                    }
-                }
+            if (!Entry::canDuplicateEntryRevision((int)EID)) {
+                throw new \RuntimeException('権限がありません');
             }
             $DB = DB::singleton(dsn());
 

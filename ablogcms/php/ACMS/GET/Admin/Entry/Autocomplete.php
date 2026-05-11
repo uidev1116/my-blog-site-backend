@@ -2,6 +2,7 @@
 
 use Acms\Services\Facades\Database as DB;
 use Acms\Services\Facades\Common;
+use Acms\Services\Facades\Entry;
 
 class ACMS_GET_Admin_Entry_Autocomplete extends ACMS_GET_Entry_Summary
 {
@@ -77,7 +78,8 @@ class ACMS_GET_Admin_Entry_Autocomplete extends ACMS_GET_Entry_Summary
         if (!$this->setConfigTrait()) {
             return '';
         }
-        if ($thumbnailField = $this->Get->get('thumbnail')) {
+        $thumbnailField = Entry::resolveRelatedEntryThumbnailField($this->Get->get('thumbnail'));
+        if ($thumbnailField !== '') {
             $this->config['mainImageTarget'] = 'field';
             $this->config['mainImageFieldName'] = $thumbnailField;
         }

@@ -38,6 +38,7 @@ class ACMS_GET_Admin_Config_Index extends ACMS_GET_Admin
             'Entry_Calendar',
             'Entry_GeoList',
             'Category_List',
+            'Category_Flat',
             'Category_EntryList',
             'Category_EntrySummary',
             'Category_GeoList',

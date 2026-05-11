@@ -646,6 +646,27 @@ const resolveCommands = (commands: CommandItem[], recordUsage: (command: Command
         },
       };
     },
+    columns1: (cmd) => {
+      return {
+        action: (editor) => {
+          recordUsage(cmd);
+          const { $from } = editor.state.selection;
+          const pos = $from.before($from.depth);
+          editor
+            .chain()
+            .focus()
+            .setColumns(ColumnLayout.OneColumn)
+            .focus(editor.state.selection.head - 1)
+            .setBlockAttrs(pos, { class: cmd.class })
+            .run();
+        },
+        convert: () => {},
+        isDisabled: () => true,
+        isActive: (editor) => {
+          return editor.isActive('columns1');
+        },
+      };
+    },
     columns2: (cmd) => {
       return {
         action: (editor) => {

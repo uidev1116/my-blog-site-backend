@@ -1,10 +1,10 @@
 import useSWR, { preload } from 'swr';
 import { ModulesResponse } from '../types';
 import { AcmsContext } from '../../../lib/acmsPath/types';
-import axiosClient from '../../../lib/axios';
+import { fetchClient } from '../../../lib/fetch-client';
 
 async function fetcher(url: string): Promise<ModulesResponse> {
-  const { data } = await axiosClient.get(url);
+  const { data } = await fetchClient.get(url);
 
   const { modules = [], bulkActions = [] } = data;
 

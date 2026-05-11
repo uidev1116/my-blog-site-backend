@@ -325,13 +325,15 @@
     "add": "Add",
     "error": {
       "name": {
-        "required": "The name is not entered."
+        "required": "The name is not entered.",
+        "maxlength": "Category name must be 255 characters or less."
       },
       "code": {
         "required": "Cord name is not entered.",
+        "maxlength": "Codename must be 255 characters or less.",
         "double": "The code name is already used.",
         "reserved": "The keyword is used in the system.",
-        "string": "It has invalid characters"
+        "string": "The code contains characters that cannot be used. Slashes (/), dangerous strings such as ../, URL special characters, control characters, and whitespace cannot be used."
       },
       "scope": {
         "tree": "You can't set this as global category, since the parent category is not global one.",
@@ -457,6 +459,7 @@
     "add_tags_to_media_error": "Failed to add tags to selected media.",
     "remove_media_success": "The selected media has been removed.",
     "remove_media_error": "Failed to remove the selected media.",
+    "get_media_error": "Failed to retrieve media information.",
     "more_than_20_not_allowed": "You can't upload more than 20 media at once.",
     "sending": "Sending...",
     "no_staged_media": "There are no staged media. You have to upload.",
@@ -600,7 +603,8 @@
     "reload": "Reload the page?"
   },
   "drawer": {
-    "close": "Close the drawer"
+    "close": "Close the drawer",
+    "reload": "Reload the page?"
   },
   "entry_index": {
     "id": "ID",
@@ -612,8 +616,8 @@
     "datetime": "Date",
     "posted_datetime": "Posted Date",
     "updated_datetime": "Updated Date",
-    "start_datetime": "Start Date",
-    "end_datetime": "End Date",
+    "start_datetime": "Publishing Date",
+    "end_datetime": "Publishing Period",
     "menbers_only": "Members Only",
     "approval": "Approval Status",
     "form_status": "Form Status",

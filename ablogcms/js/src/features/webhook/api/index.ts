@@ -1,4 +1,4 @@
-import axiosClient from '../../../lib/axios';
+import { fetchClient } from '../../../lib/fetch-client';
 import type { WebhookEventOption } from '../types';
 
 export async function fetchWebhookEventOptions(type: string): Promise<WebhookEventOption[]> {
@@ -12,6 +12,6 @@ export async function fetchWebhookEventOptions(type: string): Promise<WebhookEve
     },
     false
   );
-  const { data } = await axiosClient.get<WebhookEventOption[]>(endpoint);
+  const { data } = await fetchClient.get<WebhookEventOption[]>(endpoint);
   return data;
 }

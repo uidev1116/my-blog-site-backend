@@ -4,6 +4,8 @@ import DatePicker from '../../../../components/date-picker/date-picker';
 
 import type { RuleType, TimeMachineState } from '../../types';
 
+const EMPTY_RULES: RuleType[] = [];
+
 interface TimeMachineFormProps {
   state: TimeMachineState;
   rules?: RuleType[];
@@ -11,7 +13,12 @@ interface TimeMachineFormProps {
   onSubmit?: () => void;
 }
 
-const TimeMachineForm = ({ state, rules = [], onChange = () => {}, onSubmit = () => {} }: TimeMachineFormProps) => {
+const TimeMachineForm = ({
+  state,
+  rules = EMPTY_RULES,
+  onChange = () => {},
+  onSubmit = () => {},
+}: TimeMachineFormProps) => {
   const handleDateChange = (_dates: Date[], date: string) => {
     onChange({ ...state, date });
   };

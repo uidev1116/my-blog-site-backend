@@ -4,11 +4,6 @@ namespace Acms\Services\StaticExport\Generator;
 
 use Acms\Services\StaticExport\Contracts\Generator;
 use Acms\Services\Facades\LocalStorage;
-use Acms\Services\StaticExport\Entities\Page;
-use React\Promise\Promise;
-use React\Promise\PromiseInterface;
-
-use function React\Async\await;
 
 class TemplateGenerator extends Generator
 {
@@ -34,22 +29,15 @@ class TemplateGenerator extends Generator
     /**
      * @inheritDoc
      */
-    public function run(): PromiseInterface
+    public function run(): void
     {
-        return new Promise(
-            function (callable $resolve, callable $reject) {
-                if (!$this->path) {
-                    $reject(new \RuntimeException('no selected path.'));
-                    return;
-                }
-
-                $url = acmsLink(['bid' => BID], false) . $this->path;
-                $pages = [new Page($url, $this->path)];
-                $this->logger->start($this->getName(), count($pages));
-                await($this->handle($pages));
-                $resolve(null);
-            }
-        );
+        if (!$this->path) {
+            throw new \RuntimeException('no selected path.');
+        }
+        $url = acmsLink(['bid' => BID], false) . $this->path;
+        $this->addPage($url, $this->path);
+        $this->logger->start($this->getName(), 1);
+        $this->handle();
     }
 
     /**
@@ -71,18 +59,11 @@ class TemplateGenerator extends Generator
     /**
      * @param \Throwable $th
      * @param string $url
+     * @param int $statusCode
+     * @return void
      */
-    protected function handleError(\Throwable $th, string $url): void
+    protected function handleError(\Throwable $th, string $url, int $statusCode): void
     {
-        if ($th instanceof \React\Http\Message\ResponseException) {
-            $response = $th->getResponse();
-            $this->logger->error(
-                'データの取得に失敗しました。',
-                $url,
-                $response->getStatusCode()
-            );
-            return;
-        }
-        $this->logger->error($th->getMessage(), $url);
+        $this->logger->error($th->getMessage(), $url, $statusCode);
     }
 }

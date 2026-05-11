@@ -1,9 +1,13 @@
 <?php
 
 use Acms\Services\Facades\LocalStorage;
+use Acms\Services\Facades\Entry;
 
 class ACMS_POST_Import_Wordpress extends ACMS_POST_Import
 {
+    /**
+     * @return void
+     */
     public function init()
     {
         @set_time_limit(-1);
@@ -17,12 +21,18 @@ class ACMS_POST_Import_Wordpress extends ACMS_POST_Import
         }
     }
 
+    /**
+     * @return void
+     */
     public function import()
     {
         $this->httpFile->validateFormat(['xml']);
         $path = $this->httpFile->getPath();
         $data = LocalStorage::get($path, dirname($path));
-        if ($data) {
+        if ($data === false) {
+            throw new RuntimeException('ファイルの読み込みに失敗しました。');
+        }
+        if ($data !== '') {
             $data = LocalStorage::removeIllegalCharacters($data); // 不正な文字コードを削除
         }
         $this->validateXml($data);
@@ -30,6 +40,7 @@ class ACMS_POST_Import_Wordpress extends ACMS_POST_Import
         $xml = new XMLReader();
         $xml->XML($data); // @phpstan-ignore-line
 
+        $entryIndex = 0;
         while ($xml->read()) {
             if ($xml->name === 'item' and intval($xml->nodeType) === XMLReader::ELEMENT) {
                 $title = $this->getNodeValue($xml, 'title');
@@ -41,6 +52,8 @@ class ACMS_POST_Import_Wordpress extends ACMS_POST_Import
                 if ($type !== 'post' && $type !== 'page') {
                     continue; // 投稿タイプが「投稿」「固定ページ」でなかった場合はスキップ
                 }
+
+                $entryIndex++;
 
                 $tags = [];
                 $fields = [];
@@ -60,13 +73,13 @@ class ACMS_POST_Import_Wordpress extends ACMS_POST_Import
                     // エントリーを作成
                     if (intval($xml->nodeType) === XMLReader::END_ELEMENT and $xml->name === 'item') {
                         //insert
-                        if (empty($title)) {
+                        if ($title === '') {
                             $title = '空のタイトル';
                         }
-                        if (empty($date)) {
+                        if ($date === '') {
                             $date = date('Y-m-d H:i:s', REQUEST_TIME);
                         }
-                        if (empty($status)) {
+                        if ($status === '') {
                             $status = 'close';
                         }
                         $entry = [
@@ -77,7 +90,12 @@ class ACMS_POST_Import_Wordpress extends ACMS_POST_Import
                             'tags'      => $tags,
                             'fields'    => $fields,
                         ];
-                        $this->insertEntry($entry);
+                        try {
+                            $this->validateEntry($entry);
+                            $this->insertEntry($entry);
+                        } catch (\Throwable $e) {
+                            $this->recordImportError($entryIndex, $e->getMessage());
+                        }
                         break;
                     }
                     // タグ
@@ -108,7 +126,11 @@ class ACMS_POST_Import_Wordpress extends ACMS_POST_Import
         $xml->close();
     }
 
-    protected function convertStatus($status)
+    /**
+     * @param string $status
+     * @return string
+     */
+    private function convertStatus($status)
     {
         switch ($status) {
             case 'publish':
@@ -123,6 +145,11 @@ class ACMS_POST_Import_Wordpress extends ACMS_POST_Import
         return $status;
     }
 
+    /**
+     * @param \XMLReader $xml
+     * @param string $node
+     * @return string
+     */
     protected function getNodeValue(&$xml, $node)
     {
         $nodeValue = '';
@@ -139,11 +166,19 @@ class ACMS_POST_Import_Wordpress extends ACMS_POST_Import
         return $nodeValue;
     }
 
-    protected function buildMoreContent($content)
+    /**
+     * @param string $content
+     * @return array<int, string>
+     */
+    private function buildMoreContent($content)
     {
         return explode('<!--more-->', $content, 2);
     }
 
+    /**
+     * @param string $data
+     * @return void
+     */
     protected function validateXml($data)
     {
         $reader = new XMLReader();
@@ -154,5 +189,92 @@ class ACMS_POST_Import_Wordpress extends ACMS_POST_Import
             throw new RuntimeException('XMLファイルが正しくありません。または正しいエクスポートファイルではありません。');
         }
         $reader->close();
+    }
+
+    /**
+     * エントリーデータのバリデーション
+     *
+     * @param array<string, mixed> $entry エントリーデータ
+     * @return void
+     * @throws RuntimeException バリデーションエラー時
+     */
+    private function validateEntry(array $entry)
+    {
+        // 1. 基本的なフォーマットチェック
+        $this->validateBasicFormat($entry);
+
+        // 2. 文字数制限チェック
+        $this->validateFieldLengths($entry);
+
+        // 3. タグのバリデーション
+        $this->validateTags($entry);
+    }
+
+    /**
+     * 基本的なフォーマットチェック
+     *
+     * @param array<string, mixed> $entry エントリーデータ
+     * @return void
+     * @throws RuntimeException フォーマットが不正な場合
+     */
+    private function validateBasicFormat(array $entry)
+    {
+        // タイトルの存在確認
+        if (!isset($entry['title']) || $entry['title'] === '') {
+            throw new RuntimeException('タイトルが指定されていません。');
+        }
+
+        // ステータスの値チェック
+        if (!in_array($entry['status'], ['open', 'close', 'draft'], true)) {
+            throw new RuntimeException('不正なステータスが設定されています。open, close, draft のいずれかを指定してください。');
+        }
+
+        // 日時のフォーマットチェック
+        if (!preg_match('@^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$@', $entry['date'])) {
+            throw new RuntimeException('日時のフォーマットが間違っています。YYYY-MM-DD HH:MM:SS 形式で指定してください。');
+        }
+    }
+
+    /**
+     * 文字数制限チェック
+     *
+     * @param array<string, mixed> $entry エントリーデータ
+     * @return void
+     * @throws RuntimeException 文字数制限を超えている場合
+     */
+    private function validateFieldLengths(array $entry)
+    {
+        // entry_title: varchar(255)
+        if (isset($entry['title']) && $entry['title'] !== '') {
+            $length = mb_strlen($entry['title'], 'UTF-8');
+            if ($length > 255) {
+                throw new RuntimeException('タイトルが長すぎます。最大255文字まで入力できます。現在: ' . $length . '文字');
+            }
+        }
+    }
+
+    /**
+     * タグのバリデーション
+     *
+     * @param array<string, mixed> $entry エントリーデータ
+     * @return void
+     * @throws RuntimeException タグが不正な場合
+     */
+    private function validateTags(array $entry)
+    {
+        if (!isset($entry['tags']) || !is_array($entry['tags']) || count($entry['tags']) === 0) {
+            return;
+        }
+
+        $tags = $entry['tags'];
+
+        // タグ名を正規化（空文字列を除去）
+        $validTags = array_filter($tags, function ($tag) {
+            return trim($tag) !== '';
+        });
+
+        if (count($validTags) > 0) {
+            Entry::validateTagNames($validTags);
+        }
     }
 }

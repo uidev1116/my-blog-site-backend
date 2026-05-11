@@ -18,6 +18,8 @@ use SQL;
 use ACMS_RAM;
 use Field;
 use Field_Validation;
+use Uri\Rfc3986\Uri as Rfc3986Uri;
+use Uri\WhatWg\Url as WhatWgUrl;
 
 class Helper
 {
@@ -74,6 +76,34 @@ class Helper
         }
     }
 
+    public function redirectToLoginPage(bool $isSignin = false): void
+    {
+        if (!is_ajax()) {
+            // ajaxリクエストの場合はリダイレクト先としては扱わない
+            $path = rtrim('/' . DIR_OFFSET, '/') . REQUEST_PATH;
+            if (pathinfo($path, PATHINFO_EXTENSION) === '') {
+                $path = rtrim($path, '/') . '/';
+            }
+            if (QUERY) {
+                $path = $path . '?' . QUERY;
+            }
+            $phpSession = Session::handle();
+            $phpSession->set('acms-login-redirect', $path);
+            $phpSession->save();
+        }
+
+        $loginUrlData = [
+            'bid' => BID,
+        ];
+        if ($isSignin) {
+            $loginUrlData['signin'] = true;
+        } else {
+            $loginUrlData['login'] = true;
+        }
+        $loginUrl = acmsLink($loginUrlData);
+        redirect($loginUrl);
+    }
+
     /**
      * ログイン判定後の処理
      *
@@ -82,13 +112,13 @@ class Helper
     public function postLoginProcessing(): void
     {
         // ログアウトしていたら、ログイン中に追加されるCookieを削除（ログイン判定には使用しない）
-        if (!SUID) {
+        if (!$this->isLoggedIn()) {
             Login::removeExtraLoggedInCookie();
         }
 
         //----------------------------------------------
         // ログアウト時のみ表示できるページで、ログイン指定場合
-        if (SUID && IS_AUTH_SYSTEM_PAGE) {
+        if ($this->isLoggedIn() && IS_AUTH_SYSTEM_PAGE) {
             httpStatusCode('303 Login With Session');
             header(PROTOCOL . ' ' . httpStatusCode());
             redirect(acmsLink([
@@ -100,33 +130,18 @@ class Helper
 
         //--------------
         // session fail
-        if ($isAuthRequiredPage && !SUID) {
+        if ($isAuthRequiredPage && !$this->isLoggedIn()) {
             httpStatusCode('403 Forbidden');
             setConfig('cache', 'off');
 
             if (config('login_auto_redirect') === 'on') {
-                $path = rtrim('/' . DIR_OFFSET, '/') . REQUEST_PATH;
-                if (pathinfo($path, PATHINFO_EXTENSION) !== '') {
-                    $path = rtrim($path, '/') . '/';
-                }
-                if (QUERY) {
-                    $path = $path . '?' . QUERY;
-                }
-                $phpSession = Session::handle();
-                $phpSession->set('acms-login-redirect', $path);
-                $phpSession->save();
-
-                $signinPageLink = acmsLink([
-                    'bid' => BID,
-                    'login' => true,
-                ]);
-                redirect($signinPageLink);
+                $this->redirectToLoginPage();
             }
         }
 
         //--------------------------------------------------
         // 読者ユーザーの場合、特定の管理画面以外はアクセスさせない
-        if (SUID && $isAuthRequiredPage && isSessionSubscriber()) {
+        if ($this->isLoggedIn() && $isAuthRequiredPage && isSessionSubscriber()) {
             if (!in_array(ADMIN, configArray('subscriber_access_admin_page'), true)) {
                 httpStatusCode('403 Forbidden');
                 setConfig('cache', 'off');
@@ -151,12 +166,13 @@ class Helper
     }
 
     /**
-     * 現在のセッションがログイン状態かどうか判定
+     * ログイン中かどうか判定
+     *
      * @return bool
      */
     public function isLoggedIn(): bool
     {
-        if (Preview::isPreviewMode()) {
+        if (!defined('SUID')) {
             return false;
         }
         /** @var int|null $suid */
@@ -171,16 +187,35 @@ class Helper
     }
 
     /**
-     * ホワイトリストとブラックリストを確認して、認証できるアクセスか判断
+     * 管理者ログイン用: 現在のIPアドレスからアクセス可能か判断
      *
-     * @param bool $isAdmin
+     * @return bool true: アクセス可能, false: アクセス不可能
+     */
+    public function canAccessAdminLoginFromCurrentIp(): bool
+    {
+        return $this->canAccessFromCurrentIp('login_white_hosts', 'login_black_hosts');
+    }
+
+    /**
+     * 一般サインイン用: 現在のIPアドレスからアクセス可能か判断
+     *
+     * @return bool true: アクセス可能, false: アクセス不可能
+     */
+    public function canAccessSigninFromCurrentIp(): bool
+    {
+        return $this->canAccessFromCurrentIp('signin_white_hosts', 'signin_black_hosts');
+    }
+
+    /**
+     * IPアドレスチェックの共通ロジック
+     *
+     * @param string $whiteListName
+     * @param string $blackListName
      * @return bool
      */
-    public function accessRestricted(bool $isAdmin = true): bool
+    private function canAccessFromCurrentIp(string $whiteListName, string $blackListName): bool
     {
         $config = Config::loadBlogConfigSet(BID);
-        $whiteListName = $isAdmin ? 'login_white_hosts' : 'signin_white_hosts';
-        $blackListName = $isAdmin ? 'login_black_hosts' : 'signin_black_hosts';
 
         $isAccessible = true;
         if ($hosts = $config->getArray($whiteListName)) {
@@ -204,13 +239,74 @@ class Helper
     }
 
     /**
+     * 指定されたパスがブログトップからのパスで余分なパスがないかどうかを判定
+     *
+     * @param int $bid
+     * @param string $segment
+     * @return boolean
+     */
+    public function isExactPath(int $bid, string $segment): bool
+    {
+        $blogCode = ACMS_RAM::blogCode($bid) ?? '';
+        return $this->matchExactPath($blogCode, $segment, REQUEST_PATH);
+    }
+
+    /**
+     * ブログコードとセグメントから生成したパスが、リクエストパスと一致するかを判定
+     *
+     * @param string $blogCode
+     * @param string $segment
+     * @param string $requestPath
+     * @return boolean
+     */
+    public function matchExactPath(string $blogCode, string $segment, string $requestPath): bool
+    {
+        $correctPath = implode('/', [$blogCode, $segment]);
+        $correctPath = trim($correctPath, '/');
+        $pattern = '/' . $correctPath;
+
+        return $pattern === $requestPath;
+    }
+
+    /**
+     * 認証前のログインページを表示できるかどうかを判定
+     *
+     * @param int $bid
+     * @param string $segment
+     * @return boolean
+     */
+    public function canLoginPage(int $bid, string $segment): bool
+    {
+        if (config('deny_blog_login') === 'on' && $bid !== RBID) { // @phpstan-ignore-line
+            return false;
+        }
+        return $this->isValidAuthenticatedPath($bid, $segment);
+    }
+
+    /**
+     * ログイン済みユーザーのページ（マイページ・管理画面）で正しいパスかどうかを判定
+     * deny_blog_loginはログインページの制御なので、ログイン済み操作には適用しない
+     *
+     * @param int $bid
+     * @param string $segment
+     * @return boolean
+     */
+    public function isValidAuthenticatedPath(int $bid, string $segment): bool
+    {
+        if (config('fix_login_url') === 'on' && !$this->isExactPath($bid, $segment)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * 会員サインインが可能かどうかを判定
      *
      * @return bool
      */
     public function canMemberSignin(): bool
     {
-        if (ACMS_POST) {
+        if (defined('ACMS_POST') && ACMS_POST) {
             if (strpos(ACMS_POST, 'Member_Admin') === false) {
                 return config('member_login_enable') === 'on';
             }
@@ -222,7 +318,7 @@ class Helper
     /**
      * 認証系URL時のテンプレートを取得
      *
-     * @return string|bool
+     * @return string|false
      */
     public function getAuthSystemTemplate()
     {
@@ -231,21 +327,29 @@ class Helper
          */
         if (
             (IS_SYSTEM_LOGIN_PAGE || IS_SYSTEM_ADMIN_RESET_PASSWORD_PAGE || IS_SYSTEM_ADMIN_RESET_PASSWORD_AUTH_PAGE || IS_SYSTEM_ADMIN_TFA_RECOVERY_PAGE)
-            && !$this->accessRestricted(true)
+            && !$this->canAccessAdminLoginFromCurrentIp()
         ) {
+            // 管理者用の認証ページで、かつ現在のIPアドレスから管理画面へのアクセスが許可されていない → 404でアクセス拒否
             return tplConfig('tpl_404');
         }
         if (IS_SYSTEM_LOGIN_PAGE) {
-            return tplConfig('tpl_login');
+            // 管理者ログインページ
+            return $this->canLoginPage(BID, LOGIN_SEGMENT) ? tplConfig('tpl_login') : tplConfig('tpl_404');
         }
         if (IS_SYSTEM_ADMIN_RESET_PASSWORD_PAGE) {
-            return tplConfig('tpl_admin-reset-password');
+            // 管理者パスワードリセットページ
+            return $this->canLoginPage(BID, ADMIN_RESET_PASSWORD_SEGMENT) ? tplConfig('tpl_admin-reset-password') : tplConfig('tpl_404');
         }
         if (IS_SYSTEM_ADMIN_RESET_PASSWORD_AUTH_PAGE) {
-            return tplConfig('tpl_admin-reset-password-auth');
+            // 管理者パスワードリセット認証ページ
+            return $this->canLoginPage(BID, ADMIN_RESET_PASSWORD_AUTH_SEGMENT) ? tplConfig('tpl_admin-reset-password-auth') : tplConfig('tpl_404');
         }
         if (IS_SYSTEM_ADMIN_TFA_RECOVERY_PAGE) {
-            return config('two_factor_auth') === 'on' ? tplConfig('tpl_admin-tfa-recovery') : tplConfig('tpl_404');
+            // 管理者2FA復旧ページ（2FA有効時のみ表示、無効なら404）
+            if ($this->canLoginPage(BID, ADMIN_TFA_RECOVERY_SEGMENT) && config('two_factor_auth') === 'on') {
+                return tplConfig('tpl_admin-tfa-recovery');
+            }
+            return tplConfig('tpl_404');
         }
 
         /**
@@ -253,68 +357,104 @@ class Helper
          */
         if (
             (IS_SYSTEM_SIGNIN_PAGE || IS_SYSTEM_SIGNUP_PAGE || IS_SYSTEM_RESET_PASSWORD_PAGE || IS_SYSTEM_RESET_PASSWORD_AUTH_PAGE || IS_SYSTEM_TFA_RECOVERY_PAGE)
-            && !$this->accessRestricted(false)
+            && !$this->canAccessSigninFromCurrentIp()
         ) {
+            // 一般ユーザー用の認証ページで、かつ現在のIPアドレスからサインインが許可されていない → 404でアクセス拒否
             return tplConfig('tpl_404');
         }
         if (IS_SYSTEM_SIGNIN_PAGE) {
-            return  $this->canMemberSignin() ? tplConfig('tpl_signin') : tplConfig('tpl_404');
+            // 一般ユーザーサインインページ（メンバーサインイン許可時のみ表示、それ以外は404）
+            return  $this->canMemberSignin() && $this->canLoginPage(BID, SIGNIN_SEGMENT)
+                ? tplConfig('tpl_signin') : tplConfig('tpl_404');
         }
         if (IS_SYSTEM_SIGNUP_PAGE) {
-            $canSingnup = $this->canMemberSignin() && config('subscribe') === 'on';
+            // 一般ユーザーサインアップページ（メンバーサインイン許可かつサインアップ有効時のみ表示）
+            $canSingnup = $this->canMemberSignin() && config('subscribe') === 'on' && $this->canLoginPage(BID, SIGNUP_SEGMENT);
             return $canSingnup ? tplConfig('tpl_signup') : tplConfig('tpl_404');
         }
         if (IS_SYSTEM_RESET_PASSWORD_PAGE) {
-            return $this->canMemberSignin() ? tplConfig('tpl_reset-password') : tplConfig('tpl_404');
+            // 一般ユーザーパスワードリセットページ（メンバーサインイン許可時のみ表示、それ以外は404）
+            return $this->canMemberSignin() && $this->canLoginPage(BID, RESET_PASSWORD_SEGMENT)
+                ? tplConfig('tpl_reset-password') : tplConfig('tpl_404');
         }
         if (IS_SYSTEM_RESET_PASSWORD_AUTH_PAGE) {
-            return $this->canMemberSignin() ? tplConfig('tpl_reset-password-auth') : tplConfig('tpl_404');
+            // 一般ユーザーパスワードリセット認証ページ（メンバーサインイン許可時のみ表示、それ以外は404）
+            return $this->canMemberSignin() && $this->canLoginPage(BID, RESET_PASSWORD_AUTH_SEGMENT)
+                ? tplConfig('tpl_reset-password-auth') : tplConfig('tpl_404');
         }
         if (IS_SYSTEM_TFA_RECOVERY_PAGE) {
-            return $this->canMemberSignin() && config('two_factor_auth') === 'on' ? tplConfig('tpl_tfa-recovery') : tplConfig('tpl_404');
+            // 一般ユーザー2FA復旧ページ（メンバーサインイン許可かつ2FA有効時のみ表示）
+            $canTfaRecoveryPage = $this->canMemberSignin() && $this->canLoginPage(BID, TFA_RECOVERY_SEGMENT) && config('two_factor_auth') === 'on';
+            return $canTfaRecoveryPage ? tplConfig('tpl_tfa-recovery') : tplConfig('tpl_404');
+        }
+
+        /**
+         * シークレットブログ・シークレットカテゴリー
+         * （ログイン時の認証画面より先に判定し、未ログイン時はサインイン/ログイン画面へ誘導する）
+         */
+        /** @var int $blogId */
+        $blogId = BID;
+        /** @var int|null $categoryId */
+        $categoryId = defined('CID') ? CID : null;
+        if (ACMS_RAM::blogStatus($blogId) === 'secret' || ($categoryId !== null && ACMS_RAM::categoryStatus($categoryId) === 'secret')) {
+            if ($this->requiresAuthenticationForSecretContent(ADMIN)) { // リダイレクトループを防ぐ
+                // 現在のブログまたはカテゴリーがシークレット設定
+                httpStatusCode('403 Forbidden');
+                setConfig('cache', 'off');
+
+                if ($this->canAccessSigninFromCurrentIp()) {
+                    // 現在のIPアドレスからサインインページへのアクセスが許可されている
+                    if (config('redirect_login_page') === 'signin') {
+                        // ログインページのリダイレクト設定がサインインページ
+                        if ($this->isAuthRequiredPage()) {
+                            $this->redirectToLoginPage(isSignin: true);
+                        }
+                        if ($this->canMemberSignin()) {
+                            $this->redirectToLoginPage(isSignin: true);
+                        }
+                    } else {
+                        // ログインページのリダイレクト設定が管理者ログインページ
+                        $this->redirectToLoginPage(isSignin: false);
+                    }
+                }
+            }
         }
 
         /**
          * ログイン時の認証画面
          */
         if (IS_UPDATE_PROFILE_PAGE) {
-            return !!SUID ? tplConfig('tpl_update-profile') : tplConfig('tpl_404');
+            // プロフィール更新ページ（ログイン中=SUIDありの場合のみ表示、ログアウト中は404）
+            // @phpstan-ignore-next-line
+            return $this->isLoggedIn() && $this->isExactPath(BID, PROFILE_UPDATE_SEGMENT) && BID === SBID
+                ? tplConfig('tpl_update-profile') : tplConfig('tpl_404');
         }
         if (IS_UPDATE_PASSWORD_PAGE) {
-            return !!SUID ? tplConfig('tpl_update-password') : tplConfig('tpl_404');
+            // パスワード更新ページ（ログイン中=SUIDありの場合のみ表示、ログアウト中は404）
+            // @phpstan-ignore-next-line
+            return $this->isLoggedIn() && $this->isExactPath(BID, PASSWORD_UPDATE_SEGMENT) && BID === SBID
+                ? tplConfig('tpl_update-password') : tplConfig('tpl_404');
         }
         if (IS_UPDATE_EMAIL_PAGE) {
-            return !!SUID ? tplConfig('tpl_update-email') : tplConfig('tpl_404');
+            // メールアドレス更新ページ（ログイン中=SUIDありの場合のみ表示、ログアウト中は404）
+            // @phpstan-ignore-next-line
+            return $this->isLoggedIn() && $this->isExactPath(BID, EMAIL_UPDATE_SEGMENT) && BID === SBID
+                ? tplConfig('tpl_update-email') : tplConfig('tpl_404');
         }
         if (IS_UPDATE_TFA_PAGE) {
-            return !!SUID ? tplConfig('tpl_update-fta') : tplConfig('tpl_404');
+            // 2FA更新ページ（ログイン中=SUIDありの場合のみ表示、ログアウト中は404）
+            // @phpstan-ignore-next-line
+            return $this->isLoggedIn() && $this->isExactPath(BID, TFA_UPDATE_SEGMENT) && BID === SBID
+                ? tplConfig('tpl_update-fta') : tplConfig('tpl_404');
         }
         if (IS_WITHDRAWAL_PAGE) {
-            return !!SUID ? tplConfig('tpl_withdrawal') : tplConfig('tpl_404');
+            // 退会ページ（ログイン中=SUIDありの場合のみ表示、ログアウト中は404）
+            // @phpstan-ignore-next-line
+            return $this->isLoggedIn() && $this->isExactPath(BID, WITHDRAWAL_SEGMENT) && BID === SBID
+                ? tplConfig('tpl_withdrawal') : tplConfig('tpl_404');
         }
 
-        /**
-         * シークレットブログ・シークレットエントリー
-         */
-        if (ACMS_RAM::blogStatus(BID) === 'secret' || (CID && ACMS_RAM::categoryStatus(CID) === 'secret')) {
-            // @phpstan-ignore-next-line
-            if (!Preview::isPreviewShareAdmin(ADMIN) && !SUID && (!defined('IS_OTHER_LOGIN') || !IS_OTHER_LOGIN)) {
-                if ($this->accessRestricted(false)) {
-                    if (config('redirect_login_page') === 'signin') {
-                        if ($this->isAuthRequiredPage()) {
-                            return tplConfig('tpl_signin');
-                        }
-                        if ($this->canMemberSignin()) {
-                            return tplConfig('tpl_signin');
-                        }
-                        return tplConfig('tpl_404');
-                    } else {
-                        return tplConfig('tpl_login');
-                    }
-                }
-                return tplConfig('tpl_404');
-            }
-        }
+        // 認証系URLに該当しない場合はfalse（通常のテンプレート処理へ）
         return false;
     }
 
@@ -637,11 +777,7 @@ class Helper
     {
         $redirectBid = BID;
         $bid = intval($user['user_blog_id']);
-        if (
-            1
-            && ('on' == $user['user_login_anywhere'] || roleAvailableUser())
-            && !isBlogAncestor(BID, $bid, true)
-        ) {
+        if (('on' === $user['user_login_anywhere'] || roleAvailableUser()) && !isBlogAncestor(BID, $bid, true)) {
             $redirectBid = $bid;
         }
 
@@ -669,8 +805,11 @@ class Helper
                 . $path
                 . (!empty($query_hash) ? $query_hash : '');
 
-            $redirect_host = parse_url($url, PHP_URL_HOST);
-            if (HTTP_HOST === $redirect_host) {
+            // WHATWG パーサで host を ASCII IDN に正規化して抽出することで、
+            // 日本語パスを含む同一ドメイン URL でもリダイレクトが正常に動作し、
+            // かつパーサのレニエンシーを利用したオープンリダイレクト攻撃を防ぐ
+            $redirect_host = WhatWgUrl::parse($url)?->getAsciiHost();
+            if (strtolower(HTTP_HOST) === $redirect_host) {
                 $url = htmlspecialchars_decode($url);
                 redirect($url);
             }
@@ -703,7 +842,7 @@ class Helper
 
         // 通常のブログのトップページにリダイレクト
         $url = acmsLink([
-            'protocol' => (SSL_ENABLE and ('on' == config('login_ssl'))) ? 'https' : 'http',
+            'protocol' => SSL_ENABLE ? 'https' : 'http',
             'bid' => $redirectBid,
             'query' => [],
         ]);
@@ -787,5 +926,43 @@ class Helper
         $sql->addInsert('user_session_address', REMOTE_ADDR);
         $sql->addInsert('user_session_id', $sessionId);
         DB::query($sql->get(dsn()), 'exec');
+    }
+
+    /**
+     * シークレットコンテンツへのアクセスに認証が必要か判定
+     *
+     * シークレットブログ/カテゴリーにアクセスする際、
+     * 以下のいずれかに該当する場合は認証（ログイン/サインイン）が必要:
+     * - プレビュー共有URLではない
+     * - ログインしていない
+     * - 認証系ページの場合
+     * - 拡張機能による特殊な認証をおこなるためのページの場合
+     *
+     * @param string $admin 管理画面パス
+     * @return bool true: 認証が必要, false: アクセス可能（認証不要）
+     */
+    private function requiresAuthenticationForSecretContent(string $admin): bool
+    {
+        if (Preview::isPreviewShareAdmin($admin)) {
+            // プレビュー共有URLの場合は認証不要
+            return false;
+        }
+
+        if ($this->isLoggedIn()) {
+            // ログイン済みの場合は認証不要
+            return false;
+        }
+        if (defined('IS_AUTH_SYSTEM_PAGE') && IS_AUTH_SYSTEM_PAGE) {
+            // 認証系ページの場合は認証不要
+            return false;
+        }
+
+        if (defined('IS_OTHER_LOGIN') && IS_OTHER_LOGIN) {
+            // 拡張機能による特殊な認証をおこなるためのページの場合は認証不要
+            return false;
+        }
+
+        // 上記のいずれにも該当しない場合は認証が必要
+        return true;
     }
 }

@@ -3,8 +3,9 @@
 use Acms\Modules\Get\Helpers\Entry\EntryQueryHelper;
 use Acms\Modules\Get\Helpers\Entry\EntryHelper;
 use Acms\Modules\Get\Helpers\Entry\EntryBodyHelper;
+use Acms\Services\Entry\Enums\EntryApprovalStatus;
 use Acms\Services\Entry\Exceptions\NotFoundException;
-use Acms\Services\Facades\Template as TplHelper;
+use Acms\Services\Facades\Template as TemplateHelper;
 use Acms\Services\Facades\Database;
 use Acms\Services\Facades\Entry;
 use Acms\Services\Facades\Login;
@@ -143,7 +144,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
                 return '';
             }
             $tpl = new Template($this->tpl, new ACMS_Corrector());
-            TplHelper::buildModuleField($tpl);
+            TemplateHelper::buildModuleField($tpl, $this->mid, $this->showField);
 
             // 起動
             $this->boot();
@@ -204,7 +205,9 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
 
         $vars = [];
         $rvid = RVID;
-        if (!RVID && $entry['entry_approval'] === 'pre_approval') { // @phpstan-ignore-line
+        // 承認前エントリーはリビジョン1（作業領域）に最新の編集内容が保存されているため、
+        // リビジョンが明示的に指定されていない場合はリビジョン1のユニットを表示する。
+        if (!RVID && $entry['entry_approval'] === EntryApprovalStatus::PreApproval->value) { // @phpstan-ignore-line
             $rvid = 1;
         }
         $allUnitCollection = $this->entryBodyHelper->getAllUnitCollection($eid, $rvid);
@@ -337,7 +340,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
         $countQuery = $this->entryQueryHelper->getCountQuery();
         if (($this->config['paginationEnabled'] ?? false) && $order !== 'random') {
             $total = (int) DB::query($countQuery->get(dsn()), 'one') - (int) $this->config['offset'];
-            return TplHelper::buildPager(
+            return TemplateHelper::buildPager(
                 $this->page,
                 (int) $this->config['limit'],
                 $total,
@@ -504,7 +507,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
         $vars = [];
         $delta = $this->config['micropagerDelta'] ?? 4;
         $curAttr = $this->config['micropagerCurrentAttr'] ?? '';
-        $vars += TplHelper::buildPager($micropage, 1, $micropageAmount, $delta, $curAttr, $tpl, 'micropager');
+        $vars += TemplateHelper::buildPager($micropage, 1, $micropageAmount, $delta, $curAttr, $tpl, 'micropager');
         $tpl->add('micropager', $vars);
     }
 
@@ -703,7 +706,9 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
 
         $entry = $this->createAdminEntry($eid, $bid, $cid);
 
-        if (!sessionWithApprovalAdministrator() || $entry['status.approval'] !== 'pre_approval') {
+        // 最終承認者かつ承認前エントリーの場合は承認アクション専用ブロックを表示するため、
+        // 通常の編集ブロックは非表示にする。それ以外の場合は編集ブロックを表示する。
+        if (!sessionWithApprovalAdministrator() || $entry['status.approval'] !== EntryApprovalStatus::PreApproval->value) {
             // 最終承認者ではないか、エントリーが承認前でない場合に編集ブロックを追加
             $this->buildEditBlock($tpl, $block, $entry);
         }
@@ -809,7 +814,9 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
         ], false);
 
         $RVID_ = RVID;
-        if (!RVID && $row['entry_approval'] === 'pre_approval') { // @phpstan-ignore-line
+        // 承認前エントリーはリビジョン1（作業領域）に最新の編集内容が保存されているため、
+        // リビジョンが明示的に指定されていない場合はリビジョン1のユニットを表示する。
+        if (!RVID && $row['entry_approval'] === EntryApprovalStatus::PreApproval->value) { // @phpstan-ignore-line
             $RVID_ = 1;
         }
         if ($serial != 0) {
@@ -843,7 +850,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
         }
         // build summary
         if ($this->config['fulltextEnabled']) {
-            $vars = TplHelper::buildSummaryFulltext($vars, $eid, $this->eagerLoadedData['fullText']);
+            $vars = TemplateHelper::buildSummaryFulltext($vars, $eid, $this->eagerLoadedData['fullText']);
             $width = $this->config['fulltextWidth'] ?? 0;
             if (isset($vars['summary']) && $width > 0) {
                 $marker = $this->config['fulltextMarker'] ?? '';
@@ -860,11 +867,11 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
                 'imageCenter' => $this->config['imageZoom'] ?? false,
                 'imageZoom' => $this->config['imageCenter'] ?? false,
             ];
-            $tpl->add('mainImage', TplHelper::buildImage($tpl, $eid, $clid, $config, $this->eagerLoadedData['mainImage']));
+            $tpl->add('mainImage', TemplateHelper::buildImage($tpl, $eid, $clid, $config, $this->eagerLoadedData['mainImage']));
         }
         // build related entry
         if ($this->config['includeRelatedEntries'] ?? false) {
-            TplHelper::buildRelatedEntriesList($tpl, $eid, $this->eagerLoadedData['relatedEntry'], ['relatedEntry', 'entry:loop']);
+            TemplateHelper::buildRelatedEntriesList($tpl, $eid, $this->eagerLoadedData['relatedEntry'], ['relatedEntry', 'entry:loop']);
         } else {
             $tpl->add(['relatedEntry', 'entry:loop']);
         }
@@ -872,7 +879,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
         $this->buildAdminEntryAction($bid, $uid, $cid, $eid, $tpl, 'entry:loop');
         // build entry field
         if (($this->config['includeEntryFields'] ?? false) && isset($this->eagerLoadedData['entryField'][$eid])) {
-            $vars += TplHelper::buildField($this->eagerLoadedData['entryField'][$eid], $tpl, 'entry:loop', 'entry');
+            $vars += TemplateHelper::buildField($this->eagerLoadedData['entryField'][$eid], $tpl, 'entry:loop', 'entry');
         }
         // build user field
         if ($this->config['includeUser'] ?? false) {
@@ -893,7 +900,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
             if ($orig = loadUserOriginalIcon($uid)) {
                 $Field->setField('fieldUserOrigIcon', $orig);
             }
-            $tpl->add('userField', TplHelper::buildField($Field, $tpl));
+            $tpl->add('userField', TemplateHelper::buildField($Field, $tpl));
         }
         // build category field
         if ($cid && $this->config['includeCategory']) {
@@ -908,7 +915,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
                 'cid' => $cid,
             ]));
             $Field->setField('fieldCategoryId', $cid);
-            $tpl->add('categoryField', TplHelper::buildField($Field, $tpl));
+            $tpl->add('categoryField', TemplateHelper::buildField($Field, $tpl));
         }
         // build blog field
         if ($this->config['includeBlog'] ?? false) {
@@ -919,7 +926,7 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
             $Field->setField('fieldBlogName', ACMS_RAM::blogName($bid));
             $Field->setField('fieldBlogCode', ACMS_RAM::blogCode($bid));
             $Field->setField('fieldBlogUrl', acmsLink(['bid' => $bid]));
-            $tpl->add('blogField', TplHelper::buildField($Field, $tpl));
+            $tpl->add('blogField', TemplateHelper::buildField($Field, $tpl));
         }
         $link = (config('entry_body_link_url') === 'on') ? $row['entry_link'] : '';
         $vars += [
@@ -955,13 +962,13 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
         }
         // build date
         if ($this->config['includeDatetime'] ?? false) {
-            $vars += TplHelper::buildDate($row['entry_datetime'], $tpl, 'entry:loop');
+            $vars += TemplateHelper::buildDate($row['entry_datetime'], $tpl, 'entry:loop');
         }
         if ($this->config['includeDetailDatetime'] ?? false) {
-            $vars += TplHelper::buildDate($row['entry_updated_datetime'], $tpl, 'entry:loop', 'udate#');
-            $vars += TplHelper::buildDate($row['entry_posted_datetime'], $tpl, 'entry:loop', 'pdate#');
-            $vars += TplHelper::buildDate($row['entry_start_datetime'], $tpl, 'entry:loop', 'sdate#');
-            $vars += TplHelper::buildDate($row['entry_end_datetime'], $tpl, 'entry:loop', 'edate#');
+            $vars += TemplateHelper::buildDate($row['entry_updated_datetime'], $tpl, 'entry:loop', 'udate#');
+            $vars += TemplateHelper::buildDate($row['entry_posted_datetime'], $tpl, 'entry:loop', 'pdate#');
+            $vars += TemplateHelper::buildDate($row['entry_start_datetime'], $tpl, 'entry:loop', 'sdate#');
+            $vars += TemplateHelper::buildDate($row['entry_end_datetime'], $tpl, 'entry:loop', 'edate#');
         }
         // build new
         if (strtotime($row['entry_datetime']) + $this->config['newItemPeriod'] > requestTime()) {

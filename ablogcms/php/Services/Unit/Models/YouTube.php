@@ -11,6 +11,7 @@ use Acms\Traits\Unit\SizeableUnitTrait;
 use Acms\Services\Unit\Contracts\SizeableUnitInterface;
 use Acms\Traits\Unit\UnitMultiLangTrait;
 use Template;
+use Uri\Rfc3986\Uri as Rfc3986Uri;
 
 /**
  * @extends \Acms\Services\Unit\Contracts\Model<array<string, mixed>>
@@ -89,9 +90,10 @@ class YouTube extends Model implements AlignableUnitInterface, AnkerUnitInterfac
         }
         $youtubeId = $this->implodeUnitDataTrait($request["youtube_id_{$id}"] ?? '');
         if (preg_match(REGEX_VALID_URL, $youtubeId)) {
-            $parsed_url = parse_url($youtubeId);
-            if (!empty($parsed_url['query'])) {
-                $youtubeId = preg_replace('/v=([\w\-_]+).*/', '$1', $parsed_url['query']) ?? '';
+            $parsedUrl = Rfc3986Uri::parse($youtubeId);
+            $query = $parsedUrl?->getQuery();
+            if ($query !== null && $query !== '') {
+                $youtubeId = preg_replace('/v=([\w\-_]+).*/', '$1', $query) ?? '';
             }
         }
         $this->setField2($youtubeId);

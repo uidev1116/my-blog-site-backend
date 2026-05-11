@@ -1,1 +1,1 @@
-"use strict";(self.webpackChunkacmsWebpackJsonp=self.webpackChunkacmsWebpackJsonp||[]).push([[520],{49273:function(e,t,n){function a(e){return{name:"Plain text",aliases:["text","txt"],disableAutodetect:!0}}n.r(t),n.d(t,{default:function(){return a}})}}]);
+"use strict";(globalThis.webpackChunkacmsWebpackJsonp=globalThis.webpackChunkacmsWebpackJsonp||[]).push([[520],{49273(a,e,t){function s(a){return{name:"Plain text",aliases:["text","txt"],disableAutodetect:!0}}t.r(e),t.d(e,{default:()=>s})}}]);

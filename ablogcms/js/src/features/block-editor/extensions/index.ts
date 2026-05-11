@@ -30,6 +30,7 @@ export { QuoteCaption } from './BlockquoteFigure/QuoteCaption';
 export { Link } from './Link';
 export { ImageBlock } from './ImageBlock';
 export { FileBlock } from './FileBlock';
+export { PasteHandler } from './PasteHandler';
 export { LinkButton } from './LinkButton';
 export { Columns, Column } from './MultiColumn';
 export { MediaUpload } from './MediaUpload';

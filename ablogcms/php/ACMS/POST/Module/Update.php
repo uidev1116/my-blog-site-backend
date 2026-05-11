@@ -64,11 +64,15 @@ class ACMS_POST_Module_Update extends ACMS_POST_Module
         $Module = $this->extract('module');
 
         $Module->setMethod('name', 'required');
+        $Module->setMethod('name', 'maxlength', '64');
         $Module->setMethod('name', 'safeName');
         $Module->setMethod('module', 'midIsNull', $this->moduleId);
         $Module->setMethod('module', 'invalidLicense', IS_LICENSED);
+        $Module->setMethod('identifier', 'maxlength', '64');
         $Module->setMethod('identifier', 'double', [$Module->get('scope') ?: 'local', $this->moduleId]);
         $Module->setMethod('label', 'required');
+        $Module->setMethod('label', 'maxlength', '255');
+        $Module->setMethod('description', 'maxlength', '255');
 
         if (!Module::isAllowedMultipleArguments($Module)) {
             $Module->setMethod('bid', 'intOrGlobalVars');
@@ -76,6 +80,14 @@ class ACMS_POST_Module_Update extends ACMS_POST_Module
             $Module->setMethod('cid', 'intOrGlobalVars');
             $Module->setMethod('eid', 'intOrGlobalVars');
         }
+        $Module->setMethod('bid', 'maxlength', '1024');
+        $Module->setMethod('uid', 'maxlength', '1024');
+        $Module->setMethod('cid', 'maxlength', '1024');
+        $Module->setMethod('eid', 'maxlength', '1024');
+        $Module->setMethod('keyword', 'maxlength', '255');
+        $Module->setMethod('tag', 'maxlength', '255');
+        $Module->setMethod('field_', 'maxlength', '255');
+        $Module->setMethod('order', 'maxlength', '255');
         $Module->setMethod('page', 'intOrGlobalVars');
 
         $Module->setMethod('module', 'operative', $this->isOperable());
@@ -133,6 +145,9 @@ class ACMS_POST_Module_Update extends ACMS_POST_Module
             $SQL->addUpdate('module_bid_axis', $Module->get('bid_axis'));
             $SQL->addUpdate('module_cid_axis', $Module->get('cid_axis'));
             $SQL->addUpdate('module_custom_field', $Module->get('custom_field', 1));
+            if (!Module::canUseInLayout($Module->get('name'))) {
+                $Module->set('layout_use', '0');
+            }
             $SQL->addUpdate('module_layout_use', $Module->get('layout_use', 1));
             $SQL->addUpdate('module_api_use', $Module->get('api_use', 'off'));
             $SQL->addUpdate('module_updated_datetime', date('Y-m-d H:i:s', REQUEST_TIME));

@@ -27,6 +27,7 @@ import {
   Column,
   ImageBlock,
   FileBlock,
+  PasteHandler,
   LinkButton,
   MediaUpload,
   CustomMark,
@@ -71,6 +72,7 @@ export const ExtensionKit = () => {
     CustomConvertBlock,
     ImageBlock,
     FileBlock,
+    PasteHandler,
     LinkButton,
     TextAlign.extend({
       addKeyboardShortcuts() {

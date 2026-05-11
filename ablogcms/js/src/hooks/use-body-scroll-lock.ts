@@ -48,8 +48,9 @@ const useBodyScrollLock = (): UseBodyScrollLockReturn => {
   }, []);
 
   const setRef = useCallback((node: HTMLElement | null) => {
-    if (node === null) {
-      return;
+    // 別要素に切り替わる場合、古い要素のロックがリークしないよう先に enable する
+    if (targetRef.current && targetRef.current !== node) {
+      enableBodyScroll(targetRef.current);
     }
     targetRef.current = node;
   }, []);

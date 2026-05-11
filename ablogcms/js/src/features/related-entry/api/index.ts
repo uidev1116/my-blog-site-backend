@@ -1,4 +1,4 @@
-import axiosClient from '../../../lib/axios';
+import { fetchClient } from '../../../lib/fetch-client';
 import type { RelatedEntryOption } from '../types';
 
 export interface FetchRelatedEntryOptionsParams {
@@ -16,8 +16,8 @@ export async function fetchRelatedEntryOptions(params: FetchRelatedEntryOptionsP
     },
     false
   );
-  const { data: options = [] } = await axiosClient.get<RelatedEntryOption[]>(endpoint, {
-    params,
+  const { data: options = [] } = await fetchClient.get<RelatedEntryOption[]>(endpoint, {
+    params: { ...params },
   });
   return options.map((options) => ({
     ...options,

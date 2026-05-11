@@ -2,6 +2,8 @@
 
 namespace Acms\Services\Entry;
 
+use Acms\Services\Entry\Enums\EntryApprovalStatus;
+use Acms\Services\Facades\Entry;
 use SQL;
 use DB;
 use ACMS_RAM;
@@ -187,18 +189,22 @@ class Lock
      */
     protected function getLockTarget($eid, $rvid)
     {
+        $entry = ACMS_RAM::entry($eid);
+        if ($entry === null) {
+            throw new \RuntimeException('The entry could not be found. It may have been deleted or the ID may be incorrect.');
+        }
         if ($rvid && $rvid > 1) {
             return 'entry_rev';
         }
-        if (sessionWithApprovalAdministrator()) {
+        if (!Entry::requiresApproval($entry['entry_blog_id'], $entry['entry_category_id'])) {
             return 'entry';
         }
-        if (enableApproval()) {
-            if (ACMS_RAM::entryApproval($eid) === 'pre_approval') {
-                return 'entry';
-            }
-            return 'entry_rev';
+        // 承認前エントリーはリビジョン1（作業領域）ではなくメインエントリーを編集するため、
+        // ロック対象もメインエントリー（entry）テーブルとする。
+        // 承認済みエントリーは編集=新バージョン作成（entry_rev）となるためリビジョンをロックする。
+        if (ACMS_RAM::entryApproval($eid) === EntryApprovalStatus::PreApproval->value) {
+            return 'entry';
         }
-        return 'entry';
+        return 'entry_rev';
     }
 }

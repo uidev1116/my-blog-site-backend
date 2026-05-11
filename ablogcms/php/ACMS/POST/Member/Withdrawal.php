@@ -10,6 +10,16 @@ use Acms\Services\Facades\Session;
 class ACMS_POST_Member_Withdrawal extends ACMS_POST_Member
 {
     /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @inheritDoc
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return Login::isValidAuthenticatedPath(BID, WITHDRAWAL_SEGMENT);
+    }
+
+    /**
      * Main
      * @return Field_Validation
      */
@@ -42,7 +52,7 @@ class ACMS_POST_Member_Withdrawal extends ACMS_POST_Member
 
 
             $url = acmsLink([
-                'protocol' => (SSL_ENABLE and ('on' == config('login_ssl'))) ? 'https' : 'http',
+                'protocol' => SSL_ENABLE ? 'https' : 'http',
                 'bid' => BID,
                 'query' => [],
             ]);
@@ -66,7 +76,7 @@ class ACMS_POST_Member_Withdrawal extends ACMS_POST_Member
             'auth',
             !in_array(ACMS_RAM::userAuth(SUID), Login::getAdminLoginAuth(), true)
         );
-        $this->Post->setMethod('withdrawal', 'operable', !!SUID && Login::canMemberSignin()); // @phpstan-ignore-line
+        $this->Post->setMethod('withdrawal', 'operable', Login::isLoggedIn() && Login::canMemberSignin());
         $this->Post->setMethod('withdrawal', 'entryExists', !$userService->entryExists(SUID));
         $this->Post->validate(new ACMS_Validator());
     }

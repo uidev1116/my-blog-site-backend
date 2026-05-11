@@ -587,17 +587,16 @@ class Repository
      * ユニットのアセットを保存
      *
      * @param UnitCollection $collection
-     * @param bool $removeOld 古いファイルを削除するかどうか
      * @return void
      */
-    public function saveAssets(UnitCollection $collection, bool $removeOld = true): void
+    public function saveAssets(UnitCollection $collection): void
     {
         $assetProviderUnits = $collection->filter(function ($unit) {
             return $unit instanceof \Acms\Services\Unit\Contracts\AssetProvider;
         });
-        $assetProviderUnits->walk(function ($unit) use ($removeOld) {
+        $assetProviderUnits->walk(function ($unit) {
             assert($unit instanceof \Acms\Services\Unit\Contracts\AssetProvider);
-            $unit->saveFiles($_POST, $removeOld);
+            $unit->saveFiles($_POST);
         });
     }
 
@@ -607,6 +606,12 @@ class Repository
      * エントリーの全ユニットを更新します。既存のユニットは一旦削除され、
      * 新しいユニットで置き換えられます。
      *
+     * 保存前後でファイルパスが消える（行削除・差し替え）AssetProvider ユニットの
+     * 物理ファイルは、column / column_rev 両テーブルの参照チェックを経て
+     * どこからも参照されていない場合にのみ物理削除します。
+     * これにより「作業領域のみ更新」「新バージョン保存」でメイン側が参照するファイルを
+     * 誤って削除することを自動的に防げます。
+     *
      * @param UnitCollection $collection 保存するユニットのコレクション
      * @param int $eid エントリーID
      * @param int $bid ブログID
@@ -614,16 +619,161 @@ class Repository
      * @return UnitCollection 保存したユニットのコレクション
      * @throws \LogicException 親ユニットのIDが不正な場合
      */
-    public function saveAllUnits(UnitCollection $collection, int $eid, int $bid, ?int $rvid = null): UnitCollection
-    {
-        // 既存のユニットを削除
-        $this->removeUnitsTrait($eid, $rvid);
-
+    public function saveAllUnits(
+        UnitCollection $collection,
+        int $eid,
+        int $bid,
+        ?int $rvid = null
+    ): UnitCollection {
         $newCollection = $collection->filter(function ($unit) {
             return $unit->canSave();
         });
 
-        return $this->saveUnitsInternal($newCollection, $eid, $bid, $rvid);
+        // DELETE前: 行削除・差し替えで新コレクションから消えたファイルパスを収集
+        $orphanedPaths = $this->collectOrphanedFilePaths($newCollection, $eid, $rvid);
+
+        // 既存のユニットを削除
+        $this->removeUnitsTrait($eid, $rvid);
+
+        $result = $this->saveUnitsInternal($newCollection, $eid, $bid, $rvid);
+
+        // INSERT後: 参照チェックして未参照ファイルのみ物理削除
+        if ($orphanedPaths !== []) {
+            $this->removeUnreferencedUnitFiles($orphanedPaths);
+        }
+
+        return $result;
+    }
+
+    /**
+     * 新コレクションから消える既存 AssetProvider ユニットのファイルパスを収集する（DELETE前に呼ぶ）。
+     *
+     * 行削除だけでなく、同じユニットIDでファイルが差し替えられたケースや、
+     * 削除チェックにより空文字化されたケースも「古いパスが新コレクションに存在しない」として拾う。
+     *
+     * @param UnitCollection $newCollection 保存対象の新しいユニットコレクション
+     * @param int $eid エントリーID
+     * @param ?int $rvid リビジョンID
+     * @return array<string, Model&Contracts\AssetProvider> 古いパス => そのパスを持っていたユニット
+     */
+    private function collectOrphanedFilePaths(UnitCollection $newCollection, int $eid, ?int $rvid): array
+    {
+        // 新コレクション側で使われるファイルパスを収集
+        $newPaths = [];
+        foreach ($newCollection->flat() as $unit) {
+            if (!$unit instanceof Contracts\AssetProvider) {
+                continue;
+            }
+            foreach ($unit->getFilePaths() as $path) {
+                if ($path !== '') {
+                    $newPaths[$path] = true;
+                }
+            }
+        }
+
+        // 既存ユニットのパスから新側で使われていないものを抽出
+        $orphaned = [];
+        $existing = $this->loadUnits($eid, $rvid);
+        foreach ($existing->flat() as $oldUnit) {
+            if (!$oldUnit instanceof Contracts\AssetProvider) {
+                continue;
+            }
+            foreach ($oldUnit->getFilePaths() as $oldPath) {
+                if ($oldPath === '' || isset($newPaths[$oldPath])) {
+                    continue;
+                }
+                $orphaned[$oldPath] = $oldUnit;
+            }
+        }
+        return $orphaned;
+    }
+
+    /**
+     * 参照チェック済みの孤児ファイルを物理削除する（INSERT後に呼ぶ）。
+     *
+     * @param array<string, Model&Contracts\AssetProvider> $orphanedPaths collectOrphanedFilePaths の戻り値
+     */
+    private function removeUnreferencedUnitFiles(array $orphanedPaths): void
+    {
+        foreach ($orphanedPaths as $relPath => $unit) {
+            if ($this->isReferencedByUnit($relPath)) {
+                continue;
+            }
+            if ($unit instanceof \Acms\Services\Unit\Models\Image) {
+                $normal = ARCHIVES_DIR . $relPath;
+                $large = otherSizeImagePath($normal, 'large');
+                $tiny = otherSizeImagePath($normal, 'tiny');
+                $square = otherSizeImagePath($normal, 'square');
+                deleteFile($normal, true);
+                deleteFile($large, true);
+                deleteFile($tiny, true);
+                deleteFile($square, true);
+                deleteFile("{$normal}.webp", true);
+                deleteFile("{$large}.webp", true);
+                deleteFile("{$tiny}.webp", true);
+                deleteFile("{$square}.webp", true);
+                if (HOOK_ENABLE) {
+                    $Hook = \ACMS_Hook::singleton();
+                    $Hook->call('mediaDelete', $normal);
+                    $Hook->call('mediaDelete', $large);
+                    $Hook->call('mediaDelete', $tiny);
+                    $Hook->call('mediaDelete', $square);
+                }
+            } else {
+                $target = ARCHIVES_DIR . $relPath;
+                deleteFile($target, true);
+                deleteFile("{$target}.webp", true);
+                if (HOOK_ENABLE) {
+                    $Hook = \ACMS_Hook::singleton();
+                    $Hook->call('mediaDelete', $target);
+                }
+            }
+        }
+    }
+
+    /**
+     * 指定パスが column / column_rev テーブルのいずれかで使われているか判定する。
+     *
+     * LIKE 検索である理由:
+     * 多言語ユニットでは複数のファイルパスが `:acms_unit_delimiter:` 区切りで
+     * 1 カラム（column_field_2）に詰め込まれる仕様のため、等価比較ではヒットしない。
+     * `UnitMultiLangTrait::implodeUnitDataTrait()` / `explodeUnitDataTrait()` を参照。
+     *
+     * 副作用として以下のリスクがある:
+     * - インデックスが効かずフルテーブルスキャンになる（参照チェックは保存の度に走るので
+     *   テーブル肥大時のパフォーマンスに影響しうる）。
+     * - 他のパスの部分文字列として誤マッチする可能性（例: "a.jpg" が "banana.jpg" に
+     *   ヒット）。現行は `uniqueString()` ベースの 64 文字ハッシュパスのため実用上の
+     *   衝突はほぼないが、`rawfilename` 設定で任意ファイル名を許容する運用では発生しうる。
+     *   誤マッチは「削除されるべきファイルが残る」側に倒れるので安全寄り。
+     *
+     * 将来の改善方針:
+     * - 多言語ユニットのサポートを終了できれば等価比較に統一可能。
+     * - 暫定対応するなら LIKE で粗く絞り込んだ上で `explodeUnitDataTrait()` による
+     *   PHP 側の厳密判定にフォールバックする方式が候補（案3）。
+     *
+     * @param string $path 検査するファイルパス（相対パス）
+     * @return bool いずれかのレコードが参照していれば true
+     */
+    private function isReferencedByUnit(string $path): bool
+    {
+        $sql = SQL::newSelect('column');
+        $sql->setSelect('column_field_2');
+        $sql->addWhereOpr('column_field_2', '%' . $path . '%', 'LIKE');
+        $sql->setLimit(1);
+        if (Database::query($sql->get(dsn()), 'one')) {
+            return true;
+        }
+
+        $sql = SQL::newSelect('column_rev');
+        $sql->setSelect('column_field_2');
+        $sql->addWhereOpr('column_field_2', '%' . $path . '%', 'LIKE');
+        $sql->setLimit(1);
+        if (Database::query($sql->get(dsn()), 'one')) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -867,6 +1017,49 @@ class Repository
             }
         }
         $this->removeUnitsTrait($eid, $rvid);
+
+        return $collection;
+    }
+
+    /**
+     * ユニットを DB から削除し、参照チェック経由で孤児ファイルのみ物理削除する。
+     *
+     * 承認完了時の changeRevision のように、メイン column を消して column_rev を
+     * メインに昇格する用途を想定。削除前にメインのユニットが参照していたファイルパスを
+     * 収集し、DB から削除した後、column / column_rev のいずれからも参照されなくなった
+     * ファイルだけを物理削除する。
+     *
+     * column_rev に同じパスがあればファイルは残る（昇格後もパスを使い続けるため）。
+     *
+     * @param int $eid エントリーID
+     * @param int|null $rvid リビジョンID（null でメイン column が対象）
+     * @return UnitCollection 削除したユニットのコレクション
+     */
+    public function removeUnitsWithReferenceCheck(int $eid, ?int $rvid = null): UnitCollection
+    {
+        $collection = $this->loadUnits($eid, $rvid);
+
+        // 削除前に、各ユニットが参照するファイルパスを収集する
+        $orphanCandidates = [];
+        foreach ($collection->flat() as $unit) {
+            if (!$unit instanceof Contracts\AssetProvider) {
+                continue;
+            }
+            foreach ($unit->getFilePaths() as $path) {
+                if ($path === '') {
+                    continue;
+                }
+                $orphanCandidates[$path] = $unit;
+            }
+        }
+
+        // DB レコードを削除（column / column_rev いずれか、および field / field_rev の対応行）
+        $this->removeUnitsTrait($eid, $rvid);
+
+        // いずれのレコードからも参照されなくなったファイルのみ物理削除する
+        if ($orphanCandidates !== []) {
+            $this->removeUnreferencedUnitFiles($orphanCandidates);
+        }
 
         return $collection;
     }

@@ -208,7 +208,9 @@
         @include("/include/module/edit.html")
       </div>
       <div id="acms_box3" class="acms-admin-tabs-panel"<!-- BEGIN_IF [%{rid}/nem]--> style="display: none;"<!-- END_IF -->>
-        @include("/admin/module/field.html")
+        <div class="acms-admin-field-container">
+          @include("/admin/module/field.html")
+        </div>
       </div>
       <!-- END_MODULE Admin_Module_Edit -->
 

@@ -28,6 +28,7 @@ interface acms {
     deprecated: typeof import('../lib/deprecated').default;
     ResizeImage: (elm: HTMLElement) => import('../lib/resize-image/resize-image').default;
     modal: InstanceType<typeof import('../lib/modal/store/modal-manager').default>;
+    drawer: InstanceType<typeof import('../lib/drawer/store/drawer-manager').default>;
     geolocation: (
       successCallable: (latitude: number, longitude: number) => void,
       errorCallable: (message: string) => void
@@ -60,36 +61,36 @@ interface acms {
     auth: 'subscriber' | 'contributor' | 'editor' | 'administrator' | '';
     dbCharset?: string;
     domains?: string;
-    edition: 'standard' | 'professional' | 'enterprise';
+    edition?: 'standard' | 'professional' | 'enterprise';
     fulltimeSSL: '1' | '0';
     jQuery: string;
     jQueryMigrate: string;
-    jpegQuality: string;
+    jpegQuality?: string;
     jsRoot: string;
-    lgImg: string;
+    lgImg?: string;
     mediaClientResize: 'on' | 'off';
-    mediaLibrary: 'on' | 'off';
-    mfu: string;
-    pms: string;
+    mediaLibrary?: 'on' | 'off';
+    mfu?: string;
+    pms?: string;
     root: string;
     rootTpl?: string;
     scriptRoot: string;
     searchEngineKeyword: string;
-    timemachinePreviewDefaultDevice: string;
-    timemachinePreviewHasHistoryDevice: string;
+    timemachinePreviewDefaultDevice?: string;
+    timemachinePreviewHasHistoryDevice?: string;
     fileiconDir: string;
     uaGroup: string;
-    umfs: string;
-    urlPreviewExpire: string;
+    umfs?: string;
+    urlPreviewExpire?: string;
     v: string;
     timeMachineMode?: 'true';
     multiDomain: '1' | '0';
     cache?: string;
     segments: import('../lib/acmsPath/types').AcmsPathSegments;
     hash: string;
-    limitOptions: string[];
-    defaultLimit: string;
-    entryEditPageType: 'admin' | 'front' | 'normal';
+    limitOptions?: string[];
+    defaultLimit?: string;
+    entryEditPageType?: 'admin' | 'front' | 'normal';
     isDebugMode: '1' | '0';
     Gmap: {
       sensor: 'true' | 'false';

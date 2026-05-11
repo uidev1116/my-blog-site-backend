@@ -2,11 +2,7 @@
 
 namespace Acms\Services\StaticExport\Generator;
 
-use React\Promise\Promise;
-use React\Promise\PromiseInterface;
 use Symfony\Component\Finder\Finder;
-
-use function React\Async\await;
 
 class RequireThemeGenerator extends ThemeGenerator
 {
@@ -31,39 +27,32 @@ class RequireThemeGenerator extends ThemeGenerator
     /**
      * @inheritDoc
      */
-    public function run(): PromiseInterface
+    public function run(): void
     {
-        return new Promise(
-            function (callable $resolve, callable $reject) {
-                if (!$this->sourceTheme) {
-                    $reject(new \RuntimeException('no selected source theme.'));
-                    return;
-                }
-                $includeList = [];
-                foreach ($this->includeList as $path) {
-                    if (!empty($path)) {
-                        $includeList[] = $path;
-                    }
-                }
-
-                if (count($includeList) === 0) {
-                    $resolve(null);
-                    return;
-                }
-
-                $finder = new Finder();
-                $iterator = $finder->in($this->sourceTheme);
-                foreach ($includeList as $path) {
-                    $iterator->path($path);
-                }
-                $iterator->files();
-
-                $pages = $this->createPages($iterator);
-                $this->logger->start($this->getName(), count($pages));
-
-                await($this->handle($pages));
-                $resolve(null);
+        if (!$this->sourceTheme) {
+            throw new \RuntimeException('no selected source theme.');
+        }
+        $includeList = [];
+        foreach ($this->includeList as $path) {
+            if (!empty($path)) {
+                $includeList[] = $path;
             }
-        );
+        }
+
+        if (count($includeList) === 0) {
+            return;
+        }
+
+        $finder = new Finder();
+        $iterator = $finder->in($this->sourceTheme);
+        foreach ($includeList as $path) {
+            $iterator->path($path);
+        }
+        $iterator->files();
+
+        $pages = $this->createPages($iterator);
+        $this->logger->start($this->getName(), count($pages));
+
+        $this->handle();
     }
 }

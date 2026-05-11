@@ -72,7 +72,7 @@ const ShortcutSection = ({ category, shortcuts }: ShortcutSectionProps) => (
 const KeyboardShortcutModal = forwardRef<HTMLDivElement, KeyboardShortcutModalProps>(
   ({ className, ...modalProps }, ref) => {
     // ショートカットデータを取得
-    const [shortcuts, setShortcuts] = useState<ReturnType<typeof keyboardShortcutRegistry.getShortcuts>>(
+    const [shortcuts, setShortcuts] = useState<ReturnType<typeof keyboardShortcutRegistry.getShortcuts>>(() =>
       keyboardShortcutRegistry.getShortcuts()
     );
 

@@ -420,9 +420,7 @@ a:active {
   font-weight: bold;
   color: #333;
   text-align: left;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background: 0;
   border: 0;
 }
@@ -659,10 +657,8 @@ a:active {
   height: auto;
   max-height: 140px;
   margin-bottom: var(--login-space-section-y);
-  -o-object-fit: contain;
-     object-fit: contain;
-  -o-object-position: center;
-     object-position: center;
+  object-fit: contain;
+  object-position: center;
 }
 
 /* アクションボタンラップ */
@@ -1045,9 +1041,7 @@ a:active {
   height: 100%;
   padding: 10px 2px;
   color: inherit;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   cursor: pointer;
   background-color: transparent;
   border: 0;

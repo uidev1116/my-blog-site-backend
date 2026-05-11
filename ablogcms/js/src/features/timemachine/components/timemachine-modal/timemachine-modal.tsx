@@ -24,7 +24,7 @@ const TimeMachineModal = ({ buttons }: TimeMachineModalProps) => {
   const containerRef = useRef<HTMLElement | null>(null);
 
   const [isPending, setIsPending] = useState(false);
-  const [url, setUrl] = useState(rewriteUrl(location.href));
+  const [url, setUrl] = useState(() => rewriteUrl(location.href));
   const { capture, isCapturing, setIframeRef: setCaputureIframeRef } = useCapture();
 
   const handleCapture = useCallback(async () => {

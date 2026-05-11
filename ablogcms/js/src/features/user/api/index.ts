@@ -1,4 +1,4 @@
-import axiosClient from '../../../lib/axios';
+import { fetchClient } from '../../../lib/fetch-client';
 import type { UserOption } from '../types';
 
 export interface FetchUserOptionsParams {
@@ -18,6 +18,6 @@ export async function fetchUserOptions(params?: FetchUserOptionsParams): Promise
     },
     false
   );
-  const { data: options = [] } = await axiosClient.get<UserOption[]>(endpoint);
+  const { data: options = [] } = await fetchClient.get<UserOption[]>(endpoint);
   return options;
 }

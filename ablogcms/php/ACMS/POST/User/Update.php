@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_POST_User_Update extends ACMS_POST_User
 {
     protected $user;
@@ -131,19 +133,26 @@ class ACMS_POST_User_Update extends ACMS_POST_User
 
         $this->user->setMethod('status', 'in', ['open', 'close']);
         $this->user->setMethod('name', 'required');
+        $this->user->setMethod('name', 'maxlength', '255');
         $this->user->setMethod('mail', 'required');
+        $this->user->setMethod('mail', 'maxlength', '255');
         $this->user->setMethod('mail', 'email');
         $this->user->setMethod('mail', 'doubleMail', UID);
+        $this->user->setMethod('code', 'maxlength', '64');
         $this->user->setMethod('code', 'doubleCode', UID);
         $this->user->setMethod('mail_magazine', 'in', ['on', 'off']);
         $this->user->setMethod('mail_mobile_magazine', 'in', ['on', 'off']);
+        $this->user->setMethod('mail_mobile', 'maxlength', '255');
         $this->user->setMethod('mail_mobile', 'email');
+        $this->user->setMethod('url', 'maxlength', '255');
         $this->user->setMethod('url', 'url');
         $this->user->setMethod('pass', 'password');
         $this->user->setMethod('auth', 'in', ['administrator', 'editor', 'contributor', 'subscriber']);
         $this->user->setMethod('indexing', 'in', ['on', 'off']);
         $this->user->setMethod('mode', 'in', ['debug', 'benchmark']);
-        $this->user->setMethod('code', 'string', isValidCode($this->user->get('code')));
+        if ($this->user->get('code') !== '') {
+            $this->user->setMethod('code', 'string', isValidCode($this->user->get('code')));
+        }
 
         // 現在、読者かつ読者以外に変更しようとしているときだけ、ユーザー数の制限チェックを行う
         if (
@@ -179,7 +188,7 @@ class ACMS_POST_User_Update extends ACMS_POST_User
             return false;
         }
 
-        if (empty(SUID)) {
+        if (!Login::isLoggedIn()) {
             return false;
         }
 

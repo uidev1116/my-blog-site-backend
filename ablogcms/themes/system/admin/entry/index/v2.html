@@ -2,275 +2,449 @@
 
 @section("entry-index-custom")
 <script>
+  /**
+   * ========================================
+   * エントリー一覧カスタマイズ設定
+   * ========================================
+   *
+   * このセクションでは、エントリー一覧画面の表示や動作をカスタマイズできます。
+   * 使いたい機能のコメントアウトを外して、必要に応じて内容を編集してください。
+   *
+   * 📝 使い方:
+   * 1. 下記のコメントアウト (// ACMS.Ready...) を外す
+   * 2. 使いたいカスタマイズ例のコメントを外す
+   * 3. 必要に応じて値を編集する
+   */
+
   // ACMS.Ready(function() {
   //   ACMS.Config.entryAdminConfig = {
   //     ...ACMS.Config.entryAdminConfig,
 
-  //     // =========================================
-  //     // getColumns: 表示カラムのカスタマイズ
-  //     // =========================================
+  //     /**
+  //      * ========================================
+  //      * 1. カラム(列)のカスタマイズ
+  //      * ========================================
+  //      *
+  //      * 一覧に表示するカラムの追加・削除・並び替えができます。
+  //      *
+  //      * @param {Array} columns - デフォルトのカラム設定
+  //      * @return {Array} カスタマイズ後のカラム設定
+  //      */
   //     getColumns: function (columns) {
-  //       // 例1: 特定のカラムを非表示にする
-  //       return columns.filter(function (column) {
-  //         return column.id !== 'code'; // コードカラムを非表示
-  //       });
-
-  //       // 例2: カラムの順序を変更する
-  //       const sortColumn = columns.find(function (c) { return c.id === 'sort'; });
-  //       const otherColumns = columns.filter(function (c) { return c.id !== 'sort'; });
-  //       return [sortColumn, ...otherColumns]; // sortカラムを最初に移動
-
-  //       // 例3: カスタムカラムを追加する
-  //       return [
-  //         ...columns,
-  //         {
-  //           id: 'custom-column',
-  //           label: 'カスタム',
-  //           type: 'text',
-  //           accessorKey: 'customField',
-  //           enableSorting: false,
-  //           enableHiding: true,
-  //         },
-  //       ];
-
+  //       // そのまま返すと、デフォルトの表示になります
   //       return columns;
   //     },
 
-  //     // =========================================
-  //     // getValues: カスタムカラムの値取得関数のカスタマイズ
-  //     // =========================================
+  //     /**
+  //      * ========================================
+  //      * 2. カラム値の表示カスタマイズ
+  //      * ========================================
+  //      *
+  //      * 各カラムの値をどのように表示するかをカスタマイズできます。
+  //      *
+  //      * @param {Object} getValues - デフォルトの値取得関数
+  //      * @return {Object} カスタマイズ後の値取得関数
+  //      */
   //     getValues: function (getValues) {
-  //       return {
-  //         ...getValues,
-  //         // 例1: text型のカラムの表示をカスタマイズ
-  //         text: function (info) {
-  //           const value = info.getValue();
-  //           // 文字数制限を追加
-  //           if (typeof value === 'string' && value.length > 50) {
-  //             return value.substring(0, 50) + '...';
-  //           }
-  //           return value;
-  //         },
-  //         // 例2: datetime型のカラムの表示をカスタマイズ
-  //         datetime: function (info) {
-  //           const value = info.getValue();
-  //           if (!value) return '';
-  //           const date = new Date(value);
-  //           return date.toLocaleDateString('ja-JP', {
-  //             year: 'numeric',
-  //             month: '2-digit',
-  //             day: '2-digit',
-  //             hour: '2-digit',
-  //             minute: '2-digit'
-  //           });
-  //         },
-  //       };
+  //       return getValues;
   //     },
 
-  //     // =========================================
-  //     // getValuesOptions: カラム値のフォーマット関数
-  //     // =========================================
+  //     /**
+  //      * ========================================
+  //      * 3. カラム値のフォーマット設定
+  //      * ========================================
+  //      *
+  //      * カラムの値を表示する前に整形する関数を設定できます。
+  //      */
   //     getValuesOptions: {
-  //       // text型のフォーマット
-  //       formatText: function (value) {
-  //         return value ? value.toUpperCase() : ''; // 大文字に変換
-  //       },
-  //       // textarea型のフォーマット
-  //       formatTextarea: function (value) {
-  //         return value ? value.replace(/\n/g, '<br>') : ''; // 改行をbrタグに変換
-  //       },
-  //       // number型のフォーマット
-  //       formatNumber: function (value) {
-  //         return value ? value.toLocaleString('ja-JP') : '0'; // 3桁区切り
-  //       },
-  //       // date型のフォーマット
-  //       formatDate: function (value) {
-  //         if (!value) return '';
-  //         const date = new Date(value);
-  //         return date.toLocaleDateString('ja-JP');
-  //       },
-  //       // ファイル名のフォーマット
-  //       formatFileName: function (value) {
-  //         return value ? value.substring(0, 20) + '...' : '';
-  //       },
+  //       // 各フォーマット関数を追加できます
   //     },
 
-  //     // =========================================
-  //     // getActions: 各行のアクションのカスタマイズ
-  //     // =========================================
+  //     /**
+  //      * ========================================
+  //      * 4. 行ごとのアクション(操作)カスタマイズ
+  //      * ========================================
+  //      *
+  //      * 各エントリー行の右側に表示されるアクションボタンをカスタマイズできます。
+  //      *
+  //      * @param {Array} actions - デフォルトのアクション設定
+  //      * @param {Object} context - コンテキスト(データ再取得用のinvalidate()など)
+  //      * @return {Array} カスタマイズ後のアクション設定
+  //      */
   //     getActions: function (actions, context) {
-  //       // 例1: 既存のアクションを削除
-  //       const filteredActions = actions.filter(function (action) {
-  //         return action.id !== 'duplicate'; // 複製アクションを削除
-  //       });
-
-  //       // 例2: カスタムアクションを追加
-  //       return [
-  //         ...actions,
-  //         {
-  //           id: 'custom-action',
-  //           label: 'カスタム処理',
-  //           onAction: function (data) {
-  //             console.log('カスタムアクション実行:', data);
-  //             // APIを呼び出す例
-  //             // fetch('/api/custom-action', {
-  //             //   method: 'POST',
-  //             //   body: JSON.stringify({ entryId: data.id }),
-  //             // }).then(function () {
-  //             //   context.invalidate(); // データを再取得
-  //             // });
-  //           },
-  //           type: 'secondary',
-  //           condition: function (data) {
-  //             return data.status === 'open'; // 公開中のエントリーのみ表示
-  //           },
-  //         },
-  //         // 例3: リンクアクションを追加
-  //         {
-  //           id: 'preview',
-  //           label: 'プレビュー',
-  //           getHref: function (data) {
-  //             return data.url; // エントリーのURLにリンク
-  //           },
-  //           linkProps: {
-  //             target: '_blank',
-  //           },
-  //         },
-  //       ];
-
   //       return actions;
   //     },
 
-  //     // =========================================
-  //     // getBulkActions: 一括操作のカスタマイズ
-  //     // =========================================
+  //     /**
+  //      * ========================================
+  //      * 5. 一括操作のカスタマイズ
+  //      * ========================================
+  //      *
+  //      * 複数のエントリーを選択して実行する一括操作をカスタマイズできます。
+  //      *
+  //      * @param {Array} bulkActions - デフォルトの一括操作設定
+  //      * @param {Object} context - コンテキスト(データ再取得用のinvalidate()など)
+  //      * @return {Array} カスタマイズ後の一括操作設定
+  //      */
   //     getBulkActions: function (bulkActions, context) {
-  //       // 例1: 既存の一括操作を削除
-  //       const filteredActions = bulkActions.filter(function (action) {
-  //         return action.id !== 'trash'; // ゴミ箱への移動を削除
-  //       });
-
-  //       // 例2: カスタム一括操作を追加
-  //       return [
-  //         ...bulkActions,
-  //         {
-  //           id: 'custom-bulk-action',
-  //           label: 'カスタム一括処理',
-  //           onAction: async function (formData, selectedData) {
-  //             console.log('選択されたエントリー:', selectedData);
-  //             // FormDataから選択されたエントリーIDを取得
-  //             const checks = formData.getAll('checks[]');
-  //             console.log('選択されたID:', checks);
-
-  //             // APIを呼び出す例
-  //             // await fetch('/api/bulk-custom-action', {
-  //             //   method: 'POST',
-  //             //   body: formData,
-  //             // });
-  //             // context.invalidate(); // データを再取得
-  //           },
-  //           renderForm: function (selectedData) {
-  //             return ACMS.Library.React.createElement(
-  //               'button',
-  //               {
-  //                 type: 'submit',
-  //                 name: 'ACMS_POST_Custom_BulkAction',
-  //                 className: 'acms-admin-btn-admin acms-admin-btn-admin-primary',
-  //               },
-  //               '実行'
-  //             );
-  //           },
-  //           condition: function (selectedData) {
-  //             return selectedData.length > 0; // 選択されている場合のみ表示
-  //           },
-  //         },
-  //       ];
-
   //       return bulkActions;
   //     },
 
-  //     // =========================================
-  //     // getMenus: ヘッダーメニューのカスタマイズ
-  //     // =========================================
+  //     /**
+  //      * ========================================
+  //      * 6. ヘッダーメニューのカスタマイズ
+  //      * ========================================
+  //      *
+  //      * 一覧画面の上部に表示されるメニューボタンをカスタマイズできます。
+  //      *
+  //      * @param {Array} menus - デフォルトのメニュー設定
+  //      * @param {Object} context - コンテキスト
+  //      * @return {Array} カスタマイズ後のメニュー設定
+  //      */
   //     getMenus: function (menus, context) {
-  //       // 例1: カスタムボタンを追加
-  //       return [
-  //         ...menus,
-  //         {
-  //           id: 'custom-button',
-  //           label: 'カスタムボタン',
-  //           onAction: function () {
-  //             alert('カスタムボタンがクリックされました');
-  //           },
-  //           buttonProps: {
-  //             className: 'acms-admin-btn',
-  //           },
-  //         },
-  //         // 例2: リンクメニューを追加
-  //         {
-  //           id: 'help-link',
-  //           label: 'ヘルプ',
-  //           getHref: function () {
-  //             return 'https://developer.a-blogcms.jp/';
-  //           },
-  //           linkProps: {
-  //             target: '_blank',
-  //             className: 'acms-admin-btn',
-  //           },
-  //         },
-  //         // 例3: ドロップダウンメニューを追加
-  //         {
-  //           id: 'custom-dropdown',
-  //           label: 'カスタムメニュー',
-  //           buttonProps: {
-  //             className: 'acms-admin-btn',
-  //           },
-  //           menus: [
-  //             {
-  //               id: 'custom-menu-1',
-  //               label: 'メニュー1',
-  //               onAction: function () {
-  //                 alert('メニュー1がクリックされました');
-  //               },
-  //             },
-  //             {
-  //               id: 'custom-menu-2',
-  //               label: 'メニュー2',
-  //               onAction: function () {
-  //                 alert('メニュー2がクリックされました');
-  //               },
-  //             },
-  //           ],
-  //         },
-  //         // 例4: 特定の条件下でのみ表示されるメニュー
-  //         {
-  //           id: 'admin-only-menu',
-  //           label: '管理者専用',
-  //           onAction: function () {
-  //             alert('管理者専用メニュー');
-  //           },
-  //           buttonProps: {
-  //             className: 'acms-admin-btn acms-admin-btn-danger',
-  //           },
-  //           condition: function () {
-  //             return ACMS.Config.auth === 'administrator';
-  //           },
-  //         },
-  //       ];
-
   //       return menus;
   //     },
 
-  //     // =========================================
-  //     // その他の設定
-  //     // =========================================
-
+  //     /**
+  //      * ========================================
+  //      * 7. その他の設定
+  //      * ========================================
+  //      */
   //     // リンク先URLの最大表示文字数
   //     linkMaxLength: 50,
-  //   }
+  //   };
 
-  //   // 1ページあたりの表示件数の選択肢をカスタマイズ
-  //   ACMS.Config.limitOptions = [10, 20, 50, 100, 200, 500, 1000];
+  //   /**
+  //    * 1ページあたりの表示件数の選択肢をカスタマイズ
+  //    */
+  //   // ACMS.Config.limitOptions = [10, 20, 50, 100, 200, 500, 1000];
   // });
+
+
+  /**
+   * ========================================
+   * 📚 カスタマイズ例
+   * ========================================
+   *
+   * 以下に、よくあるカスタマイズの実装例を記載しています。
+   * 必要な例をコピーして、上記の該当する関数内に貼り付けてください。
+   */
+
+  /**
+   * ----------------------------------------
+   * 例1-1: 特定のカラムを非表示にする
+   * ----------------------------------------
+   * 使い方: getColumns関数内に以下をコピー
+   */
+  // return columns.filter(function (column) {
+  //   return column.id !== 'code'; // 'code'カラムを非表示
+  // });
+
+  /**
+   * ----------------------------------------
+   * 例1-2: カラムの順序を変更する
+   * ----------------------------------------
+   * 使い方: getColumns関数内に以下をコピー
+   */
+  // const sortColumn = columns.find(function (c) { return c.id === 'sort'; });
+  // const otherColumns = columns.filter(function (c) { return c.id !== 'sort'; });
+  // return [sortColumn, ...otherColumns]; // 'sort'カラムを最初に移動
+
+  /**
+   * ----------------------------------------
+   * 例1-3: カスタムカラムを追加する
+   * ----------------------------------------
+   * 使い方: getColumns関数内に以下をコピー
+   */
+  // return [
+  //   ...columns,
+  //   {
+  //     id: 'custom-column',           // カラムの一意なID
+  //     label: 'カスタム',              // カラムのヘッダー表示名
+  //     type: 'text',                  // カラムの型 (text, number, date, datetimeなど)
+  //     accessorKey: 'customField',    // データから取得するキー名
+  //     enableSorting: false,          // ソート機能を有効にするか
+  //     enableHiding: true,            // 非表示機能を有効にするか
+  //   },
+  // ];
+
+  /**
+   * ----------------------------------------
+   * 例2-1: テキストカラムの表示を文字数制限する
+   * ----------------------------------------
+   * 使い方: getValues関数内に以下をコピー
+   */
+  // return {
+  //   ...getValues,
+  //   text: function (info) {
+  //     const value = info.getValue();
+  //     // 50文字を超える場合は省略
+  //     if (typeof value === 'string' && value.length > 50) {
+  //       return value.substring(0, 50) + '...';
+  //     }
+  //     return value;
+  //   },
+  // };
+
+  /**
+   * ----------------------------------------
+   * 例2-2: 日時カラムの表示形式を変更する
+   * ----------------------------------------
+   * 使い方: getValues関数内に以下をコピー
+   */
+  // return {
+  //   ...getValues,
+  //   datetime: function (info) {
+  //     const value = info.getValue();
+  //     if (!value) return '';
+  //     const date = new Date(value);
+  //     return date.toLocaleDateString('ja-JP', {
+  //       year: 'numeric',
+  //       month: '2-digit',
+  //       day: '2-digit',
+  //       hour: '2-digit',
+  //       minute: '2-digit'
+  //     });
+  //   },
+  // };
+
+  /**
+   * ----------------------------------------
+   * 例3-1: テキストを大文字に変換して表示
+   * ----------------------------------------
+   * 使い方: getValuesOptions内に以下をコピー
+   */
+  // formatText: function (value) {
+  //   return value ? value.toUpperCase() : '';
+  // },
+
+  /**
+   * ----------------------------------------
+   * 例3-2: 数値を3桁区切りで表示
+   * ----------------------------------------
+   * 使い方: getValuesOptions内に以下をコピー
+   */
+  // formatNumber: function (value) {
+  //   return value ? value.toLocaleString('ja-JP') : '0';
+  // },
+
+  /**
+   * ----------------------------------------
+   * 例3-3: 改行をbrタグに変換
+   * ----------------------------------------
+   * 使い方: getValuesOptions内に以下をコピー
+   */
+  // formatTextarea: function (value) {
+  //   return value ? value.replace(/\n/g, '<br>') : '';
+  // },
+
+  /**
+   * ----------------------------------------
+   * 例4-1: 既存のアクションを削除する
+   * ----------------------------------------
+   * 使い方: getActions関数内に以下をコピー
+   */
+  // return actions.filter(function (action) {
+  //   return action.id !== 'duplicate'; // '複製'アクションを削除
+  // });
+
+  /**
+   * ----------------------------------------
+   * 例4-2: カスタムアクションボタンを追加
+   * ----------------------------------------
+   * 使い方: getActions関数内に以下をコピー
+   */
+  // return [
+  //   ...actions,
+  //   {
+  //     id: 'custom-action',
+  //     label: 'カスタム処理',
+  //     onAction: function (data) {
+  //       console.log('カスタムアクション実行:', data);
+  //       alert('エントリーID: ' + data.id + ' に対してカスタム処理を実行しました');
+  //       // APIを呼び出す場合の例:
+  //       // fetch('/api/custom-action', {
+  //       //   method: 'POST',
+  //       //   body: JSON.stringify({ entryId: data.id }),
+  //       // }).then(function () {
+  //       //   context.invalidate(); // データを再取得して画面を更新
+  //       // });
+  //     },
+  //     type: 'secondary',  // ボタンの種類 (primary, secondary, danger)
+  //     condition: function (data) {
+  //       return data.status === 'open'; // 公開中のエントリーのみ表示
+  //     },
+  //   },
+  // ];
+
+  /**
+   * ----------------------------------------
+   * 例4-3: プレビューリンクを追加
+   * ----------------------------------------
+   * 使い方: getActions関数内に以下をコピー
+   */
+  // return [
+  //   ...actions,
+  //   {
+  //     id: 'preview',
+  //     label: 'プレビュー',
+  //     getHref: function (data) {
+  //       return data.url; // エントリーのURLにリンク
+  //     },
+  //     linkProps: {
+  //       target: '_blank', // 新しいタブで開く
+  //     },
+  //   },
+  // ];
+
+  /**
+   * ----------------------------------------
+   * 例5-1: 既存の一括操作を削除
+   * ----------------------------------------
+   * 使い方: getBulkActions関数内に以下をコピー
+   */
+  // return bulkActions.filter(function (action) {
+  //   return action.id !== 'trash'; // 'ゴミ箱へ移動'を削除
+  // });
+
+  /**
+   * ----------------------------------------
+   * 例5-2: カスタム一括操作を追加
+   * ----------------------------------------
+   * 使い方: getBulkActions関数内に以下をコピー
+   */
+  // return [
+  //   ...bulkActions,
+  //   {
+  //     id: 'custom-bulk-action',
+  //     label: 'カスタム一括処理',
+  //     onAction: async function (formData, selectedData) {
+  //       console.log('選択されたエントリー:', selectedData);
+  //       // FormDataから選択されたエントリーIDを取得
+  //       const checks = formData.getAll('checks[]');
+  //       console.log('選択されたID:', checks);
+  //       alert(checks.length + '件のエントリーに対してカスタム処理を実行しました');
+  //
+  //       // APIを呼び出す場合の例:
+  //       // await fetch('/api/bulk-custom-action', {
+  //       //   method: 'POST',
+  //       //   body: formData,
+  //       // });
+  //       // context.invalidate(); // データを再取得して画面を更新
+  //     },
+  //     renderForm: function (selectedData) {
+  //       // 実行ボタンを表示
+  //       return ACMS.Library.React.createElement(
+  //         'button',
+  //         {
+  //           type: 'submit',
+  //           name: 'ACMS_POST_Custom_BulkAction',
+  //           className: 'acms-admin-btn-admin acms-admin-btn-admin-primary',
+  //         },
+  //         '実行'
+  //       );
+  //     },
+  //     condition: function (selectedData) {
+  //       return selectedData.length > 0; // 1件以上選択されている場合のみ表示
+  //     },
+  //   },
+  // ];
+
+  /**
+   * ----------------------------------------
+   * 例6-1: カスタムボタンを追加
+   * ----------------------------------------
+   * 使い方: getMenus関数内に以下をコピー
+   */
+  // return [
+  //   ...menus,
+  //   {
+  //     id: 'custom-button',
+  //     label: 'カスタムボタン',
+  //     onAction: function () {
+  //       alert('カスタムボタンがクリックされました');
+  //     },
+  //     buttonProps: {
+  //       className: 'acms-admin-btn',
+  //     },
+  //   },
+  // ];
+
+  /**
+   * ----------------------------------------
+   * 例6-2: 外部リンクメニューを追加
+   * ----------------------------------------
+   * 使い方: getMenus関数内に以下をコピー
+   */
+  // return [
+  //   ...menus,
+  //   {
+  //     id: 'help-link',
+  //     label: 'ヘルプ',
+  //     getHref: function () {
+  //       return 'https://developer.a-blogcms.jp/';
+  //     },
+  //     linkProps: {
+  //       target: '_blank',
+  //       className: 'acms-admin-btn',
+  //     },
+  //   },
+  // ];
+
+  /**
+   * ----------------------------------------
+   * 例6-3: ドロップダウンメニューを追加
+   * ----------------------------------------
+   * 使い方: getMenus関数内に以下をコピー
+   */
+  // return [
+  //   ...menus,
+  //   {
+  //     id: 'custom-dropdown',
+  //     label: 'カスタムメニュー',
+  //     buttonProps: {
+  //       className: 'acms-admin-btn',
+  //     },
+  //     menus: [
+  //       {
+  //         id: 'custom-menu-1',
+  //         label: 'メニュー1',
+  //         onAction: function () {
+  //           alert('メニュー1がクリックされました');
+  //         },
+  //       },
+  //       {
+  //         id: 'custom-menu-2',
+  //         label: 'メニュー2',
+  //         onAction: function () {
+  //           alert('メニュー2がクリックされました');
+  //         },
+  //       },
+  //     ],
+  //   },
+  // ];
+
+  /**
+   * ----------------------------------------
+   * 例6-4: 条件付きで表示されるメニュー
+   * ----------------------------------------
+   * 使い方: getMenus関数内に以下をコピー
+   */
+  // return [
+  //   ...menus,
+  //   {
+  //     id: 'admin-only-menu',
+  //     label: '管理者専用',
+  //     onAction: function () {
+  //       alert('管理者専用メニュー');
+  //     },
+  //     buttonProps: {
+  //       className: 'acms-admin-btn acms-admin-btn-danger',
+  //     },
+  //     condition: function () {
+  //       return ACMS.Config.auth === 'administrator'; // 管理者のみ表示
+  //     },
+  //   },
+  // ];
 </script>
 @endsection

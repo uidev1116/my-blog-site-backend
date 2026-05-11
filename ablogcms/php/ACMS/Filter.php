@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Entry\Enums\EntryApprovalStatus;
+
 /**
  * ACMS_Filter
  *
@@ -538,7 +540,15 @@ class ACMS_Filter
         //--------
         // status
         $SQLWhereSession->addWhereOpr('entry_status', 'open', '=', 'AND', $scp);
-        $SQLWhereSession->addWhereOpr('entry_approval', 'pre_approval', '<>', 'AND', $scp);
+        // 承認前（pre_approval）はフロントに表示しない。
+        $SQLWhereSession->addWhereOpr('entry_approval', EntryApprovalStatus::PreApproval->value, '<>', 'AND', $scp);
+
+        // entry_current_rev_id = 0 かつ entry_reserve_rev_id > 0 のエントリーは
+        // 承認済みだがまだ公開リビジョンが存在しない「公開予約中」状態のため非公開とする
+        $revisionPublicWhere = SQL::newWhere();
+        $revisionPublicWhere->addWhereOpr('entry_current_rev_id', 0, '>', 'OR', $scp);
+        $revisionPublicWhere->addWhereOpr('entry_reserve_rev_id', 0, '=', 'OR', $scp);
+        $SQLWhereSession->addWhere($revisionPublicWhere);
 
         if ($private || timemachineMode()) {
             $SQL->addWhere($SQLWhereSession);
@@ -1053,11 +1063,13 @@ class ACMS_Filter
             }
             ACMS_Filter::_field_where($Where, $Field, $fd);
 
-            if (
-                $Where->_wheres &&
-                !!$fieldKey &&
-                !!$tableKey
-            ) {
+            if ($fieldKey !== null && $tableKey !== null) {
+                // JOIN 方式: $Where に条件がある場合のみサブクエリを構築する。
+                // $Where が空（値なし・em/nem 以外の空値など）のときはこのフィールドをスキップし、
+                // 外側クエリに field_key 条件が誤追記されるのを防ぐ。
+                if ($Where->_wheres === []) {
+                    continue;
+                }
                 $SUB = SQL::newSelect('field');
                 $SUB->addSelect($fieldKey);
                 if (!$sort) {
@@ -1100,6 +1112,7 @@ class ACMS_Filter
                     }
                 }
             } else {
+                // field テーブルを直接 FROM した場合のフォールバック
                 $Where->addWhereOpr('field_key', $fd);
                 $SQL->addWhere($Where);
             }
@@ -1119,7 +1132,7 @@ class ACMS_Filter
 
         //-------
         // empty
-        if (!empty($emptyAry) && $fieldKey !== null && $tableKey !== null) {
+        if ($emptyAry !== [] && $fieldKey !== null && $tableKey !== null) {
             $temp = '_' . substr(base_convert(md5(uniqid()), 16, 36), 0, 8);
             $NOT_EXISTS = SQL::newSelect('field');
             $NOT_EXISTS->setSelect($fieldKey, null, null, 'DISTINCT');

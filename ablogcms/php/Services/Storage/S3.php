@@ -184,6 +184,12 @@ class S3 extends BaseFileSystem
             }
             if ($imageData = $this->get($path)) {
                 $imageSize = getimagesizefromstring($imageData);
+
+                if ($imageSize === false) {
+                    $cache[$cacheKey] = false;
+                    return false;
+                }
+
                 // bitsとchannelsが存在しない場合はnullを設定
                 $imageSize['bits'] = $imageSize['bits'] ?? 0;
                 $imageSize['channels'] = $imageSize['channels'] ?? 0;

@@ -102,10 +102,15 @@ function sortColumns<T extends RowData = RowData>(columns: Column<T>[], config: 
   return sortedColumnsByVisibility;
 }
 
+const EMPTY_COLUMN_MODAL_PROPS: Omit<
+  React.ComponentPropsWithoutRef<typeof CustomColumnModal>,
+  'isOpen' | 'onClose'
+> = {};
+
 const ColumnConfigDrawer = ({
   onClose,
   onAfterOpen,
-  customColumnModalProps = {},
+  customColumnModalProps = EMPTY_COLUMN_MODAL_PROPS,
   ...props
 }: ColumnConfigDrawerProps) => {
   const {

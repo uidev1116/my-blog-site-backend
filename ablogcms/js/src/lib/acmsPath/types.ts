@@ -1,6 +1,8 @@
 import { RecursivePartial } from '../../types/utils';
 import AcmsFieldList from './acmsField';
 
+export type ApiVersion = 'v1' | 'v2';
+
 export interface AcmsPathParams {
   blog?: string | number;
   category?: string | string[] | number;
@@ -18,7 +20,7 @@ export interface AcmsPathParams {
   admin?: string;
   tpl?: string;
   api?: string;
-  searchParams?: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  searchParams?: Record<string, any> | URLSearchParams; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export interface AcmsContext {
@@ -38,6 +40,7 @@ export interface AcmsContext {
   admin?: string;
   tpl?: string;
   api?: string;
+  apiVersion?: ApiVersion;
   unresolvedPath?: string;
 }
 
@@ -66,6 +69,7 @@ export interface AcmsPathSegments {
 
 export interface AcmsPathConfig {
   segments: AcmsPathSegments;
+  apiVersion?: ApiVersion;
 }
 
 export interface ParseAcmsPathConfig {

@@ -20,18 +20,20 @@ export default () => {
 
           clearTimeout(timer);
           timer = setTimeout(() => {
-            _.each($unitGroup, (v) => {
+            $unitGroup.each((_, v) => {
               const $unit = $(v);
               const unitW = $unit.outerWidth(true) - 1;
 
               $unit.css({
                 clear: 'none',
               });
+
               if (!$unit.prev().hasClass(Config.unitGroupAlignMark.substring(1))) {
                 currentWidth = 0;
                 count = 0;
               }
-              if (1 && count > 0 && containerWidth - (currentWidth + unitW) < -1) {
+
+              if (count > 0 && containerWidth - (currentWidth + unitW) < -1) {
                 $unit.css({
                   clear: 'both',
                 });

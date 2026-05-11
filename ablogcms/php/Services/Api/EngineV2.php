@@ -5,6 +5,7 @@ namespace Acms\Services\Api;
 use Acms\Services\Api\Exceptions\NotFoundModuleException;
 use Acms\Services\Facades\Database as DB;
 use Acms\Services\Facades\Logger as AcmsLogger;
+use Acms\Services\Facades\Common;
 use Acms\Services\Template\Twig\GetModule as TwigModule;
 use ACMS_Filter;
 use SQL;
@@ -23,9 +24,9 @@ class EngineV2 extends Contracts\Api
             ];
             $this->exec($apiInfo);
         } catch (NotFoundModuleException $e) {
-            AcmsLogger::error('API機能: 有効なモジュールIDが存在しません', [
+            AcmsLogger::notice('API機能: 有効なモジュールIDが存在しません', Common::exceptionArray($e, [
                 'identifier' => $identifier,
-            ]);
+            ]));
             $this->notFound('有効なモジュールIDが存在しません');
         }
     }

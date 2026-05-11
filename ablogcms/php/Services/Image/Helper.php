@@ -39,17 +39,26 @@ class Helper
     /**
      * 画像の複製
      *
+     * 仕様:
+     * - 縮小のみを行う。width/height/size のいずれも src の対応する次元より大きい場合、
+     *   リサイズせず元サイズのままコピーする（拡大はしない）。
+     * - 戻り値 true は本体ファイルの書き出し成功のみを保証する。webp 同時生成
+     *   （copyImageAsWebp 経路）の失敗は内部で握りつぶされ戻り値には反映されない。
+     *
      * @param string $from
      * @param string $to
-     * @param int|null $width
-     * @param int|null $height
-     * @param int|null $size
+     * @param int|null $width 0 以上または null。負数は InvalidArgumentException。0 は「未指定」相当でリサイズしない
+     * @param int|null $height 0 以上または null。負数は InvalidArgumentException。0 は「未指定」相当でリサイズしない
+     * @param int|null $size 0 以上または null。負数は InvalidArgumentException。0 は「未指定」相当でリサイズしない
      * @param int|null $angle
      *
-     * @return bool
+     * @return bool 本体ファイルの書き出しに成功したか
      */
     public function copyImage($from, $to, $width = null, $height = null, $size = null, $angle = null): bool
     {
+        $this->assertNonNegativeDimension($width, 'width');
+        $this->assertNonNegativeDimension($height, 'height');
+        $this->assertNonNegativeDimension($size, 'size');
         try {
             $xy = PublicStorage::getImageSize($from);
             if ($xy === false) {
@@ -88,20 +97,40 @@ class Helper
      *
      * @param string $srcPath
      * @param string $destPath
-     * @param string $ext
-     * @param int|null $width
-     * @param int|null $height
-     * @param int|null $size
+     * @param int|null $width 0 以上または null。負数は InvalidArgumentException。0 は「未指定」相当
+     * @param int|null $height 0 以上または null。負数は InvalidArgumentException。0 は「未指定」相当
+     * @param int|null $size 0 以上または null。負数は InvalidArgumentException。0 は「未指定」相当
      * @param int|null $angle
      * @return void
      */
-    public function resizeImg($srcPath, $destPath, $ext, $width = null, $height = null, $size = null, $angle = null): void
+    public function resizeImg($srcPath, $destPath, $width = null, $height = null, $size = null, $angle = null): void
     {
+        $this->assertNonNegativeDimension($width, 'width');
+        $this->assertNonNegativeDimension($height, 'height');
+        $this->assertNonNegativeDimension($size, 'size');
         try {
             $this->engine->editImage($srcPath, $destPath, $width, $height, $size, $angle);
             $this->engine->copyImageAsWebp($destPath, "{$destPath}.webp");
         } catch (\Exception $e) {
             Logger::error('画像の生成に失敗しました', Common::exceptionArray($e, ['path' => $destPath]));
+        }
+    }
+
+    /**
+     * width / height / size の値が指定されていて負数なら InvalidArgumentException を投げる
+     *
+     * 0 は「未指定 / リサイズなし」を表す既存仕様の値として許容する（Common\Helper など
+     * 既存の呼び出し側が 0 を未指定シグナルとして扱っているため）。負数だけが明らかに
+     * 不正な値として弾かれる。
+     *
+     * @param int|null $value
+     * @param string $name 引数名（例外メッセージ用）
+     * @throws \InvalidArgumentException
+     */
+    private function assertNonNegativeDimension(?int $value, string $name): void
+    {
+        if ($value !== null && $value < 0) {
+            throw new \InvalidArgumentException(sprintf('%s must be >= 0 or null, got %d', $name, $value));
         }
     }
 
@@ -147,7 +176,7 @@ class Helper
             $Hook->call('mediaDelete', "{$dirname}large-{$basename}");
             $Hook->call('mediaDelete', "{$dirname}square-{$basename}");
 
-            $Hook->call('mediaDelete', "{$dirname}{$basename}.webp'");
+            $Hook->call('mediaDelete', "{$dirname}{$basename}.webp");
             $Hook->call('mediaDelete', "{$dirname}tiny-{$basename}.webp");
             $Hook->call('mediaDelete', "{$dirname}large-{$basename}.webp");
             $Hook->call('mediaDelete', "{$dirname}square-{$basename}.webp");
@@ -173,7 +202,8 @@ class Helper
      *  path: string,
      *  type: string,
      *  name: string,
-     *  size: string
+     *  size: string,
+     *  filesize: int
      * }
      */
     public function createImages(
@@ -409,7 +439,8 @@ class Helper
      *  path: string,
      *  type: string,
      *  name: string,
-     *  size: string
+     *  size: string,
+     *  filesize: int
      * }
      */
     protected function createResizedImages(array $config): array
@@ -490,7 +521,7 @@ class Helper
                 $this->engine->copyImageAsWebp($destPath, "{$destPath}.webp");
                 $isOriginalUpload = true;
             } else {
-                $this->resizeImg($config['srcPath'], $destPath, $ext, $width, $height, $size, $angle);
+                $this->resizeImg($config['srcPath'], $destPath, $width, $height, $size, $angle);
             }
             if ($sizeType === 'normal') {
                 /**
@@ -516,8 +547,9 @@ class Helper
         return [
             'path'  => $config['path'],
             'type'  => strtoupper($config['ext']),
-            'name'  => $config['fileName'],
+            'name'  => PublicStorage::mbBasename($config['destPath']),
             'size'  => $normalSize,
+            'filesize' => PublicStorage::getFileSize($config['destPath']),
         ];
     }
 
@@ -527,7 +559,7 @@ class Helper
      * @param string $value
      * @return float|null
      */
-    public function parseSvgLength(string $value): ?float
+    protected function parseSvgLength(string $value): ?float
     {
         if (preg_match('/^([\d.]+)(px)?$/', trim($value), $matches)) {
             return (float) $matches[1];

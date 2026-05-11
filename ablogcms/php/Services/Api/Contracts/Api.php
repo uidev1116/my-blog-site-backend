@@ -6,6 +6,7 @@ use Acms\Services\Api\Exceptions\ApiKeyException;
 use Acms\Services\Api\Exceptions\ForbiddenException;
 use Acms\Services\Facades\Common;
 use Acms\Services\Facades\Logger as AcmsLogger;
+use Acms\Services\Logger\Level;
 use Exception;
 
 abstract class Api
@@ -66,7 +67,8 @@ abstract class Api
             $this->validateApiKey();
             $json = $this->buildResponse($apiInfo);
         } catch (ApiKeyException $e) {
-            $this->logging($e, $apiInfo);
+            // 認証失敗は不正アクセス試行として notice で扱う
+            $this->logging($e, $apiInfo, Level::NOTICE);
             httpStatusCode('401 Unauthorized');
             $json = json_encode([
                 'status' => 401,
@@ -75,7 +77,7 @@ abstract class Api
                 'path' => REQUEST_PATH,
             ]);
         } catch (ForbiddenException $e) {
-            $this->logging($e, $apiInfo);
+            $this->logging($e, $apiInfo, Level::NOTICE);
             httpStatusCode('403 Forbidden');
             $json = json_encode([
                 'status' => 403,
@@ -144,14 +146,15 @@ abstract class Api
      * ロギング
      * @param Exception $e
      * @param array $info
+     * @param int $level ログレベル（Acms\Services\Logger\Level の定数）
      * @return void
      */
-    protected function logging(Exception $e, array $info): void
+    protected function logging(Exception $e, array $info, int $level = Level::ERROR): void
     {
         if (isset($_SERVER['HTTP_X_API_KEY'])) {
             $info['x-api-key'] = $_SERVER['HTTP_X_API_KEY'];
         }
-        AcmsLogger::error('API機能: ' . $e->getMessage(), $info);
+        AcmsLogger::log($level, 'API機能: ' . $e->getMessage(), $info);
     }
 
     /**
@@ -161,10 +164,10 @@ abstract class Api
      */
     protected function validateApiKey(): void
     {
-        if (empty($this->apiKey)) {
+        if ($this->apiKey === '') {
             throw new ApiKeyException('APIキーが設定されていません。');
         }
-        if (!isset($_SERVER['HTTP_X_API_KEY']) || empty($_SERVER['HTTP_X_API_KEY'])) {
+        if (!isset($_SERVER['HTTP_X_API_KEY']) || $_SERVER['HTTP_X_API_KEY'] === '') {
             throw new ApiKeyException('X-API-KEY ヘッダーがありません。');
         }
         if ($this->apiKey !== $_SERVER['HTTP_X_API_KEY']) {

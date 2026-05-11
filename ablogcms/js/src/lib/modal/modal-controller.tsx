@@ -59,7 +59,9 @@ const ModalController = ({ ...props }: ModalControllerProps) => {
 
   const handleAfterClose = useCallback(() => {
     openStateRef.current = false;
-  }, []);
+    // 閉じるトランジション完了後に state をクリアする
+    manager.reset();
+  }, [manager]);
 
   useEffect(() => {
     const handleOpen = (event: Event) => {

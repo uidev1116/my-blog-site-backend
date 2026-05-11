@@ -5,7 +5,8 @@ namespace Acms\Services\Facades;
 /**
  * @method static void setConstantsAuthSystemPage(\Field $queryParameter) 認証系ページの定数をセット
  * @method static void postLoginProcessing() ログイン処理を実行
- * @method static bool accessRestricted(bool $isAdmin = true) アクセス制限を適用
+ * @method static bool canAccessAdminLoginFromCurrentIp() 管理者ログイン用: 現在のIPアドレスからアクセス可能か判断
+ * @method static bool canAccessSigninFromCurrentIp() 一般サインイン用: 現在のIPアドレスからアクセス可能か判断
  * @method static string|false getAuthSystemTemplate() 認証系テンプレートを取得
  * @method static int findUser(string $email, int $bid) ユーザーIDを検索
  * @method static int createUser(\Field_Validation $user, bool $subscribeLoginAnywhere) ユーザーを作成
@@ -27,6 +28,10 @@ namespace Acms\Services\Facades;
  * @method static bool isAuthRequiredPage() 現在のページが認証が必要なページかどうか判定
  * @method static bool isLoggedIn() 現在のセッションがログイン状態かどうか判定
  * @method static bool canMemberSignin() 会員サインイン機能が有効かどうか判定
+ * @method static bool isExactPath(int $bid, string $segment) 指定されたパスがブログトップからのパスで余分なパスがないかどうかを判定
+ * @method static bool matchExactPath(string $blogCode, string $segment, string $requestPath) ブログコードとセグメントから生成したパスが、リクエストパスと一致するかを判定
+ * @method static bool canLoginPage(int $bid, string $segment) 認証前のログインページを表示できるかどうかを判定
+ * @method static bool isValidAuthenticatedPath(int $bid, string $segment) ログイン済みユーザーのページで正しいパスかどうかを判定
  */
 class Login extends Facade
 {

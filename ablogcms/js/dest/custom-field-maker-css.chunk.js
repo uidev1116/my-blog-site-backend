@@ -1,1 +1,1 @@
-"use strict";(self.webpackChunkacmsWebpackJsonp=self.webpackChunkacmsWebpackJsonp||[]).push([[1228],{72826:function(s,c,e){e.r(c)}}]);
+"use strict";(globalThis.webpackChunkacmsWebpackJsonp=globalThis.webpackChunkacmsWebpackJsonp||[]).push([[1228],{72826(s,a,c){c.r(a)}}]);

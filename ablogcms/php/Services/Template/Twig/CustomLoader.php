@@ -48,20 +48,18 @@ class CustomLoader extends FilesystemLoader
             throw new LoaderError($this->errorCache[$name]);
         }
 
+        $candidates = (new TemplatePathCandidateResolver())->getCandidates($shortname);
+
         foreach ($this->paths[$namespace] as $path) {
-            if (is_file($path . '/' . $shortname)) {
-                if (false !== $realpath = realpath($path . '/' . $shortname)) {
-                    return $this->cache[$name] = $realpath;
-                }
+            foreach ($candidates as $candidate) {
+                $fullPath = $path . '/' . $candidate;
+                if (is_file($fullPath)) {
+                    if (false !== $realpath = realpath($fullPath)) {
+                        return $this->cache[$name] = $realpath;
+                    }
 
-                return $this->cache[$name] = $path . '/' . $shortname;
-            }
-            if (is_file($path . '/' . $shortname . '.twig')) {
-                if (false !== $realpath = realpath($path . '/' . $shortname . '.twig')) {
-                    return $this->cache[$name] = $realpath;
+                    return $this->cache[$name] = $fullPath;
                 }
-
-                return $this->cache[$name] = $path . '/' . $shortname . '.twig';
             }
         }
 

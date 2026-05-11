@@ -9,8 +9,7 @@
     cursor: pointer;
     display: block;
     height: 28px;
-    -moz-user-select: none;
-         user-select: none;
+    user-select: none;
     -webkit-user-select: none; }
     .select2-container .select2-selection--single .select2-selection__rendered {
       display: block;
@@ -29,8 +28,7 @@
     cursor: pointer;
     display: block;
     min-height: 32px;
-    -moz-user-select: none;
-         user-select: none;
+    user-select: none;
     -webkit-user-select: none; }
     .select2-container .select2-selection--multiple .select2-selection__rendered {
       display: inline-block;
@@ -70,8 +68,7 @@
 
 .select2-results__option {
   padding: 6px;
-  -moz-user-select: none;
-       user-select: none;
+  user-select: none;
   -webkit-user-select: none; }
   .select2-results__option[aria-selected] {
     cursor: pointer; }

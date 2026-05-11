@@ -88,7 +88,7 @@ class ACMS_POST_Entry extends ACMS_POST
      */
     function changeRevision($rvid, $eid, $bid)
     {
-        return Entry::changeRevision($rvid, $eid, $bid);
+        Entry::changeRevision($rvid, $eid, $bid);
     }
 
     /**

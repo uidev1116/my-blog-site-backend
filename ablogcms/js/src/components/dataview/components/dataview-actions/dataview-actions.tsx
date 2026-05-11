@@ -1,6 +1,9 @@
 import { Table } from '@tanstack/react-table';
 import type { BulkAction, DataviewComponents, Menu, PaginationInfo } from '../../types';
 
+const EMPTY_BULK_ACTIONS: never[] = [];
+const EMPTY_MENUS: never[] = [];
+
 interface DataviewActionsProps<T> {
   data: T[];
   bulkActions?: BulkAction<T>[];
@@ -14,8 +17,8 @@ interface DataviewActionsProps<T> {
 
 const DataviewActions = <T,>({
   data,
-  bulkActions = [],
-  menus = [],
+  bulkActions = EMPTY_BULK_ACTIONS,
+  menus = EMPTY_MENUS,
   table,
   className = 'acms-admin-dataview-actions',
   paginationInfo,

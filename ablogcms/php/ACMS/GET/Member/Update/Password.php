@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_GET_Member_Update_Password extends ACMS_GET_Member
 {
     /**
@@ -9,7 +11,7 @@ class ACMS_GET_Member_Update_Password extends ACMS_GET_Member
      */
     protected function init(): void
     {
-        if (!SUID) {
+        if (!Login::isLoggedIn()) {
             page404();
         }
     }

@@ -1111,8 +1111,8 @@ msgstr "Tags"
 msgid "システムで予約されているキーワードです。"
 msgstr "The keyword is used in the system."
 
-msgid "不正な文字が含まれています。"
-msgstr "It has invalid characters"
+msgid "コードに使用できない文字が含まれています。スラッシュ(/)、../ などの危険な文字列、URL特殊文字、制御文字、空白文字は使用できません。"
+msgstr "The code contains characters that cannot be used. Slashes (/), dangerous strings such as ../, URL special characters, control characters, and whitespace cannot be used."
 
 msgid "日付"
 msgstr "Date"

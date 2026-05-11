@@ -3,6 +3,7 @@
 namespace Acms\Modules\Get\Helpers\Category;
 
 use Acms\Modules\Get\Helpers\BaseHelper;
+use Acms\Services\Facades\Database;
 use Field;
 use ACMS_RAM;
 use ACMS_Filter;
@@ -176,7 +177,7 @@ class CategoryHelper extends BaseHelper
             }
             // 現在のカテゴリまたは子カテゴリに有効なエントリがある場合、リストに追加
             // 末端でcategory_entry_amountが0のアイテムは除外する
-            if ($category['category_entry_amount'] > 0 || (isset($category['children']) && is_array($category['children']))) {
+            if ($category['category_entry_amount'] > 0 || $category['children'] !== []) {
                 $filtered[] = $category;
             }
         }
@@ -277,5 +278,83 @@ class CategoryHelper extends BaseHelper
             }
         }
         return $ids;
+    }
+
+    /**
+     * カテゴリツリーを構築する（整形前）
+     * Tree と Flat の共通ロジック
+     *
+     * @param array $params 必須: bid, cid, categoryAxis, keyword, field, start, end,
+     *                       searchTarget, categoryDisplayIndexingOnly, countEntryInSubcategories,
+     *                       displayCategoryWithoutEntry, categoryDisplayDepth, categoryOrder
+     * @return array 整形前のツリー（children 付き）
+     */
+    public function buildCategoryTreeForOutput(array $params): array
+    {
+        $categoryQuery = $this->buildCategoryListQuery(
+            (int) $params['bid'],
+            $params['cid'] ?? null,
+            $params['categoryAxis'] ?? 'self',
+            $params['keyword'] ?? null,
+            $params['field'] ?? null,
+            $params['start'] ?? null,
+            $params['end'] ?? null,
+            $params['searchTarget'] ?? 'entry',
+            $params['categoryDisplayIndexingOnly'] ?? true,
+            $params['countEntryInSubcategories'] ?? false
+        );
+        $all = Database::query($categoryQuery->get(dsn()), 'all');
+        if ($all === []) {
+            return [];
+        }
+        $tree = $this->buildTree(
+            $all,
+            0,
+            1,
+            (int) ($params['categoryDisplayDepth'] ?? 99)
+        );
+        if (!($params['displayCategoryWithoutEntry'] ?? false)) {
+            $tree = $this->removeEmptyCategories($tree);
+        }
+        $sortConfig = $params['categoryOrder'] ?? 'id-asc';
+        $parts = explode('-', $sortConfig);
+        $target = $parts[0];
+        $order = $parts[1] ?? 'asc';
+        switch ($target) {
+            case 'amount':
+                $key = 'category_entry_amount';
+                break;
+            case 'sort':
+                $key = 'category_left';
+                break;
+            case 'code':
+                $key = 'category_code';
+                break;
+            default:
+                $key = 'category_id';
+        }
+        $tree = $this->sortTree($tree, $key, $order === 'asc');
+
+        return $tree;
+    }
+
+    /**
+     * カテゴリツリーをフラット配列に変換する
+     *
+     * @param array $categories fixCategoryTreeData の出力（children 含む）
+     * @return array
+     */
+    public function flattenCategoryTreeData(array $categories): array
+    {
+        $result = [];
+        foreach ($categories as $category) {
+            $item = $category;
+            unset($item['children']);
+            $result[] = $item;
+            if (isset($category['children']) && is_array($category['children']) && $category['children']) {
+                $result = array_merge($result, $this->flattenCategoryTreeData($category['children']));
+            }
+        }
+        return $result;
     }
 }

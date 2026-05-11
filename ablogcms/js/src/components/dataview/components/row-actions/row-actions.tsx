@@ -44,6 +44,42 @@ const ActionModal = <T,>({ isOpen, close, action, data }: ActionModalProps<T>) =
   return action.renderModal({ data, isOpen, close });
 };
 
+interface ActionRendererProps<T> {
+  action: Action<T>;
+  data: T;
+  onClick?: React.MouseEventHandler<HTMLElement>;
+}
+
+const ActionRenderer = <T,>({ action, data, onClick }: ActionRendererProps<T>) => {
+  if ('renderModal' in action) {
+    return <ModalActionButton action={action} data={data} onClick={onClick} />;
+  }
+
+  if ('getHref' in action) {
+    return (
+      <Link
+        {...(typeof action.linkProps === 'function' ? action.linkProps(data) : action.linkProps)}
+        href={action.getHref(data)}
+      >
+        {typeof action.label === 'function' ? action.label(data) : action.label}
+      </Link>
+    );
+  }
+
+  return (
+    <Button
+      type="button"
+      {...(typeof action.buttonProps === 'function' ? action.buttonProps(data) : action.buttonProps)}
+      onClick={(e) => {
+        onClick?.(e);
+        action.onAction?.(data);
+      }}
+    >
+      {typeof action.label === 'function' ? action.label(data) : action.label}
+    </Button>
+  );
+};
+
 const RowActions = <T,>({ actions, data }: RowActionsProps<T>) => {
   const activeActions = useMemo(
     () => actions.filter((action) => action.condition === undefined || action.condition(data)),
@@ -56,36 +92,6 @@ const RowActions = <T,>({ actions, data }: RowActionsProps<T>) => {
     [activeActions]
   );
   const tertiaryActions = useMemo(() => activeActions.filter((action) => action.type === 'tertiary'), [activeActions]);
-
-  const renderAction = useCallback(
-    (action: Action<T>) => {
-      if ('renderModal' in action) {
-        return <ModalActionButton action={action} data={data} />;
-      }
-
-      if ('getHref' in action) {
-        return (
-          <Link
-            {...(typeof action.linkProps === 'function' ? action.linkProps(data) : action.linkProps)}
-            href={action.getHref(data)}
-          >
-            {typeof action.label === 'function' ? action.label(data) : action.label}
-          </Link>
-        );
-      }
-
-      return (
-        <Button
-          type="button"
-          {...(typeof action.buttonProps === 'function' ? action.buttonProps(data) : action.buttonProps)}
-          onClick={() => action.onAction?.(data)}
-        >
-          {typeof action.label === 'function' ? action.label(data) : action.label}
-        </Button>
-      );
-    },
-    [data]
-  );
 
   const [selectedModalAction, setSelectedModalAction] = useState<ModalAction<T> | null>(null);
 
@@ -107,7 +113,9 @@ const RowActions = <T,>({ actions, data }: RowActionsProps<T>) => {
         <div className="acms-admin-btn-group" role="group">
           <Menu>
             {primaryActions.map((action) => (
-              <Fragment key={action.id}>{renderAction(action)}</Fragment>
+              <Fragment key={action.id}>
+                <ActionRenderer action={action} data={data} />
+              </Fragment>
             ))}
             {secondaryActions.length > 0 && (
               <>
@@ -120,7 +128,7 @@ const RowActions = <T,>({ actions, data }: RowActionsProps<T>) => {
                       <Fragment key={action.id}>
                         {index > 0 && <MenuDivider />}
                         <MenuItem asChild onSelect={() => handleSelect(action)}>
-                          {renderAction(action)}
+                          <ActionRenderer action={action} data={data} />
                         </MenuItem>
                       </Fragment>
                     ))}
@@ -133,7 +141,9 @@ const RowActions = <T,>({ actions, data }: RowActionsProps<T>) => {
         {tertiaryActions.length > 0 && (
           <div className="acms-admin-dataview-row-actions-tertiary">
             {tertiaryActions.map((action) => (
-              <Fragment key={action.id}>{renderAction(action)}</Fragment>
+              <Fragment key={action.id}>
+                <ActionRenderer action={action} data={data} />
+              </Fragment>
             ))}
           </div>
         )}

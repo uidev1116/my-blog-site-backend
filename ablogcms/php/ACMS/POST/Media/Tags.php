@@ -1,6 +1,6 @@
 <?php
 
-class ACMS_POST_Media_Tags extends ACMS_POST_Media
+class ACMS_POST_Media_Tags extends ACMS_POST
 {
     public function post()
     {

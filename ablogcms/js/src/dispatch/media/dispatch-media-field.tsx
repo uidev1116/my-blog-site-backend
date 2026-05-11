@@ -176,10 +176,10 @@ export default function dispatchMediaField(context: Element | Document = documen
       setMode('none');
     }, []);
 
-    const [insertModalTab, setInsertModalTab] =
-      useState<React.ComponentPropsWithoutRef<typeof MediaInsert>['tab']>('select');
-    const [insertModalFiletype, setInsertModalFiletype] =
-      useState<React.ComponentPropsWithoutRef<typeof MediaInsert>['filetype']>(undefined);
+    const [insertModal, setInsertModal] = useState<{
+      tab: React.ComponentPropsWithoutRef<typeof MediaInsert>['tab'];
+      filetype: React.ComponentPropsWithoutRef<typeof MediaInsert>['filetype'];
+    }>({ tab: 'select', filetype: undefined });
 
     const handleInsert = useCallback(
       (medias: MediaItem[]) => {
@@ -224,8 +224,10 @@ export default function dispatchMediaField(context: Element | Document = documen
           return;
         }
         const { mode: tab = '', type = 'all' } = event.currentTarget.dataset;
-        setInsertModalTab(tab as React.ComponentPropsWithoutRef<typeof MediaInsert>['tab']);
-        setInsertModalFiletype(type as React.ComponentPropsWithoutRef<typeof MediaInsert>['filetype']);
+        setInsertModal({
+          tab: tab as React.ComponentPropsWithoutRef<typeof MediaInsert>['tab'],
+          filetype: type as React.ComponentPropsWithoutRef<typeof MediaInsert>['filetype'],
+        });
         setMode('insert');
       };
       insertButtons.forEach((button) => {
@@ -354,9 +356,9 @@ export default function dispatchMediaField(context: Element | Document = documen
         <Suspense fallback={null}>
           <MediaInsert
             isOpen={mode === 'insert'}
-            tab={insertModalTab}
+            tab={insertModal.tab}
             radioMode
-            filetype={insertModalFiletype}
+            filetype={insertModal.filetype}
             onInsert={handleInsert}
             onClose={handleClose}
           />

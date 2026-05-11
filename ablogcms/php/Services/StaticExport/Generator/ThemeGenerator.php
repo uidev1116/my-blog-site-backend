@@ -4,12 +4,7 @@ namespace Acms\Services\StaticExport\Generator;
 
 use Acms\Services\StaticExport\Contracts\Generator;
 use Acms\Services\Facades\LocalStorage;
-use Acms\Services\StaticExport\Entities\Page;
 use Symfony\Component\Finder\Finder;
-use React\Promise\Promise;
-use React\Promise\PromiseInterface;
-
-use function React\Async\await;
 
 class ThemeGenerator extends Generator
 {
@@ -52,46 +47,41 @@ class ThemeGenerator extends Generator
     /**
      * @inheritDoc
      */
-    public function run(): PromiseInterface
+    public function run(): void
     {
-        return new Promise(
-            function (callable $resolve, callable $reject) {
-                if (!$this->sourceTheme) {
-                    $reject(new \RuntimeException('no selected source theme.'));
-                    return;
-                }
-                $finder = new Finder();
-                $iterator = $finder
-                ->in($this->sourceTheme)
-                ->notPath('include')
-                ->notPath('admin')
-                ->name('/\.(html|htm|json)$/');
+        if (!$this->sourceTheme) {
+            throw new \RuntimeException('no selected source theme.');
+        }
+        $finder = new Finder();
+        $iterator = $finder
+        ->in($this->sourceTheme)
+        ->notPath('include')
+        ->notPath('admin')
+        ->notPath('ajax/field-values-group.json')
+        ->name('/\.(html|htm|json)$/');
 
-                if (config('forbid_direct_access_tpl') !== 'off') {
-                    $iterator->notPath(config('forbid_direct_access_tpl'));
-                    $iterator->notName(config('forbid_direct_access_tpl'));
-                }
-                $forbidPatterns = configArray('forbid_direct_access_file');
-                if (count($forbidPatterns) > 0) {
-                    foreach ($forbidPatterns as $pattern) {
-                        // 正規表現パターンでチェック（/pattern/ 形式で指定）
-                        $iterator->notName($pattern);
-                    }
-                }
-                foreach ($this->exclusionList as $path) {
-                    if (!empty($path)) {
-                        $iterator->notPath($path);
-                    }
-                }
-                $iterator->files();
-
-                $pages = $this->createPages($iterator);
-                $this->logger->start($this->getName(), count($pages));
-
-                await($this->handle($pages));
-                $resolve(null);
+        if (config('forbid_direct_access_tpl') !== 'off') {
+            $iterator->notPath(config('forbid_direct_access_tpl'));
+            $iterator->notName(config('forbid_direct_access_tpl'));
+        }
+        $forbidPatterns = configArray('forbid_direct_access_file');
+        if (count($forbidPatterns) > 0) {
+            foreach ($forbidPatterns as $pattern) {
+                // 正規表現パターンでチェック（/pattern/ 形式で指定）
+                $iterator->notName($pattern);
             }
-        );
+        }
+        foreach ($this->exclusionList as $path) {
+            if (!empty($path)) {
+                $iterator->notPath($path);
+            }
+        }
+        $iterator->files();
+
+        $pages = $this->createPages($iterator);
+        $this->logger->start($this->getName(), count($pages));
+
+        $this->handle();
     }
 
     /**
@@ -114,32 +104,28 @@ class ThemeGenerator extends Generator
     /**
      * @param \Throwable $th
      * @param string $url
+     * @param int $statusCode
+     * @return void
      */
-    protected function handleError(\Throwable $th, string $url): void
+    protected function handleError(\Throwable $th, string $url, int $statusCode): void
     {
-        if ($th instanceof \React\Http\Message\ResponseException) {
-            $response = $th->getResponse();
-            $this->logger->error(
-                'データの取得に失敗しました。',
-                $url,
-                $response->getStatusCode()
-            );
-            return;
-        }
-        $this->logger->error($th->getMessage(), $url);
+        $this->logger->error($th->getMessage(), $url, $statusCode);
     }
 
     /**
      * @param \Symfony\Component\Finder\Finder $iterator
-     * @return Page[]
+     * @return string[]
      */
     protected function createPages(\Symfony\Component\Finder\Finder $iterator): array
     {
         return array_map(
             function (\Symfony\Component\Finder\SplFileInfo $file) {
                 $pathname = $file->getRelativePathname();
-                $url = acmsLink(['bid' => BID], false) . $pathname;
-                return new Page($url, $pathname);
+                $url = acmsLink(['bid' => $this->targetBlogId], false) . $pathname;
+                if ($url) {
+                    $this->addPage($url, $pathname);
+                }
+                return $url;
             },
             iterator_to_array($iterator, false)
         );

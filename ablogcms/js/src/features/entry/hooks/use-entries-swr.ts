@@ -1,11 +1,11 @@
 import useSWR, { preload } from 'swr';
 import { EntriesResponse } from '../types';
 import { AcmsContext } from '../../../lib/acmsPath/types';
-import axiosLib from '../../../lib/axios';
+import { fetchClient } from '../../../lib/fetch-client';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fetcher(url: string): Promise<EntriesResponse> {
-  const { data } = await axiosLib.get(url);
+  const { data } = await fetchClient.get(url);
   const {
     ignoredFilters = [],
     entry: entries = [],

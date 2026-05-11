@@ -1,6 +1,8 @@
 import { Table } from '@tanstack/react-table';
 import type { DataviewComponents, Menu } from '../../types';
 
+const EMPTY_MENUS: never[] = [];
+
 interface DataviewMenuProps<T> {
   data: T[]; // components オプションでdataを参照できるようにするために未使用だがpropsとして受け取る
   menus?: Menu<T>[];
@@ -11,7 +13,7 @@ interface DataviewMenuProps<T> {
 
 const DataviewMenu = <T,>({
   data, // eslint-disable-line @typescript-eslint/no-unused-vars
-  menus = [],
+  menus = EMPTY_MENUS,
   className = 'acms-admin-dataview-menu',
   table,
   components,

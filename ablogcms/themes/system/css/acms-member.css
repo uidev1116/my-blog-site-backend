@@ -80,10 +80,8 @@
   height: auto;
   max-height: 140px;
   margin-bottom: var(--member-space-section-y);
-  -o-object-fit: contain;
-     object-fit: contain;
-  -o-object-position: center;
-     object-position: center;
+  object-fit: contain;
+  object-position: center;
 }
 
 /* アクションボタンラップ */

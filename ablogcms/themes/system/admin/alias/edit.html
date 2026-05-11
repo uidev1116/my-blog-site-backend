@@ -71,9 +71,13 @@
 				<input type="text" name="name" value="{name}" class="acms-admin-form-width-large">
 				<input type="hidden" name="alias[]" value="name" />
 				<input type="hidden" name="name:validator#required" id="validator-name-required" />
+				<input type="hidden" name="name:validator#maxlength" value="255" id="validator-name-maxlength" />
 				<div role="alert" aria-live="assertive">
 					<div data-validator-label="validator-name-required" class="validator-result-{name:validator#required}">
 						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->名前が入力されていません。<!--/T--></p>
+					</div>
+					<div data-validator-label="validator-name-maxlength" class="validator-result-{name:validator#maxlength}">
+						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->名前は255文字以内で入力してください。<!--/T--></p>
 					</div>
 				</div>
 			</td>
@@ -84,9 +88,13 @@
 				<input type="text" name="domain" value="{domain}" class="acms-admin-form-width-medium" /> (<!--T-->英数字<!--/T-->)
 				<input type="hidden" name="alias[]" value="domain" />
 				<input type="hidden" name="domain:validator#required" id="validator-domain-required" />
+				<input type="hidden" name="domain:validator#maxlength" value="128" id="validator-domain-maxlength" />
 				<div role="alert" aria-live="assertive">
 					<div data-validator-label="validator-domain-required" class="validator-result-{domain:validator#required}">
 						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->ドメインが入力されていません。<!--/T--></p>
+					</div>
+					<div data-validator-label="validator-domain-maxlength" class="validator-result-{domain:validator#maxlength}">
+						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->ドメインは128文字以内で入力してください。<!--/T--></p>
 					</div>
 					<div data-validator-label="validator-domain-domain" class="validator-result-{domain:validator#domain}">
 						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->入力されたドメイン名はご利用できません。<!--/T--></p>
@@ -102,7 +110,11 @@
 			<td>
 				<input type="text" name="code" value="{code}" class="acms-admin-form-width-medium" /> (<!--T-->英数字<!--/T-->)
 				<input type="hidden" name="alias[]" value="code" />
+				<input type="hidden" name="code:validator#maxlength" value="128" id="validator-code-maxlength" />
 				<div role="alert" aria-live="assertive">
+					<div data-validator-label="validator-code-maxlength" class="validator-result-{code:validator#maxlength}">
+						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->コードネームは128文字以内で入力してください。<!--/T--></p>
+					</div>
 					<div data-validator-label="validator-code-identify" class="validator-result-{code:validator#exists}">
 						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->入力されたドメインとコードネームの組み合わせは既に使用されています。<!--/T--></p>
 					</div>
@@ -110,7 +122,7 @@
 						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->システムで予約されているキーワードです。<!--/T--></p>
 					</div>
 					<div data-validator-label="validator-code-string" class="validator-result-{code:validator#string}">
-						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->不正な文字が含まれています。<!--/T--></p>
+						<p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->コードに使用できない文字が含まれています。スラッシュ(/)、../ などの危険な文字列、URL特殊文字、制御文字、空白文字は使用できません。<!--/T--></p>
 					</div>
 				</div>
 			</td>

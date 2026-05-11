@@ -4,11 +4,6 @@ namespace Acms\Services\StaticExport\Generator;
 
 use Acms\Services\StaticExport\Contracts\Generator;
 use Acms\Services\Facades\LocalStorage;
-use Acms\Services\StaticExport\Entities\Page;
-use React\Promise\PromiseInterface;
-use React\Promise\Promise;
-
-use function React\Async\await;
 
 class TopGenerator extends Generator
 {
@@ -28,36 +23,32 @@ class TopGenerator extends Generator
 
     protected function getName(): string
     {
-        return 'トップページの書き出し';
+        return "トップページの書き出し（{$this->targetBlogName}）";
     }
 
     /**
      * @inheritDoc
      */
-    public function run(): PromiseInterface
+    public function run(): void
     {
-        return new Promise(
-            function (callable $resolve) {
-                $blogUrl = acmsLink(['bid' => BID], false);
-
-                $pages = [
-                    new Page($blogUrl, 'index.html')
-                ];
-
-                if (!in_array('rss2.xml', $this->exclusionList, true)) {
-                    $pages[] = new Page($blogUrl . 'rss2.xml', 'rss2.xml');
-                }
-
-                if (!in_array('sitemap.xml', $this->exclusionList, true)) {
-                    $pages[] = new Page($blogUrl . 'sitemap.xml', 'sitemap.xml');
-                }
-
-                $this->logger->start($this->getName(), count($pages));
-                await($this->handle($pages));
-
-                $resolve(null);
-            }
-        );
+        $pages = 0;
+        $blogUrl = acmsLink(['bid' => $this->targetBlogId], false);
+        if ($blogUrl) {
+            $this->addPage($blogUrl, 'index.html');
+            $pages++;
+        } else {
+            throw new \RuntimeException('blog url is empty.');
+        }
+        if (!in_array('rss2.xml', $this->exclusionList, true)) {
+            $this->addPage($blogUrl . 'rss2.xml', 'rss2.xml');
+            $pages++;
+        }
+        if (!in_array('sitemap.xml', $this->exclusionList, true)) {
+            $this->addPage($blogUrl . 'sitemap.xml', 'sitemap.xml');
+            $pages++;
+        }
+        $this->logger->start($this->getName(), $pages);
+        $this->handle();
     }
 
     /**
@@ -79,18 +70,11 @@ class TopGenerator extends Generator
     /**
      * @param \Throwable $th
      * @param string $url
+     * @param int $statusCode
+     * @return void
      */
-    protected function handleError(\Throwable $th, string $url): void
+    protected function handleError(\Throwable $th, string $url, int $statusCode): void
     {
-        if ($th instanceof \React\Http\Message\ResponseException) {
-            $response = $th->getResponse();
-            $this->logger->error(
-                'データの取得に失敗しました。',
-                $url,
-                $response->getStatusCode()
-            );
-            return;
-        }
-        $this->logger->error($th->getMessage(), $url);
+        $this->logger->error($th->getMessage(), $url, $statusCode);
     }
 }

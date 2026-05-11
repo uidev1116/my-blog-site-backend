@@ -27,7 +27,15 @@ class ACMS_POST_Entry_BulkChange_Confirm extends ACMS_POST_Entry_BulkChange
         try {
             $this->set();
             $this->validate();
-            $this->fix();
+            $entry = $this->extract('entry');
+            $field = $this->extract('field');
+            $this->fix(entry: $entry, field: $field);
+            $this->validateEntry(entry: $entry, field: $field);
+            if (!$this->Post->isValidAll()) {
+                $this->Post->set('step', '2');
+                $this->Post->set('error', 'validationFailed');
+                return $this->Post;
+            }
             $this->Post->set('step', '3');
         } catch (ACMS_POST_Entry_BulkChange_Exceptions_PermissionDenied $e) {
             die403('Permission denied.');
@@ -61,8 +69,9 @@ class ACMS_POST_Entry_BulkChange_Confirm extends ACMS_POST_Entry_BulkChange
 
     /**
      * Set data
+     * @return void
      */
-    protected function set()
+    protected function set(): void
     {
         $this->targetEids = $this->Post->getArray('checks');
         $this->entryActions = $this->Post->getArray('action_entry');
@@ -71,10 +80,14 @@ class ACMS_POST_Entry_BulkChange_Confirm extends ACMS_POST_Entry_BulkChange
         array_shift($this->fieldActions); // dummyを除去
     }
 
-    protected function fix()
+    /**
+     * Fix entry and field
+     * @param \Field_Validation $entry
+     * @param \Field_Validation $field
+     * @return void
+     */
+    protected function fix(\Field_Validation $entry, \Field_Validation $field): void
     {
-        // entry base
-        $entry = $this->extract('entry');
         foreach ($this->entryActions as $action) {
             switch ($action) {
                 case 'entry_datetime':
@@ -96,7 +109,6 @@ class ACMS_POST_Entry_BulkChange_Confirm extends ACMS_POST_Entry_BulkChange
         }
 
         // entry field
-        $field = $this->extract('field');
         $list = $this->fieldActions;
         foreach ($this->fieldActions as $key) {
             if (preg_match('/^@(.*)$/', $key)) {
@@ -109,5 +121,39 @@ class ACMS_POST_Entry_BulkChange_Confirm extends ACMS_POST_Entry_BulkChange
                 $field->delete($fd);
             }
         }
+    }
+
+    /**
+     * Validate entry and field
+     * @param \Field_Validation $entry
+     * @param \Field_Validation $field
+     * @return void
+     */
+    protected function validateEntry(\Field_Validation $entry, \Field_Validation $field): void
+    {
+        if (in_array('entry_status', $this->entryActions, true)) {
+            $entry->setMethod('entry_status', 'required');
+            $entry->setMethod('entry_status', 'in', ['open', 'close', 'draft', 'trash']);
+        }
+        if (in_array('entry_title', $this->entryActions, true)) {
+            $entry->setMethod('entry_title', 'required');
+            $entry->setMethod('entry_title', 'maxlength', '255');
+        }
+        if (in_array('entry_link', $this->entryActions, true)) {
+            $entry->setMethod('entry_link', 'maxlength', '255');
+        }
+        if (in_array('entry_indexing', $this->entryActions, true)) {
+            $entry->setMethod('entry_indexing', 'required');
+            $entry->setMethod('entry_indexing', 'in', ['on', 'off']);
+        }
+
+        if (in_array('entry_tag', $this->entryActions, true)) {
+            $entry = Entry::validTag($entry, 'entry_tag');
+        }
+        if (in_array('entry_sub_category_id', $this->entryActions, true)) {
+            $entry = Entry::validSubCategory($entry, 'entry_sub_category_id');
+        }
+        $entry->validate(new ACMS_Validator());
+        $field->validate(new ACMS_Validator());
     }
 }

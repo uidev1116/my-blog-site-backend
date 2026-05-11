@@ -28,12 +28,6 @@ class ACMS_POST_File extends ACMS_POST
     public $ARCHIVES_DIR;
 
     /**
-     * 古いファイルを削除するかどうかのフラグ
-     * @var bool
-     */
-    public $olddel;
-
-    /**
      * 既存のファイルパス
      * @var string
      */
@@ -47,15 +41,12 @@ class ACMS_POST_File extends ACMS_POST
 
     /**
      * コンストラクタ
-     *
-     * @param bool $olddel 古いファイルを削除するかどうか
      */
-    public function __construct($olddel = true)
+    public function __construct()
     {
         //-------
         // init
         $this->delete       = null;
-        $this->olddel       = $olddel;
         $this->ARCHIVES_DIR = ARCHIVES_DIR;
     }
 
@@ -82,7 +73,9 @@ class ACMS_POST_File extends ACMS_POST
             // 削除モードの場合は編集や保存は行わない
             $path = $this->editAndSaveFiles($file);
         }
-        $this->deleteFile();
+        // 差し替え・削除指定時の古いファイル物理削除はここでは行わない。
+        // 呼び出し元 (Unit の保存処理) が、メイン column と column_rev を
+        // 両方更新した後に参照チェックを挟んで物理削除する。
 
         return $path;
     }
@@ -184,7 +177,7 @@ class ACMS_POST_File extends ACMS_POST
         }
 
         if (
-            $this->delete === '' &&
+            $this->delete === null &&
             $this->old !== '' &&
             $this->old !== $path
         ) {
@@ -192,21 +185,5 @@ class ACMS_POST_File extends ACMS_POST
             $this->delete = $this->ARCHIVES_DIR . $this->old;
         }
         return $path;
-    }
-
-    /**
-     * 不要になったファイルを削除
-     *
-     * 新規バージョン作成時は削除を行わない
-     * @return void
-     */
-    private function deleteFile()
-    {
-        if (Entry::isNewVersion()) {
-            return;
-        }
-        if ($this->olddel === true && $this->delete !== null && $this->delete !== '') {
-            deleteFile($this->delete, true);
-        }
     }
 }

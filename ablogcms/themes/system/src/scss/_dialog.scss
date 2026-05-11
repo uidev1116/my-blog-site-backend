@@ -120,6 +120,10 @@
   width: 95%;
   max-width: var(--acms-modal-width);
   margin: var(--acms-modal-margin) auto;
+
+  // dialog-centered などで dialog が画面いっぱいに広がるケースのために
+  // 余白部分のクリックを backdrop に透過させる (Bootstrap 5 と同じ手法)
+  pointer-events: none;
 }
 
 .acms-modal-dialog.large {
@@ -172,6 +176,9 @@
   width: 100%;
   padding: var(--acms-modal-content-padding);
   overflow: hidden;
+
+  // 親の dialog で pointer-events: none にしているため、実コンテンツでは復活させる
+  pointer-events: auto;
   background: global.$acms-color-white;
   border-radius: var(--acms-modal-border-radius);
   box-shadow: 0 4px 48px 0 rgb(0 0 0 / 25%);

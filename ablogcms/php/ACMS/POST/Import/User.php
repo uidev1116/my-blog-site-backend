@@ -14,10 +14,13 @@ class ACMS_POST_Import_User extends ACMS_POST_Import_Csv
      */
     protected $errorCount = 0;
 
-    function post()
+    public function post()
     {
         @set_time_limit(0);
         if (!sessionWithCompilation()) {
+            return $this->Post;
+        }
+        if (!licenseHasUnlimitedUsers()) {
             return $this->Post;
         }
 

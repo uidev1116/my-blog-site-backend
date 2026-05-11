@@ -1,5 +1,4 @@
-import { AxiosError } from 'axios';
-import axiosClient from '../../../lib/axios';
+import { fetchClient, FetchError } from '../../../lib/fetch-client';
 import type { CategoryOption, CreatedCategoryDTO } from '../types';
 
 export interface FetchCategoryOptionsParams {
@@ -22,7 +21,7 @@ export async function fetchCategoryOptions(params: FetchCategoryOptionsParams): 
     },
     false
   );
-  const { data: options = [] } = await axiosClient.get<CategoryOption[]>(endpoint);
+  const { data: options = [] } = await fetchClient.get<CategoryOption[]>(endpoint);
   return options;
 }
 
@@ -49,15 +48,9 @@ export async function createCategory(formData: FormData) {
     },
     true
   );
-  const response = await axiosClient.post<CreateCategoryResponse>(endpoint, formData);
+  const response = await fetchClient.post<CreateCategoryResponse>(endpoint, formData);
   if (response.data.status === 'failure') {
-    throw new AxiosError(
-      'Failed to create category.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to create category.', response.status, response.statusText, response);
   }
   return response.data.category;
 }

@@ -4,6 +4,16 @@ use Acms\Services\Facades\Login;
 
 class ACMS_POST_Member_Update_Password extends ACMS_POST_Member
 {
+    /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @inheritDoc
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return Login::isValidAuthenticatedPath(BID, PASSWORD_UPDATE_SEGMENT);
+    }
+
     public function post()
     {
         $userField = $this->extract('user');
@@ -36,7 +46,7 @@ class ACMS_POST_Member_Update_Password extends ACMS_POST_Member
         }
         $userField->setMethod('pass', 'required');
         $userField->setMethod('pass', 'password');
-        $userField->setMethod('user', 'operable', !!SUID);
+        $userField->setMethod('user', 'operable', Login::isLoggedIn());
         $userField->validate(new ACMS_Validator());
     }
 

@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_GET_Member_Sns extends ACMS_GET_Member
 {
     /**
@@ -28,11 +30,14 @@ class ACMS_GET_Member_Sns extends ACMS_GET_Member
         if (config('snslogin') !== 'on') {
             return;
         }
-        if (SUID && !snsLoginAuth(SUID)) {
-            return;
-        }
-        if (SUID) {
-            $user = loadUser(SUID);
+        if (Login::isLoggedIn()) {
+            /** @var int|null $sessionUserId */
+            $sessionUserId = SUID;
+            assert(is_int($sessionUserId)); // ログインしていることが保証されている
+            if (!snsLoginAuth($sessionUserId)) {
+                return;
+            }
+            $user = loadUser($sessionUserId);
         } else {
             $user = new Field_Validation();
         }

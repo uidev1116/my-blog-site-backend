@@ -1,13 +1,18 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_GET_Touch_UpdatePassword extends ACMS_GET
 {
-    function get()
+    public function get()
     {
-        if (!SUID) {
+        if (!Login::isLoggedIn()) {
             return '';
         }
-        if (in_array(ACMS_RAM::userAuth(SUID), Login::getSinginAuth())) {
+        /** @var int|null $sessionUserId */
+        $sessionUserId = SUID;
+        assert(is_int($sessionUserId)); // ログインしていることが保証されている
+        if (in_array(ACMS_RAM::userAuth($sessionUserId), Login::getSinginAuth(), true)) {
             if (config('email-auth-signin') !== 'on') {
                 // パスワードなしのメール認証によるサインイン設定がオフの場合、パスワード設定を表示
                 return $this->tpl;

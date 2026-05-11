@@ -1,4 +1,4 @@
-import axiosClient from '../../../lib/axios';
+import { fetchClient } from '../../../lib/fetch-client';
 import type { SubCategoryOption } from '../types';
 
 export async function fetchSubCategoryOptions(): Promise<SubCategoryOption[]> {
@@ -10,6 +10,6 @@ export async function fetchSubCategoryOptions(): Promise<SubCategoryOption[]> {
     },
     false
   );
-  const { data: options = [] } = await axiosClient.get<SubCategoryOption[]>(endpoint);
+  const { data: options = [] } = await fetchClient.get<SubCategoryOption[]>(endpoint);
   return options;
 }

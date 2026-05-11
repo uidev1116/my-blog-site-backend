@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { DeviceChangeEvent } from 'react-device-mode';
 import { createPortal } from 'react-dom';
 import DeviceModeModal from '../../../../components/device-mode/device-mode-modal';
@@ -37,7 +37,7 @@ const PreviewModal = ({ buttons }: PreviewModalProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const [windowWidth] = useWindowSize();
-  const isNaked = useMemo(() => windowWidth < 768, [windowWidth]);
+  const isNaked = windowWidth < 768;
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 

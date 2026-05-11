@@ -9,7 +9,6 @@ import {
   type PaginationState,
   type CellContext,
   type OnChangeFn,
-  type VisibilityState,
   type ColumnOrderState,
   type SortingState,
   getFilteredRowModel,
@@ -464,13 +463,19 @@ const SortableRow = <T,>({ row }: { row: Row<T> }) => {
   );
 };
 
+const EMPTY_COLUMN_DEFS: never[] = [];
+const EMPTY_ACTIONS: never[] = [];
+const EMPTY_BULK_ACTIONS: never[] = [];
+const EMPTY_MENUS: never[] = [];
+const EMPTY_COMPONENTS = {};
+
 const DataView = <T,>({
   view,
   data,
-  columns: columnDefs = [],
-  actions = [],
-  bulkActions = [],
-  menus = [],
+  columns: columnDefs = EMPTY_COLUMN_DEFS,
+  actions = EMPTY_ACTIONS,
+  bulkActions = EMPTY_BULK_ACTIONS,
+  menus = EMPTY_MENUS,
   onViewChange,
   enableRowSelection = false,
   enableRowDnD = false,
@@ -481,7 +486,7 @@ const DataView = <T,>({
   onDragEnd,
   paginationInfo,
   isLoading = false,
-  components: componentsProp = {},
+  components: componentsProp = EMPTY_COMPONENTS,
   className = '',
   headerClassName = '',
   bodyClassName = '',
@@ -630,9 +635,7 @@ const DataView = <T,>({
     [onViewChange, view, pagination]
   );
 
-  const columnVisibility = useMemo<VisibilityState | undefined>(() => {
-    return view.visibility;
-  }, [view]);
+  const columnVisibility = view.visibility;
 
   const columnOrder = useMemo<ColumnOrderState>(() => {
     return ['drag-handle', 'checkbox', ...(view.order || []), 'actions'];

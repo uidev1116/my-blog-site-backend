@@ -6,9 +6,11 @@ class ACMS_POST_Usergroup_Insert extends ACMS_POST_Usergroup
     {
         $Usergroup = $this->extract('usergroup');
         $Usergroup->setMethod('name', 'required');
+        $Usergroup->setMethod('name', 'maxlength', '255');
         $Usergroup->setMethod('name', 'double');
         $Usergroup->setMethod('role_id', 'required');
         $Usergroup->setMethod('usergroup', 'operable', sessionWithEnterpriseAdministration() and BID === RBID);
+        $Usergroup->setMethod('description', 'maxlength', '512');
 
         $Usergroup->validate(new ACMS_Validator_Usergroup());
 

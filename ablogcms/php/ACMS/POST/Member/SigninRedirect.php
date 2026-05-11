@@ -6,6 +6,16 @@ use Acms\Services\Facades\Common;
 class ACMS_POST_Member_SigninRedirect extends ACMS_POST_Member
 {
     /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @inheritDoc
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return true;
+    }
+
+    /**
      * キャッシュ削除をオフ
      *
      * @var bool

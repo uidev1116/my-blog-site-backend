@@ -156,6 +156,11 @@
           <!--T-->２段階認証コードが違います。<!--/T-->
         </div>
         <!-- END_IF -->
+        <!-- BEGIN_IF [{code:validator#secretKey}/eq/0] -->
+        <div role="alert" class="acms-alert acms-alert-danger">
+          <!--T-->２段階認証の秘密鍵を復号できませんでした。リカバリーコードをお試しください。<!--/T-->
+        </div>
+        <!-- END_IF -->
         <p class="acms-member-notice-text"><!--T-->認証用アプリに表示されている、認証コードを入力してください。<!--/T--></p>
 
         <label for="input-text-code" class="acms-member-form-label"><!--T-->認証コード<!--/T--></label>

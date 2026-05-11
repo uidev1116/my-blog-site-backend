@@ -6,7 +6,9 @@ use DB;
 use SQL;
 use ACMS_Filter;
 use Acms\Services\Facades\Auth;
+use Acms\Services\Facades\BlockEditor;
 use Acms\Services\Facades\Common;
+use Acms\Services\Facades\Login;
 use Acms\Services\Facades\PrivateStorage;
 use Acms\Services\Facades\Session;
 use Acms\Services\Facades\Storage;
@@ -96,10 +98,7 @@ class Download
      */
     protected function validateSecretType()
     {
-        if (!!SUID) {
-            return true;
-        }
-        return false;
+        return Login::isLoggedIn();
     }
 
     /**
@@ -144,8 +143,13 @@ class Download
         if ($inPreviewLimit && intval($inPreviewLimit) > REQUEST_TIME) {
             return true;
         }
-        if (SUID && (Auth::isEditor(SUID) || Auth::isAdministrator(SUID) || Auth::isContributor(SUID))) {
-            return true;
+        if (Login::isLoggedIn()) {
+            /** @var int|null $sessionUserId */
+            $sessionUserId = SUID;
+            assert(is_int($sessionUserId)); // ログインしていることが保証されている
+            if (Auth::isEditor($sessionUserId) || Auth::isAdministrator($sessionUserId) || Auth::isContributor($sessionUserId)) {
+                return true;
+            }
         }
         return false;
     }
@@ -159,6 +163,8 @@ class Download
     {
         $entryIds = [];
         $entryIds = array_merge($entryIds, $this->findUnitsUseMedia());
+        $entryIds = array_merge($entryIds, $this->findBlockEditorBlocksUseMedia());
+        $entryIds = array_merge($entryIds, $this->findBlockEditorFieldsUseMedia());
         $entryIds = array_merge($entryIds, $this->findFieldsUseMedia());
         $entryIds = array_merge($entryIds, $this->findCustomUnitsUseMedia());
 
@@ -178,6 +184,68 @@ class Download
         $sql->addWhereOpr('column_field_1', $this->mid);
 
         return DB::query($sql->get(dsn()), 'list') ?: [];
+    }
+
+    /**
+     * 該当のメディアが使われているブロックエディターユニットを検索
+     *
+     * @return int[]
+     */
+    protected function findBlockEditorBlocksUseMedia(): array
+    {
+        $sql = SQL::newSelect('column');
+        $sql->addSelect('column_entry_id');
+        $sql->addSelect('column_field_1');
+        $sql->addWhereOpr('column_type', 'block-editor%', 'LIKE');
+        // data-mid の前後に空白や改行が入る保存形式も拾えるようにする
+        $sql->addWhereOpr('column_field_1', '%data-mid%', 'LIKE');
+
+        /** @var array<int, array{column_entry_id: int|string, column_field_1: string}>|false $rows */
+        $rows = DB::query($sql->get(dsn()), 'all');
+        if (!$rows) {
+            return [];
+        }
+
+        $entryIds = [];
+        foreach ($rows as $row) {
+            $mediaIds = BlockEditor::extractMediaId($row['column_field_1']);
+            if (in_array($this->mid, $mediaIds, true)) {
+                $entryIds[] = intval($row['column_entry_id']);
+            }
+        }
+
+        return $entryIds;
+    }
+
+    /**
+     * 該当のメディアが使われているブロックエディターのカスタムフィールドを検索
+     *
+     * @return int[]
+     */
+    protected function findBlockEditorFieldsUseMedia(): array
+    {
+        $sql = SQL::newSelect('field');
+        $sql->addSelect('field_eid');
+        $sql->addSelect('field_value');
+        $sql->addWhereOpr('field_eid', null, '<>');
+        $sql->addWhereOpr('field_type', 'block-editor');
+        $sql->addWhereOpr('field_value', '%data-mid%', 'LIKE');
+
+        /** @var array<int, array{field_eid: int|string, field_value: string}>|false $rows */
+        $rows = DB::query($sql->get(dsn()), 'all');
+        if (!$rows) {
+            return [];
+        }
+
+        $entryIds = [];
+        foreach ($rows as $row) {
+            $mediaIds = BlockEditor::extractMediaId($row['field_value']);
+            if (in_array($this->mid, $mediaIds, true)) {
+                $entryIds[] = intval($row['field_eid']);
+            }
+        }
+
+        return $entryIds;
     }
 
     /**

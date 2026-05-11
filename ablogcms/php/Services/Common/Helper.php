@@ -35,6 +35,8 @@ use ACMS_Hook;
 use Exception;
 use RuntimeException;
 use DOMDocument;
+use Uri\Rfc3986\Uri as Rfc3986Uri;
+use Uri\WhatWg\Url as WhatWgUrl;
 
 class Helper
 {
@@ -238,12 +240,14 @@ class Helper
      */
     protected function isUrlFromManagedDomain(string $url): bool
     {
-        $host = parse_url($url, PHP_URL_HOST);
-        if ($host === false || $host === null) {
+        // WHATWG パーサーを使うことで日本語パスを含む絶対URLも正しくホスト抽出できる。
+        // 相対URLは parse() が null を返すため、自ドメインとみなす既存の動作が維持される。
+        $host = WhatWgUrl::parse($url)?->getAsciiHost();
+        if ($host === null) {
             return true; // 相対URLは自ドメインとみなす
         }
         // HTTP_HOSTを含めてチェック（相対URLの場合は自ドメインとみなすため）
-        return in_array($host, $this->getManagedDomains([HTTP_HOST]), true);
+        return in_array($host, array_map('strtolower', $this->getManagedDomains([HTTP_HOST])), true);
     }
 
     /**
@@ -349,45 +353,104 @@ class Helper
     }
 
     /**
-     * 絶対URLに変換
+     * URL を完全な absolute URL（scheme + host + path）に変換する。
      *
-     * @param string $path
-     * @param string $offset
-     * @param bool $force
-     * @return string
+     * グローバル状態に依存しない pure 関数（$baseUrl を省略した場合のみ BASE_URL を読む）。
+     *
+     * - 既に scheme 付き / protocol-relative の場合はそのまま返す。
+     * - ルート相対 `/foo` は base の origin（scheme + host + port）と結合する。
+     *   base のサブパス（`/site/`）は無視される。
+     * - ドキュメント相対 `foo` は base 全体（origin + path）と結合する。
+     *
+     * @param string $path 入力パス
+     * @param string $offset URL の前置オフセット（DIR_OFFSET 相当）
+     * @param ?string $baseUrl 解決の基準とする base URL。null の場合は BASE_URL を使用
      */
-    public function toAbsoluteUrl(string $path, string $offset = '', bool $force = false): string
-    {
-        if (!$path) {
+    public function toAbsoluteUrl(
+        string $path,
+        string $offset = '',
+        ?string $baseUrl = null,
+    ): string {
+        if ($path === '') {
             return '';
         }
-        if (!$this->isRelativeUrl($path, $force)) {
-            return $path; // 既に絶対URLの場合はそのまま返す
+        if ($this->isAbsoluteUri($path)) {
+            return $path;
         }
-        $baseUrl = rtrim(BASE_URL, '/');
+        $baseUrl ??= BASE_URL;
         $offset = trim($offset, '/');
+        $baseUri = Rfc3986Uri::parse($baseUrl);
 
-        // 絶対パスの場合は $baseUrl をドメイン部分までに限定する
         if (str_starts_with($path, '/')) {
-            $parts = parse_url(BASE_URL);
-            $baseUrl = $parts['scheme'] . '://' . $parts['host'];
-            if (isset($parts['port'])) {
-                $baseUrl .= ':' . $parts['port'];
-            }
+            // ルート相対 → base の origin のみ
+            $resolvedBase = $this->extractOrigin($baseUri);
+        } else {
+            // ドキュメント相対 → base の origin + path（query は RFC 3986 §5.2.2 に従い破棄）
+            $resolvedBase = $this->extractOrigin($baseUri) . rtrim($baseUri?->getPath() ?? '', '/');
         }
         $path = ltrim($path, '/');
 
-        if (!$force && !isApiBuild()) {
-            $baseUrlParts = parse_url($baseUrl);
-            $baseUrlPath = ($baseUrlParts['path'] ?? '');
-            $baseUrlQuery = isset($baseUrlParts['query']) ? '?' . $baseUrlParts['query'] : '';
-            $baseUrl = rtrim($baseUrlPath . $baseUrlQuery);
-        }
+        return $offset !== ''
+            ? "{$resolvedBase}/{$offset}/{$path}"
+            : "{$resolvedBase}/{$path}";
+    }
 
-        if ($offset !== '') {
-            return "{$baseUrl}/{$offset}/{$path}";
+    /**
+     * URL を root-relative URL（`/path` 形式、scheme/host を含まない）に変換する。
+     *
+     * V1 / V2 の HTML テンプレート出力で「ブラウザが現在のホストで解決する」前提の
+     * URL を生成するときに使う。グローバル状態に依存しない pure 関数（$baseUrl を
+     * 省略した場合のみ BASE_URL を読む）。
+     *
+     * - 既に scheme 付き / protocol-relative の場合はそのまま返す。
+     * - ルート相対 `/foo` はそのまま返す（既に root-relative なので変換不要）。
+     * - ドキュメント相対 `foo` は base の path+query 部分のみと結合する。
+     *
+     * @param string $path 入力パス
+     * @param string $offset URL の前置オフセット（DIR_OFFSET 相当）
+     * @param ?string $baseUrl 解決の基準とする base URL。null の場合は BASE_URL を使用
+     */
+    public function toRootRelativeUrl(
+        string $path,
+        string $offset = '',
+        ?string $baseUrl = null,
+    ): string {
+        if ($path === '') {
+            return '';
         }
-        return "{$baseUrl}/{$path}";
+        if ($this->isAbsoluteUri($path)) {
+            return $path;
+        }
+        if (str_starts_with($path, '/')) {
+            // 既にルート相対なのでそのまま返す
+            return $path;
+        }
+        $baseUrl ??= BASE_URL;
+        $offset = trim($offset, '/');
+        $path = ltrim($path, '/');
+
+        // base の path 部分のみ取り出す（query は RFC 3986 §5.2.2 に従い破棄）
+        $baseUri = Rfc3986Uri::parse($baseUrl);
+        $resolvedBase = rtrim($baseUri?->getPath() ?? '', '/');
+
+        return $offset !== ''
+            ? "{$resolvedBase}/{$offset}/{$path}"
+            : "{$resolvedBase}/{$path}";
+    }
+
+    /**
+     * URI から origin（scheme + host + port）を抽出する。
+     */
+    private function extractOrigin(?Rfc3986Uri $uri): string
+    {
+        if ($uri === null) {
+            return '';
+        }
+        $origin = ($uri->getScheme() ?? '') . '://' . ($uri->getHost() ?? '');
+        if ($uri->getPort() !== null) {
+            $origin .= ':' . $uri->getPort();
+        }
+        return $origin;
     }
 
     /**
@@ -401,58 +464,110 @@ class Helper
     public function resolveUrl($path, $offset = ''): string
     {
         if (isApiBuildOrV2Module()) {
-            $newPath = $this->toAbsoluteUrl(Media::urlencode($path), $offset);
+            $encoded = Media::urlencode($path);
+            // API ビルド時は完全絶対URL、V2 モジュール内のみ（API 非ビルド）は root-relative
+            $newPath = isApiBuild()
+                ? $this->toAbsoluteUrl($encoded, $offset)
+                : $this->toRootRelativeUrl($encoded, $offset);
             return $this->replaceDeliveryUrl($newPath);
         }
         return Media::urlencode($this->replaceDeliveryUrl($path));
     }
 
     /**
-     * HTML内の相対URLを絶対URLに変換
+     * 単一の相対URLを絶対URL（フルURL）に変換する
      *
-     * @param string $html
+     * - 空文字、`http(s)://`、プロトコル相対 (`//`)、`data:` 始まりの URL はそのまま返す
+     * - `/` 始まりのルート相対パスは baseUrl のスキーム + ホスト (+ ポート) を前置する
+     * - それ以外の相対パスは baseUrl 全体を前置する
+     *
+     * @param string $url
      * @param string $baseUrl
      * @return string
      */
-    public function convertRelativeUrlsToAbsolute(string $html, string $baseUrl): string
+    public function convertRelativeUrlToAbsolute(string $url, string $baseUrl): string
     {
-        $baseUrl = rtrim($baseUrl, '/');
-
-        if (!isApiBuild()) {
-            $baseUrlParts = parse_url($baseUrl);
-            $baseUrlPath = ($baseUrlParts['path'] ?? '');
-            $baseUrlQuery = isset($baseUrlParts['query']) ? '?' . $baseUrlParts['query'] : '';
-            $baseUrl = rtrim($baseUrlPath . $baseUrlQuery);
-        } else {
-            $parts = parse_url($baseUrl);
-            $baseUrl = $parts['scheme'] . '://' . $parts['host'];
-            if (isset($parts['port'])) {
-                $baseUrl .= ':' . $parts['port'];
-            }
+        if ($url === '') {
+            return '';
         }
+        if ($this->isAbsoluteUri($url)) {
+            return $url;
+        }
+        $baseUri = Rfc3986Uri::parse($baseUrl);
+        $base = ($baseUri?->getScheme() ?? 'https') . '://' . ($baseUri?->getHost() ?? '');
+        if ($baseUri?->getPort() !== null) {
+            $base .= ':' . $baseUri->getPort();
+        }
+        if ($url[0] === '/') {
+            return $base . $url;
+        }
+        return rtrim($baseUrl, '/') . '/' . $url;
+    }
+
+    /**
+     * HTML内のアセット参照（画像・動画・スタイルシート等）を絶対URLに変換する。
+     *
+     * APIビルド／V2モジュールなどヘッドレス出力向けの正規化。クロスドメインで配信
+     * される API レスポンスでは、フロント（Next.js 等）が別ドメインから取得する都合上、
+     * 画像・動画等は CMS ドメインの絶対URLになっている必要がある。
+     *
+     * リンク（<a>/<area>）は意図的に**一切変換しない**。これはフロント側のルーター
+     * （Next.js の <Link> など）の解釈に任せるため、および `<a href="section/">` の
+     * ようなドキュメント相対が CMS のサブパスを引きずって `/blog/section/` のように
+     * 出力されるのを避けるため。
+     *
+     * - 対象: <img>/<video>/<source>/<audio>/<track>/<link>（および <img>/<source> の srcset）
+     * - 非対象（一切触らない）: <a>/<area>
+     * - 非対象（CSRF・実行コンテキストへの影響回避）: <form>/<script>/<iframe>
+     * - スキーム付き URL（mailto:, tel:, javascript:, data:, blob: など）、
+     *   プロトコル相対（//host/...）、フラグメントのみ（#hash）、空文字は変換しない。
+     * - base が origin（scheme + host）を含む場合のみ絶対URL化し、path のみの
+     *   base のときはルート相対のまま保持する。
+     */
+    public function convertAssetUrlsToAbsolute(string $html, string $baseUrl): string
+    {
+        $assetTags = [
+            ['tag' => 'img', 'attr' => 'src'],
+            ['tag' => 'video', 'attr' => 'src'],
+            ['tag' => 'video', 'attr' => 'poster'],
+            ['tag' => 'source', 'attr' => 'src'],
+            ['tag' => 'audio', 'attr' => 'src'],
+            ['tag' => 'track', 'attr' => 'src'],
+            ['tag' => 'link', 'attr' => 'href'],
+        ];
+        $assetSrcsetTags = [
+            ['tag' => 'img', 'attr' => 'srcset'],
+            ['tag' => 'source', 'attr' => 'srcset'],
+        ];
 
         libxml_use_internal_errors(true);
         $doc = new DOMDocument('1.0', 'UTF-8');
         $doc->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
 
-        $tags = [
-            ['tag' => 'img', 'attr' => 'src'],
-            ['tag' => 'a', 'attr' => 'href'],
-            ['tag' => 'video',  'attr' => 'src'],
-            ['tag' => 'source', 'attr' => 'src'],
-            ['tag' => 'link',   'attr' => 'href'],
-            // ['tag' => 'script', 'attr' => 'src'],
-        ];
-
-        foreach ($tags as $entry) {
+        foreach ($assetTags as $entry) {
             $elements = $doc->getElementsByTagName($entry['tag']);
-            foreach ($elements as $el) {
-                $attrValue = $el->getAttribute($entry['attr']);
-                if ($this->isRelativeUrl($attrValue)) {
-                    $el->setAttribute($entry['attr'], $baseUrl . '/' . ltrim($attrValue, '/'));
+            foreach ($elements as $element) {
+                $attrValue = $element->getAttribute($entry['attr']);
+                $resolved = $this->resolveAgainstBase($attrValue, $baseUrl);
+                if ($resolved !== $attrValue) {
+                    $element->setAttribute($entry['attr'], $resolved);
                 }
             }
         }
+        foreach ($assetSrcsetTags as $entry) {
+            $elements = $doc->getElementsByTagName($entry['tag']);
+            foreach ($elements as $element) {
+                if (!$element->hasAttribute($entry['attr'])) {
+                    continue;
+                }
+                $attrValue = $element->getAttribute($entry['attr']);
+                $resolved = $this->resolveSrcset($attrValue, $baseUrl);
+                if ($resolved !== $attrValue) {
+                    $element->setAttribute($entry['attr'], $resolved);
+                }
+            }
+        }
+
         $innerHTML = '';
         foreach ($doc->childNodes as $node) {
             $innerHTML .= $doc->saveHTML($node);
@@ -465,19 +580,172 @@ class Helper
     }
 
     /**
-     * URLが相対URLかどうかを判定
+     * URL を base URL に対して RFC 3986 §5（Reference Resolution）に従って解決する。
      *
-     * @param string $url
-     * @param bool $force ビルド方式など考慮せず、絶対URLでないかを判定する場合はtrue
-     * @return bool
+     * 解決ロジック自体は league/uri-polyfill の WHATWG パーサーに委譲する
+     * （PHP 8.5+ ではネイティブ実装が使われる）。
+     *
+     * - 入力が空文字／フラグメントのみ（`#hash`）／プロトコル相対（`//host/...`）／
+     *   スキーム付き（`mailto:`, `tel:`, `data:`, `blob:`, `http(s):` など）のときは
+     *   そのまま返す（HTML 出力としては変換せずブラウザに任せる）。
+     * - base に origin（scheme + authority）がある場合は absolute URL に解決する。
+     * - base が path のみ（origin 無し）の場合は仮の origin を被せて RFC §5 を適用し、
+     *   結果から仮 origin を取り除いて path 部分のみを返す。これにより `../foo` を
+     *   `/blog/` に対して `/foo` のように正規化できる。
+     *
+     * @param string $url     解決したい URL。絶対・相対・ルート相対いずれでも可。
+     *                        例: `../images/foo.jpg` / `/css/style.css` / `https://example.com/`
+     * @param string $baseUrl 基準となる URL。絶対URL（`https://example.com/blog/`）か
+     *                        ルート相対パス（`/blog/`）を想定する。
+     *                        絶対URLの場合は WHATWG パーサーで直接解決する。
+     *                        ルート相対の場合は仮 origin を付与してから解決し、後で除去する。
+     * @return string         解決済みの URL。解決できない場合は $url をそのまま返す。
      */
-    private function isRelativeUrl(string $url, bool $force = false): bool
+    /**
+     * `srcset` 属性値内の各 URL を base URL に対して解決する。
+     *
+     * HTML Living Standard §4.8.4.3.2 "parse a srcset attribute" のアルゴリズムに準拠する。
+     * URL は「ASCII whitespace でない連続」として読み取り、カンマでは分割しないため、
+     * データURL内のカンマも誤分割されずに URL の一部として扱われる。
+     *
+     * @param string $srcset  srcset 属性値（例: "/a.jpg 1x, /b.jpg 2x"）
+     * @param string $baseUrl 解決の基準となる URL
+     * @return string         各 URL を解決した srcset 文字列
+     */
+    private function resolveSrcset(string $srcset, string $baseUrl): string
     {
-        $isRelative = !preg_match('#^(https?:)?//#', $url) && strpos($url, 'data:') !== 0;
-        if ($force || isApiBuild()) {
-            return $isRelative; // APIビルドでは、相対URLを許可しない
+        if (trim($srcset) === '') {
+            return $srcset;
         }
-        return $isRelative && strpos($url, '/') !== 0;
+        $position = 0;
+        $length = strlen($srcset);
+        $candidates = [];
+
+        while ($position < $length) {
+            // §4.1: 候補境界では ASCII whitespace と U+002C COMMA をまとめてスキップ
+            while ($position < $length && (ctype_space($srcset[$position]) || $srcset[$position] === ',')) {
+                $position++;
+            }
+            if ($position >= $length) {
+                break;
+            }
+            // §4.3: 空白でない連続を URL として読む（カンマも非空白なので URL の一部）
+            $urlStart = $position;
+            while ($position < $length && !ctype_space($srcset[$position])) {
+                $position++;
+            }
+            $url = substr($srcset, $urlStart, $position - $urlStart);
+            $descriptor = '';
+
+            if (str_ends_with($url, ',')) {
+                // §4.5: URL 末尾がカンマなら剥がして、記述子なしの候補として確定
+                $url = rtrim($url, ',');
+                if ($url === '') {
+                    continue;
+                }
+            } else {
+                // §4.6: 次のカンマまでを記述子として読む
+                while ($position < $length && ctype_space($srcset[$position])) {
+                    $position++;
+                }
+                $descStart = $position;
+                while ($position < $length && $srcset[$position] !== ',') {
+                    $position++;
+                }
+                $descriptor = trim(substr($srcset, $descStart, $position - $descStart));
+                if ($position < $length) {
+                    $position++; // カンマを消費
+                }
+            }
+            $resolvedUrl = $this->resolveAgainstBase($url, $baseUrl);
+            $candidates[] = $descriptor === '' ? $resolvedUrl : $resolvedUrl . ' ' . $descriptor;
+        }
+
+        return implode(', ', $candidates);
+    }
+
+    private function resolveAgainstBase(string $url, string $baseUrl): string
+    {
+        // 空文字・フラグメント（#anchor）・プロトコル相対URL（//host/...）は
+        // base に対して解決する必要がないのでそのまま返す
+        if ($url === '' || $url[0] === '#' || str_starts_with($url, '//')) {
+            return $url;
+        }
+
+        // RFC 3986 §3.1 に基づく scheme の検出。
+        // `^[a-z][a-z0-9+.\-]*:` は「英字で始まり、英数字・+・.・- が続いたあとに : が来る」パターンで、
+        // http: / https: / mailto: / tel: / javascript: / data: / blob: / ftp: などすべての
+        // scheme 付き URI にマッチする。マッチした場合は既に絶対参照なので変換不要。
+        if (preg_match('#^[a-z][a-z0-9+.\-]*:#i', $url) === 1) {
+            return $url;
+        }
+
+        // ── ケース①: base が絶対URL（http:// または https:// で始まる）──────────────
+        // WhatWgUrl::parse($url, $base) はブラウザと同じ URL 解決アルゴリズム（WHATWG URL Standard）で動作する。
+        // 第2引数に base を渡すことで、$url が相対パス（例: ../images/foo.jpg）でも
+        // base を起点に正しく絶対化してくれる。
+        // 旧実装で使っていた Rfc3986Uri::resolve() は日本語などの非 ASCII 文字を含む
+        // URL で null を返す問題があったため、WHATWG パーサーに切り替えている。
+        $baseWhatWg = WhatWgUrl::parse($baseUrl);
+        if ($baseWhatWg !== null) {
+            $resolved = WhatWgUrl::parse($url, $baseWhatWg);
+            return $resolved !== null ? $resolved->toAsciiString() : $url;
+        }
+
+        // ── ケース②: base がルート相対パス（/blog/ など、host を持たない）──────────
+        // WHATWG パーサーは base に host が必須なので、/blog/ をそのまま渡してもパースできない。
+        // そこで仮の origin「http://acms.internal」を先頭に付けて
+        //   /blog/  →  http://acms.internal/blog/
+        // という形で一時的に絶対 URL に変換してから解決し、
+        // 解決後に仮 origin 部分を取り除いてパスだけを返す。
+        // 例: $url = '../images/foo.jpg', $baseUrl = '/blog/entry/'
+        //     → 仮 base: http://acms.internal/blog/entry/
+        //     → 解決結果: http://acms.internal/blog/images/foo.jpg
+        //     → 仮 origin 除去後: /blog/images/foo.jpg
+        $synthOrigin = 'http://acms.internal';
+        $synthBaseStr = $synthOrigin . (str_starts_with($baseUrl, '/') ? $baseUrl : '/' . $baseUrl);
+        $synthBase = WhatWgUrl::parse($synthBaseStr);
+        if ($synthBase === null) {
+            return $url;
+        }
+        $resolved = WhatWgUrl::parse($url, $synthBase);
+        if ($resolved === null) {
+            return $url;
+        }
+        $resolvedStr = $resolved->toAsciiString();
+        // 仮 origin を取り除いてパス部分だけ返す
+        if (str_starts_with($resolvedStr, $synthOrigin)) {
+            return substr($resolvedStr, strlen($synthOrigin));
+        }
+        return $resolvedStr;
+    }
+
+    /**
+     * URL が "absolute URI" として自己解決可能かを判定する。
+     *
+     * 以下のいずれかなら true：
+     * - scheme 付き URI（`http(s):`, `mailto:`, `tel:`, `data:`, `blob:`,
+     *   `javascript:`, `ftp:` など）
+     * - protocol-relative（`//host/...`）
+     *
+     * `/foo` `foo` `../foo` `#anchor` `?q=1` `''` のような **base に対して
+     * 解決が必要な参照** は false。「ルート相対 `/foo` も解決済み扱いにしたい」
+     * のような V1 互換の判定が必要な場合は、呼び出し側で
+     * `str_starts_with($path, '/')` を別途チェックする。
+     */
+    private function isAbsoluteUri(string $url): bool
+    {
+        // protocol-relative（`//host/...`）は absolute 扱い
+        if (str_starts_with($url, '//')) {
+            return true;
+        }
+        // RFC 3986 に従って scheme を抽出。何らかの scheme があれば absolute
+        $uri = Rfc3986Uri::parse($url);
+        if ($uri !== null) {
+            return $uri->getScheme() !== null;
+        }
+        // 日本語パスを含む絶対URLへのフォールバック: scheme はASCIIのみなので正規表現で判定
+        return preg_match('#^[a-z][a-z0-9+.\-]*://#i', $url) === 1;
     }
 
     /**
@@ -520,6 +788,7 @@ class Helper
      * @param string $cipherText
      * @param string $iv
      * @return string
+     * @throws \LengthException IVの長さが不正な場合、または暗号文の長さがブロックサイズの倍数でない場合
      */
     public function decrypt($cipherText, $iv)
     {
@@ -588,7 +857,18 @@ class Helper
      */
     public function getCurrentSalt(): string
     {
-        return $this->currentSalt ??  base64_encode(random_bytes(32));
+        return $this->currentSalt ?? base64_encode(random_bytes(32));
+    }
+
+    /**
+     * 現在のソルトを設定
+     *
+     * @param string $salt
+     * @return void
+     */
+    public function setCurrentSalt(string $salt): void
+    {
+        $this->currentSalt = $salt;
     }
 
     /**
@@ -598,7 +878,18 @@ class Helper
      */
     public function getPreviousSalt(): string
     {
-        return $this->previousSalt ??  base64_encode(random_bytes(32));
+        return $this->previousSalt ?? base64_encode(random_bytes(32));
+    }
+
+    /**
+     * 1つ前のソルトを設定
+     *
+     * @param string $salt
+     * @return void
+     */
+    public function setPreviousSalt(string $salt): void
+    {
+        $this->previousSalt = $salt;
     }
 
     /**
@@ -608,7 +899,7 @@ class Helper
      */
     public function getAppSalt(): string
     {
-        return $this->appSalt ??  base64_encode(random_bytes(32));
+        return $this->appSalt ?? base64_encode(random_bytes(32));
     }
 
     /**
@@ -758,8 +1049,11 @@ class Helper
             $session->set('formToken', $token);
 
             // 同時ログイン判定のための、クライアント情報を更新
-            if (SUID) {
-                Login::updateSessionClientInfo(SUID);
+            if (Login::isLoggedIn()) {
+                /** @var int|null $sessionUserId */
+                $sessionUserId = SUID;
+                assert(is_int($sessionUserId)); // ログインしていることが保証されている
+                Login::updateSessionClientInfo($sessionUserId);
             }
         }
         $session->set('formTokenExpireAt', (REQUEST_TIME + (60 * 60 * 6))); // CSRFトークンを更新間隔を6時間に設定
@@ -1310,12 +1604,11 @@ class Helper
      */
     public function saveFulltext($type, $id, $fulltext = null, $targetBid = BID)
     {
-        $DB = DB::singleton(dsn());
         $SQL = SQL::newDelete('fulltext');
         $SQL->addWhereOpr('fulltext_' . $type, $id);
-        $DB->query($SQL->get(dsn()), 'exec');
+        DB::query($SQL->get(dsn()), 'exec');
 
-        if (!empty($fulltext)) {
+        if ($fulltext !== null && $fulltext !== '') {
             $SQL    = SQL::newInsert('fulltext');
             $SQL->addInsert('fulltext_value', $fulltext);
             if (config('ngram')) {
@@ -1326,7 +1619,7 @@ class Helper
             }
             $SQL->addInsert('fulltext_' . $type, $id);
             $SQL->addInsert('fulltext_blog_id', $targetBid);
-            $DB->query($SQL->get(dsn()), 'exec');
+            DB::query($SQL->get(dsn()), 'exec');
         }
     }
 
@@ -1335,90 +1628,15 @@ class Helper
      *
      * @param string $path
      * @param string $fileName
-     * @param string|boolean $extension // 指定すると、Content-Disposition: inline になります。
+     * @param string|false $extension // 指定すると、Content-Disposition: inline になります。
      * @param boolean $remove
      * @param \Acms\Services\Storage\Contracts\Filesystem $storage
      * @return never
      */
     public function download($path, $fileName, $extension = false, $remove = false, $storage = null)
     {
-        if (empty($storage)) {
-            $storage = LocalStorage::getInstance();
-            assert($storage instanceof \Acms\Services\Storage\Filesystem);
-        }
-        $fileNameEncode = urlencode($fileName);
-        $size = $storage->getFileSize($path);
-        $stream = $storage->readStream($path);
-        if (empty($stream)) {
-            throw new RuntimeException('ファイルが見つかりません。');
-        }
-        $meta = stream_get_meta_data($stream);
-
-        if ($extension && $meta['seekable']) {
-            $inlineExtensions = configArray('media_inline_download_extension');
-            $mime = false;
-
-            foreach ($inlineExtensions as $i => $value) {
-                if ($extension == $value) {
-                    $mime = config('media_inline_download_mime', false, $i);
-                }
-            }
-            header("Content-Disposition: inline; filename=\"$fileName\"; filename*=UTF-8''$fileNameEncode");
-            if ($mime) {
-                header("Content-Type: $mime");
-            } else {
-                header('Content-Type: application/octet-stream');
-            }
-
-            if (isset($_SERVER["HTTP_RANGE"]) && $_SERVER["HTTP_RANGE"]) {
-                // 要求された開始位置と終了位置を取得
-                list($start, $end) = sscanf($_SERVER["HTTP_RANGE"], "bytes=%d-%d");
-                // 終了位置が指定されていない場合(適当に1000000bytesづつ出す)
-                if (empty($end)) {
-                    $end = $start + 1000000 - 1;
-                }
-                // 終了位置がファイルサイズを超えた場合
-                if ($end >= ($size - 1)) {
-                    $end = $size - 1;
-                }
-                // 部分コンテンツであることを伝える
-                header("HTTP/1.1 206 Partial Content");
-                // コンテンツ範囲を伝える
-                header("Content-Range: bytes {$start}-{$end}/{$size}");
-                // 実際に送信するコンテンツ長: 終了位置 - 開始位置 + 1
-                $size = $end - $start + 1;
-                // ファイルポインタを開始位置まで移動
-                fseek($stream, $start);
-            }
-            header('Content-Length: ' . $size);
-
-            while (ob_get_level() > 0) {
-                ob_end_clean();
-            }
-
-            if ($size) {
-                echo fread($stream, $size);
-            }
-            fclose($stream);
-        } else {
-            header("Content-Disposition: attachment; filename=\"$fileName\"; filename*=UTF-8''$fileNameEncode");
-            if (strpos(UA, 'MSIE')) {
-                header('Content-Type: text/download');
-            } else {
-                header('Content-Type: application/octet-stream');
-            }
-            header('Content-Length: ' . $size);
-
-            while (ob_get_level() > 0) {
-                ob_end_clean();
-            }
-            fpassthru($stream);
-            fclose($stream);
-        }
-        if ($remove) {
-            $storage->remove($path);
-        }
-        die();
+        $download = new Download();
+        $download->handle($path, $fileName, $extension, $remove, $storage);
     }
 
     /**
@@ -1512,7 +1730,7 @@ class Helper
             }
             $this->cacheField->forget($cacheKey);
         }
-        $Field = new Field();
+        $field = new Field();
         if (
             is_null($bid) &&
             is_null($uid) &&
@@ -1521,9 +1739,8 @@ class Helper
             is_null($mid) &&
             is_null($unitId)
         ) {
-            return $Field;
+            return $field;
         }
-        $DB = DB::singleton(dsn());
         if ($rvid && ($eid || $unitId)) {
             $SQL = SQL::newSelect('field_rev');
             $SQL->addWhereOpr('field_rev_id', $rvid);
@@ -1554,19 +1771,221 @@ class Helper
         }
         $SQL->setOrder('field_sort');
         $q  = $SQL->get(dsn());
-        $statement = $DB->query($q, 'exec');
+        $statement = DB::query($q, 'exec');
 
-        while ($row = $DB->next($statement)) {
+        while ($row = DB::next($statement)) {
             $fd = $row['field_key'];
-            $Field->addField($fd, $row['field_value']);
-            $Field->setMeta($fd, 'search', $row['field_search'] === 'on');
-            $Field->setMeta($fd, 'type', $row['field_type']);
+            $field->addField($fd, $row['field_value']);
+            $field->setMeta($fd, 'search', $row['field_search'] === 'on');
+            $field->setMeta($fd, 'type', $row['field_type']);
         }
-        $cacheItem->set($Field);
+        $cacheItem->set($field);
         $this->cacheField->putItem($cacheItem);
-        Tpl::injectMediaField($Field, force: true);
+        Tpl::injectMediaField($field, force: true);
 
-        return $Field;
+        return $field;
+    }
+
+    /**
+     * グループフィールド行削除で孤児化する @path のリストを収集する。
+     *
+     * saveField() の DB DELETE 前に呼び出す。DB に残っている @path 値のうち、
+     * 今回保存しようとしている Field に含まれていないものを「削除された行」とみなし、
+     * パスと image/file の種別をペアで返す。
+     *
+     * 実際の物理削除は DELETE → INSERT 完了後に removeUnreferencedFieldFiles() で行う。
+     *
+     * @param string $tableName 'field' | 'field_rev'
+     * @param string $type 'bid'|'uid'|'cid'|'mid'|'eid'|'unit_id'
+     * @param int|string $id
+     * @param Field|null $field 保存しようとしている新 Field
+     * @param int|null $rvid リビジョンID（field_rev テーブルの場合のみ使用）
+     * @return list<array{path: string, type: 'image'|'file'}> 削除候補パスのリスト
+     */
+    private function collectOrphanedFieldPaths(string $tableName, string $type, $id, $field, ?int $rvid = null): array
+    {
+        // DB 側の既存値を field_key ごとに収集
+        $SQL = SQL::newSelect($tableName);
+        $SQL->addSelect('field_key');
+        $SQL->addSelect('field_value');
+        $SQL->addWhereOpr('field_' . $type, $id);
+        if ($tableName === 'field_rev') {
+            $SQL->addWhereOpr('field_rev_id', $rvid);
+        }
+        // updateField 指定時は該当キーのみ対象
+        if ($field instanceof Field && $field->get('updateField') === 'on') {
+            $fkey = [];
+            foreach ($field->listFields() as $fd) {
+                if ($fd === 'updateField') {
+                    continue;
+                }
+                $fkey[] = $fd;
+            }
+            if ($fkey === []) {
+                return [];
+            }
+            $SQL->addWhereIn('field_key', $fkey);
+        }
+        $stmt = DB::query($SQL->get(dsn()), 'exec');
+
+        /** @var array<string, string[]> */
+        $dbValuesByKey = [];
+        while ($row = DB::next($stmt)) {
+            $dbValuesByKey[$row['field_key']][] = (string)$row['field_value'];
+        }
+
+        $candidates = [];
+        foreach ($dbValuesByKey as $fd => $dbValues) {
+            if (!str_ends_with($fd, '@path')) {
+                continue;
+            }
+            $postValues = $field instanceof Field ? array_map('strval', $field->getArray($fd, true)) : [];
+            $removedPaths = GroupFieldDiffCalculator::calculateRemovedRows($dbValues, $postValues);
+            if ($removedPaths === []) {
+                continue;
+            }
+
+            // image フィールドか file フィールドかを判定
+            // 同一 base の @largePath キーが DB にあれば image 扱い
+            $base = substr($fd, 0, -strlen('@path'));
+            $fieldType = array_key_exists($base . '@largePath', $dbValuesByKey) ? 'image' : 'file';
+
+            foreach ($removedPaths as $relPath) {
+                if ($relPath === '') {
+                    continue;
+                }
+                $candidates[] = ['path' => $relPath, 'type' => $fieldType];
+            }
+        }
+        return $candidates;
+    }
+
+    /**
+     * 削除候補パスのうち、field / field_rev テーブルのどこからも参照されていないものを物理削除する。
+     *
+     * saveField() の DELETE → INSERT 完了後に呼び出す。
+     * DB 更新後なので自分自身の除外条件は不要。
+     *
+     * @param list<array{path: string, type: 'image'|'file'}> $candidates collectOrphanedFieldPaths() と collectMarkedFieldFiles() をマージした候補リスト
+     */
+    private function removeUnreferencedFieldFiles(array $candidates): void
+    {
+        foreach ($candidates as $candidate) {
+            $relPath = $candidate['path'];
+            if ($this->isReferencedByField($relPath)) {
+                continue;
+            }
+            $this->deletePhysicalFieldFile($relPath, $candidate['type']);
+        }
+    }
+
+    /**
+     * 削除チェック・差し替え時に旧ファイルを saveField() 後に物理削除するよう Field にマーキングする。
+     *
+     * extract() 内では即時削除せず、saveField() の DB 書き込み完了後に
+     * removeMarkedFieldFiles() で参照チェックを通してから削除する。
+     *
+     * @param Field $field extract 中の Field
+     * @param string $fieldKey image/file フィールドの key（例: 'photo'）
+     * @param string $relPath archives ディレクトリからの相対パス
+     * @param 'image'|'file' $type
+     */
+    private function markFieldFileForRemoval(Field $field, string $fieldKey, string $relPath, string $type): void
+    {
+        if ($relPath === '') {
+            return;
+        }
+        $removeList = $field->getMeta($fieldKey, 'removeOld');
+        if (!is_array($removeList)) {
+            $removeList = [];
+        }
+        $removeList[] = ['path' => $relPath, 'type' => $type];
+        $field->setMeta($fieldKey, 'removeOld', $removeList);
+    }
+
+    /**
+     * Field のメタ情報 'removeOld' に積まれた削除予約を収集する。
+     *
+     * extract() 内で markFieldFileForRemoval() によって積まれた削除候補を
+     * removeUnreferencedFieldFiles() と同じ形式のリストに変換して返す。
+     *
+     * @param Field|null $field
+     * @return list<array{path: string, type: 'image'|'file'}>
+     */
+    private function collectMarkedFieldFiles($field): array
+    {
+        if (!$field instanceof Field) {
+            return [];
+        }
+        $candidates = [];
+        foreach ($field->listFields() as $fd) {
+            $marks = $field->getMeta($fd, 'removeOld');
+            if (!is_array($marks) || $marks === []) {
+                continue;
+            }
+            foreach ($marks as $mark) {
+                if (!is_array($mark)) {
+                    continue;
+                }
+                $relPath = isset($mark['path']) ? (string)$mark['path'] : '';
+                $type = $mark['type'] ?? null;
+                if ($relPath === '' || ($type !== 'image' && $type !== 'file')) {
+                    continue;
+                }
+                $candidates[] = ['path' => $relPath, 'type' => $type];
+            }
+        }
+        return $candidates;
+    }
+
+    /**
+     * カスタムフィールド image/file 型のファイルを物理削除する。
+     *
+     * @param string $relPath archives ディレクトリからの相対パス
+     * @param 'image'|'file' $type
+     */
+    private function deletePhysicalFieldFile(string $relPath, string $type): void
+    {
+        if ($relPath === '') {
+            return;
+        }
+        if ($type === 'image') {
+            Image::deleteImageAllSize(ARCHIVES_DIR . normalSizeImagePath($relPath));
+            return;
+        }
+        $target = ARCHIVES_DIR . $relPath;
+        PublicStorage::remove($target);
+        if (HOOK_ENABLE) {
+            $Hook = ACMS_Hook::singleton();
+            $Hook->call('mediaDelete', $target);
+        }
+    }
+
+    /**
+     * 指定パスが field / field_rev テーブルのいずれかのレコードで使われているか判定する。
+     *
+     * @param string $path 検査するファイルパス（相対パス）
+     * @return bool いずれかのレコードが参照していれば true
+     */
+    private function isReferencedByField(string $path): bool
+    {
+        $sql = SQL::newSelect('field');
+        $sql->setSelect('field_value');
+        $sql->addWhereOpr('field_value', $path);
+        $sql->setLimit(1);
+        if (DB::query($sql->get(dsn()), 'one')) {
+            return true;
+        }
+
+        $sql = SQL::newSelect('field_rev');
+        $sql->setSelect('field_value');
+        $sql->addWhereOpr('field_value', $path);
+        $sql->setLimit(1);
+        if (DB::query($sql->get(dsn()), 'one')) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -1574,16 +1993,16 @@ class Helper
      *
      * @param 'bid'|'uid'|'cid'|'mid'|'eid'|'unit_id' $type
      * @param ($type is 'unit_id' ? string : int) $id
-     * @param Field|null $Field
+     * @param Field|null $field
      * @param Field|null $deleteField
      * @param int|null $rvid
      * @param int $targetBid
      *
      * @return bool
      */
-    public function saveField($type, $id, $Field = null, $deleteField = null, $rvid = null, $targetBid = BID)
+    public function saveField($type, $id, $field = null, $deleteField = null, $rvid = null, $targetBid = BID)
     {
-        if (empty($id)) {
+        if ($id === '' || $id < 1) {
             AcmsLogger::warning('idが空で、フィールドを保存できませんでした', [
                 'type' => $type,
                 'bid' => $targetBid,
@@ -1593,7 +2012,6 @@ class Helper
 
         $this->deleteFieldCache($type, $id, $rvid);
 
-        $DB = DB::singleton(dsn());
         $ARCHIVES_DIR_TO = ARCHIVES_DIR;
         $tableName = 'field';
         $asNewVersion = false;
@@ -1610,22 +2028,26 @@ class Helper
             }
         }
 
+        // DELETE 前に、このトランザクションで孤児化するファイルパスを収集する
+        // 実際の物理削除は DELETE → INSERT 完了後に行う（参照チェックで自分自身の除外が不要になるため）
+        $orphanedPaths = $this->collectOrphanedFieldPaths($tableName, $type, $id, $field, $rvid);
+
         $SQL = SQL::newDelete($tableName);
         $SQL->addWhereOpr('field_' . $type, $id);
         if ($tableName  === 'field_rev') {
             $SQL->addWhereOpr('field_rev_id', $rvid);
         }
-        if ($Field && $Field->get('updateField') === 'on') {
+        if ($field && $field->get('updateField') === 'on') {
             $fkey   = [];
-            $Field->delete('updateField');
-            foreach ($Field->listFields() as $fd) {
+            $field->delete('updateField');
+            foreach ($field->listFields() as $fd) {
                 $fkey[] = $fd;
             }
             $SQL->addWhereIn('field_key', $fkey);
         }
-        $DB->query($SQL->get(dsn()), 'exec');
+        DB::query($SQL->get(dsn()), 'exec');
 
-        if (!empty($Field)) {
+        if ($field instanceof Field) {
             $sql = SQL::newBulkInsert($tableName);
             $sql->addColumn('field_key');
             $sql->addColumn('field_value');
@@ -1637,30 +2059,36 @@ class Helper
             if ($tableName  === 'field_rev') {
                 $sql->addColumn('field_rev_id');
             }
-            foreach ($Field->listFields() as $fd) {
+            foreach ($field->listFields() as $fd) {
                 // copy revision
                 if ($asNewVersion) {
                     if (strpos($fd, '@path')) {
-                        $list   = $Field->getArray($fd, true);
-                        $base   = substr($fd, 0, (-1 * strlen('@path')));
-                        $set    = false;
+                        $list         = $field->getArray($fd, true);
+                        $base         = substr($fd, 0, (-1 * strlen('@path')));
+                        $currentLarge = $field->getArray($base . '@largePath', true);
+                        $currentTiny  = $field->getArray($base . '@tinyPath', true);
+                        $currentSquare = $field->getArray($base . '@squarePath', true);
+                        $newPaths        = [];
+                        $newLargePaths   = [];
+                        $newTinyPaths    = [];
+                        $newSquarePaths  = [];
+                        $needRebuild = false;
                         foreach ($list as $i => $val) {
                             $path = $val;
                             if (in_array($path, Entry::getUploadedFiles(), true)) {
+                                // 今回のリクエストでアップロードされたファイルはコピー不要、そのまま維持
+                                $newPaths[]       = $path;
+                                $newLargePaths[]  = $currentLarge[$i] ?? '';
+                                $newTinyPaths[]   = $currentTiny[$i] ?? '';
+                                $newSquarePaths[] = $currentSquare[$i] ?? '';
                                 continue;
                             }
-                            if (!$set) {
-                                $Field->delete($fd);
-                                $Field->delete($base . '@largePath');
-                                $Field->delete($base . '@tinyPath');
-                                $Field->delete($base . '@squarePath');
-                                $set = true;
-                            }
+                            $needRebuild = true;
                             if (PublicStorage::isFile(ARCHIVES_DIR . $path)) {
                                 $info       = pathinfo($path);
-                                $dirname    = empty($info['dirname']) ? '' : $info['dirname'] . '/';
+                                $dirname    = ($info['dirname'] ?? '') === '' ? '' : $info['dirname'] . '/';
                                 PublicStorage::makeDirectory($ARCHIVES_DIR_TO . $dirname);
-                                $ext        = empty($info['extension']) ? '' : '.' . $info['extension'];
+                                $ext        = ($info['extension'] ?? '') === '' ? '' : '.' . $info['extension'];
                                 $newPath    = $dirname . uniqueString() . $ext;
 
                                 $path       = ARCHIVES_DIR . $path;
@@ -1686,25 +2114,44 @@ class Helper
                                 if (!PublicStorage::isReadable($newSquarePath)) {
                                     $newSquarePath = '';
                                 }
-                                $Field->add($fd, $newPath);
-                                $Field->add($base . '@largePath', $newLargePath);
-                                $Field->add($base . '@tinyPath', $newTinyPath);
-                                $Field->add($base . '@squarePath', $newSquarePath);
+                                $newPaths[]       = $newPath;
+                                $newLargePaths[]  = $newLargePath;
+                                $newTinyPaths[]   = $newTinyPath;
+                                $newSquarePaths[] = $newSquarePath;
                             } else {
-                                $Field->add($fd, '');
-                                $Field->add($base . '@largePath', '');
-                                $Field->add($base . '@tinyPath', '');
-                                $Field->add($base . '@squarePath', '');
+                                $newPaths[]       = '';
+                                $newLargePaths[]  = '';
+                                $newTinyPaths[]   = '';
+                                $newSquarePaths[] = '';
+                            }
+                        }
+                        if ($needRebuild) {
+                            // 既存パスをコピーしたときだけ、@path と関連バリエーションをまとめて差し替える
+                            $field->delete($fd);
+                            $field->delete($base . '@largePath');
+                            $field->delete($base . '@tinyPath');
+                            $field->delete($base . '@squarePath');
+                            foreach ($newPaths as $v) {
+                                $field->add($fd, $v);
+                            }
+                            foreach ($newLargePaths as $v) {
+                                $field->add($base . '@largePath', $v);
+                            }
+                            foreach ($newTinyPaths as $v) {
+                                $field->add($base . '@tinyPath', $v);
+                            }
+                            foreach ($newSquarePaths as $v) {
+                                $field->add($base . '@squarePath', $v);
                             }
                         }
                     }
                 }
-                foreach ($Field->getArray($fd, true) as $i => $val) {
+                foreach ($field->getArray($fd, true) as $i => $val) {
                     $fieldTypeValue = null;
                     if (preg_match('/@(html|media|title)$/', $fd, $match)) {
                         $fieldTypeValue = $match[1];
                     }
-                    if ($fieldType = $Field->getMeta($fd, 'type')) {
+                    if ($fieldType = $field->getMeta($fd, 'type')) {
                         $fieldTypeValue = $fieldType;
                     }
                     $data = [
@@ -1712,7 +2159,7 @@ class Helper
                         'field_value' => $val,
                         'field_type' => $fieldTypeValue,
                         'field_sort' => $i + 1,
-                        'field_search' => $Field->getMeta($fd, 'search') ? 'on' : 'off',
+                        'field_search' => $field->getMeta($fd, 'search') ? 'on' : 'off',
                         'field_' . $type => $id,
                         'field_blog_id' => $targetBid,
                     ];
@@ -1723,9 +2170,17 @@ class Helper
                 }
             }
             if ($sql->hasData()) {
-                $DB->query($sql->get(dsn()), 'exec');
+                DB::query($sql->get(dsn()), 'exec');
             }
         }
+
+        // DELETE → INSERT 完了後に、どこからも参照されなくなったファイルを物理削除する
+        // 行削除由来（collectOrphanedFieldPaths）と削除チェック・差し替え由来（collectMarkedFieldFiles）を合算して一括処理する
+        $allCandidates = array_merge($orphanedPaths, $this->collectMarkedFieldFiles($field));
+        if ($allCandidates !== []) {
+            $this->removeUnreferencedFieldFiles($allCandidates);
+        }
+
         return true;
     }
 
@@ -1736,62 +2191,28 @@ class Helper
      *
      * @return \Field
      */
-    public function getUriObject($Post)
+    public function getUriObject(Field $Post)
     {
         $Uri = new Field();
 
-        //-----
-        // arg
         if (!$aryFd = $Post->getArray('arg')) {
+            // argがない場合は、fieldとqueryを除いた全てのフィールドをURIオブジェクトにセットする
             $aryFd = array_diff($Post->listFields(), $Post->getArray('field'), $Post->getArray('query'));
         }
         foreach ($aryFd as $fd) {
-            //---------
-            // field
-            if ('field' === $fd and $aryField = $Post->getArray('field')) {
-                $Field = new Field_Search();
-                foreach ($aryField as $field) {
-                    $Field->set($field);
-                    $Field->setConnector($field);
-                    $Field->setOperator($field);
-                    $aryValue       = $Post->getArray($field);
-                    $aryConnector   = $Post->getArray($field . '@connector');
-                    $aryOperator    = $Post->getArray($field . '@operator');
-                    $Field->addSeparator($field, $Post->get($field . '@separator', 'and'));
-
-                    if (!!($cnt = max(count($aryValue), count($aryConnector), count($aryOperator)))) {
-                        $defaultConnector   = 'and';
-                        $defaultOperator    = 'eq';
-                        if (empty($aryConnector) && empty($aryOperator) /*and 2 <= count($aryValue)*/) {
-                            $defaultConnector   = 'or';
-                        }
-                        if (!empty($aryConnector)) {
-                            $defaultConnector   = $aryConnector[0];
-                        }
-                        if (!empty($aryOperator)) {
-                            $defaultOperator    = $aryOperator[0];
-                        }
-                        for ($i = 0; $i < $cnt; $i++) {
-                            $Field->add($field, isset($aryValue[$i]) ? $aryValue[$i] : '');
-                            $Field->addConnector($field, isset($aryConnector[$i]) ? $aryConnector[$i] : $defaultConnector);
-                            $Field->addOperator($field, isset($aryOperator[$i]) ? $aryOperator[$i] : $defaultOperator);
-                        }
-                    }
-                }
-                $Uri->addChild('field', $Field);
-
-            //-------
-            // query
-            } elseif ('query' === $fd && $aryQuery = $Post->getArray('query')) {
+            if ($fd === 'field' && $Post->getArray('field')) {
+                // field
+                $fieldSearch = Field_Search::fromPost($Post);
+                $Uri->addChild('field', $fieldSearch);
+            } elseif ($fd === 'query' && $aryQuery = $Post->getArray('query')) {
+                // query
                 $Query  = new Field();
                 foreach ($aryQuery as $query) {
                     $Query->set($query, $Post->getArray($query));
                 }
                 $Uri->addChild('query', $Query);
-
-            //-------
-            // value
             } else {
+                // その他のフィールド
                 $Uri->set($fd, $Post->getArray($fd));
             }
         }
@@ -1801,6 +2222,13 @@ class Helper
     /**
      * POSTデータからデータの抜き出し
      *
+     * image/file カスタムフィールドで旧ファイルを消す操作（削除チェック・差し替え）があった場合、
+     * 物理削除は即時には行わず Field のメタ情報 'removeOld' に記録する。
+     * 実際の物理削除はバリデーション通過後に呼ばれる saveField() 内で参照チェック
+     * （field / field_rev の両テーブルを検索）の上で行う。
+     * よって旧ファイルを残すべきかどうか（新バージョン保存・作業領域のみの保存）は
+     * 呼び出し元が判定する必要はなく、参照チェックが自動的に判断する。
+     *
      * @param string $scp
      * @param \ACMS_Validator|null $V
      * @param \Field|null $deleteField
@@ -1808,7 +2236,7 @@ class Helper
      */
     public function extract($scp = 'field', $V = null, $deleteField = null)
     {
-        $Field = new Field_Validation();
+        $field = new Field_Validation();
         $this->deleteField = $deleteField;
 
         $ARCHIVES_DIR = ARCHIVES_DIR;
@@ -1820,13 +2248,13 @@ class Helper
         if ($takeover = $this->Post->get($scp . ':takeover')) {
             $takeoverField = acmsUnserialize($takeover);
             if ($takeoverField instanceof Field) {
-                $Field->overload($takeoverField);
+                $field->overload($takeoverField);
             }
             $this->Post->delete($scp . ':takeover');
         }
 
-        $Field->overload($this->Post->dig($scp));
-        $this->Post->addChild($scp, $Field);
+        $field->overload($this->Post->dig($scp));
+        $this->Post->addChild($scp, $field);
 
         // 許可ファイル拡張子をまとめておく
         $allow_file_extensions = array_merge(
@@ -1838,13 +2266,13 @@ class Helper
 
         //-------
         // child
-        foreach ($Field->listFields() as $fd) {
+        foreach ($field->listFields() as $fd) {
             if (!$this->Post->isExists($fd . ':field')) {
                 continue;
             }
-            $this->Post->set($fd, $Field->getArray($fd));
-            $Field->delete($fd);
-            $Field->addChild($fd, $this->extract($fd));
+            $this->Post->set($fd, $field->getArray($fd));
+            $field->delete($fd);
+            $field->addChild($fd, $this->extract($fd));
         }
 
         // アップロード処理中の画像・ファイルを保存する変数
@@ -1856,11 +2284,11 @@ class Helper
             if (
                 1
                 and preg_match('@^(.+)(?:\:c|\:converter)$@', $metaFd, $match)
-                and $Field->isExists($match[1])
+                and $field->isExists($match[1])
             ) {
                 $fd = $match[1];
                 $aryVal = [];
-                foreach ($Field->getArray($fd) as $val) {
+                foreach ($field->getArray($fd) as $val) {
                     $mode = $this->Post->get($metaFd);
                     if (preg_match('/^[rRnNaAsSkKhHcCV]+$/', $mode)) {
                         $aryVal[] = mb_convert_kana($val, $mode, 'UTF-8');
@@ -1873,7 +2301,7 @@ class Helper
                         $aryVal[] = '';
                     }
                 }
-                $Field->setField($fd, $aryVal);
+                $field->setField($fd, $aryVal);
                 $this->Post->delete($metaFd);
                 continue;
             }
@@ -1882,7 +2310,7 @@ class Helper
             if (
                 1
                 and preg_match('@^(.+):extension$@', $metaFd, $match)
-                and $Field->isExists($match[1])
+                and $field->isExists($match[1])
             ) {
                 $fd         = $match[1];
                 $type       = $this->Post->get($fd . ':extension');
@@ -1890,15 +2318,15 @@ class Helper
                 $this->Post->delete($fd . ':extension');
 
                 if ($type === 'media') {
-                    foreach ($Field->getArray($fd) as $mediaValue) {
-                        $Field->addField($fd . '@media', $mediaValue);
+                    foreach ($field->getArray($fd) as $mediaValue) {
+                        $field->addField($fd . '@media', $mediaValue);
                     }
                 } elseif ($type === 'block-editor') {
-                    $Field->setMeta($fd, 'type', 'block-editor');
+                    $field->setMeta($fd, 'type', 'block-editor');
                 } elseif ($type === 'paper-editor' || $type === 'rich-editor') {
-                    foreach ($Field->getArray($fd) as $editorValue) {
-                        $Field->addField($fd . '@html', RichEditor::render($editorValue));
-                        $Field->addField($fd . '@title', RichEditor::renderTitle($editorValue));
+                    foreach ($field->getArray($fd) as $editorValue) {
+                        $field->addField($fd . '@html', RichEditor::render($editorValue));
+                        $field->addField($fd . '@title', RichEditor::renderTitle($editorValue));
                     }
                 } elseif ($type === 'image' || $type === 'file') {
                     try {
@@ -1911,8 +2339,8 @@ class Helper
                             }
                         }
                         $size = $file->getFileSize();
-                        if (isset($Field->_aryMethod[$fd])) {
-                            $arg = $Field->_aryMethod[$fd];
+                        if (isset($field->_aryMethod[$fd])) {
+                            $arg = $field->_aryMethod[$fd];
                             if (isset($arg['filesize'])) {
                                 $maxsize = intval($arg['filesize']);
                                 if ($size > ($maxsize * 1024)) {
@@ -1922,12 +2350,12 @@ class Helper
                         }
                     } catch (\Exception $e) {
                         if ($e->getMessage() == 'EXTENSION_IS_DIFFERENT') {
-                            $Field->setMethod($fd, 'extension', false);
+                            $field->setMethod($fd, 'extension', false);
                             continue;
                         }
                         if ($e->getMessage() == UPLOAD_ERR_INI_SIZE || $e->getMessage() == UPLOAD_ERR_FORM_SIZE) {
-                            $Field->setMethod($fd, 'filesize', false);
-                            $Field->set($fd, 'maxfilesize');
+                            $field->setMethod($fd, 'filesize', false);
+                            $field->set($fd, 'maxfilesize');
                             continue;
                         }
                     }
@@ -1939,7 +2367,7 @@ class Helper
                     // data url
                     if (isset($_POST[$fd])) {
                         ACMS_POST_Image::base64DataToImage($_POST[$fd], $fd);
-                        $Field->delete($fd);
+                        $field->delete($fd);
                         $dataUrl = true;
                     }
 
@@ -1955,7 +2383,7 @@ class Helper
                         ) {
                             $key    = $fd . '@' . $key;
                             $this->deleteField->set($key, []);
-                            $Field->deleteField($fd . '@' . $key);
+                            $field->deleteField($fd . '@' . $key);
                         }
                         continue;
                     }
@@ -2074,9 +2502,7 @@ class Helper
                             && !$isProcessing
                             && isExistsRuleModuleConfig()
                         ) {
-                            if (!Entry::isNewVersion()) {
-                                Image::deleteImageAllSize($ARCHIVES_DIR . normalSizeImagePath($c['old']));
-                            }
+                            $this->markFieldFileForRemoval($field, $fd, $c['old'], 'image');
                             continue;
                         }
 
@@ -2104,9 +2530,7 @@ class Helper
                                 !$isProcessing &&
                                 isExistsRuleModuleConfig()
                             ) {
-                                if (!Entry::isNewVersion()) {
-                                    Image::deleteImageAllSize($ARCHIVES_DIR . normalSizeImagePath($c['old']));
-                                }
+                                $this->markFieldFileForRemoval($field, $fd, $c['old'], 'image');
                             }
 
                             //------------------------------
@@ -2324,14 +2748,14 @@ class Helper
                         for ($i = 0; $cnt > $i; $i++) {
                             $value[] = !empty($aryData[$i][$key]) ? $aryData[$i][$key] : ''; // @phpstan-ignore-line
                         }
-                        $Field->set($key, $value);
+                        $field->set($key, $value);
 
                         //------------
                         // validation
                         foreach ($this->Post->listFields() as $_fd) {
                             if (preg_match('/^' . $key . ':(?:v#|validator#)(.+)$/', $_fd, $match)) {
                                 $method = $match[1];
-                                $Field->setMethod($key, $method, $this->Post->get($_fd));
+                                $field->setMethod($key, $method, $this->Post->get($_fd));
                                 $this->Post->delete($_fd);
                             }
                         }
@@ -2347,11 +2771,11 @@ class Helper
                         $this->deleteField->setField($fd . '@secret', []);
                         $this->deleteField->setField($fd . '@downloadName', []);
 
-                        $Field->deleteField($fd . '@path');
-                        $Field->deleteField($fd . '@baseName');
-                        $Field->deleteField($fd . '@fileSize');
-                        $Field->deleteField($fd . '@secret');
-                        $Field->deleteField($fd . '@downloadName');
+                        $field->deleteField($fd . '@path');
+                        $field->deleteField($fd . '@baseName');
+                        $field->deleteField($fd . '@fileSize');
+                        $field->deleteField($fd . '@secret');
+                        $field->deleteField($fd . '@downloadName');
 
                         continue;
                     }
@@ -2462,13 +2886,7 @@ class Helper
                         //----------------------------
                         // delete ( 指定削除 continue )
                         if ('delete' === $c['edit'] && !empty($c['old']) && $secretCheck && !$isProcessing) {
-                            if (!Entry::isNewVersion()) {
-                                PublicStorage::remove($ARCHIVES_DIR . $c['old']);
-                                if (HOOK_ENABLE) {
-                                    $Hook = ACMS_Hook::singleton();
-                                    $Hook->call('mediaDelete', $ARCHIVES_DIR . $c['old']);
-                                }
-                            }
+                            $this->markFieldFileForRemoval($field, $fd, $c['old'], 'file');
                             continue;
                         }
 
@@ -2565,12 +2983,8 @@ class Helper
                             ) {
                                 //---------------------------
                                 // delete ( 古いファイルの削除 )
-                                if (!empty($c['old']) && !$isProcessing && !Entry::isNewVersion()) {
-                                    PublicStorage::remove($ARCHIVES_DIR . $c['old']);
-                                    if (HOOK_ENABLE) {
-                                        $Hook = ACMS_Hook::singleton();
-                                        $Hook->call('mediaDelete', $ARCHIVES_DIR . $c['old']);
-                                    }
+                                if (!empty($c['old']) && !$isProcessing) {
+                                    $this->markFieldFileForRemoval($field, $fd, $c['old'], 'file');
                                 }
 
                                 //------
@@ -2605,7 +3019,7 @@ class Helper
                                 $_secret = md5($fd . '@' . $path);
                                 continue;
                             } else {
-                                $Field->setMethod($fd, 'inValidFile', false);
+                                $field->setMethod($fd, 'inValidFile', false);
                             }
                         }
 
@@ -2625,12 +3039,12 @@ class Helper
 
                     //-----------
                     // set field
-                    $Field->setField($fd . '@path', $aryPath);
-                    $Field->setField($fd . '@baseName', $aryName);
-                    $Field->setField($fd . '@fileSize', $arySize);
-                    $Field->setField($fd . '@secret', $arySecret);
-                    $Field->setField($fd . '@originalName', $aryOriginalName);
-                    $Field->setField($fd . '@downloadName', $aryDownloadName);
+                    $field->setField($fd . '@path', $aryPath);
+                    $field->setField($fd . '@baseName', $aryName);
+                    $field->setField($fd . '@fileSize', $arySize);
+                    $field->setField($fd . '@secret', $arySecret);
+                    $field->setField($fd . '@originalName', $aryOriginalName);
+                    $field->setField($fd . '@downloadName', $aryDownloadName);
 
                     //------------
                     // validation
@@ -2638,7 +3052,7 @@ class Helper
                     foreach ($this->Post->listFields() as $_fd) {
                         if (preg_match('/^' . $key . ':(?:v#|validator#)(.+)$/', $_fd, $match)) {
                             $method = $match[1];
-                            $Field->setMethod($key, $method, $this->Post->get($_fd));
+                            $field->setMethod($key, $method, $this->Post->get($_fd));
                             $this->Post->delete($_fd);
                         }
                     }
@@ -2651,7 +3065,7 @@ class Helper
 
         //--------
         // search
-        foreach ($Field->listFields() as $fd) {
+        foreach ($field->listFields() as $fd) {
             // topic-fix_field_search: Field::getがnullを返さなくなっていたので，無指定時の戻りを擬似定数に変更して対処
             $s = $this->Post->get($fd . ':search', '__NOT_SPECIFIED__');
             if ($s === '__NOT_SPECIFIED__') {
@@ -2661,13 +3075,13 @@ class Helper
                     $s  = '1';
                 }
             }
-            $Field->setMeta($fd, 'search', $s !== '0');
+            $field->setMeta($fd, 'search', $s !== '0');
             $this->Post->deleteField($fd . ':search');
         }
 
-        $Field->validate($V);
+        $field->validate($V);
 
-        return $Field;
+        return $field;
     }
 
     /**
@@ -2705,19 +3119,37 @@ class Helper
         jsModule('dbCharset', DB_CONNECTION_CHARSET);
         jsModule('auth', getAuthConsideringRole(SUID) ?: '');
 
-        jsModule('umfs', ini_get('upload_max_filesize'));
-        jsModule('pms', ini_get('post_max_size'));
-        jsModule('mfu', ini_get('max_file_uploads'));
-        jsModule('lgImg', config('image_size_large_criterion') . ':' . preg_replace('/[^0-9]/', '', config('image_size_large')));
-        jsModule('jpegQuality', config('image_jpeg_quality', 75));
-        jsModule('mediaLibrary', config('media_library'));
-        jsModule('edition', LICENSE_EDITION);
-        jsModule('urlPreviewExpire', config('url_preview_expire'));
-        jsModule('timemachinePreviewDefaultDevice', config('timemachine_preview_default_device'));
-        jsModule('timemachinePreviewHasHistoryDevice', config('timemachine_preview_has_history_device'));
+        // 公開ページでも使用（built-in/library.js の fileiconPath() 経由）
         jsModule('fileiconDir', '/' . DIR_OFFSET . config('file_icon_dir'));
-        jsModule('entryEditPageType', config('entry_edit_page_type'));
-        jsModule('unitAlignVersion', config('unit_align_version', 'v2'));
+
+        // ログイン時のみ必要（メディアアップロード・タイムマシン・インライン編集など）
+        if (Login::isLoggedIn()) {
+            jsModule('umfs', ini_get('upload_max_filesize'));
+            jsModule('pms', ini_get('post_max_size'));
+            jsModule('mfu', ini_get('max_file_uploads'));
+            jsModule('lgImg', config('image_size_large_criterion') . ':' . preg_replace('/[^0-9]/', '', config('image_size_large')));
+            jsModule('jpegQuality', config('image_jpeg_quality', 75));
+            jsModule('urlPreviewExpire', config('url_preview_expire'));
+            jsModule('timemachinePreviewDefaultDevice', config('timemachine_preview_default_device'));
+            jsModule('timemachinePreviewHasHistoryDevice', config('timemachine_preview_has_history_device'));
+            jsModule('unitAlignVersion', config('unit_align_version', 'v2'));
+            jsModule('mediaLibrary', config('media_library'));
+            jsModule('edition', LICENSE_EDITION);
+            jsModule('entryEditPageType', config('entry_edit_page_type'));
+            // config set（ユニットエディターの localStorage キー生成に使用）
+            jsModule('configSetId', Config::getCurrentConfigSetId());
+            jsModule('themeSetId', Config::getCurrentThemeSetId());
+            jsModule('editorSetId', Config::getCurrentEditorSetId());
+
+            // limit（管理画面のエントリー/モジュール一覧件数設定）
+            $limitOptions = configArray('admin_limit_option');
+            $defaultLimit = $limitOptions[config('admin_limit_default')];
+            jsModule('limitOptions', $limitOptions);
+            jsModule('defaultLimit', $defaultLimit);
+
+            // ダイレクト編集のためのデータをセットする
+            jsModule('editInplace', Entry::isDirectEditEnabled() ? 'on' : 'off');
+        }
 
         if ($Session->get('timemachine_datetime')) {
             jsModule('timeMachineMode', 'true');
@@ -2767,31 +3199,21 @@ class Helper
             jsModule('cache', uniqueString());
         }
 
-        // url segments
-        jsModule('segments', getRoutingSegments());
+        // url segments（JS側の AcmsPathSegments 型が必要とするキーのみに絞る）
+        $jsSegmentKeys = [
+            'bid', 'cid', 'eid', 'uid', 'utid',
+            'tag', 'field', 'span', 'page', 'order',
+            'limit', 'keyword', 'admin', 'tpl', 'api',
+        ];
+        jsModule('segments', array_intersect_key(getRoutingSegments(), array_flip($jsSegmentKeys)));
 
-        // auth
+        // 管理画面のみ必要（キャッシュが効くページでは利用できないため、ログイン済みかつ管理ページのみ）
         if (Login::isLoggedIn() && Login::isAuthRequiredPage()) {
-            // キャッシュが効くページでは利用できないため、ログイン済みかつ管理ページのみ
             jsModule('suid', SUID);
             jsModule('sbid', SBID);
         }
 
-        // config set
-        jsModule('configSetId', Config::getCurrentConfigSetId());
-        jsModule('themeSetId', Config::getCurrentThemeSetId());
-        jsModule('editorSetId', Config::getCurrentEditorSetId());
-
-        // limit
-        $limitOptions = configArray('admin_limit_option');
-        $defaultLimit = $limitOptions[config('admin_limit_default')];
-        jsModule('limitOptions', $limitOptions);
-        jsModule('defaultLimit', $defaultLimit);
-
-        // ダイレクト編集のためのデータをセットする
-        jsModule('editInplace', Entry::isDirectEditEnabled() ? 'on' : 'off');
-
-        // debug mode
+        // debug mode（built-in/library.js の isDebugMode() 経由で公開ページでも使用。サードパーティテーマ互換性）
         jsModule('isDebugMode', isDebugMode() ? '1' : '0');
 
         $jsModules  = [];
@@ -2813,21 +3235,21 @@ class Helper
      */
     public function isSafeUrl($url)
     {
-        $parsed = parse_url($url);
-        if ($parsed === false) {
+        $parsed = WhatWgUrl::parse($url);
+        if ($parsed === null) {
             return false;
         }
         // スキームが http or https であること
-        if (!in_array($parsed['scheme'] ?? '', ['http', 'https'], true)) {
+        if (!in_array($parsed->getScheme(), ['http', 'https'], true)) {
             return false;
         }
-        // ホストが自サービスのドメインであること
-        $host = parse_url($url, PHP_URL_HOST);
-        if ($host === false || $host === null) {
+        // ホストが自サービスのドメインであること（ASCII IDN に正規化して比較）
+        $host = $parsed->getAsciiHost();
+        if ($host === null) {
             return false;
         }
 
-        return in_array($host, $this->getManagedDomains([HTTP_HOST]), true);
+        return in_array($host, array_map('strtolower', $this->getManagedDomains([HTTP_HOST])), true);
     }
 
     /**

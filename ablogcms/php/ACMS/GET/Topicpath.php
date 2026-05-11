@@ -119,8 +119,8 @@ class ACMS_GET_Topicpath extends ACMS_GET
             } else {
                 $this->firstItem = false;
             }
-            if (isset($row['field']) && $row['field'] instanceof Field) {
-                $tpl->add([$fieldName, $blockName], TemplateHelper::buildField($row['field'], $tpl));
+            if (isset($row['fields']) && $row['fields'] instanceof Field) {
+                $tpl->add([$fieldName, $blockName], TemplateHelper::buildField($row['fields'], $tpl));
             }
             $tpl->add($blockName, [
                 'name' => $row['name'],

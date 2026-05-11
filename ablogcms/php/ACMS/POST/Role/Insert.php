@@ -6,7 +6,9 @@ class ACMS_POST_Role_Insert extends ACMS_POST
     {
         $Role = $this->extract('role');
         $Role->setMethod('name', 'required');
+        $Role->setMethod('name', 'maxlength', '128');
         $Role->setMethod('role', 'operable', sessionWithEnterpriseAdministration() and BID === RBID);
+        $Role->setMethod('description', 'maxlength', '512');
 
         $Role->validate(new ACMS_Validator());
 

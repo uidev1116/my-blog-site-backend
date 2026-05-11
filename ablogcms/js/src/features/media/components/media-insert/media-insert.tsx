@@ -14,12 +14,14 @@ sagaMiddleware.run(saga);
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface MediaInsertProps extends React.ComponentProps<typeof MediaInsertContainer> {}
 
+const EMPTY_FILES: File[] = [];
+
 const MediaInsert = ({
   mode = 'insert',
   tab,
   radioMode,
   filetype = 'all',
-  files = [],
+  files = EMPTY_FILES,
   onInsert,
   onClose,
   isOpen,

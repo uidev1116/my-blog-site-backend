@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import deepmerge from 'deepmerge';
 import { stringify } from 'qs';
 import { encodeUri } from '../../utils';
 import { isNumber, isString } from '../../utils/typeGuard';
@@ -13,7 +12,7 @@ import type {
   AcmsPathParams,
   AcmsPathSegments,
 } from './types';
-import { formatDate } from './utils';
+import { formatDate, mergeConfig } from './utils';
 
 function isAcmsPathParams(params: AcmsPathParams | AcmsContext): params is AcmsPathParams {
   if ('blog' in params) {
@@ -67,6 +66,7 @@ function twoDigits(num: number) {
 
 const defaultOptions = {
   segments: defaultAcmsPathSegments,
+  apiVersion: 'v2',
 } as const satisfies AcmsPathConfig;
 
 export default function acmsPath(
@@ -74,7 +74,7 @@ export default function acmsPath(
   options: AcmsPathOptions = {}
 ) {
   const params = isAcmsPathParams(paramsOrCtx) ? paramsOrCtx : toAcmsPathParams(paramsOrCtx);
-  const { segments } = deepmerge(defaultOptions, options) as AcmsPathConfig;
+  const { segments, apiVersion } = mergeConfig(defaultOptions, options) as AcmsPathConfig;
   let path = [
     'blog',
     'admin',
@@ -218,9 +218,19 @@ export default function acmsPath(
       return `${path}/${segments.tpl}/${param.split('/').map(encodeUri).join('/')}`;
     }
 
+    if (key === 'api') {
+      const param = params[key]!;
+      if (param === '') {
+        return path;
+      }
+      const versionPath = apiVersion === 'v1' ? '' : `/${apiVersion}`;
+      return `${path}/${segments.api}${versionPath}/${encodeUri(param)}`;
+    }
+
     if (Array.isArray(param)) {
-      return param.length > 0
-        ? `${path}/${segments[key as keyof AcmsPathSegments]}/${(param as string[]).map(encodeUri).join('/')}`
+      const components = (param as string[]).map(encodeUri).filter((component) => component !== '');
+      return components.length > 0
+        ? `${path}/${segments[key as keyof AcmsPathSegments]}/${components.join('/')}`
         : path;
     }
 
@@ -238,7 +248,10 @@ export default function acmsPath(
     path += '/';
   }
 
-  const queryString = stringify(params.searchParams, { format: 'RFC1738' });
+  const queryString =
+    params.searchParams instanceof URLSearchParams
+      ? params.searchParams.toString()
+      : stringify(params.searchParams, { format: 'RFC1738' });
   if (queryString.length > 0) {
     path += `?${queryString}`;
   }

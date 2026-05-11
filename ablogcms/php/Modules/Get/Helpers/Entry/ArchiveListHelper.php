@@ -5,6 +5,7 @@ namespace Acms\Modules\Get\Helpers\Entry;
 use SQL;
 use SQL_Select;
 use ACMS_Filter;
+use Field_Search;
 
 class ArchiveListHelper extends EntryQueryHelper
 {
@@ -72,7 +73,7 @@ class ArchiveListHelper extends EntryQueryHelper
         if ($this->keyword) {
             ACMS_Filter::entryKeyword($sql, $this->keyword);
         }
-        if ($this->Field instanceof Field_Search) { // @phpstan-ignore-line
+        if ($this->Field instanceof Field_Search) {
             ACMS_Filter::entryField($sql, $this->Field);
         }
         $sql->addWhereOpr('entry_indexing', 'on');

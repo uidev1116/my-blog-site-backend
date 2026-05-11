@@ -54,23 +54,22 @@ const loadClosureFactory = (url, charset, pre, post, loaded) => {
   /**
    * loadClosure
    */
-  return function (callSpecifiedFunction) {
+  const loadClosureFunction = function (callSpecifiedFunction) {
     if (!$.isFunction(callSpecifiedFunction)) {
       callSpecifiedFunction = function () {};
     }
-    const self = arguments.callee; // eslint-disable-line no-restricted-properties
 
-    if (!self.executed) {
-      self.executed = true;
-      self.stack = [callSpecifiedFunction];
+    if (!loadClosureFunction.executed) {
+      loadClosureFunction.executed = true;
+      loadClosureFunction.stack = [callSpecifiedFunction];
 
       new AcmsSyncLoader()
         .next(pre)
         .next(url)
         .next(loaded)
         .next(() => {
-          while (self.stack.length) {
-            self.stack.shift()();
+          while (loadClosureFunction.stack.length) {
+            loadClosureFunction.stack.shift()();
           }
         })
         .load(() => {
@@ -78,10 +77,11 @@ const loadClosureFactory = (url, charset, pre, post, loaded) => {
           ACMS.dispatchEvent(`${url.match('.+/(.+?).[a-z]+([?#;].*)?$')[1]}Ready`);
         });
     } else {
-      self.stack.push(callSpecifiedFunction);
+      loadClosureFunction.stack.push(callSpecifiedFunction);
       return true;
     }
   };
+  return loadClosureFunction;
 };
 
 /**
@@ -102,9 +102,8 @@ const assignLoadClosure = (name, loadClosure, del) => {
   // 変数にするとただの参照代入になるのでプロパティとしてアクセス
   // @example
   // ACMS.Dispatch['Edit'] = function() {...};
-  parentPointer[token] = function (...args) {
+  const placeholderFunction = function (...args) {
     const scope = this;
-    const placeholder = arguments.callee; // eslint-disable-line no-restricted-properties
 
     if (del) {
       global[name.replace(/\..*$/, '')] = undefined;
@@ -125,7 +124,7 @@ const assignLoadClosure = (name, loadClosure, del) => {
       if (typeof func !== 'function') {
         return false;
       }
-      if (func === placeholder) {
+      if (func === placeholderFunction) {
         return false;
       }
 
@@ -134,18 +133,19 @@ const assignLoadClosure = (name, loadClosure, del) => {
       let key;
       let _key;
 
-      for (key in placeholder) {
+      for (key in placeholderFunction) {
         if (func[key]) {
-          for (_key in placeholder[key]) {
-            func[key][_key] = placeholder[key][_key];
+          for (_key in placeholderFunction[key]) {
+            func[key][_key] = placeholderFunction[key][_key];
           }
         } else {
-          func[key] = placeholder[key];
+          func[key] = placeholderFunction[key];
         }
       }
       return func.apply(scope, args);
     });
   };
+  parentPointer[token] = placeholderFunction;
 };
 
 /**

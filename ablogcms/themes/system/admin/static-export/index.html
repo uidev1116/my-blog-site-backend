@@ -15,9 +15,7 @@
 </style>
 
 <header>
-  <div>
-    @include("/admin/topicpath.html")
-  </div>
+  <div>@include("/admin/topicpath.html")</div>
   <div>
     <h1 class="acms-admin-admin-title js-dialog-title"><!--T-->静的書き出し<!--/T--></h1>
   </div>
@@ -27,13 +25,7 @@
 <!-- BEGIN_IF [{notice_mess}/nem/] -->
 <div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
   <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
-  <button
-    type="button"
-    class="js-acms-alert-close acms-admin-alert-icon-after"
-    aria-label="アラートを閉じる"
-  >
-    ×
-  </button>
+  <button type="button" class="js-acms-alert-close acms-admin-alert-icon-after" aria-label="アラートを閉じる">×</button>
   <!--T-->設定を保存しました。<!--/T-->
 </div>
 <!-- END_IF -->
@@ -41,13 +33,7 @@
 <!-- BEGIN msg#error -->
 <div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
   <span class="acms-admin-alert-icon-before acms-admin-icon-attention"></span>
-  <button
-    type="button"
-    class="js-acms-alert-close acms-admin-alert-icon-after"
-    aria-label="アラートを閉じる"
-  >
-    ×
-  </button>
+  <button type="button" class="js-acms-alert-close acms-admin-alert-icon-after" aria-label="アラートを閉じる">×</button>
   <!--T-->設定を保存出来ませんでした。<!--/T-->
 </div>
 <!-- END msg#error -->
@@ -72,11 +58,7 @@
   <!-- BEGIN diff_date:validator#required -->
   <div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
     <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
-    <button
-      type="button"
-      class="js-acms-alert-close acms-admin-alert-icon-after"
-      aria-label="アラートを閉じる"
-    >
+    <button type="button" class="js-acms-alert-close acms-admin-alert-icon-after" aria-label="アラートを閉じる">
       ×
     </button>
     <!--T-->差分書き出しの開始日を入力してください。<!--/T-->
@@ -85,11 +67,7 @@
   <!-- BEGIN diff_date:validator#dates -->
   <div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
     <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
-    <button
-      type="button"
-      class="js-acms-alert-close acms-admin-alert-icon-after"
-      aria-label="アラートを閉じる"
-    >
+    <button type="button" class="js-acms-alert-close acms-admin-alert-icon-after" aria-label="アラートを閉じる">
       ×
     </button>
     <!--T-->差分書き出しの開始日を正しく入力してください。<!--/T-->
@@ -98,11 +76,7 @@
   <!-- BEGIN diff_time:validator#required -->
   <div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
     <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
-    <button
-      type="button"
-      class="js-acms-alert-close acms-admin-alert-icon-after"
-      aria-label="アラートを閉じる"
-    >
+    <button type="button" class="js-acms-alert-close acms-admin-alert-icon-after" aria-label="アラートを閉じる">
       ×
     </button>
     <!--T-->差分書き出しの開始時間を入力してください。<!--/T-->
@@ -111,11 +85,7 @@
   <!-- BEGIN diff_time:validator#times -->
   <div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
     <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
-    <button
-      type="button"
-      class="js-acms-alert-close acms-admin-alert-icon-after"
-      aria-label="アラートを閉じる"
-    >
+    <button type="button" class="js-acms-alert-close acms-admin-alert-icon-after" aria-label="アラートを閉じる">
       ×
     </button>
     <!--T-->差分書き出しの開始時間を正しく入力してください。<!--/T-->
@@ -125,78 +95,37 @@
   <div id="exec" class="acms-admin-tabs-panel">
     <!-- BEGIN_IF [{processing}/eq/1] -->
     <!-- --------------------- 実行中 --------------------- -->
-
-    <form action="" method="post" class="acms-admin-form" id="js-publish_forced_termination" style="margin-bottom: 20px;">
+    <form
+      action=""
+      method="post"
+      class="acms-admin-form"
+      id="js-publish_forced_termination"
+      style="margin-bottom: 20px"
+    >
       <button
         type="submit"
         name="ACMS_POST_StaticExport_Terminate"
         onclick="return confirm('<!--T-->強制終了してもいいですか？<!--/T-->');"
         class="acms-admin-btn-admin acms-admin-btn-admin-danger"
       >
-       <!--T-->強制終了<!--/T-->
+        <!--T-->強制終了<!--/T-->
       </button>
     </form>
 
-    <script id="js-publish_progress_tpl" type="text/template">
-      <%- inProcess %> <%- percentage %>% ( <%- count %>/<%- max %> )
-    </script>
-    <div id="js-publish_progress" class="acms-admin-progress acms-admin-progress-striped acms-admin-active">
-      <div class="acms-admin-progress-bar acms-admin-progress-bar-info">
-        <span></span>
-      </div>
-    </div>
-
-    <script id="js-publish_result_tpl" type="text/template">
-      <h3><!--T-->書き出し状況<!--/T--></h3>
-      <ul>
-        <% _.each( processList, function( process ) { %>
-        <li><%- process.message %></li>
-        <% }); %>
-      </ul>
-    </script>
-    <div id="js-result"></div>
-
-    <script id="js-publish_removed_files_tpl" type="text/template">
-      <% if ( removedFiles.length > 0 ) {%>
-      <h3><!--T-->削除ファイル一覧<!--/T--></h3>
-      <ul>
-        <% _.each( removedFiles, function( file ) { %>
-        <li><%- file.path %></li>
-        <% }); %>
-      </ul>
-      <% } %>
-    </script>
-    <div id="js-removed-files"></div>
-
-    <script id="js-publish_error_tpl" type="text/template">
-      <% if ( errorList.length > 0 ) {%>
-      <h3><!--T-->エラーの一覧<!--/T--></h3>
-      <ul class="acms-admin-text-danger">
-        <% _.each( errorList.reverse(), function( error ) { %>
-        <li>
-          <span><%- error.message %> </span>
-          <% if ( error.code !== null ) { %>
-          <span>ステータスコード [<%- error.code %>] </span>
-          <% } %>
-          <% if ( error.path !== '' ) { %>
-          <span>(<%- error.path %>)</span>
-          <% } %>
-        </li>
-        <% }); %>
-      </ul>
-      <% } %>
-    </script>
-    <div id="js-error"></div>
+    <div
+      id="js-static-export-progress"
+      data-result-heading="<!--T-->書き出し状況<!--/T-->"
+      data-removed-files-heading="<!--T-->削除ファイル一覧<!--/T-->"
+      data-error-heading="<!--T-->エラーの一覧<!--/T-->"
+    ></div>
 
     <!-- ELSE -->
     <!-- --------------------- 非実行 --------------------- -->
     <div class="acms-admin-panel">
-      <div class="acms-admin-panel-header">
-        <!--T-->フル書き出し<!--/T-->
-      </div>
+      <div class="acms-admin-panel-header"><!--T-->フル書き出し<!--/T--></div>
       <div class="acms-admin-panel-body">
         <p>
-          <!--T-->サイト全体を設定に従い全て書き出します。また今回書き出されなかった古いファイルは自動的に削除されます。<!--/T--><br>
+          <!--T-->サイト全体を設定に従い全て書き出します。また今回書き出されなかった古いファイルは自動的に削除されます。<!--/T--><br />
           <!--T-->書き出し先ディレクトリは設定の「書き出し先ドキュメントルート」+「オフセットディレクトリ」に書き出されます。<!--/T-->
         </p>
       </div>
@@ -208,19 +137,17 @@
             onclick="return confirm('<!--T-->書き出しを開始してよろしいですか？<!--/T-->');"
             class="acms-admin-btn-admin acms-admin-btn-admin-primary"
           >
-           <!--T-->フル書き出し実行<!--/T-->
+            <!--T-->フル書き出し実行<!--/T-->
           </button>
         </form>
       </div>
     </div>
 
     <div class="acms-admin-panel">
-      <div class="acms-admin-panel-header">
-        <!--T-->エントリー差分書き出し<!--/T-->
-      </div>
+      <div class="acms-admin-panel-header"><!--T-->エントリー差分書き出し<!--/T--></div>
       <div class="acms-admin-panel-body">
         <p>
-          <!--T-->指定した日時からのエントリー差分データを書き出します。ただし、変更されたエントリーが所属するトップ、カテゴリーなどの一覧ページは全て書き出されます。<!--/T--><br>
+          <!--T-->指定した日時からのエントリー差分データを書き出します。ただし、変更されたエントリーが所属するトップ、カテゴリーなどの一覧ページは全て書き出されます。<!--/T--><br />
         </p>
         <p>
           <!--T-->書き出し先ディレクトリは、設定の「差分書き出し用ディレクトリ」に書き出されます。<!--/T-->
@@ -228,7 +155,7 @@
           <!--T-->注意点として、「差分書き出し用ディレクトリ」を設定している場合は、パスが通っていませんので、あくまで公開ディレクトリに手動でアップロードする用のディレクトリとなります。<!--/T-->
         </p>
         <p class="acms-admin-text-danger">
-          <!--T-->テーマ・テンプレートを変更した場合や、モジュールなどの設定に変更がある場合は、「フル書き出し」を行なってください。<!--/T--><br>
+          <!--T-->テーマ・テンプレートを変更した場合や、モジュールなどの設定に変更がある場合は、「フル書き出し」を行なってください。<!--/T--><br />
           <!--T-->また画像などのファイル書き出しは、エントリーのものだけになります。<!--/T-->
         </p>
       </div>
@@ -240,14 +167,8 @@
             name="diff_date"
             value="{last-time-date}"
             class="js-datepicker2"
-          >
-          <input
-            type="text"
-            placeholder="00-00-00"
-            name="diff_time"
-            value="{last-time-time}"
-            class="js-timepicker"
-          >
+          />
+          <input type="text" placeholder="00-00-00" name="diff_time" value="{last-time-time}" class="js-timepicker" />
 
           <!--T-->からの<!--/T-->
 
@@ -266,7 +187,6 @@
   </div>
   <!-- END_MODULE Admin_StaticExport -->
 
-
   <!-- 設定 -->
   <div id="config" class="acms-admin-tabs-panel">
     <form action="" method="post" class="js-validator acms-admin-form">
@@ -284,15 +204,11 @@
       <table class="acms-admin-table-admin-edit">
         <tr>
           <th><!--T-->a-blog cms 設置パス<!--/T--></th>
-          <td>
-            %{SCRIPT_DIR}
-          </td>
+          <td>%{SCRIPT_DIR}</td>
         </tr>
         <tr>
           <th>
-            <label for="input-text-static_max_publish">
-              <!--T-->同時ページ生成数<!--/T-->
-            </label>
+            <label for="input-text-static_max_publish"> <!--T-->同時ページ生成数<!--/T--> </label>
             <i
               class="acms-admin-icon-tooltip js-acms-tooltip-hover"
               data-acms-tooltip="<!--T-->同時に書き出すページ数の指定です。数値を大きくすると書き出しスピードが上がりますが、大きすぎるとサーバーに負荷がかかり遅くなる可能性があります。<!--/T-->"
@@ -306,26 +222,36 @@
               value="{static_max_publish}"
               class="acms-admin-form-width-mini"
               data-validator="static_max_publish"
-            /> <!--T-->ページ<!--/T-->
-            <input type="hidden" name="config[]" value="static_max_publish"/>
+            />
+            <!--T-->ページ<!--/T-->
+            <input type="hidden" name="config[]" value="static_max_publish" />
             <input type="hidden" name="static_max_publish:c" value="a" />
-            <input type="hidden" name="static_max_publish:v#required" id="static_max_publish-v-required"/>
-            <input type="hidden" name="static_max_publish:v#digits" id="static_max_publish-v-digits"/>
-            <input type="hidden" name="static_max_publish:v#min" value="1" id="static_max_publish-v-min"/>
+            <input type="hidden" name="static_max_publish:v#required" id="static_max_publish-v-required" />
+            <input type="hidden" name="static_max_publish:v#digits" id="static_max_publish-v-digits" />
+            <input type="hidden" name="static_max_publish:v#min" value="1" id="static_max_publish-v-min" />
             <div role="alert" aria-live="assertive">
-              <div data-validator-label="static_max_publish-v-required" class="validator-result-{static_max_publish:validator#required}">
+              <div
+                data-validator-label="static_max_publish-v-required"
+                class="validator-result-{static_max_publish:validator#required}"
+              >
                 <p class="error-text">
                   <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
                   <!--T-->必須項目です。<!--/T-->
                 </p>
               </div>
-              <div data-validator-label="static_max_publish-v-digits" class="validator-result-{static_max_publish:validator#digits}">
+              <div
+                data-validator-label="static_max_publish-v-digits"
+                class="validator-result-{static_max_publish:validator#digits}"
+              >
                 <p class="error-text">
                   <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
                   <!--T-->数字を入力して下さい。<!--/T-->
                 </p>
               </div>
-              <div data-validator-label="static_max_publish-v-min" class="validator-result-{static_max_publish:validator#min}">
+              <div
+                data-validator-label="static_max_publish-v-min"
+                class="validator-result-{static_max_publish:validator#min}"
+              >
                 <p class="error-text">
                   <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
                   <!--T-->1以上の数字を入力して下さい。<!--/T-->
@@ -336,9 +262,7 @@
         </tr>
         <tr>
           <th>
-            <label for="input-text-static_dest_document_root">
-              <!--T-->書き出し先ドキュメントルート<!--/T-->
-            </label>
+            <label for="input-text-static_dest_document_root"> <!--T-->書き出し先ドキュメントルート<!--/T--> </label>
             <i
               class="acms-admin-icon-tooltip js-acms-tooltip-hover"
               data-acms-tooltip="書き出し先のドキュメントルートを指定します。絶対パスで指定ください。"
@@ -354,10 +278,17 @@
               placeholder="%{SCRIPT_DIR}"
             />
 
-            <input type="hidden" name="config[]" value="static_dest_document_root"/>
-            <input type="hidden" name="static_dest_document_root:v#required" id="static_dest_document_root-v-required"/>
+            <input type="hidden" name="config[]" value="static_dest_document_root" />
+            <input
+              type="hidden"
+              name="static_dest_document_root:v#required"
+              id="static_dest_document_root-v-required"
+            />
             <div role="alert" aria-live="assertive">
-              <div data-validator-label="static_dest_document_root-v-required" class="validator-result-{static_dest_document_root:validator#required}">
+              <div
+                data-validator-label="static_dest_document_root-v-required"
+                class="validator-result-{static_dest_document_root:validator#required}"
+              >
                 <p class="error-text">
                   <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
                   <!--T-->必須項目です。<!--/T-->
@@ -368,9 +299,7 @@
         </tr>
         <tr>
           <th>
-            <label for="input-text-static_dest_offset_dir">
-              <!--T-->オフセットディレクトリ<!--/T-->
-            </label>
+            <label for="input-text-static_dest_offset_dir"> <!--T-->オフセットディレクトリ<!--/T--> </label>
             <i
               class="acms-admin-icon-tooltip js-acms-tooltip-hover"
               data-acms-tooltip="<!--T-->ドキュメントルート直下ではなく、ディレクトリの中に設置したい場合は設定します。<!--/T-->"
@@ -384,14 +313,12 @@
               value="{static_dest_offset_dir}"
               class="acms-admin-form-width-full"
             />
-            <input type="hidden" name="config[]" value="static_dest_offset_dir"/>
+            <input type="hidden" name="config[]" value="static_dest_offset_dir" />
           </td>
         </tr>
         <tr>
           <th>
-            <label for="input-text-static_dest_domain">
-              <!--T-->書き出し先ドメイン<!--/T-->
-            </label>
+            <label for="input-text-static_dest_domain"> <!--T-->書き出し先ドメイン<!--/T--> </label>
             <i
               class="acms-admin-icon-tooltip js-acms-tooltip-hover"
               data-acms-tooltip="書き出し先のドメインを指定します。"
@@ -405,10 +332,13 @@
               value="{static_dest_domain}"
               class="acms-admin-form-width-full"
             />
-            <input type="hidden" name="config[]" value="static_dest_domain"/>
-            <input type="hidden" name="static_dest_domain:v#required" id="static_dest_domain-v-required"/>
+            <input type="hidden" name="config[]" value="static_dest_domain" />
+            <input type="hidden" name="static_dest_domain:v#required" id="static_dest_domain-v-required" />
             <div role="alert" aria-live="assertive">
-              <div data-validator-label="static_dest_domain-v-required" class="validator-result-{static_dest_domain:validator#required}">
+              <div
+                data-validator-label="static_dest_domain-v-required"
+                class="validator-result-{static_dest_domain:validator#required}"
+              >
                 <p class="error-text">
                   <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
                   <!--T-->必須項目です。<!--/T-->
@@ -419,9 +349,7 @@
         </tr>
         <tr>
           <th>
-            <label for="input-text-static_dest_diff">
-              <!--T-->差分書き出し用ディレクトリ<!--/T-->
-            </label>
+            <label for="input-text-static_dest_diff"> <!--T-->差分書き出し用ディレクトリ<!--/T--> </label>
             <i
               class="acms-admin-icon-tooltip js-acms-tooltip-hover"
               data-acms-tooltip="<!--T-->差分データ書き出し用のディレクトリを指定します。絶対パスで指定ください。<!--/T-->"
@@ -436,14 +364,12 @@
               class="acms-admin-form-width-full"
               placeholder="%{SCRIPT_DIR}diff/"
             />
-            <input type="hidden" name="config[]" value="static_dest_diff"/>
+            <input type="hidden" name="config[]" value="static_dest_diff" />
           </td>
         </tr>
         <tr>
           <th>
-            <label for="input-text-static_export_dafault_max_page">
-              <!--T-->ページ書き出し<!--/T-->
-            </label>
+            <label for="input-text-static_export_dafault_max_page"> <!--T-->ページ書き出し<!--/T--> </label>
             <i
               class="acms-admin-icon-tooltip js-acms-tooltip-hover"
               data-acms-tooltip="<!--T-->カテゴリーで絞り込まないページを指定したページ分作成します。<!--/T-->"
@@ -457,17 +383,32 @@
               value="{static_export_dafault_max_page}"
               class="acms-admin-form-width-mini"
             />
-            <input type="hidden" name="config[]" value="static_export_dafault_max_page"/>
-            <input type="hidden" name="static_export_dafault_max_page:v#digits" id="static_export_dafault_max_page-v-digits"/>
-            <input type="hidden" name="static_export_dafault_max_page:v#min" value="2" id="static_export_dafault_max_page-v-min"/>
+            <input type="hidden" name="config[]" value="static_export_dafault_max_page" />
+            <input
+              type="hidden"
+              name="static_export_dafault_max_page:v#digits"
+              id="static_export_dafault_max_page-v-digits"
+            />
+            <input
+              type="hidden"
+              name="static_export_dafault_max_page:v#min"
+              value="2"
+              id="static_export_dafault_max_page-v-min"
+            />
             <div role="alert" aria-live="assertive">
-              <div data-validator-label="static_export_dafault_max_page-v-digits" class="validator-result-{static_export_dafault_max_page:validator#digits}">
+              <div
+                data-validator-label="static_export_dafault_max_page-v-digits"
+                class="validator-result-{static_export_dafault_max_page:validator#digits}"
+              >
                 <p class="error-text">
                   <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
                   <!--T-->数字を入力して下さい。<!--/T-->
                 </p>
               </div>
-              <div data-validator-label="static_export_dafault_max_page-v-min" class="validator-result-{static_export_dafault_max_page:validator#min}">
+              <div
+                data-validator-label="static_export_dafault_max_page-v-min"
+                class="validator-result-{static_export_dafault_max_page:validator#min}"
+              >
                 <p class="error-text">
                   <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
                   <!--T-->2以上の数字を入力して下さい。<!--/T-->
@@ -478,47 +419,62 @@
         </tr>
         <tr>
           <th>
-            <label for="input-textarea-static_export_exclusion_list">
-              <!--T-->書き出し除外パス<!--/T-->
-            </label>
+            <label for="input-textarea-static_export_exclusion_list"> <!--T-->書き出し除外パス<!--/T--> </label>
             <i
               class="acms-admin-icon-tooltip js-acms-tooltip-hover"
               data-acms-tooltip="<!--T-->書き出しから除外するパスを改行して設定します。<!--/T-->"
             ></i>
           </th>
           <td>
-            <textarea id="input-textarea-static_export_exclusion_list" name="static_export_exclusion_list" rows="10" class="acms-admin-form-width-full">{static_export_exclusion_list}</textarea>
-            <input type="hidden" name="config[]" value="static_export_exclusion_list"/>
+            <textarea
+              id="input-textarea-static_export_exclusion_list"
+              name="static_export_exclusion_list"
+              rows="10"
+              class="acms-admin-form-width-full"
+            >
+{static_export_exclusion_list}</textarea
+            >
+            <input type="hidden" name="config[]" value="static_export_exclusion_list" />
           </td>
         </tr>
         <tr>
           <th>
-            <label for="input-textarea-static_export_include_list">
-              <!--T-->書き出し必須パス<!--/T-->
-            </label>
+            <label for="input-textarea-static_export_include_list"> <!--T-->書き出し必須パス<!--/T--> </label>
             <i
               class="acms-admin-icon-tooltip js-acms-tooltip-hover"
               data-acms-tooltip="<!--T-->フル書き出し・差分書き出し共に必ず書き出すパスを改行して設定します。<!--/T-->"
             ></i>
           </th>
           <td>
-            <textarea id="input-textarea-static_export_include_list" name="static_export_include_list" rows="10" class="acms-admin-form-width-full">{static_export_include_list}</textarea>
-            <input type="hidden" name="config[]" value="static_export_include_list"/>
+            <textarea
+              id="input-textarea-static_export_include_list"
+              name="static_export_include_list"
+              rows="10"
+              class="acms-admin-form-width-full"
+            >
+{static_export_include_list}</textarea
+            >
+            <input type="hidden" name="config[]" value="static_export_include_list" />
           </td>
         </tr>
         <tr>
           <th>
-            <label for="input-textarea-static_export_delete_exclusion_list">
-              <!--T-->削除除外パス<!--/T-->
-            </label>
+            <label for="input-textarea-static_export_delete_exclusion_list"> <!--T-->削除除外パス<!--/T--> </label>
             <i
               class="acms-admin-icon-tooltip js-acms-tooltip-hover"
               data-acms-tooltip="<!--T-->フル書き出し時に削除しないパスを改行して設定します。<!--/T-->"
             ></i>
           </th>
           <td>
-            <textarea id="input-textarea-static_export_delete_exclusion_list" name="static_export_delete_exclusion_list" rows="10" class="acms-admin-form-width-full">{static_export_delete_exclusion_list}</textarea>
-            <input type="hidden" name="config[]" value="static_export_delete_exclusion_list"/>
+            <textarea
+              id="input-textarea-static_export_delete_exclusion_list"
+              name="static_export_delete_exclusion_list"
+              rows="10"
+              class="acms-admin-form-width-full"
+            >
+{static_export_delete_exclusion_list}</textarea
+            >
+            <input type="hidden" name="config[]" value="static_export_delete_exclusion_list" />
           </td>
         </tr>
       </table>
@@ -528,7 +484,9 @@
         <table class="js-fieldgroup-sortable acms-admin-table-admin">
           <thead>
             <tr>
-              <th class="acms-admin-table-left acms-admin-admin-config-table-item-handle acms-admin-table-nowrap">&nbsp;</th>
+              <th class="acms-admin-table-left acms-admin-admin-config-table-item-handle acms-admin-table-nowrap">
+                &nbsp;
+              </th>
               <th class="acms-admin-table-left" style="width: 300px">
                 <!--T-->カテゴリー<!--/T-->
                 <i
@@ -553,14 +511,19 @@
             <tr class="sortable-item">
               <td class="item-handle acms-admin-table-nowrap"><i class="acms-admin-icon-sort"></i></td>
               <td>
-                @include("/admin/include/category/select.html", {
-                  "target": "#static-page-category-value-\\[{i}\\]",
-                  "defaultValue": "{static_page_cid}",
-                  "menuPortalTarget": "body"
-                })
-                <input id="static-page-category-value-[{i}]" type="hidden" name="static_page_cid[]" value="{static_page_cid}" />
+                @include("/admin/include/category/select.html", { "target": "#static-page-category-value-\\[{i}\\]",
+                "defaultValue": "{static_page_cid}", "menuPortalTarget": "body" })
+                <input
+                  id="static-page-category-value-[{i}]"
+                  type="hidden"
+                  name="static_page_cid[]"
+                  value="{static_page_cid}"
+                />
                 <div role="alert" aria-live="assertive">
-                  <div data-validator-label="static_page_cid-v-digits" class="validator-result-{static_page_cid:v#digits}">
+                  <div
+                    data-validator-label="static_page_cid-v-digits"
+                    class="validator-result-{static_page_cid:v#digits}"
+                  >
                     <p class="error-text">
                       <span class="acms-admin-icon acms-admin-icon-attention"></span>
                       <!--T-->数字を入力して下さい。<!--/T-->
@@ -575,9 +538,17 @@
                 </div>
               </td>
               <td>
-                <input type="text" name="static_page_max[]" value="{static_page_max}" class="acms-admin-form-width-full"/>
+                <input
+                  type="text"
+                  name="static_page_max[]"
+                  value="{static_page_max}"
+                  class="acms-admin-form-width-full"
+                />
                 <div role="alert" aria-live="assertive">
-                  <div data-validator-label="static_page_max-v-digits" class="validator-result-{static_page_max:v#digits}">
+                  <div
+                    data-validator-label="static_page_max-v-digits"
+                    class="validator-result-{static_page_max:v#digits}"
+                  >
                     <p class="error-text">
                       <span class="acms-admin-icon acms-admin-icon-attention"></span>
                       <!--T-->数字を入力して下さい。<!--/T-->
@@ -592,18 +563,19 @@
                 </div>
               </td>
               <td class="acms-admin-table-nowrap">
-                <input type="button" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger" value="<!--T-->削除<!--/T-->"/>
+                <input
+                  type="button"
+                  class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger"
+                  value="<!--T-->削除<!--/T-->"
+                />
               </td>
             </tr>
             <!-- END static_page_category:loop -->
             <tr class="sortable-item item-template">
               <td class="item-handle acms-admin-table-nowrap"><i class="acms-admin-icon-sort"></i></td>
               <td>
-                @include("/admin/include/category/select.html", {
-                  "target": "input[id^='static-page-category-value-']",
-                  "defaultValue": "",
-                  "menuPortalTarget": "body"
-                })
+                @include("/admin/include/category/select.html", { "target": "input[id^='static-page-category-value-']",
+                "defaultValue": "", "menuPortalTarget": "body" })
                 <input id="static-page-category-value-" type="hidden" name="static_page_cid[]" value="" />
                 <div role="alert" aria-live="assertive">
                   <div data-validator-label="static_page_cid-v-digits" class="validator-result-1">
@@ -621,7 +593,7 @@
                 </div>
               </td>
               <td>
-                <input type="text" name="static_page_max[]" value="" class="acms-admin-form-width-full"/>
+                <input type="text" name="static_page_max[]" value="" class="acms-admin-form-width-full" />
                 <div role="alert" aria-live="assertive">
                   <div data-validator-label="static_page_max-v-digits" class="validator-result-1">
                     <p class="error-text">
@@ -638,43 +610,49 @@
                 </div>
               </td>
               <td class="acms-admin-table-nowrap">
-                <input type="button" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger" value="<!--T-->削除<!--/T-->"/>
+                <input
+                  type="button"
+                  class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger"
+                  value="<!--T-->削除<!--/T-->"
+                />
               </td>
             </tr>
           </tbody>
           <tfoot>
             <tr>
               <td colspan="5">
-                <input type="button" class="item-insert acms-admin-btn-admin" value="<!--T-->追加<!--/T-->"/>
+                <input type="button" class="item-insert acms-admin-btn-admin" value="<!--T-->追加<!--/T-->" />
               </td>
             </tr>
           </tfoot>
         </table>
       </div>
-      <input type="hidden" name="@static_page_category[]" value="static_page_cid"/>
+      <input type="hidden" name="@static_page_category[]" value="static_page_cid" />
       <input type="hidden" name="static_page_cid:v#digits" value="" id="static_page_cid-v-digits" />
       <input type="hidden" name="static_page_cid:v#min" value="1" id="static_page_cid-v-min" />
-      <input type="hidden" name="config[]" value="static_page_cid"/>
-      <input type="hidden" name="@static_page_category[]" value="static_page_max"/>
+      <input type="hidden" name="config[]" value="static_page_cid" />
+      <input type="hidden" name="@static_page_category[]" value="static_page_max" />
       <input type="hidden" name="static_page_max:v#digits" value="" id="static_page_max-v-digits" />
       <input type="hidden" name="static_page_max:v#min" value="2" id="static_page_max-v-min" />
-      <input type="hidden" name="config[]" value="static_page_max"/>
-      <input type="hidden" name="config[]" value="@static_page_category"/>
+      <input type="hidden" name="config[]" value="static_page_max" />
+      <input type="hidden" name="config[]" value="@static_page_category" />
 
       <h2 class="acms-admin-admin-title2"><!--T-->アーカイブ書き出しカテゴリー<!--/T--></h2>
       <div class="acms-admin-table-responsive acms-admin-margin-bottom-large">
         <table class="js-fieldgroup-sortable acms-admin-table-admin">
           <thead>
             <tr>
-              <th class="acms-admin-table-left acms-admin-admin-config-table-item-handle acms-admin-table-nowrap">&nbsp;</th>
-              <th class="acms-admin-table-left" style="width: 300px;">
+              <th class="acms-admin-table-left acms-admin-admin-config-table-item-handle acms-admin-table-nowrap">
+                &nbsp;
+              </th>
+              <th class="acms-admin-table-left" style="width: 300px">
                 <!--T-->カテゴリー<!--/T-->
                 <i
                   class="acms-admin-icon-tooltip js-acms-tooltip-hover acms-admin-margin-left-mini"
                   data-acms-tooltip="<!--T-->書き出すアーカイブのカテゴリーを指定<!--/T-->"
                 ></i>
               </th>
-              <th class="acms-admin-table-left" style="min-width: 100px;">
+              <th class="acms-admin-table-left" style="min-width: 100px">
                 <!--T-->開始月<!--/T-->
                 <i
                   class="acms-admin-icon-tooltip js-acms-tooltip-hover acms-admin-margin-left-mini"
@@ -685,7 +663,8 @@
                 <!--T-->MAXページ<!--/T-->
                 <i
                   class="acms-admin-icon-tooltip js-acms-tooltip-hover acms-admin-margin-left-mini"
-                  data-acms-tooltip="<!--T-->書き出すページ数のMAXを指定<!--/T-->">
+                  data-acms-tooltip="<!--T-->書き出すページ数のMAXを指定<!--/T-->"
+                >
                 </i>
               </th>
               <th class="acms-admin-table-left acms-admin-admin-config-table-action acms-admin-table-nowrap">
@@ -698,20 +677,28 @@
             <tr class="sortable-item">
               <td class="item-handle acms-admin-table-nowrap"><i class="acms-admin-icon-sort"></i></td>
               <td>
-                @include("/admin/include/category/select.html", {
-                  "target": "#static-archive-category-value-\\[{i}\\]",
-                  "defaultValue": "{static_archive_cid}",
-                  "menuPortalTarget": "body"
-                })
-                <input id="static-archive-category-value-[{i}]" type="hidden" name="static_archive_cid[]" value="{static_archive_cid}"/>
+                @include("/admin/include/category/select.html", { "target": "#static-archive-category-value-\\[{i}\\]",
+                "defaultValue": "{static_archive_cid}", "menuPortalTarget": "body" })
+                <input
+                  id="static-archive-category-value-[{i}]"
+                  type="hidden"
+                  name="static_archive_cid[]"
+                  value="{static_archive_cid}"
+                />
                 <div role="alert" aria-live="assertive">
-                  <div data-validator-label="static_archive_cid-v-digits" class="validator-result-{static_archive_cid:v#digits}">
+                  <div
+                    data-validator-label="static_archive_cid-v-digits"
+                    class="validator-result-{static_archive_cid:v#digits}"
+                  >
                     <p class="error-text">
                       <span class="acms-admin-icon acms-admin-icon-attention"></span>
                       <!--T-->数字を入力して下さい。<!--/T-->
                     </p>
                   </div>
-                  <div data-validator-label="static_archive_cid-v-min" class="validator-result-{static_archive_cid:v#min}">
+                  <div
+                    data-validator-label="static_archive_cid-v-min"
+                    class="validator-result-{static_archive_cid:v#min}"
+                  >
                     <p class="error-text">
                       <span class="acms-admin-icon acms-admin-icon-attention"></span>
                       <!--T-->1以上の数字を入力して下さい。<!--/T-->
@@ -720,9 +707,17 @@
                 </div>
               </td>
               <td>
-                <input type="text" name="static_archive_start[]" value="{static_archive_start}" class="acms-admin-form-width-full js-datepicker2"/>
+                <input
+                  type="text"
+                  name="static_archive_start[]"
+                  value="{static_archive_start}"
+                  class="acms-admin-form-width-full js-datepicker2"
+                />
                 <div role="alert" aria-live="assertive">
-                  <div data-validator-label="static_archive_start-v-dates" class="validator-result-{static_archive_start:v#dates}">
+                  <div
+                    data-validator-label="static_archive_start-v-dates"
+                    class="validator-result-{static_archive_start:v#dates}"
+                  >
                     <p class="error-text">
                       <span class="acms-admin-icon acms-admin-icon-attention"></span>
                       <!--T-->日付を入力して下さい。<!--/T-->
@@ -731,15 +726,26 @@
                 </div>
               </td>
               <td>
-                <input type="text" name="static_archive_max[]" value="{static_archive_max}" class="acms-admin-form-width-full"/>
+                <input
+                  type="text"
+                  name="static_archive_max[]"
+                  value="{static_archive_max}"
+                  class="acms-admin-form-width-full"
+                />
                 <div role="alert" aria-live="assertive">
-                  <div data-validator-label="static_archive_max-v-digits" class="validator-result-{static_archive_max:v#digits}">
+                  <div
+                    data-validator-label="static_archive_max-v-digits"
+                    class="validator-result-{static_archive_max:v#digits}"
+                  >
                     <p class="error-text">
                       <span class="acms-admin-icon acms-admin-icon-attention"></span>
                       <!--T-->数字を入力して下さい。<!--/T-->
                     </p>
                   </div>
-                  <div data-validator-label="static_archive_max-v-min" class="validator-result-{static_archive_max:v#min}">
+                  <div
+                    data-validator-label="static_archive_max-v-min"
+                    class="validator-result-{static_archive_max:v#min}"
+                  >
                     <p class="error-text">
                       <span class="acms-admin-icon acms-admin-icon-attention"></span>
                       <!--T-->2以上の数字を入力して下さい。<!--/T-->
@@ -748,19 +754,20 @@
                 </div>
               </td>
               <td class="acms-admin-table-nowrap">
-                <input type="button" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger" value="<!--T-->削除<!--/T-->"/>
+                <input
+                  type="button"
+                  class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger"
+                  value="<!--T-->削除<!--/T-->"
+                />
               </td>
             </tr>
             <!-- END static_archive_category:loop -->
             <tr class="sortable-item item-template">
               <td class="item-handle acms-admin-table-nowrap"><i class="acms-admin-icon-sort"></i></td>
               <td>
-                @include("/admin/include/category/select.html", {
-                  "target": "[id='static-archive-category-value-']",
-                  "defaultValue": "",
-                  "menuPortalTarget": "body"
-                })
-                <input id="static-archive-category-value-" type="hidden" name="static_archive_cid[]" value=""/>
+                @include("/admin/include/category/select.html", { "target": "[id='static-archive-category-value-']",
+                "defaultValue": "", "menuPortalTarget": "body" })
+                <input id="static-archive-category-value-" type="hidden" name="static_archive_cid[]" value="" />
                 <div role="alert" aria-live="assertive">
                   <div data-validator-label="static_archive_cid-v-digits" class="validator-result-1">
                     <p class="error-text">
@@ -777,7 +784,12 @@
                 </div>
               </td>
               <td>
-                <input type="text" name="static_archive_start[]" value="" class="acms-admin-form-width-full js-datepicker2"/>
+                <input
+                  type="text"
+                  name="static_archive_start[]"
+                  value=""
+                  class="acms-admin-form-width-full js-datepicker2"
+                />
                 <div role="alert" aria-live="assertive">
                   <div data-validator-label="static_archive_start-v-dates" class="validator-result-1">
                     <p class="error-text">
@@ -788,7 +800,7 @@
                 </div>
               </td>
               <td>
-                <input type="text" name="static_archive_max[]" value="" class="acms-admin-form-width-full"/>
+                <input type="text" name="static_archive_max[]" value="" class="acms-admin-form-width-full" />
                 <div role="alert" aria-live="assertive">
                   <div data-validator-label="static_archive_max-v-digits" class="validator-result-1">
                     <p class="error-text">
@@ -805,29 +817,35 @@
                 </div>
               </td>
               <td class="acms-admin-table-nowrap">
-                <input type="button" class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger" value="<!--T-->削除<!--/T-->"/>
+                <input
+                  type="button"
+                  class="item-delete acms-admin-btn-admin acms-admin-btn-admin-danger"
+                  value="<!--T-->削除<!--/T-->"
+                />
               </td>
             </tr>
           </tbody>
           <tfoot>
             <tr>
-              <td colspan="5"><input type="button" class="item-insert acms-admin-btn-admin" value="<!--T-->追加<!--/T-->"/></td>
+              <td colspan="5">
+                <input type="button" class="item-insert acms-admin-btn-admin" value="<!--T-->追加<!--/T-->" />
+              </td>
             </tr>
           </tfoot>
         </table>
       </div>
-      <input type="hidden" name="@static_archive_category[]" value="static_archive_cid"/>
-      <input type="hidden" name="config[]" value="static_archive_cid"/>
+      <input type="hidden" name="@static_archive_category[]" value="static_archive_cid" />
+      <input type="hidden" name="config[]" value="static_archive_cid" />
       <input type="hidden" name="static_archive_cid:v#digits" value="" id="static_archive_cid-v-digits" />
       <input type="hidden" name="static_archive_cid:v#min" value="1" id="static_archive_cid-v-min" />
-      <input type="hidden" name="@static_archive_category[]" value="static_archive_start"/>
-      <input type="hidden" name="config[]" value="static_archive_start"/>
+      <input type="hidden" name="@static_archive_category[]" value="static_archive_start" />
+      <input type="hidden" name="config[]" value="static_archive_start" />
       <input type="hidden" name="static_archive_start:v#dates" value="" id="static_archive_start-v-dates" />
-      <input type="hidden" name="@static_archive_category[]" value="static_archive_max"/>
-      <input type="hidden" name="config[]" value="static_archive_max"/>
+      <input type="hidden" name="@static_archive_category[]" value="static_archive_max" />
+      <input type="hidden" name="config[]" value="static_archive_max" />
       <input type="hidden" name="static_archive_max:v#digits" value="" id="static_archive_max-v-digits" />
       <input type="hidden" name="static_archive_max:v#min" value="2" id="static_archive_max-v-min" />
-      <input type="hidden" name="config[]" value="@static_archive_category"/>
+      <input type="hidden" name="config[]" value="@static_archive_category" />
     </form>
   </div>
 </div>

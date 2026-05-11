@@ -1,12 +1,17 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_GET_Admin_Topicpath extends ACMS_GET_Admin
 {
     function get()
     {
-        if (!SUID) {
+        if (!Login::isLoggedIn()) {
             return '';
         }
+        /** @var int|null $sessionUserId */
+        $sessionUserId = SUID;
+        assert(is_int($sessionUserId));
 
         $Tpl = new Template($this->tpl, new ACMS_Corrector());
         $blogs = [];
@@ -19,7 +24,7 @@ class ACMS_GET_Admin_Topicpath extends ACMS_GET_Admin
         $SQL->addSelect('blog_id');
         $SQL->addSelect('blog_name');
         $SQL->addSelect('blog_parent');
-        $SQL->addWhereIn('blog_id', Auth::getAuthorizedBlog(SUID));
+        $SQL->addWhereIn('blog_id', Auth::getAuthorizedBlog($sessionUserId));
         $SQL->setOrder('blog_left', 'ASC');
         $all = $DB->query($SQL->get(dsn()), 'all');
 
@@ -35,10 +40,12 @@ class ACMS_GET_Admin_Topicpath extends ACMS_GET_Admin
         $SQL->addSelect('blog_id');
         $SQL->addSelect('blog_name');
 
-        $fromLeft   = ACMS_RAM::blogLeft(BID);
-        $fromRight  = ACMS_RAM::blogRight(BID);
-        $toLeft     = ACMS_RAM::blogLeft(SBID);
-        $toRight    = ACMS_RAM::blogRight(SBID);
+        $currentBlogId = BID;
+        $sessionUserBlogId = (int) SBID;
+        $fromLeft   = ACMS_RAM::blogLeft($currentBlogId);
+        $fromRight  = ACMS_RAM::blogRight($currentBlogId);
+        $toLeft     = ACMS_RAM::blogLeft($sessionUserBlogId);
+        $toRight    = ACMS_RAM::blogRight($sessionUserBlogId);
         $SQL->addWhereBw('blog_left', $toLeft, $fromLeft);
         $SQL->addWhereBw('blog_right', $fromRight, $toRight);
         $SQL->setOrder('blog_left');
@@ -47,12 +54,12 @@ class ACMS_GET_Admin_Topicpath extends ACMS_GET_Admin
         $i  = 0;
         while ($row = $DB->next($statement)) {
             $bid    = intval($row['blog_id']);
-            if (!empty($i)) {
+            if ($i > 0) {
                 $Tpl->add('glue');
             }
 
             $topics = [];
-            if (isset($blogs[$bid]) && count($blogs[$bid]) > 0) {
+            if (isset($blogs[$bid])) {
                 $topics['child_blog'] = 1;
                 foreach ($blogs[$bid] as $child) {
                     $Tpl->add(['childBlog:loop', 'topic:loop'], [
@@ -77,28 +84,28 @@ class ACMS_GET_Admin_Topicpath extends ACMS_GET_Admin
         }
 
         $aryAdmin   = [];
-        if ('form_log' == ADMIN) {
+        if ('form_log' === ADMIN) {
             $aryAdmin[] = 'form_index';
             $aryAdmin[] = 'form_edit';
             $aryAdmin[] = 'form_log';
-        } elseif ('shop' == substr(ADMIN, 0, strlen('shop'))) {
-            if ('shop_menu' != ADMIN) {
+        } elseif ('shop' === substr(ADMIN, 0, strlen('shop'))) {
+            if ('shop_menu' !== ADMIN) {
                 $aryAdmin[] = 'shop_menu';
             }
             if (preg_match('@_edit$@', ADMIN)) {
                 $aryAdmin[] = str_replace('_edit', '_index', ADMIN);
             }
             $aryAdmin[] = ADMIN;
-        } elseif ('schedule' == substr(ADMIN, 0, strlen('schedule'))) {
-            if ('schedule_index' != ADMIN) {
+        } elseif ('schedule' === substr(ADMIN, 0, strlen('schedule'))) {
+            if ('schedule_index' !== ADMIN) {
                 $aryAdmin[] = 'schedule_index';
             }
             $aryAdmin[] = ADMIN;
-        } elseif ('config_set_theme' == substr(ADMIN, 0, strlen('config_set_theme'))) {
+        } elseif ('config_set_theme' === substr(ADMIN, 0, strlen('config_set_theme'))) {
             $aryAdmin[] = 'config_set_theme_index';
             $aryAdmin[] = 'rule_index';
             $aryAdmin[] = 'rule_edit';
-        } elseif ('config_set_editor' == substr(ADMIN, 0, strlen('config_set_editor'))) {
+        } elseif ('config_set_editor' === substr(ADMIN, 0, strlen('config_set_editor'))) {
             $aryAdmin[] = 'config_set_editor_index';
             $aryAdmin[] = 'rule_index';
             $aryAdmin[] = 'rule_edit';
@@ -124,7 +131,7 @@ class ACMS_GET_Admin_Topicpath extends ACMS_GET_Admin
             $aryAdmin[] = ADMIN;
         } elseif ('config' === substr(ADMIN, 0, strlen('config'))) {
             $aryAdmin[] = 'config_set_base_index';
-            if (!in_array(ADMIN, ['config_set_index', 'config_set_edit'])) {
+            if (!in_array(ADMIN, ['config_set_index', 'config_set_edit'], true)) {
                 if ('config_import' !== ADMIN && 'config_export' !== ADMIN) {
                     $aryAdmin[] = 'config_index';
                     $aryAdmin[] = 'rule_index';
@@ -137,7 +144,7 @@ class ACMS_GET_Admin_Topicpath extends ACMS_GET_Admin
             if ('config_set_edit' === ADMIN) {
                 $aryAdmin[] = ADMIN;
             }
-        } elseif ('module' == substr(ADMIN, 0, strlen('module'))) {
+        } elseif ('module' === substr(ADMIN, 0, strlen('module'))) {
             $aryAdmin[] = 'module_index';
             if ('module_import' !== ADMIN) {
                 $aryAdmin[] = 'rule_index';
@@ -146,13 +153,13 @@ class ACMS_GET_Admin_Topicpath extends ACMS_GET_Admin
             if ('module_index' !== ADMIN) {
                 $aryAdmin[] = ADMIN;
             }
-        } elseif ('fix' == substr(ADMIN, 0, strlen('fix'))) {
+        } elseif ('fix' === substr(ADMIN, 0, strlen('fix'))) {
             $aryAdmin[] = 'fix_index';
-            if ('fix_index' <> ADMIN) {
+            if ('fix_index' !== ADMIN) {
                 $aryAdmin[] = ADMIN;
             }
         } elseif (preg_match('@(\_edit|\_editor)$@', ADMIN)) {
-            if (!('user_edit' == ADMIN and !sessionWithContribution())) {
+            if (!('user_edit' === ADMIN and !sessionWithContribution())) {
                 if ('blog_edit' !== ADMIN) {
                     $aryAdmin[] = str_replace(['_editor', '_edit'], ['_index', '_index'], ADMIN);
                 }
@@ -161,13 +168,13 @@ class ACMS_GET_Admin_Topicpath extends ACMS_GET_Admin
         } elseif ('form2-edit' === ADMIN) {
             $aryAdmin[] = 'entry_index';
             $aryAdmin[] = ADMIN;
-        } elseif ('import' == substr(ADMIN, 0, strlen('import'))) {
-            if ('import_index' != ADMIN) {
+        } elseif ('import' === substr(ADMIN, 0, strlen('import'))) {
+            if ('import_index' !== ADMIN) {
                 $aryAdmin[] = 'import_index';
             }
             $aryAdmin[] = ADMIN;
-        } elseif ('export' == substr(ADMIN, 0, strlen('export'))) {
-            if ('export_index' != ADMIN) {
+        } elseif ('export' === substr(ADMIN, 0, strlen('export'))) {
+            if ('export_index' !== ADMIN) {
                 $aryAdmin[] = 'export_index';
             }
             $aryAdmin[] = ADMIN;
@@ -294,7 +301,7 @@ class ACMS_GET_Admin_Topicpath extends ACMS_GET_Admin
             }
             $Tpl->add('topic:loop', $topicVars);
         }
-        $rootConfig = Config::loadBlogField(RBID);
+        $rootConfig = Config::loadBlogField((int) RBID);
         $Tpl->add(null, [
             'blog_theme_logo@squarePath' => $rootConfig->get('blog_theme_logo@squarePath'),
         ]);

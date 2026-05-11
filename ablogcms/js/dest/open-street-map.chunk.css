@@ -21,14 +21,10 @@
 .leaflet-marker-icon,
 .leaflet-marker-shadow {
 	-webkit-user-select: none;
-	   -moz-user-select: none;
 	        user-select: none;
 	  -webkit-user-drag: none;
 	}
 /* Prevents IE11 from highlighting tiles in blue */
-.leaflet-tile::-moz-selection {
-	background: transparent;
-}
 .leaflet-tile::selection {
 	background: transparent;
 }
@@ -565,7 +561,6 @@ svg.leaflet-image-layer.leaflet-interactive path {
 	color: #222;
 	white-space: nowrap;
 	-webkit-user-select: none;
-	-moz-user-select: none;
 	user-select: none;
 	pointer-events: none;
 	box-shadow: 0 1px 3px rgba(0,0,0,0.4);

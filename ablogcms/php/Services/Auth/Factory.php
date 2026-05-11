@@ -4,6 +4,7 @@ namespace Acms\Services\Auth;
 
 use Acms\Contracts\Factory as BaseFactory;
 use App;
+use Acms\Services\Facades\Login;
 
 class Factory extends BaseFactory
 {
@@ -16,7 +17,7 @@ class Factory extends BaseFactory
     {
         if ($this->isRoleAvailableUser()) {
             return App::make('auth.role');
-        } elseif (SUID && config('subscriber_view_mode') === 'on') {
+        } elseif (Login::isLoggedIn() && config('subscriber_view_mode') === 'on') {
             $app = App::getInstance();
             assert($app instanceof \Acms\Application);
             $Q =& $app->getQueryParameter();

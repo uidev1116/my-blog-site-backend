@@ -156,7 +156,6 @@ trait CreateAuthUrl
      */
     protected function send(string $to, Field_Validation $inputField, string $authUrl): bool
     {
-        $isSend = false;
         $inputField->setField('authUrl', $authUrl);
 
         if (empty($to)) {
@@ -174,24 +173,19 @@ trait CreateAuthUrl
         $subject = Common::getMailTxt($subjectTpl, $inputField);
         $body = Common::getMailTxt($bodyTpl, $inputField);
 
-        try {
-            $mailer = Mailer::init();
-            $mailer = $mailer->setFrom($from)
-                ->setTo($to)
-                ->setSubject($subject)
-                ->setBody($body);
-            if ($bcc) {
-                $mailer = $mailer->setBcc($bcc);
-            }
-            if ($bodyHtmlTpl) {
-                $bodyHtml = Common::getMailTxt($bodyHtmlTpl, $inputField);
-                $mailer = $mailer->setHtml($bodyHtml);
-            }
-            $mailer->send();
-            $isSend = true;
-        } catch (Exception $e) {
-            return false;
+        $mailer = Mailer::init();
+        $mailer = $mailer->setFrom($from)
+            ->setTo($to)
+            ->setSubject($subject)
+            ->setBody($body);
+        if ($bcc) {
+            $mailer = $mailer->setBcc($bcc);
         }
-        return $isSend;
+        if ($bodyHtmlTpl) {
+            $bodyHtml = Common::getMailTxt($bodyHtmlTpl, $inputField);
+            $mailer = $mailer->setHtml($bodyHtml);
+        }
+        $mailer->send();
+        return true;
     }
 }

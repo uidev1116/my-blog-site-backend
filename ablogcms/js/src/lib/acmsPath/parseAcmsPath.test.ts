@@ -74,9 +74,25 @@ describe('parseAcmsPath', () => {
   });
 
   it('should parse API context correctly', () => {
+    // v1 path (no version)
     const path = '/api/module_id';
     const context: AcmsContext = parseAcmsPath(path);
     expect(context.api).toBe('module_id');
+    expect(context.apiVersion).toBe('v1');
+  });
+
+  it('should parse API context with v2 correctly', () => {
+    const path = '/api/v2/module_id';
+    const context: AcmsContext = parseAcmsPath(path);
+    expect(context.api).toBe('module_id');
+    expect(context.apiVersion).toBe('v2');
+  });
+
+  it('should parse API context with other versions correctly', () => {
+    const path = '/api/v3/module_id';
+    const context: AcmsContext = parseAcmsPath(path);
+    expect(context.api).toBe('module_id');
+    expect(context.apiVersion).toBe('v3');
   });
 
   it('should parse keyword context correctly', () => {
@@ -237,5 +253,101 @@ describe('parseAcmsPath', () => {
       end: formatDate(new Date('2021-12-31')),
     });
     expect(context.unresolvedPath).toBe('custom/path/structure');
+  });
+
+  it('should parse complex path with versioned API correctly', () => {
+    const path = '/bid/123/cid/456/api/v2/entry_list/page/2';
+    const context: AcmsContext = parseAcmsPath(path);
+
+    expect(context.bid).toBe(123);
+    expect(context.cid).toBe(456);
+    expect(context.api).toBe('entry_list');
+    expect(context.apiVersion).toBe('v2');
+    expect(context.page).toBe(2);
+  });
+
+  describe('segment-only paths (no value after segment)', () => {
+    it('should handle bid/ only', () => {
+      const path = '/bid/';
+      const context: AcmsContext = parseAcmsPath(path);
+      expect(context.bid).toBeUndefined();
+      expect(context.page).toBe(1);
+      expect(context.span).toBeDefined();
+    });
+
+    it('should handle tag/ only', () => {
+      const path = '/tag/';
+      const context: AcmsContext = parseAcmsPath(path);
+      expect(context.tag).toBeUndefined();
+      expect(context.page).toBe(1);
+      expect(context.span).toBeDefined();
+    });
+
+    it('should handle cid/ only', () => {
+      const path = '/cid/';
+      const context: AcmsContext = parseAcmsPath(path);
+      expect(context.cid).toBeUndefined();
+      expect(context.page).toBe(1);
+      expect(context.span).toBeDefined();
+    });
+
+    it('should handle uid/ only', () => {
+      const path = '/uid/';
+      const context: AcmsContext = parseAcmsPath(path);
+      expect(context.uid).toBeUndefined();
+      expect(context.page).toBe(1);
+      expect(context.span).toBeDefined();
+    });
+
+    it('should handle tpl/ only', () => {
+      const path = '/tpl/';
+      const context: AcmsContext = parseAcmsPath(path);
+      expect(context.tpl).toBeUndefined();
+      expect(context.page).toBe(1);
+      expect(context.span).toBeDefined();
+    });
+
+    it('should handle page/ only', () => {
+      const path = '/page/';
+      const context: AcmsContext = parseAcmsPath(path);
+      expect(context.page).toBe(1); // defaults to 1 when value is undefined
+      expect(context.span).toBeDefined();
+    });
+  });
+
+  describe('reserved word as custom field value', () => {
+    it('should treat field value matching the "page" reserved word as field value when no trailing number', () => {
+      const path = '/admin/entry_index/field/page_attr/page/';
+      const context: AcmsContext = parseAcmsPath(path);
+      expect(context.field?.toString()).toBe('page_attr/page');
+      expect(context.page).toBe(1);
+    });
+
+    it('should split page/{number} as pagination and keep the leading field value', () => {
+      const path = '/admin/entry_index/field/page_attr/page/2/';
+      const context: AcmsContext = parseAcmsPath(path);
+      expect(context.field?.getFields().map((f) => f.key)).toEqual(['page_attr']);
+      expect(context.page).toBe(2);
+    });
+
+    it('should treat field value matching the "limit" reserved word as field value when no trailing number', () => {
+      const path = '/field/limit_attr/limit/';
+      const context: AcmsContext = parseAcmsPath(path);
+      expect(context.field?.toString()).toBe('limit_attr/limit');
+    });
+
+    it('should split limit/{number} as limit and keep the leading field value', () => {
+      const path = '/field/limit_attr/limit/20/';
+      const context: AcmsContext = parseAcmsPath(path);
+      expect(context.field?.getFields().map((f) => f.key)).toEqual(['limit_attr']);
+      expect(context.limit).toBe(20);
+    });
+
+    it('should not assign NaN when a reserved segment is followed by a non-numeric slug', () => {
+      const path = '/page/non-number/';
+      const context: AcmsContext = parseAcmsPath(path);
+      expect(context.page).toBe(1);
+      expect(context.unresolvedPath).toBe('page/non-number');
+    });
   });
 });

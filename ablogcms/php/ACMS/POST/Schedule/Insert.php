@@ -6,7 +6,9 @@ class ACMS_POST_Schedule_Insert extends ACMS_POST_Schedule
     {
         $Conf = $this->extract('schedule');
         $Conf->setMethod('name', 'required');
+        $Conf->setMethod('name', 'maxlength', '255');
         $Conf->setMethod('schedule', 'operative', sessionWithScheduleAdministration());
+        $Conf->setMethod('desc', 'maxlength', '255');
         $Conf->validate(new ACMS_Validator());
 
         if (!$Conf->isValid()) {

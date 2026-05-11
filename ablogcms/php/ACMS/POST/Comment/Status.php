@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_POST_Comment_Status extends ACMS_POST_Comment
 {
     public function _post($status)
@@ -7,7 +9,7 @@ class ACMS_POST_Comment_Status extends ACMS_POST_Comment
         $this->Post->reset(true);
         $this->Post->setMethod('comment', 'isOperable', (1
             and !!CMID
-            and !!SUID
+            and Login::isLoggedIn()
             and sessionWithContribution()
             and (0
                 or sessionWithCompilation()

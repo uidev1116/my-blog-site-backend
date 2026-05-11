@@ -36,6 +36,16 @@ describe('acmsPath', () => {
     expect(acmsPath({ blog: 'blog', category: 'category', tag: ['apple', 'grape'] })).toBe(
       'blog/category/tag/apple/grape/'
     );
+    // 配列内の空文字は無視されることをテスト
+    expect(acmsPath({ blog: 'blog', category: 'category', tag: ['apple', '', 'grape', ''] })).toBe(
+      'blog/category/tag/apple/grape/'
+    );
+
+    // 空文字しかない場合は tag 自体つかないことをテスト
+    expect(acmsPath({ blog: 'blog', category: 'category', tag: ['', '', ''] })).toBe('blog/category/');
+
+    // tag: []（空配列）の場合もtag自体つかないことをテスト
+    expect(acmsPath({ blog: 'blog', category: 'category', tag: [] })).toBe('blog/category/');
   });
 
   test('work with span context', () => {
@@ -152,7 +162,12 @@ describe('acmsPath', () => {
   });
 
   test('work with api context', () => {
-    expect(acmsPath({ blog: 'blog', api: 'summary_index' })).toBe('blog/api/summary_index/');
+    // Default is v2
+    expect(acmsPath({ blog: 'blog', api: 'summary_index' })).toBe('blog/api/v2/summary_index/');
+    // Explicit v2
+    expect(acmsPath({ blog: 'blog', api: 'summary_index' }, { apiVersion: 'v2' })).toBe('blog/api/v2/summary_index/');
+    // v1
+    expect(acmsPath({ blog: 'blog', api: 'summary_index' }, { apiVersion: 'v1' })).toBe('blog/api/summary_index/');
   });
 
   test('work with searchParams context', () => {
@@ -162,6 +177,24 @@ describe('acmsPath', () => {
       })
     ).toBe('?keyword=a-blog+cms');
     expect(acmsPath({ searchParams: { foo: '1', bar: '2' } })).toBe('?foo=1&bar=2');
+  });
+
+  test('work with URLSearchParams', () => {
+    expect(
+      acmsPath({
+        searchParams: new URLSearchParams({ keyword: 'a-blog cms' }),
+      })
+    ).toBe('?keyword=a-blog+cms');
+    expect(acmsPath({ searchParams: new URLSearchParams({ foo: '1', bar: '2' }) })).toBe('?foo=1&bar=2');
+    expect(
+      acmsPath({
+        blog: 'blog',
+        searchParams: new URLSearchParams([
+          ['tag', 'apple'],
+          ['tag', 'grape'],
+        ]),
+      })
+    ).toBe('blog/?tag=apple&tag=grape');
   });
 
   test('work with custom segments', () => {

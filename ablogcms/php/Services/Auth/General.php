@@ -236,11 +236,11 @@ class General implements Contracts\Guard
     public function getAuthorizedBlog($uid)
     {
         if (ACMS_RAM::userGlobalAuth($uid) !== 'on') {
-            return [SBID];
+            return [ACMS_RAM::userBlog($uid)];
         }
         $SQL = SQL::newSelect('blog');
         $SQL->setSelect('blog_id');
-        ACMS_Filter::blogTree($SQL, SBID, 'self-descendant');
+        ACMS_Filter::blogTree($SQL, ACMS_RAM::userBlog($uid), 'self-descendant');
         if (!$this->isAdministrator($uid)) {
             $SQL->addWhereOpr('blog_status', 'close', '<>');
         }

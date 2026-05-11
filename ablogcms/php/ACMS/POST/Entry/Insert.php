@@ -1,6 +1,6 @@
 <?php
 
-use Acms\Services\Facades\Application;
+use Acms\Services\Entry\Enums\EntryApprovalStatus;
 use Acms\Services\Facades\Entry;
 use Acms\Services\Facades\Common;
 
@@ -21,15 +21,13 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
         }
 
         if (is_array($insertedResponse)) {
-            $Session = &Field::singleton('session');
-            $Session->add('entry_action', 'update');
             $info = [
                 'bid' => BID,
                 'cid' => $insertedResponse['cid'],
                 'eid' => $insertedResponse['eid'],
                 'query' => [],
             ];
-            if ($insertedResponse['trash'] == 'trash') {
+            if ($insertedResponse['status'] === 'trash') {
                 $info['query'] = ['trash' => 'show'];
             }
             if (ADMIN === 'entry_editor') {
@@ -45,17 +43,17 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
     /**
      * エントリー作成
      *
-     * @return array|bool
+     * @return array{eid: int, cid: int|null, status: string, success: int}|false
      */
     protected function insert()
     {
         $postEntry = $this->extract('entry');
-        $this->fix($postEntry);
+        $eid = (int) DB::query(SQL::nextval('entry_id', dsn()), 'seq');
+        $this->preprocess($postEntry, $eid);
         $customFieldCollection = [];
-        $eid = DB::query(SQL::nextval('entry_id', dsn()), 'seq');
         $cid = is_numeric($postEntry->get('category_id')) ? intval($postEntry->get('category_id')) : null;
         // バリデート
-        $code = $this->insertValidate($postEntry, $eid, $cid);
+        $this->insertValidate($postEntry, $cid);
 
         // カスタムフィールドを事前処理
         $field = $this->extract('field', new ACMS_Validator());
@@ -82,10 +80,9 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
         Entry::setSummaryRange($range);
 
         // エントリーの事前処理
-        $entryData = $this->getInsertEntryData($postEntry);
+        $entryData = $this->createInsertEntryData($postEntry);
         $entryData['entry_id'] = $eid;
         $entryData['entry_category_id'] = $cid;
-        $entryData['entry_code'] = $code;
         $entryData['entry_summary_range'] = Entry::getSummaryRange();
         $entryData['entry_sort'] = $this->getEntrySort();
         $entryData['entry_user_sort'] = $this->getUserSort();
@@ -114,7 +111,7 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
          */
         if (enableRevision()) {
             $rvid = 1;
-            Entry::saveEntryRevision($eid, $rvid, $entryData, null, $postEntry->get('revision_memo'));
+            Entry::saveEntryRevision($eid, $rvid, $entryData, '', $postEntry->get('revision_memo'));
             $this->saveRevisionUnit($collection, $eid, $rvid);
             Entry::saveFieldRevision($eid, $field, $rvid);
             $this->saveRevisionTag($postEntry->get('tag'), $eid, $rvid);
@@ -122,9 +119,11 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
             Entry::saveSubCategory($eid, $cid, $postEntry->get('sub_category_id'), BID, $rvid);
         }
 
-        if (enableApproval() && !sessionWithApprovalAdministrator()) {
+        if (Entry::requiresApproval(BID, CID)) {
             $SQL = SQL::newUpdate('entry');
-            $SQL->addUpdate('entry_approval', 'pre_approval');
+            // 承認機能が有効かつ最終承認者でないユーザーが投稿した場合、
+            // 承認フローを経るまで公開されないよう承認前ステータスをセットする。
+            $SQL->addUpdate('entry_approval', EntryApprovalStatus::PreApproval->value);
             $SQL->addWhereOpr('entry_id', $eid);
             $SQL->addWhereOpr('entry_blog_id', BID);
             DB::query($SQL->get(dsn()), 'exec');
@@ -150,11 +149,10 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
             $Hook->call('saveEntry', [intval($eid), null]);
             $events = ['entry:created'];
             if (
-                1
-                && !(enableApproval() && !sessionWithApprovalAdministrator())
-                && $entryData['entry_status'] === 'open'
-                && strtotime($entryData['entry_start_datetime']) <= REQUEST_TIME
-                && strtotime($entryData['entry_end_datetime']) >= REQUEST_TIME
+                !Entry::requiresApproval(BID, CID) && // 承認機能が有効で承認管理者でない
+                $entryData['entry_status'] === 'open' && // 公開ステータスである
+                strtotime($entryData['entry_start_datetime']) <= REQUEST_TIME && // 公開開始日時が現在より前である
+                strtotime($entryData['entry_end_datetime']) >= REQUEST_TIME // 公開終了日時が現在より後である
             ) {
                 $events[] = 'entry:opened';
             }
@@ -164,8 +162,7 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
         return [
             'eid' => $eid,
             'cid' => $cid,
-            'ecd' => $code,
-            'trash' => $postEntry->get('status'),
+            'status' => $postEntry->get('status'),
             'success' => 1,
         ];
     }
@@ -208,14 +205,15 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
     /**
      * 保存するエントリーデータを整形して取得
      *
-     * @param mixed $postEntry
-     * @return array
+     * @param \Field_Validation $postEntry
+     * @return array<string, mixed>
      */
-    protected function getInsertEntryData($postEntry)
+    protected function createInsertEntryData(\Field_Validation $postEntry): array
     {
         $title = $postEntry->get('title');
         $datetime = $postEntry->get('date') . ' ' . $postEntry->get('time');
         $data = [
+            'entry_code' => $postEntry->get('code'),
             'entry_posted_datetime' => date('Y-m-d H:i:s', REQUEST_TIME),
             'entry_updated_datetime' => date('Y-m-d H:i:s', REQUEST_TIME),
             'entry_user_id' => SUID,
@@ -260,42 +258,41 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
     /**
      * バリデート
      *
-     * @param mixed $postEntry
-     * @return string
+     * @param \Field_Validation $postEntry
+     * @param int|null $categoryId
+     * @return void
      */
-    protected function insertValidate($postEntry, $eid, $cid)
+    protected function insertValidate(\Field_Validation $postEntry, ?int $categoryId): void
     {
         $postEntry->setMethod('status', 'required');
         $postEntry->setMethod('status', 'in', ['open', 'close', 'draft', 'trash']);
         $postEntry->setMethod('status', 'category', true);
         $postEntry->setMethod('title', 'required');
-        $code = strval($postEntry->get('code'));
-        if ($code === '') {
-            $code = $this->getEntryNewCode($postEntry, $eid);
-        }
-        if (!config('entry_code_extension')) {
+        $postEntry->setMethod('title', 'maxlength', '255');
+        $code = $postEntry->get('code');
+        if ($code !== '') {
             $postEntry->setMethod('code', 'reserved', !isReserved($code, false));
+            if (config('check_duplicate_entry_code') === 'on') {
+                $postEntry->setMethod('code', 'double', !Entry::validEntryCodeDouble($code, BID, $categoryId));
+            }
+            $postEntry->setMethod('code', 'string', isValidCode($code));
         }
-        if (config('check_duplicate_entry_code') === 'on') {
-            $postEntry->setMethod('code', 'double', !Entry::validEntryCodeDouble($code, BID, $cid));
-        }
-        $postEntry->setMethod('code', 'string', isValidCode($postEntry->get('code')));
+        $postEntry->setMethod('code', 'maxlength', '64');
+        $postEntry->setMethod('link', 'maxlength', '255');
         $postEntry->setMethod('indexing', 'required');
         $postEntry->setMethod('indexing', 'in', ['on', 'off']);
-        $postEntry->setMethod('entry', 'operable', $this->isOperable());
+        $postEntry->setMethod('entry', 'operable', $this->isOperable(null, $categoryId));
         $postEntry = Entry::validTag($postEntry);
         $postEntry = Entry::validSubCategory($postEntry);
         $postEntry->validate(new ACMS_Validator());
-
-        return $code;
     }
 
     /**
      * 操作権限があるかチェックs
      *
-     * @return bool
+     * @inheritDoc
      */
-    protected function isOperable()
+    protected function isOperable(?int $entryId = null, ?int $categoryId = null, ?int $rvid = null): bool
     {
         if (roleAvailableUser()) {
             if (IS_LICENSED && roleAuthorization('entry_edit', BID)) {
@@ -310,20 +307,16 @@ class ACMS_POST_Entry_Insert extends ACMS_POST_Entry_Update
     }
 
     /**
-     * エントリーコードを整形して取得
-     *
-     * @param mixed $postEntry
-     * @return string
+     * @inheritDoc
      */
-    protected function getEntryNewCode($postEntry, $eid)
+    protected function getEntryCode(\Field_Validation $postEntry, int $entryId): string
     {
         $title = $postEntry->get('title');
         $code = trim(strval($postEntry->get('code')), '/');
-        if ($code === '') {
-            $code = ('on' == config('entry_code_title')) ? stripWhitespace($title) : config('entry_code_prefix') . $eid;
-        }
-        if (!!config('entry_code_extension') && !strpos($code, '.')) {
-            $code .= ('.' . config('entry_code_extension'));
+        if ($code === '' && $title !== '') {
+            $code = Entry::generateEntryCodeFromTitleOrId($title, $entryId);
+        } elseif ($code !== '') {
+            $code = Entry::formatEntryCode($code);
         }
 
         return $code;

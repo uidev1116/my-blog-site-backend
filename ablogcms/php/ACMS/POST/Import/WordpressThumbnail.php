@@ -16,7 +16,10 @@ class ACMS_POST_Import_WordpressThumbnail extends ACMS_POST_Import_Wordpress
         $this->httpFile->validateFormat(['xml']);
         $path = $this->httpFile->getPath();
         $data = LocalStorage::get($path, dirname($path));
-        if ($data) {
+        if ($data === false) {
+            throw new RuntimeException('ファイルの読み込みに失敗しました。');
+        }
+        if ($data !== '') {
             $data = LocalStorage::removeIllegalCharacters($data); // 不正な文字コードを削除
         }
         $this->validateXml($data);
@@ -30,7 +33,7 @@ class ACMS_POST_Import_WordpressThumbnail extends ACMS_POST_Import_Wordpress
                 $type = $this->getNodeValue($xml, 'wp:post_type');
                 $url = $this->getNodeValue($xml, 'wp:attachment_url');
 
-                if (empty($id) || empty($url)) {
+                if ($id === '' || $url === '') {
                     continue;
                 }
                 if ($type !== 'attachment') {
@@ -64,7 +67,7 @@ class ACMS_POST_Import_WordpressThumbnail extends ACMS_POST_Import_Wordpress
 
     protected function updateThumbnailImage($eids, $url)
     {
-        if (empty($eids) || empty($url)) {
+        if (!is_array($eids) || count($eids) === 0 || $url === '' || $url === null) {
             return;
         }
         $sql = SQL::newDelete('field');

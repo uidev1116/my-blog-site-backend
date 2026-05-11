@@ -6,6 +6,7 @@ use Acms\Modules\Get\V2\Base;
 use Acms\Modules\Get\Helpers\Entry\EntryQueryHelper;
 use Acms\Modules\Get\Helpers\Entry\EntryHelper;
 use Acms\Modules\Get\Helpers\Entry\EntryBodyHelper;
+use Acms\Services\Entry\Enums\EntryApprovalStatus;
 use Acms\Services\Entry\Exceptions\NotFoundException;
 use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Database;
@@ -193,7 +194,9 @@ class Body extends Base
         $eid = (int) $entry['entry_id'];
         $this->entryBodyHelper->setIsMembersOnlyEntry(($entry['entry_members_only'] ?? 'off') === 'on');
         $rvid = RVID;
-        if (!RVID && $entry['entry_approval'] === 'pre_approval') { // @phpstan-ignore-line
+        // 承認前エントリーはリビジョン1（作業領域）に最新の編集内容が保存されているため、
+        // リビジョンが明示的に指定されていない場合はリビジョン1のユニットを表示する。
+        if (!RVID && $entry['entry_approval'] === EntryApprovalStatus::PreApproval->value) { // @phpstan-ignore-line
             $rvid = 1;
         }
         $eagerLoaded = $this->eagerLoadEntryBody([$entry], $rvid);
@@ -331,7 +334,9 @@ class Body extends Base
             // ユニットを組み立て
             $eid = (int) $entry['entry_id'];
             $rvid = RVID;
-            if (!RVID && $entry['entry_approval'] === 'pre_approval') { // @phpstan-ignore-line
+            // 承認前エントリーはリビジョン1（作業領域）に最新の編集内容が保存されているため、
+            // リビジョンが明示的に指定されていない場合はリビジョン1のユニットを表示する。
+            if (!RVID && $entry['entry_approval'] === EntryApprovalStatus::PreApproval->value) { // @phpstan-ignore-line
                 $rvid = 1;
             }
             $allUnitCollection = $this->entryBodyHelper->getAllUnitCollection($eid, $rvid);
@@ -375,7 +380,7 @@ class Body extends Base
         Common::setForceV1Build(false);
 
         if (isApiBuildOrV2Module()) {
-            $unitHtml = Common::convertRelativeUrlsToAbsolute($unitHtml, BASE_URL);
+            $unitHtml = Common::convertAssetUrlsToAbsolute($unitHtml, BASE_URL);
         }
         $unitHtml = Common::replaceDeliveryUrlAll($unitHtml);
 
@@ -447,7 +452,9 @@ class Body extends Base
             return null;
         }
 
-        if (!sessionWithApprovalAdministrator() || $entry['entry_approval'] !== 'pre_approval') {
+        // 最終承認者かつ承認前エントリーの場合は承認アクション専用ブロックを表示するため、
+        // 通常の編集ボタンは非表示にする。それ以外の場合は編集ボタンを表示する。
+        if (!sessionWithApprovalAdministrator() || $entry['entry_approval'] !== EntryApprovalStatus::PreApproval->value) {
             // 最終承認者ではないか、エントリーが承認前でない場合に編集ブロックを追加
             $vars['editBtn'] = true;
             $vars['revisionBtn'] = true;

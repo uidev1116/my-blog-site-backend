@@ -3,6 +3,8 @@ import RichSelect from '../../../../components/rich-select/rich-select';
 import useSubCategoryOptionsSWR from '../../hooks/use-sub-category-options-swr';
 import type { SubCategoryOption } from '../../types';
 
+const EMPTY_SUB_CATEGORY_OPTIONS: SubCategoryOption[] = [];
+
 interface SubCategorySelectProps
   extends Partial<
     Pick<
@@ -20,7 +22,7 @@ const SubCategorySelect = ({
   mainCategoryId,
   onChange,
   limit,
-  defaultValue = [],
+  defaultValue = EMPTY_SUB_CATEGORY_OPTIONS,
   ...props
 }: SubCategorySelectProps) => {
   const { options: apiOptions, isLoading } = useSubCategoryOptionsSWR();
@@ -70,6 +72,7 @@ const SubCategorySelect = ({
       closeMenuOnSelect={false}
       placeholder={ACMS.i18n('subcategory.select_placeholder')}
       noOptionsMessage={() => ACMS.i18n('subcategory.select_notfound')}
+      hideSelectedOptions
       {...props}
     />
   );

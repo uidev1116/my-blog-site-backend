@@ -18,7 +18,7 @@ class ACMS_POST_Media_UpdateAsNew extends ACMS_POST_Media_Update
             if ($mid === 0) {
                 $Media->setMethod('media', 'operable', false);
             }
-            $Media->validate(new ACMS_Validator_Media());
+            $Media->validate(new ACMS_Validator());
             if (!$this->Post->isValidAll()) {
                 if (!$Media->isValid('media', 'operable')) {
                     throw new \RuntimeException('メディアが指定されていない、または権限がありません');
@@ -26,6 +26,13 @@ class ACMS_POST_Media_UpdateAsNew extends ACMS_POST_Media_Update
             }
             $tags = $Media->get('media_label');
             $oldData = Media::getMedia($mid);
+
+            if ($oldData === null) {
+                throw new \RuntimeException(sprintf(
+                    'The specified media could not be found. (Media ID: %d) It may have been deleted or the ID may be incorrect.',
+                    $mid
+                ));
+            }
 
             if (isset($_FILES[$this->uploadFieldName])) {
                 // ファイルアップロードがある場合（メディアを変更機能 or メディア画像編集機能利用時）
@@ -47,9 +54,9 @@ class ACMS_POST_Media_UpdateAsNew extends ACMS_POST_Media_Update
                         $data['original'] = otherSizeImagePath($data['path'], 'large');
                     }
                 } elseif (Media::isSvgFile($type)) {
-                    $data = Media::uploadSvg($info['size'], $this->uploadFieldName);
+                    $data = Media::uploadSvg($this->uploadFieldName);
                 } else {
-                    $data = Media::uploadFile($info['size'], $this->uploadFieldName);
+                    $data = Media::uploadFile($this->uploadFieldName);
                 }
                 $data['upload_date'] = $oldData['upload_date'];
             } else {
@@ -67,10 +74,8 @@ class ACMS_POST_Media_UpdateAsNew extends ACMS_POST_Media_Update
             // pdf thumbnail
             if (isset($_FILES['media_pdf_thumbnail'])) {
                 $res = Media::uploadPdfThumbnail('media_pdf_thumbnail');
-                if (isset($res['path'])) {
-                    $data['thumbnail'] = $res['path'];
-                    $data['size'] = $res['size'];
-                }
+                $data['thumbnail'] = $res['path'];
+                $data['size'] = $res['size'];
             }
             $data['update_date'] = date('Y-m-d H:i:s', REQUEST_TIME);
             $data['status'] = $Media->get('status');
@@ -96,6 +101,12 @@ class ACMS_POST_Media_UpdateAsNew extends ACMS_POST_Media_Update
             Media::saveTags($mid, $tags, BID);
 
             $data = Media::getMedia($mid);
+            if ($data === null) {
+                throw new \RuntimeException(sprintf(
+                    'Could not reload media information after saving. (Media ID: %d)',
+                    $mid
+                ));
+            }
             $tags = Media::getMediaLabel($mid);
             $json = Media::buildJson($mid, $data, $tags, BID);
             $json['status'] = 'success';

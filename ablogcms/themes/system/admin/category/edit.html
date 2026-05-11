@@ -289,6 +289,12 @@
               name="name:validator#required"
               id="validator-name-required"
             />
+            <input
+              type="hidden"
+              name="name:validator#maxlength"
+              value="255"
+              id="validator-name-maxlength"
+            />
             <div role="alert" aria-live="assertive">
               <div
                 data-validator-label="validator-name-required"
@@ -300,6 +306,18 @@
                     aria-hidden="true"
                   ></span>
                   <!--T-->名前が入力されていません。<!--/T-->
+                </p>
+              </div>
+              <div
+                data-validator-label="validator-name-maxlength"
+                class="validator-result-{name:validator#maxlength}"
+              >
+                <p class="error-text">
+                  <span
+                    class="acms-admin-icon acms-admin-icon-attention"
+                    aria-hidden="true"
+                  ></span>
+                  <!--T-->カテゴリー名は255文字以内で入力してください。<!--/T-->
                 </p>
               </div>
             </div>
@@ -326,6 +344,12 @@
               name="code:validator#required"
               id="validator-code-required"
             />
+            <input
+              type="hidden"
+              name="code:validator#maxlength"
+              value="255"
+              id="validator-code-maxlength"
+            />
             <div role="alert" aria-live="assertive">
               <div
                 data-validator-label="validator-code-required"
@@ -337,6 +361,18 @@
                     aria-hidden="true"
                   ></span>
                   <!--T-->コードネームが入力されていません。<!--/T-->
+                </p>
+              </div>
+              <div
+                data-validator-label="validator-code-maxlength"
+                class="validator-result-{code:validator#maxlength}"
+              >
+                <p class="error-text">
+                  <span
+                    class="acms-admin-icon acms-admin-icon-attention"
+                    aria-hidden="true"
+                  ></span>
+                  <!--T-->コードネームは255文字以内で入力してください。<!--/T-->
                 </p>
               </div>
               <div
@@ -372,7 +408,7 @@
                     class="acms-admin-icon acms-admin-icon-attention"
                     aria-hidden="true"
                   ></span>
-                  <!--T-->不正な文字が含まれています。<!--/T-->
+                  <!--T-->コードに使用できない文字が含まれています。スラッシュ(/)、../ などの危険な文字列、URL特殊文字、制御文字、空白文字は使用できません。<!--/T-->
                 </p>
               </div>
             </div>
@@ -726,8 +762,10 @@
       </table>
     </div>
     <div id="acms_custom" class="acms-admin-tabs-panel">
-      @include("/admin/category/field.html")
-      <!-- BEGIN_MODULE Admin_InjectTemplate id="admin-category-field" --><!-- END_MODULE Admin_InjectTemplate -->
+      <div class="acms-admin-field-container">
+        @include("/admin/category/field.html")
+        <!-- BEGIN_MODULE Admin_InjectTemplate id="admin-category-field" --><!-- END_MODULE Admin_InjectTemplate -->
+      </div>
     </div>
     <!-- BEGIN_MODULE Touch_SessionWithEnterpriseAdministration -->
     <div id="acms_workflow" class="acms-admin-tabs-panel">

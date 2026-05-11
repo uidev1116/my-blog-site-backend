@@ -8,6 +8,16 @@ class ACMS_POST_Member_Signup_Submit extends ACMS_POST_Member_Signup_Confirm
     use Acms\Services\Login\Traits\CreateAuthUrl;
 
     /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @inheritDoc
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return Login::canLoginPage(BID, SIGNUP_SEGMENT);
+    }
+
+    /**
      * 管理者宛の場合true
      *
      * @var bool
@@ -103,7 +113,6 @@ class ACMS_POST_Member_Signup_Submit extends ACMS_POST_Member_Signup_Confirm
      * 会員登録
      *
      * @return Field_Validation
-     * @throws Exception
      */
     function post(): Field_Validation
     {
@@ -169,19 +178,22 @@ class ACMS_POST_Member_Signup_Submit extends ACMS_POST_Member_Signup_Confirm
 
             $lifetime = intval(config('user_activation_url_lifetime', 30)) * 60;
             $inputUserField->set('uid', $uid);
-            $isSend = $this->sendAuthenticationEmail($inputUserField, $inputField, $authUrl);
-
-            if ($isSend) {
-                // メール送信成功
-                $this->Post->set('sent', 'success');
-
-                AcmsLogger::info('会員登録申請メールを送信しました', $data);
-            } else {
-                // メール送信失敗
+            try {
+                $isSend = $this->sendAuthenticationEmail($inputUserField, $inputField, $authUrl);
+                if ($isSend) {
+                    // メール送信成功
+                    $this->Post->set('sent', 'success');
+                    AcmsLogger::info('会員登録申請メールを送信しました', $data);
+                } else {
+                    // メール送信失敗
+                    $inputUserField->setMethod('mail', 'send', false);
+                    $inputUserField->validate(new ACMS_Validator());
+                    AcmsLogger::warning('会員登録申請メールの送信に失敗しました', $data);
+                }
+            } catch (Exception $e) {
                 $inputUserField->setMethod('mail', 'send', false);
                 $inputUserField->validate(new ACMS_Validator());
-
-                AcmsLogger::warning('会員登録申請メールの送信に失敗しました', $data);
+                AcmsLogger::warning('会員登録申請メールの送信に失敗しました', Common::exceptionArray($e, $data));
             }
         }
         return $this->Post;
@@ -212,7 +224,11 @@ class ACMS_POST_Member_Signup_Submit extends ACMS_POST_Member_Signup_Confirm
         // 管理者向けメール送信
         if ($adminTo = implode(', ', configArray('mail_subscribe_admin_to'))) {
             $this->toAdmin = true;
-            $this->send($adminTo, $inputField, $authUrl);
+            try {
+                $this->send($adminTo, $inputField, $authUrl);
+            } catch (Exception $e) {
+                AcmsLogger::warning('管理者向け会員登録申請メールの送信に失敗しました', ['message' => $e->getMessage()]);
+            }
         }
 
         return $isSend;

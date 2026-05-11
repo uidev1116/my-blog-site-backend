@@ -1,127 +1,96 @@
 <?php
 
+use Acms\Services\Facades\Entry;
+
 class ACMS_GET_Admin_Entry_Revision_Info extends ACMS_GET_Admin_Entry_Revision
 {
     public function get()
     {
-        if (!sessionWithContribution(BID)) {
+        /** @var int $blogId */
+        $blogId = BID;
+        /** @var int|null $entryId */
+        $entryId = EID;
+        /** @var int|null $revisionId */
+        $revisionId = RVID;
+        /** @var int|null $categoryId */
+        $categoryId = CID;
+        /** @var int $requestTime */
+        $requestTime = REQUEST_TIME;
+
+        if (!sessionWithContribution($blogId)) {
             return 'Bad Access.';
         }
-        if (!EID) {
+        if (is_null($entryId)) {
             return '';
         }
-        if (!RVID) {
+        if (is_null($revisionId)) {
             return '';
         }
         $Tpl = new Template($this->tpl, new ACMS_Corrector());
-        $revision = $this->getRevision(EID, RVID);
-        if (!$revision) {
+        $revision = $this->getRevision($entryId, $revisionId);
+        if ($revision === false) {
             page404();
         }
-        $isReserve = strtotime($revision['entry_start_datetime']) > REQUEST_TIME;
-        $vars = [];
+        // 開始日時が未来なら「公開予約（日時指定）」の文脈で扱う（entry_reserve_rev_id とは別概念）
+        $isReserve = strtotime($revision['entry_start_datetime']) > $requestTime;
 
-        $sql = SQL::newSelect('entry');
-        $sql->setSelect('entry_current_rev_id');
-        $sql->addWhereOpr('entry_id', EID);
-        $currentRevId = DB::query($sql->get(dsn()), 'one');
-
-        if (RVID === 1) {
-        } elseif (RVID === intval($currentRevId)) {
-        } elseif (roleAvailableUser()) {
-            // ロール管理下のユーザー
-            if (enableApproval(BID, $revision['entry_category_id']) && sessionWithApprovalAdministrator(BID, $revision['entry_category_id']) && isset($revision['entry_rev_status']) && $revision['entry_rev_status'] === 'approved') {
-                // 承認機能が有効でかつ承認済みの場合
-                $Tpl->add('revisionChange', [
-                    'canChange' => '1',
-                    'isReserve' => $isReserve ? '1' : '0',
-                    'reserveDatetime' => $isReserve ? $revision['entry_start_datetime'] : '',
-                ]);
-            } elseif (!enableApproval(BID, $revision['entry_category_id']) && roleAuthorization('entry_edit', BID, EID)) {
-                // 承認機能が無効でかつ編集権限がある場合
-                $Tpl->add('revisionChange', [
-                    'canChange' => '1',
-                    'isReserve' => $isReserve ? '1' : '0',
-                    'reserveDatetime' => $isReserve ? $revision['entry_start_datetime'] : '',
-                ]);
-            }
-        } elseif (enableApproval(BID, $revision['entry_category_id'])) {
-            // 承認機能が有効
-            if (sessionWithApprovalAdministrator(BID, $revision['entry_category_id']) && isset($revision['entry_rev_status']) && $revision['entry_rev_status'] === 'approved') {
-                $Tpl->add('revisionChange', [
-                    'canChange' => '1',
-                    'isReserve' => $isReserve ? '1' : '0',
-                    'reserveDatetime' => $isReserve ? $revision['entry_start_datetime'] : '',
-                ]);
-            }
-        } else {
-            do {
-                if (!sessionWithCompilation(BID)) {
-                    if (!sessionWithContribution(BID)) {
-                        break;
-                    }
-                    if (SUID != ACMS_RAM::entryUser(EID)) {
-                        break;
-                    }
-                }
-                $Tpl->add('revisionChange', [
-                    'canChange' => '1',
-                    'isReserve' => $isReserve ? '1' : '0',
-                    'reserveDatetime' => $isReserve ? $revision['entry_start_datetime'] : '',
-                ]);
-            } while (false);
-        }
-        if (sessionWithApprovalAdministrator(BID, $revision['entry_category_id']) || intval($revision['entry_rev_user_id']) === SUID) {
-            $Tpl->add('edit');
-        }
-        if ($revision) {
-            $auid = $revision['entry_rev_user_id'];
-            $author = ACMS_RAM::user($auid);
-
-            $status = '承認前';
-            switch ($revision['entry_rev_status']) {
-                case 'in_review':
-                    $status = '承認中';
-                    break;
-                case 'reject':
-                    $status = '承認却下';
-                    break;
-                case 'approved':
-                    $status = '承認済み';
-                    break;
-                default:
-                    $status = '承認前';
-                    break;
-            }
-            if ($revision['entry_status'] === 'trash') {
-                $status .= ' 削除依頼';
-            }
-
-            $vars = [
-                'rvid' => RVID,
-                'memo' => $revision['entry_rev_memo'],
-                'author' => $author['user_name'],
-                'icon' => loadUserIcon($auid),
-                'status_code' => $revision['entry_rev_status'],
+        if (Entry::canChangeEntryRevision($entryId, $revisionId)) {
+            $Tpl->add('revisionChange', [
+                'canChange' => '1',
                 'isReserve' => $isReserve ? '1' : '0',
                 'reserveDatetime' => $isReserve ? $revision['entry_start_datetime'] : '',
-                'datetime' => $revision['entry_rev_datetime'],
-                'url' => acmsLink([
-                    'eid' => EID,
-                    'bid' => BID,
-                    'aid' => $this->Get->get('aid', null),
-                    'query' => [
-                        'rvid' => RVID,
-                        'trash' => 'show',
-                    ],
-                ]),
-            ];
-            if (enableApproval(BID, CID)) {
-                $vars['status'] = $status;
-            }
+            ]);
+        }
+        if (Entry::canUpdateEntryRevision($entryId, $revisionId)) {
+            $Tpl->add('edit');
+        }
+        if (Entry::canViewApprovalHistory($entryId)) {
+            $Tpl->add('approvalHistory');
+        }
+
+        $auid = $revision['entry_rev_user_id'];
+        $author = ACMS_RAM::user($auid);
+        $vars = [
+            'rvid' => $revisionId,
+            'memo' => $revision['entry_rev_memo'],
+            'author' => $author['user_name'],
+            'icon' => loadUserIcon($auid),
+            'status_code' => $revision['entry_rev_status'],
+            'isReserve' => $isReserve ? '1' : '0',
+            'reserveDatetime' => $isReserve ? $revision['entry_start_datetime'] : '',
+            'datetime' => $revision['entry_rev_datetime'],
+            'url' => acmsLink([
+                'eid' => $entryId,
+                'bid' => $blogId,
+                'aid' => $this->Get->get('aid') ? (int)$this->Get->get('aid') : null,
+                'query' => [
+                    'rvid' => $revisionId,
+                    'trash' => 'show',
+                ],
+            ]),
+        ];
+        if (enableApproval($blogId, $categoryId)) {
+            $vars['status'] = $this->getRevisionStatusLabel($revision);
         }
         $Tpl->add(null, $vars);
 
         return $Tpl->get();
+    }
+
+    /**
+     * @param array<string, mixed> $revision
+     */
+    private function getRevisionStatusLabel(array $revision): string
+    {
+        $status = match ($revision['entry_rev_status']) {
+            'in_review' => '承認中',
+            'reject' => '承認却下',
+            'approved' => '承認済み',
+            default => '承認前',
+        };
+        if ($revision['entry_status'] === 'trash') {
+            $status .= ' 削除依頼';
+        }
+        return $status;
     }
 }

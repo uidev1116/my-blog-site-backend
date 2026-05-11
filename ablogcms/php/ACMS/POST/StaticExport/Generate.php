@@ -66,7 +66,6 @@ class ACMS_POST_StaticExport_Generate extends ACMS_POST
         $offset_dir = $setting->get('static_dest_offset_dir');
         $domain = $setting->get('static_dest_domain');
         $maxPublish = intval($setting->get('static_max_publish', 3));
-        $nameServer = config('static_export_name_server', '8.8.8.8');
         $blogCode = ACMS_RAM::blogCode(BID);
         $config = new stdClass();
         $config->theme = config('theme');
@@ -102,12 +101,7 @@ class ACMS_POST_StaticExport_Generate extends ACMS_POST
             $engine = App::make('static-export.engine');
             $destination = App::make('static-export.destination');
 
-            if (
-                0
-                || empty($document_root)
-                || empty($domain)
-                || empty($maxPublish)
-            ) {
+            if (!$document_root || !$domain || $maxPublish <= 0) {
                 throw new \RuntimeException('Configuration is incorrect.');
             }
 
@@ -116,8 +110,8 @@ class ACMS_POST_StaticExport_Generate extends ACMS_POST
             $destination->setDestinationDomain($domain);
             $destination->setBlogCode($blogCode);
             $logger->initLog();
-            $engine->init($logger, $destination, $maxPublish, $nameServer, $config);
-            $engine->run();
+            $engine->init($logger, $destination, $maxPublish, $config);
+            $engine->run(BID);
 
             AcmsLogger::info('静的書き出しを完了しました', [
                 'bid' => BID,

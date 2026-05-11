@@ -53,13 +53,17 @@ namespace Acms\Services\Facades;
  * @method static bool isLocalPublicStorage() パブリックストレージの設定がローカルかどうか
  * @method static void uploadAssetDirectory(string $from, string $to, bool $isPublic) アセットディレクトリをアップロードする
  * @method static string getCurrentSalt() 現在のソルトを取得
+ * @method static void setCurrentSalt(string $salt) 現在のソルトを設定
  * @method static string getPreviousSalt() 1つ前のソルトを取得
+ * @method static void setPreviousSalt(string $salt) 1つ前のソルトを設定
  * @method static string getAppSalt() アプリケーションのソルトを取得
  * @method static string replaceDeliveryUrl(string $url) メディアの配信先URLを書き換え
  * @method static string replaceDeliveryUrlAll(string $txt) メディアの配信先URLを書き換え（全て）
- * @method static string toAbsoluteUrl(string $path, string $offset = '', bool $strict) 絶対URLに変換する
+ * @method static string toAbsoluteUrl(string $path, string $offset = '', ?string $baseUrl = null) URLを完全な absolute URL（scheme + host + path）に変換する
+ * @method static string toRootRelativeUrl(string $path, string $offset = '', ?string $baseUrl = null) URLを root-relative URL（/path 形式、scheme/host を含まない）に変換する
  * @method static string resolveUrl(string $path, string $offset = '') V2モジュール、V2APIの場合は絶対URLに変換する
- * @method static string convertRelativeUrlsToAbsolute(string $html, string $baseUrl) HTML内の相対URLを絶対URLに変換
+ * @method static string convertAssetUrlsToAbsolute(string $html, string $baseUrl) HTML内のアセット参照（img/video/source/audio/track/link、srcset 含む）のみを絶対URL化する。<a>/<area> は触らない（ヘッドレス用途）
+ * @method static string convertRelativeUrlToAbsolute(string $url, string $baseUrl) 単一の相対URLを絶対URL（フルURL）に変換する
  * @method static bool isV2Module() V2モジュールとして実行中か判定
  * @method static void setV2Module(bool $isV2Module) V2モジュールとして実行中か設定
  * @method static bool isForceV1Build() 強制的にV1ビルドを行うか判定

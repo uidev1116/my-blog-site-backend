@@ -78,7 +78,7 @@ class ACMS_GET_Admin_CheckList extends ACMS_GET
             $Tpl->add('config');
         }
 
-        if (LICENSE_BLOG_LIMIT == 2147483647) {
+        if (licenseHasUnlimitedUsers()) {
             $Tpl->add(['userUnlimited', 'license']);
         } else {
             $Tpl->add(['userLimited', 'license'], [

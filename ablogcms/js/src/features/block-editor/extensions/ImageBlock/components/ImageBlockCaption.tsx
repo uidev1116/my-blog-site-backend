@@ -1,4 +1,4 @@
-import { memo, useState, useEffect } from 'react';
+import { memo, useRef } from 'react';
 import { Popover, PopoverTrigger, PopoverContent, PopoverClose } from '@components/popover';
 import { ButtonV2 } from '@components/button-v2';
 import { Toolbar } from '@features/block-editor/components/ui/Toolbar';
@@ -11,16 +11,8 @@ export type ImageBlockCaptionProps = {
 };
 
 export const ImageBlockCaption = memo(({ caption, alt, onChange }: ImageBlockCaptionProps) => {
-  const [captionText, setCaptionText] = useState<string>(caption || '');
-  const [altText, setAltText] = useState<string>(alt || '');
-
-  useEffect(() => {
-    setCaptionText(caption);
-  }, [caption]);
-
-  useEffect(() => {
-    setAltText(alt);
-  }, [alt]);
+  const captionRef = useRef<HTMLInputElement>(null);
+  const altRef = useRef<HTMLTextAreaElement>(null);
 
   return (
     <Popover modal>
@@ -28,7 +20,7 @@ export const ImageBlockCaption = memo(({ caption, alt, onChange }: ImageBlockCap
         <Toolbar.Button
           tooltip="キャプションを編集"
           type="button"
-          active={!!captionText || !!altText}
+          active={!!caption || !!alt}
           aria-label="キャプションを編集"
         >
           <Icon name="closed_caption" />
@@ -37,7 +29,7 @@ export const ImageBlockCaption = memo(({ caption, alt, onChange }: ImageBlockCap
       <PopoverContent data-elevation="3">
         <form
           className="acms-admin-form acms-admin-block-editor-popover-form"
-          onSubmit={() => onChange(captionText, altText)}
+          onSubmit={() => onChange(captionRef.current?.value ?? '', altRef.current?.value ?? '')}
         >
           <div className="acms-admin-block-editor-popover-form-item">
             <label htmlFor="captionText" className="acms-admin-block-editor-popover-form-item-label">
@@ -47,8 +39,8 @@ export const ImageBlockCaption = memo(({ caption, alt, onChange }: ImageBlockCap
               type="text"
               id="captionText"
               className="acms-admin-form-width-full"
-              value={captionText}
-              onChange={(e) => setCaptionText(e.target.value)}
+              defaultValue={caption}
+              ref={captionRef}
               placeholder=""
             />
           </div>
@@ -58,9 +50,9 @@ export const ImageBlockCaption = memo(({ caption, alt, onChange }: ImageBlockCap
             </label>
             <textarea
               id="altText"
-              value={altText}
+              defaultValue={alt}
+              ref={altRef}
               className="acms-admin-form-width-full"
-              onChange={(e) => setAltText(e.target.value)}
               placeholder=""
             />
           </div>
@@ -72,7 +64,7 @@ export const ImageBlockCaption = memo(({ caption, alt, onChange }: ImageBlockCap
                 type="submit"
                 aria-label="キャプションを適用"
                 onClick={() => {
-                  onChange(captionText, altText);
+                  onChange(captionRef.current?.value ?? '', altRef.current?.value ?? '');
                 }}
               >
                 適用

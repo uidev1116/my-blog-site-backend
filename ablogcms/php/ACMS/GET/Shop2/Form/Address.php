@@ -1,5 +1,6 @@
 <?php
 
+use Acms\Services\Facades\Login;
 use Acms\Services\Logger\Deprecated;
 
 /**
@@ -34,7 +35,7 @@ class ACMS_GET_Shop2_Form_Address extends ACMS_GET_Shop2
         }
 
         $Registed = [];
-        if (!is_null(SUID)) {
+        if (Login::isLoggedIn()) {
             $DB     = DB::singleton(dsn());
             $SQL    = SQL::newSelect('shop_address');
             $SQL->addWhereOpr('address_user_id', SUID);
@@ -49,8 +50,7 @@ class ACMS_GET_Shop2_Form_Address extends ACMS_GET_Shop2
         /*
         * primary
         */
-        // @phpstan-ignore-next-line
-        if (!defined('SUID') || SUID === null) {
+        if (!Login::isLoggedIn()) {
             if ($SESSION->isExists('mail')) {
                 $Tpl->add(['mailTo:veil', 'address#primary'], ['mail' => $SESSION->get('mail')]);
                 $Primary->set('mail', '');

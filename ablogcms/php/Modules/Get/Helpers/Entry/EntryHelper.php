@@ -3,6 +3,7 @@
 namespace Acms\Modules\Get\Helpers\Entry;
 
 use Acms\Modules\Get\Helpers\BaseHelper;
+use Acms\Services\Entry\Enums\EntryApprovalStatus;
 use Acms\Services\Facades\Database;
 use Acms\Services\Facades\Media;
 use Acms\Services\Facades\Common;
@@ -41,9 +42,13 @@ class EntryHelper extends BaseHelper
         if ($entry['entry_status'] === 'trash') {
             return false;
         }
+        // 承認前（pre_approval）は承認フロー未完了のため非公開。
+        // entry_current_rev_id = 0 かつ entry_reserve_rev_id > 0 のエントリーは
+        // 承認済みだがまだ公開リビジョンが存在しない「公開予約中」状態のため非公開とする
         $isPublicStatus =
             $entry['entry_status'] === 'open' &&
-            $entry['entry_approval'] !== 'pre_approval' &&
+            $entry['entry_approval'] !== EntryApprovalStatus::PreApproval->value &&
+            ((int) $entry['entry_current_rev_id'] > 0 || (int) ($entry['entry_reserve_rev_id'] ?? 0) === 0) &&
             requestTime() >= strtotime($entry['entry_start_datetime']) &&
             requestTime() <= strtotime($entry['entry_end_datetime']);
 
@@ -329,7 +334,7 @@ class EntryHelper extends BaseHelper
             $unitHtml = removeComments($unitHtml);
             $unitHtml = removeBlank($unitHtml);
             if (isApiBuildOrV2Module()) {
-                $unitHtml = Common::convertRelativeUrlsToAbsolute($unitHtml, BASE_URL);
+                $unitHtml = Common::convertAssetUrlsToAbsolute($unitHtml, BASE_URL);
             }
             $unit['column_field_6'] = $unitHtml;
         }

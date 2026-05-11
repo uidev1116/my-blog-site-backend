@@ -1,1 +1,1 @@
-"use strict";(self.webpackChunkacmsWebpackJsonp=self.webpackChunkacmsWebpackJsonp||[]).push([[3372],{23461:function(n,e,u){function a(n){return{name:"VBScript in HTML",subLanguage:"xml",contains:[{begin:"<%",end:"%>",subLanguage:"vbscript"}]}}u.r(e),u.d(e,{default:function(){return a}})}}]);
+"use strict";(globalThis.webpackChunkacmsWebpackJsonp=globalThis.webpackChunkacmsWebpackJsonp||[]).push([[3372],{23461(a,n,s){function e(a){return{name:"VBScript in HTML",subLanguage:"xml",contains:[{begin:"<%",end:"%>",subLanguage:"vbscript"}]}}s.r(n),s.d(n,{default:()=>e})}}]);

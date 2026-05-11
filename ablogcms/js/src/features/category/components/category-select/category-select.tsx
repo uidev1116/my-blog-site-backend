@@ -82,11 +82,11 @@ const CategorySelectWithoutRef = (
   ref: React.ForwardedRef<SelectInstance<CategoryOption, false>>
 ) => {
   const selectRef = useRef<SelectInstance<CategoryOption, false>>(null);
+  const initialized = useRef(false);
   const [inputValue, setInputValue] = useState<string>('');
   const [keyword, setKeyword] = useState<string>('');
 
   const [value, setValue] = useState<CategoryOption | null>(null);
-  const [defaultValue, setDefaultValue] = useState<CategoryOption | null>(null);
 
   const currentCid = useMemo(() => {
     if (value !== null) {
@@ -117,18 +117,12 @@ const CategorySelectWithoutRef = (
   );
 
   useEffect(() => {
-    if (defaultValue === null && options && options.length > 0) {
-      // カテゴリーのデフォルト値を設定
-      // カテゴリーのデータ（option）は、サーバーから現在選択しているカテゴリーが含まれていることが保証されている前提
+    if (!initialized.current && options && options.length > 0) {
+      initialized.current = true;
       const defaultValueString = isString(defaultValueProp) ? defaultValueProp : defaultValueProp?.value.toString();
-
-      setDefaultValue(options.find((option) => option.value === defaultValueString) || null);
+      setValue(options.find((option) => option.value === defaultValueString) || null);
     }
-  }, [options, defaultValue, defaultValueProp]);
-
-  useEffect(() => {
-    setValue(defaultValue);
-  }, [defaultValue]);
+  }, [options, defaultValueProp]);
 
   const setKeywordDebounced = useRef(debounce(800, (keyword) => setKeyword(keyword))).current;
 

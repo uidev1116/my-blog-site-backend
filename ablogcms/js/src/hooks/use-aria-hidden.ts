@@ -33,6 +33,11 @@ const useAriaHidden = (markerName?: string): UseAriaHiddenReturn => {
   const undoRef = useRef<Undo | null>(null);
 
   const hide = useCallback(() => {
+    // 既に hide 済みなら、新しい hide を走らせる前に前回分を undo して取り逃しを防ぐ
+    if (undoRef.current) {
+      undoRef.current();
+      undoRef.current = null;
+    }
     if (targetRef.current) {
       undoRef.current = hideOthers(targetRef.current, parentRef.current, markerName);
     }
@@ -41,6 +46,7 @@ const useAriaHidden = (markerName?: string): UseAriaHiddenReturn => {
   const unhide = useCallback(() => {
     if (undoRef.current) {
       undoRef.current();
+      undoRef.current = null;
     }
   }, []);
 
@@ -53,17 +59,11 @@ const useAriaHidden = (markerName?: string): UseAriaHiddenReturn => {
   );
 
   const setRef = useCallback((node: HTMLElement | null) => {
-    if (node === null) {
-      return;
-    }
     targetRef.current = node;
   }, []);
 
   const setParentRef = useCallback((node: HTMLElement | null) => {
-    if (node === null) {
-      return;
-    }
-    parentRef.current = node;
+    parentRef.current = node ?? undefined;
   }, []);
 
   return {

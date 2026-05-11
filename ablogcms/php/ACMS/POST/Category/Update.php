@@ -145,10 +145,14 @@ class ACMS_POST_Category_Update extends ACMS_POST_Category
         \Field_Validation $Field
     ) {
         $Category->setMethod('name', 'required');
+        $Category->setMethod('name', 'maxlength', '255');
         $Category->setMethod('code', 'required');
+        $Category->setMethod('code', 'maxlength', '255');
         $Category->setMethod('code', 'double', [$Category->get('scope'), $Category->get('parent'), CID]);
         $Category->setMethod('code', 'reserved', !isReserved($Category->get('code')));
-        $Category->setMethod('code', 'string', isValidCode($Category->get('code')));
+        if ($Category->get('code') !== '') {
+            $Category->setMethod('code', 'string', isValidCode($Category->get('code')));
+        }
         $Category->setMethod('status', 'required');
         $Category->setMethod('status', 'in', ['open', 'close', 'secret']);
         $Category->setMethod('status', 'status');

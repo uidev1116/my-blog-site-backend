@@ -1,10 +1,12 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_POST_Entry_DirectEdit_Enable extends ACMS_POST
 {
     public function post()
     {
-        if (SUID) {
+        if (Login::isLoggedIn()) {
             $session =& Field::singleton('session');
             $session->set('entry_direct_edit', 'enable');
 

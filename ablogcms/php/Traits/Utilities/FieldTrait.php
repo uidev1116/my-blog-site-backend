@@ -104,7 +104,7 @@ trait FieldTrait
                 if ($key === 'path' && $value && !$field->isExists("{$baseName}@media")) {
                     $value = Common::resolveUrl($value, ARCHIVES_DIR);
                 } elseif ($key === 'html' && $value) {
-                    $value = isApiBuildOrV2Module() ? Common::convertRelativeUrlsToAbsolute($value, BASE_URL) : $value;
+                    $value = isApiBuildOrV2Module() ? Common::convertAssetUrlsToAbsolute($value, BASE_URL) : $value;
                 }
                 $carry[$baseName]['value'][$key] = $value;
                 if (!$data) {
@@ -114,7 +114,7 @@ trait FieldTrait
                         if ($key === 'path' && $val && !$field->isExists("{$baseName}@media")) {
                             $val = Common::resolveUrl($val, ARCHIVES_DIR);
                         } elseif ($key === 'html' && $val) {
-                            $val = isApiBuildOrV2Module() ? Common::convertRelativeUrlsToAbsolute($val, BASE_URL) : $val;
+                            $val = isApiBuildOrV2Module() ? Common::convertAssetUrlsToAbsolute($val, BASE_URL) : $val;
                         }
                         $carry[$baseName]['array'][$i][$key] = $val;
                     }
@@ -182,7 +182,7 @@ trait FieldTrait
                     if ($key === 'path' && $val && !$field->isExists("{$baseName}@media")) {
                         $val = Common::resolveUrl($val, ARCHIVES_DIR);
                     } elseif ($key === 'html' && $val) {
-                        $val = isApiBuildOrV2Module() ? Common::convertRelativeUrlsToAbsolute($val, BASE_URL) : $val;
+                        $val = isApiBuildOrV2Module() ? Common::convertAssetUrlsToAbsolute($val, BASE_URL) : $val;
                     }
                     $carry[$i][$baseName][$key] = $val;
                     if ($field instanceof Field_Validation && !isApiBuild()) {
@@ -281,35 +281,72 @@ trait FieldTrait
     {
         $data = [];
         foreach ($values as $value) {
-            // 空文字列の場合はnullを返す
-            if ($value === "") {
-                $data[] = null;
-                continue;
-            }
-            // 数値の判定
-            if (is_numeric($value)) {
-                // 整数として扱える場合はintに変換
-                if (strpos((string) $value, '.') === false) {
-                    $data[] = (int) $value;
-                    continue;
-                }
-                // 小数点を含む場合はfloatに変換
-                $data[] = (float) $value;
-                continue;
-            }
-            // ブール値の判定
-            $lowerValue = strtolower($value);
-            if ($lowerValue === "true") {
-                $data[] = true;
-                continue;
-            }
-            if ($lowerValue === "false") {
-                $data[] = false;
-                continue;
-            }
-            // 上記のいずれにも当てはまらない場合
-            $data[] = $value;
+            $data[] = $this->convertFieldValueTypeTrait($value);
         }
+
         return $data;
+    }
+
+    /**
+     * 単一のフィールド値を適切な型に変換する
+     * （電話番号・郵便番号など先頭0を保持する値は文字列のまま返す）
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    private function convertFieldValueTypeTrait($value)
+    {
+        if ($value === '') {
+            return null;
+        }
+
+        if ($this->isBooleanStringTrait($value)) {
+            return strtolower($value) === 'true';
+        }
+
+        if (is_numeric($value)) {
+            return $this->convertNumericFieldValueTrait($value);
+        }
+
+        return $value;
+    }
+
+    /**
+     * 数値文字列を int/float に変換する
+     * 先頭が0で2文字以上の場合は文字列のまま（電話番号・郵便番号等を保持）
+     *
+     * @param string|int|float $value
+     * @return int|float|string
+     */
+    private function convertNumericFieldValueTrait($value)
+    {
+        $strVal = (string) $value;
+
+        if (strpos($strVal, '.') !== false) {
+            return (float) $value;
+        }
+
+        $isLeadingZero = strlen($strVal) > 1 && $strVal[0] === '0';
+        if ($isLeadingZero) {
+            return $value;
+        }
+
+        return (int) $value;
+    }
+
+    /**
+     * ブール文字列（"true" / "false"）かどうか
+     *
+     * @param mixed $value
+     * @return bool
+     */
+    private function isBooleanStringTrait($value): bool
+    {
+        if (!is_string($value)) {
+            return false;
+        }
+        $lower = strtolower($value);
+
+        return $lower === 'true' || $lower === 'false';
     }
 }

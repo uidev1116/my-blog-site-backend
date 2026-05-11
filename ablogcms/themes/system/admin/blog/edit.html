@@ -336,6 +336,12 @@
               name="name:validator#required"
               id="validator-name-required"
             />
+            <input
+              type="hidden"
+              name="name:validator#maxlength"
+              value="255"
+              id="validator-name-maxlength"
+            />
             <div role="alert" aria-live="assertive">
               <div
                 data-validator-label="validator-name-required"
@@ -348,6 +354,19 @@
                   >
                   </span>
                   <!--T-->名前が入力されていません。<!--/T-->
+                </p>
+              </div>
+              <div
+                data-validator-label="validator-name-maxlength"
+                class="validator-result-{name:validator#maxlength}"
+              >
+                <p class="error-text">
+                  <span
+                    class="acms-admin-icon acms-admin-icon-attention"
+                    aria-hidden="true"
+                  >
+                  </span>
+                  <!--T-->名前は255文字以内で入力してください。<!--/T-->
                 </p>
               </div>
             </div>
@@ -376,6 +395,12 @@
               name="domain:validator#required"
               id="validator-domain-required"
             />
+            <input
+              type="hidden"
+              name="domain:validator#maxlength"
+              value="128"
+              id="validator-domain-maxlength"
+            />
             <div role="alert" aria-live="assertive">
               <div
                 data-validator-label="validator-domain-required"
@@ -387,6 +412,18 @@
                     aria-hidden="true"
                   ></span>
                   <!--T-->ドメインが入力されていません。<!--/T-->
+                </p>
+              </div>
+              <div
+                data-validator-label="validator-domain-maxlength"
+                class="validator-result-{domain:validator#maxlength}"
+              >
+                <p class="error-text">
+                  <span
+                    class="acms-admin-icon acms-admin-icon-attention"
+                    aria-hidden="true"
+                  ></span>
+                  <!--T-->ドメインは128文字以内で入力してください。<!--/T-->
                 </p>
               </div>
               <div
@@ -426,9 +463,26 @@
           </th>
           <td>
             <input type="text" name="code" value="{code}" size="20" />
-            (<!--T-->英数字<!--/T-->)
             <input type="hidden" name="blog[]" value="code" />
+            <input
+              type="hidden"
+              name="code:validator#maxlength"
+              value="255"
+              id="validator-code-maxlength"
+            />
             <div role="alert" aria-live="assertive">
+              <div
+                data-validator-label="validator-code-maxlength"
+                class="validator-result-{code:validator#maxlength}"
+              >
+                <p class="error-text">
+                  <span
+                    class="acms-admin-icon acms-admin-icon-attention"
+                    aria-hidden="true"
+                  ></span>
+                  <!--T-->コードネームは255文字以内で入力してください。<!--/T-->
+                </p>
+              </div>
               <div
                 data-validator-label="validator-code-identify"
                 class="validator-result-{code:validator#exists}"
@@ -462,7 +516,7 @@
                     class="acms-admin-icon acms-admin-icon-attention"
                     aria-hidden="true"
                   ></span>
-                  <!--T-->不正な文字が含まれています。<!--/T-->
+                  <!--T-->ブログコードに使用できない文字が含まれています。スラッシュ(/)は階層を表現するために使用できますが、先頭・末尾や連続するスラッシュ、../ などの危険な文字列は使用できません。<!--/T-->
                 </p>
               </div>
             </div>
@@ -777,8 +831,10 @@
       </table>
     </div>
     <div id="acms_custom" class="acms-admin-tabs-panel">
-      @include("/admin/blog/field.html")
-      <!-- BEGIN_MODULE Admin_InjectTemplate id="admin-blog-field" --><!-- END_MODULE Admin_InjectTemplate -->
+      <div class="acms-admin-field-container">
+        @include("/admin/blog/field.html")
+        <!-- BEGIN_MODULE Admin_InjectTemplate id="admin-blog-field" --><!-- END_MODULE Admin_InjectTemplate -->
+      </div>
     </div>
     <!-- BEGIN_MODULE Touch_SessionWithEnterpriseAdministration -->
     <div id="acms_workflow" class="acms-admin-tabs-panel">

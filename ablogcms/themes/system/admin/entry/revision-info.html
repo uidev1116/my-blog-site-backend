@@ -4,30 +4,36 @@
 <!-- BEGIN_MODULE Touch_Version -->
 <div class="acms-admin-revison-admin">
   <!-- BEGIN_MODULE Admin_Entry_Revision_Current -->
+  <button
+    type="button"
+    class="js-get_revisions acms-admin-btn-admin"
+  >
+    <!--T-->バージョン管理<!--/T-->
+  </button>
+  <!-- BEGIN_MODULE Touch_RequiresApproval -->
+  <!-- BEGIN_IF [%{rvid}/eq/1] -->
   <form action="" method="post">
-    <input type="button" value="<!--T-->バージョン管理<!--/T-->" class="js-get_revisions acms-admin-btn-admin" />
-    <!-- BEGIN_MODULE Touch_NotsessionWithApprovalAdministrator -->
-    <!-- BEGIN_IF [%{rvid}/eq/1/_or_/%{rvid}/em/] -->
     <input type="hidden" name="revisionName" value="" />
     <input type="hidden" name="redirect" value="approval" />
-    <input
+    <button
       type="submit"
       name="ACMS_POST_Revision_Duplicate"
-      value="<!--T-->作業領域から承認依頼<!--/T-->"
       class="acms-admin-btn-admin acms-admin-btn-admin-primary"
       onclick="return confirm('<!--T-->作業領域からバージョンを作成して承認画面に移動します。よろしいですか？<!--/T-->');"
-    />
-    <!-- ELSE_IF [{rev_status}/eq/none] -->
-    <a href="{confirmUrl}" class="js-get_revision_preview acms-admin-btn-admin acms-admin-btn-admin-primary">このバージョンを承認依頼</a>
-    <!-- ELSE_IF [{rev_status}/eq/in_review] -->
-    <a href="{confirmUrl}" class="js-get_revision_preview acms-admin-btn-admin acms-admin-btn-admin-info">承認画面を表示</a>
-    <!-- ELSE_IF [{rev_status}/eq/approved] -->
-    <span><!--T-->このバージョンは既に承認済みのため、新規バージョンとしてのみ保存できます。<!--/T--></span>
-    <!-- ELSE_IF [{rev_status}/eq/reject] -->
-    <span><!--T-->このバージョンは既に承認却下されているため、新規バージョンとしてのみ保存できます。<!--/T--></span>
-    <!-- END_IF -->
-    <!-- END_MODULE Touch_NotsessionWithApprovalAdministrator -->
+    >
+      <!--T-->作業領域から承認依頼<!--/T-->
+    </button>
   </form>
+  <!-- ELSE_IF [{rev_status}/eq/none] -->
+  <a href="{confirmUrl}" class="js-get_revision_preview acms-admin-btn-admin acms-admin-btn-admin-primary">このバージョンを承認依頼</a>
+  <!-- ELSE_IF [{rev_status}/eq/in_review] -->
+  <a href="{confirmUrl}" class="js-get_revision_preview acms-admin-btn-admin acms-admin-btn-admin-info">承認画面を表示</a>
+  <!-- ELSE_IF [{rev_status}/eq/approved] -->
+  <span><!--T-->このバージョンは既に承認済みのため、新規バージョンとしてのみ保存できます。<!--/T--></span>
+  <!-- ELSE_IF [{rev_status}/eq/reject] -->
+  <span><!--T-->このバージョンは既に承認却下されているため、新規バージョンとしてのみ保存できます。<!--/T--></span>
+  <!-- END_IF -->
+  <!-- END_MODULE Touch_RequiresApproval -->
 
   <!-- BEGIN_MODULE Touch_Approval -->
   <!-- BEGIN_IF [{rev_status}/eq/in_review] -->

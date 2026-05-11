@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useMemo } from 'react';
+import { createContext, useContext, ReactNode } from 'react';
 import { UnitConfigEditorSettings } from '../types';
 
 const SettingsContext = createContext<UnitConfigEditorSettings | undefined>(undefined);
@@ -9,7 +9,7 @@ interface SettingsProviderProps {
 }
 
 export const SettingsProvider = ({ children, settings }: SettingsProviderProps) => {
-  const value = useMemo(() => settings, [settings]);
+  const value = settings;
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 };
 

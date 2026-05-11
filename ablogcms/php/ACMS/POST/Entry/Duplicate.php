@@ -1,10 +1,10 @@
 <?php
 
+use Acms\Services\Entry\Enums\EntryApprovalStatus;
 use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Common;
 use Acms\Services\Facades\Entry;
 use Acms\Services\Facades\Logger as AcmsLogger;
-use Acms\Services\Unit\Contracts\Model;
 
 class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
 {
@@ -47,7 +47,11 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
         if ($newEid < 1) {
             throw new \RuntimeException('Failed to generate new entry id');
         }
-        if (enableApproval(BID, CID) && !sessionWithApprovalAdministrator(BID, CID)) {
+        $entry = ACMS_RAM::entry($eid);
+        if ($entry === null) {
+            throw new \RuntimeException('The entry to be duplicated could not be found. It may have been deleted or the ID may be incorrect.');
+        }
+        if (Entry::requiresApproval($entry['entry_blog_id'], $entry['entry_category_id'])) {
             $this->approvalDupe($eid, $newEid);
             if (HOOK_ENABLE) {
                 $Hook = ACMS_Hook::singleton();
@@ -136,7 +140,9 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
         $approval = ACMS_RAM::entryApproval($eid);
         $sourceRev = false;
 
-        if ($approval === 'pre_approval') {
+        // 承認前エントリーはリビジョン1（作業領域）に最新の編集内容が保存されているため、
+        // 複製元をリビジョン1とし、作業領域の内容を複製先に引き継ぐ。
+        if ($approval === EntryApprovalStatus::PreApproval->value) {
             $sourceRev = true;
         }
 
@@ -161,11 +167,9 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
         $SQL->addWhereOpr('entry_id', $eid);
         $SQL->addWhereOpr('entry_blog_id', $bid);
         $row = $DB->query($SQL->get(dsn()), 'row');
-        $title = $row['entry_title'] . config('entry_title_duplicate_suffix');
-        $code = ('on' == config('entry_code_title')) ? stripWhitespace($title) : config('entry_code_prefix') . $newEid;
-        if (!!config('entry_code_extension') and !strpos($code, '.')) {
-            $code .= ('.' . config('entry_code_extension'));
-        }
+        $title  = $row['entry_title'] . config('entry_title_duplicate_suffix');
+        assert($title !== ''); // タイトルは必ず存在する
+        $code = Entry::generateEntryCodeFromTitleOrId($title, $newEid);
 
         $uid = intval($row['entry_user_id']);
         if (!($cid = intval($row['entry_category_id']))) {
@@ -216,7 +220,9 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
                 $SQL->addInsert($fd, $val);
             }
         }
-        $SQL->addInsert('entry_approval', 'pre_approval');
+        // 複製先エントリーは承認フローを経ていないため、承認前（pre_approval）で作成する。
+        // 複製元が承認済みであっても、複製先は必ず承認フローを最初からやり直す必要がある。
+        $SQL->addInsert('entry_approval', EntryApprovalStatus::PreApproval->value);
         $SQL->addInsert('entry_last_update_user_id', SUID);
         $DB->query($SQL->get(dsn()), 'exec');
 
@@ -298,7 +304,9 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
         $bid = ACMS_RAM::entryBlog($eid);
         $approval = ACMS_RAM::entryApproval($eid);
         $sourceRvid = null;
-        if ($approval === 'pre_approval') {
+        // 承認前エントリーはリビジョン1（作業領域）に最新の編集内容が保存されているため、
+        // 複製元をリビジョン1とし、作業領域の内容を複製先に引き継ぐ。
+        if ($approval === EntryApprovalStatus::PreApproval->value) {
             $sourceRvid = 1;
         }
 
@@ -317,10 +325,8 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
         $SQL->addWhereOpr('entry_blog_id', $bid);
         $row = $DB->query($SQL->get(dsn()), 'row');
         $title  = $row['entry_title'] . config('entry_title_duplicate_suffix');
-        $code   = ('on' == config('entry_code_title')) ? stripWhitespace($title) : config('entry_code_prefix') . $newEid;
-        if (!!config('entry_code_extension') and !strpos($code, '.')) {
-            $code .= ('.' . config('entry_code_extension'));
-        }
+        assert($title !== ''); // タイトルは必ず存在する
+        $code = Entry::generateEntryCodeFromTitleOrId($title, $newEid);
 
         $uid    = intval($row['entry_user_id']);
         if (!($cid = intval($row['entry_category_id']))) {
@@ -335,7 +341,8 @@ class ACMS_POST_Entry_Duplicate extends ACMS_POST_Entry
 
         $row['entry_id'] = $newEid;
         $row['entry_status'] = 'close';
-        $row['entry_approval'] = 'none';
+        // リビジョンレコードに承認フロー状態は不要なため none をセットする。
+        $row['entry_approval'] = EntryApprovalStatus::None->value;
         $row['entry_title'] = $title;
         $row['entry_code'] = $code;
         if (config('update_datetime_as_duplicate_entry') !== 'off') {

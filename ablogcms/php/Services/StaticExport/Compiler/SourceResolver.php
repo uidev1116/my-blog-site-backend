@@ -68,7 +68,11 @@ class SourceResolver extends Resolver
                 }
             }
             $path = trim($match[$mpt][0], '\'"'); // @phpstan-ignore-line
-            $path = preg_replace('@(https?)?://' . $blogPath . '(?::\d+)?/?@', '/', $path);
+            // ポートはホスト直後に現れるため、$blogPath（ドメイン + DIR_OFFSET）と
+            // ポートを同一の正規表現でまとめてマッチさせるのは不可能。
+            // 先に WHATWG URL でポートを取り除いてから自ブログ URL を相対化する。
+            $path = $this->removePortFromUrl($path);
+            $path = preg_replace('@(https?)?://' . $blogPath . '/?@', '/', $path);
             $this->replacer($path, $html, $match, $mpt); // @phpstan-ignore-line
         }
         $regex = '@<\s*(?:img|input|script|frame|iframe)(?:"[^"]*"|\'[^\']*\'|[^\'">])*data-src\s*=\s*("[^"]+"|\'[^\']+\'|[^\'"\s>]+)(?:"[^"]*"|\'[^\']*\'|[^\'">])*>@';
@@ -76,7 +80,8 @@ class SourceResolver extends Resolver
         while (preg_match($regex, $html, $match, PREG_OFFSET_CAPTURE, $this->offset)) {
             $this->offset = $match[0][1] + strlen($match[0][0]);
             $path = trim($match[1][0], '\'"');
-            $path = preg_replace('@(https?)?://' . $blogPath . '(?::\d+)?/?@', '/', $path);
+            $path = $this->removePortFromUrl($path);
+            $path = preg_replace('@(https?)?://' . $blogPath . '/?@', '/', $path);
             $this->replacer($path, $html, $match, 1);
         }
         return $html;
@@ -197,7 +202,9 @@ class SourceResolver extends Resolver
         $rewrite = false;
         while (true) {
             $tmp = join('/', $split_path);
-
+            if ($tmp === '') {
+                break; // ここで while を抜ける（＝rewriteしない）
+            }
             // 書き出し先にあったら
             foreach (['',  $this->destinationBlogCode] as $bcd) {
                 if (is_readable($this->destinationPath . $bcd . urldecode($tmp))) {
@@ -219,7 +226,6 @@ class SourceResolver extends Resolver
         if (!$rewrite) {
             // ToDo: 書き換え失敗のエラーハンドリングをする
         }
-
         return true;
     }
 }

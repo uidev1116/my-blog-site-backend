@@ -8,6 +8,16 @@ use Acms\Services\Facades\Mailer;
 class ACMS_POST_Member_Update_Profile extends ACMS_POST_Member
 {
     /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @inheritDoc
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return Login::isValidAuthenticatedPath(BID, PROFILE_UPDATE_SEGMENT);
+    }
+
+    /**
      * Main
      * @return Field_Validation
      */
@@ -62,11 +72,16 @@ class ACMS_POST_Member_Update_Profile extends ACMS_POST_Member
             httpStatusCode('403 Forbidden');
         }
         $user->setMethod('name', 'required');
+        $user->setMethod('name', 'maxlength', '255');
+        $user->setMethod('code', 'maxlength', '64');
         $user->setMethod('code', 'doubleCode', SUID);
         $user->setMethod('mail_magazine', 'in', ['on', 'off']);
+        $user->setMethod('url', 'maxlength', '255');
         $user->setMethod('url', 'url');
-        $user->setMethod('code', 'string', isValidCode($user->get('code')));
-        $user->setMethod('user', 'operable', !!SUID);
+        if ($user->get('code') !== '') {
+            $user->setMethod('code', 'string', isValidCode($user->get('code')));
+        }
+        $user->setMethod('user', 'operable', Login::isLoggedIn());
         $user->validate(new SigninValidator());
     }
 

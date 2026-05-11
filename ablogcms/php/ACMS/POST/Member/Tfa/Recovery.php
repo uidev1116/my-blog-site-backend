@@ -5,6 +5,16 @@ use Acms\Services\Facades\Login;
 class ACMS_POST_Member_Tfa_Recovery extends ACMS_POST_Member_Signin
 {
     /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @inheritDoc
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return Login::canLoginPage(BID, TFA_RECOVERY_SEGMENT);
+    }
+
+    /**
      * Run
      *
      * @return Field_Validation
@@ -105,14 +115,17 @@ class ACMS_POST_Member_Tfa_Recovery extends ACMS_POST_Member_Signin
             ]);
             $loginField->setMethod('pass', 'auth', false);
         }
-        if (SUID) {
+        if (Login::isLoggedIn()) {
+            /** @var int|null $sessionUserId */
+            $sessionUserId = SUID;
+            assert(is_int($sessionUserId)); // ログインしていることが保証されている
             AcmsLogger::info('すでにログイン中のため、リカバリーコードを使った2段階認証の無効化を中断しました', [
-                'uid' => SUID,
-                'name' => ACMS_RAM::userName(SUID),
+                'uid' => $sessionUserId,
+                'name' => ACMS_RAM::userName($sessionUserId),
             ]);
             $loginField->setMethod('pass', 'auth', false);
         }
-        if (!$this->accessRestricted()) {
+        if (!$this->canAccessFromCurrentIp()) {
             AcmsLogger::notice('接続元IPアドレスがホワイト・ブラックリスト設定に当てはまるため、リカバリーコードを使った2段階認証の無効化を中断しました', [
                 'id' => $inputMail,
                 'recoveryCode' => $recoveryCode,

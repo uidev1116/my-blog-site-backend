@@ -7,6 +7,16 @@ use Acms\Services\Login\Exceptions\ExpiredException;
 class ACMS_POST_Member_SigninWithVerifyCode extends ACMS_POST_Member_SigninWithEmail
 {
     /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @inheritDoc
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return Login::canLoginPage(BID, SIGNIN_SEGMENT);
+    }
+
+    /**
      * Run
      *
      * @inheritDoc

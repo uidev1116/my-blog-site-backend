@@ -856,7 +856,6 @@
   touch-action: none;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
-     -moz-user-select: none;
           user-select: none;
 }
 
@@ -1195,7 +1194,6 @@
   cursor: grab;
   opacity: 0.8;
   -webkit-user-select: none;
-     -moz-user-select: none;
           user-select: none;
   touch-action: pan-x;
 }

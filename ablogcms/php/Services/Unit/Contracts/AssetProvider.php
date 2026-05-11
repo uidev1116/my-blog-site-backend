@@ -23,8 +23,7 @@ interface AssetProvider
      * ファイルを保存する
      *
      * @param array $post $_POSTデータ
-     * @param bool $removeOld 古いファイルを削除するかどうか
      * @return void
      */
-    public function saveFiles(array $post, bool $removeOld = true): void;
+    public function saveFiles(array $post): void;
 }

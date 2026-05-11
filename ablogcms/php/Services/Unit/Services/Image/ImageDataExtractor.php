@@ -2,8 +2,6 @@
 
 namespace Acms\Services\Unit\Services\Image;
 
-use ACMS_POST_Image;
-
 /**
  * @phpstan-type ImageRequest = array{
  *   caption: string,

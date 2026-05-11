@@ -14,6 +14,8 @@ interface DeviceModeModalProps extends React.ComponentPropsWithoutRef<typeof Dev
   focusTrapOptions?: React.ComponentPropsWithoutRef<typeof BaseModal>['focusTrapOptions'];
 }
 
+const EMPTY_FOCUS_TRAP_OPTIONS: NonNullable<React.ComponentPropsWithoutRef<typeof BaseModal>['focusTrapOptions']> = {};
+
 const DeviceModeModal = (
   {
     onClose = () => {},
@@ -22,7 +24,7 @@ const DeviceModeModal = (
     onAfterClose = () => {},
     container,
     isOpen = false,
-    focusTrapOptions = {},
+    focusTrapOptions = EMPTY_FOCUS_TRAP_OPTIONS,
     ...deveiceModeProps
   }: DeviceModeModalProps,
   ref: React.Ref<HTMLDivElement>

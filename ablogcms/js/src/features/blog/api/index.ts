@@ -1,4 +1,4 @@
-import axiosClient from '../../../lib/axios';
+import { fetchClient } from '../../../lib/fetch-client';
 import type { BlogOption } from '../types';
 
 export interface FetchBlogOptionsParams {
@@ -19,6 +19,6 @@ export async function fetchBlogOptions(params?: FetchBlogOptionsParams): Promise
     },
     false
   );
-  const { data: options = [] } = await axiosClient.get<BlogOption[]>(endpoint);
+  const { data: options = [] } = await fetchClient.get<BlogOption[]>(endpoint);
   return options;
 }

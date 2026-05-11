@@ -123,7 +123,6 @@ const BannerEditor = (props: BannerEditorProps) => {
     })),
   ]);
   const [files, setFiles] = useState<File[]>([]);
-  const [changed, setChanged] = useState(false);
 
   const items = useMemo(
     () => sortableItems.filter((item) => item.data !== null).map((item) => item.data) as BannerItem[],
@@ -136,12 +135,12 @@ const BannerEditor = (props: BannerEditorProps) => {
       const unitBoxIndex = prevItems.findIndex((item) => item.data === null);
       return [...prevItems.slice(0, unitBoxIndex + 1), newItem, ...prevItems.slice(unitBoxIndex + 1)];
     });
-    setChanged(true);
+    $('.js-config-not-saved').addClass('active');
   }, []);
 
   const removeBannerItem = (id: string) => {
     setSortableItems((prevItems) => prevItems.filter((item) => item.id !== id));
-    setChanged(true);
+    $('.js-config-not-saved').addClass('active');
   };
 
   const updateBannerItem = <T extends BannerItem = BannerItem>(id: string, key: keyof T, value: unknown) => {
@@ -150,7 +149,7 @@ const BannerEditor = (props: BannerEditorProps) => {
         item.id === id ? ({ id, data: { ...item.data, [key]: value } } as SortableBannerItem) : item
       )
     );
-    setChanged(true);
+    $('.js-config-not-saved').addClass('active');
   };
 
   const openInsertModal = (item: ImageBannerItem) => {
@@ -197,7 +196,7 @@ const BannerEditor = (props: BannerEditorProps) => {
 
     setSortableItems(newSortableItems);
     setInsertModalOpened(false);
-    setChanged(true);
+    $('.js-config-not-saved').addClass('active');
     setFiles([]);
   };
 
@@ -213,7 +212,7 @@ const BannerEditor = (props: BannerEditorProps) => {
       );
       setSortableItems(newSortableItems);
       setUpdateModalOpened(false);
-      setChanged(true);
+      $('.js-config-not-saved').addClass('active');
     },
     [targetItem, sortableItems]
   );
@@ -289,7 +288,7 @@ const BannerEditor = (props: BannerEditorProps) => {
         item.id === id ? ({ id, data: { ...item.data, media_banner_mid: undefined } } as SortableBannerItem) : item
       )
     );
-    setChanged(true);
+    $('.js-config-not-saved').addClass('active');
   };
 
   const handleComplete = useCallback((files: ExtendedFile[], item: ImageBannerItem) => {
@@ -308,19 +307,13 @@ const BannerEditor = (props: BannerEditorProps) => {
     }
   }, [items, addItem]);
 
-  useEffect(() => {
-    if (changed) {
-      $('.js-config-not-saved').addClass('active');
-    }
-  }, [changed]);
-
   const changeBannerItemSort = useCallback(
     (oldIndex: number, newIndex: number) => {
       const from = sortableItems.findIndex((item) => item.id === items[oldIndex - 1].id);
       const to = sortableItems.findIndex((item) => item.id === items[newIndex - 1].id);
       const newSortableItems = arraySwap(sortableItems, from, to);
       setSortableItems(newSortableItems);
-      setChanged(true);
+      $('.js-config-not-saved').addClass('active');
     },
     [items, sortableItems]
   );
@@ -339,7 +332,7 @@ const BannerEditor = (props: BannerEditorProps) => {
         const newIndex = sortableItems.findIndex((item) => item.id === over.id);
         const newSortableItems = arrayMove(sortableItems, oldIndex, newIndex);
         setSortableItems(newSortableItems);
-        setChanged(true);
+        $('.js-config-not-saved').addClass('active');
       }
     },
     [sortableItems]

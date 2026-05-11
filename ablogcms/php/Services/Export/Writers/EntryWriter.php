@@ -2,6 +2,7 @@
 
 namespace Acms\Services\Export\Writers;
 
+use Acms\Services\Entry\Enums\EntryApprovalStatus;
 use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Database;
 use Acms\Services\Common\Logger;
@@ -165,7 +166,8 @@ class EntryWriter
         if (strtotime($item['entry_end_datetime']) < REQUEST_TIME) {
             return 'draft'; // 掲載終了
         }
-        if ($item['entry_approval'] === 'pre_approval') {
+        // 承認前は未公開状態のため、エクスポート上の公開ステータスは draft として扱う。
+        if ($item['entry_approval'] === EntryApprovalStatus::PreApproval->value) {
             return 'draft'; // 承認前
         }
         return 'publish';

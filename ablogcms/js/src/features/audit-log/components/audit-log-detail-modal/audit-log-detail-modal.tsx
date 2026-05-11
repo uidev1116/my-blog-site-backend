@@ -1,9 +1,7 @@
 import { useCallback, useState } from 'react';
 import ContentLoader from 'react-content-loader';
-import type { AxiosRequestConfig, AxiosResponse } from 'axios';
-import axios from 'axios';
 import { nl2br } from '../../../../utils/react';
-import axiosLib from '../../../../lib/axios';
+import { fetchClient, isFetchError } from '../../../../lib/fetch-client';
 import SyntaxHighlight from '../../../../components/syntax-highlight/syntax-highlight';
 import Modal from '../../../../components/modal/modal';
 import { parseQuery } from '../../../../utils';
@@ -97,15 +95,8 @@ const AuditLogDetailModal = ({ buttons }: AuditLogDetailModalProps) => {
     params.append('id', id);
     params.append('formToken', window.csrfToken);
 
-    const axiosOptions: AxiosRequestConfig = {
-      method: 'POST',
-      url: window.location.href,
-      responseType: 'json',
-      data: params,
-    };
-
     try {
-      const response: AxiosResponse<Log> = await axiosLib(axiosOptions);
+      const response = await fetchClient.post<Log>(window.location.href, params);
       const json = response.data;
       if (response.status === 200) {
         if (json && json.success === true) {
@@ -120,7 +111,7 @@ const AuditLogDetailModal = ({ buttons }: AuditLogDetailModalProps) => {
         setErrorMessage('ログの取得に失敗しました');
       }
     } catch (e) {
-      if (axios.isAxiosError(e) && e.response && e.response.status === 400) {
+      if (isFetchError(e) && e.status === 400) {
         setErrorMessage(`ログの取得に失敗しました。${e.message}`);
       }
     }

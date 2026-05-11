@@ -33,12 +33,11 @@ class FileManager
 
     /**
      * コンストラクタ
-     * @param bool $removeOld 古いファイルを削除するかどうか
      */
-    public function __construct(bool $removeOld = true)
+    public function __construct()
     {
         $this->hook = ACMS_Hook::singleton();
-        $this->fileHelper = new ACMS_POST_File($removeOld);
+        $this->fileHelper = new ACMS_POST_File();
     }
 
     /**
@@ -142,6 +141,11 @@ class FileManager
         $newPaths = [];
 
         foreach ($oldPaths as $oldPath) {
+            if ($oldPath === '') {
+                // 削除モード由来の空文字パスはコピー対象ではないため、そのまま維持する
+                $newPaths[] = '';
+                continue;
+            }
             if (in_array($oldPath, Entry::getUploadedFiles(), true)) {
                 $newPaths[] = $oldPath;
                 continue;

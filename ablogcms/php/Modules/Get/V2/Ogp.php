@@ -48,7 +48,9 @@ class Ogp extends Base
         $imageData = $ogpHelper->getImage();
         if ($imageData) {
             $vars = array_merge($vars, [
-                'image' => $imageData['type'] === 'media' ? Common::toAbsoluteUrl($imageData['path'], MEDIA_LIBRARY_DIR, true) : Common::toAbsoluteUrl($imageData['path'], ARCHIVES_DIR, true),
+                'image' => $imageData['type'] === 'media'
+                    ? Common::toAbsoluteUrl($imageData['path'], MEDIA_LIBRARY_DIR)
+                    : Common::toAbsoluteUrl($imageData['path'], ARCHIVES_DIR),
                 'image@x' => $imageData['width'],
                 'image@y' => $imageData['height'],
                 'image@type' => $imageData['type'],

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import ColumnServiceContext from './context';
 import type { ColumnServiceInterface, RowData } from '../../types';
 
@@ -8,7 +8,7 @@ interface ColumnServiceProviderProps<T extends RowData> {
 }
 
 const ColumnServiceProvider = <T extends RowData>({ children, service }: ColumnServiceProviderProps<T>) => {
-  const value = useMemo(() => service, [service]);
+  const value = service;
   return (
     <ColumnServiceContext.Provider value={value as ColumnServiceInterface<unknown>}>
       {children}

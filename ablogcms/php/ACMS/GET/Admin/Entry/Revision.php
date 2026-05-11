@@ -34,7 +34,6 @@ class ACMS_GET_Admin_Entry_Revision extends ACMS_GET_Admin
         return intval($reserveRvid);
     }
 
-
     protected function getRevisionsData($eid)
     {
         $sql = SQL::newSelect('entry_rev');

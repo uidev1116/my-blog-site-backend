@@ -90,7 +90,15 @@ class ACMS_ValidatorBody
             $regex  = '@' . $regex . '@';
         }
 
-        return preg_match($regex, $val) === 1 || multiBytePregMatch($regex . 'u', $val);
+        if (preg_match($regex, $val) === 1) {
+            return true;
+        }
+
+        if (multiBytePregMatch($regex . 'u', $val) === 1) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -136,7 +144,7 @@ class ACMS_ValidatorBody
         if ('' === $val || null === $val) {
             return true;
         }
-        return multiBytePregMatch('@^(https?|ftp)(:\/\/[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+)$@u', $val);
+        return multiBytePregMatch('@^(https?|ftp)(:\/\/[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+)$@u', $val) === 1;
     }
 
     /**

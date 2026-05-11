@@ -1,5 +1,11 @@
 <?php
 
+use Acms\Services\Facades\Entry;
+use Acms\Services\Facades\Common;
+use Acms\Services\Facades\Application;
+use Acms\Services\Entry\Exceptions\TagValidationException;
+use Acms\Services\Entry\Exceptions\SubCategoryValidationException;
+
 /**
  * エントリーCSVインポート用モデルクラス
  *
@@ -8,15 +14,13 @@
 class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
 {
     use \Acms\Traits\Unit\UnitModelTrait;
+    use \Acms\Traits\CsvImport\UpdateByFieldKey;
 
     /** @var array<string, mixed> エントリーデータ */
     protected array $entry = [];
 
     /** @var array<int, array<string, mixed>> ユニットデータ配列 */
     protected array $units = [];
-
-    /** @var array<int, array<string, mixed>> フィールドデータ配列 */
-    protected array $fields = [];
 
     /** @var int インポート先ブログID */
     protected int $importBid = BID;
@@ -98,21 +102,23 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
      */
     protected function nextId(): void
     {
-        $DB = DB::singleton(dsn());
-        $this->nextId = intval($DB->query(SQL::nextval('entry_id', dsn()), 'seq'));
+        $this->nextId = intval(DB::query(SQL::nextval('entry_id', dsn()), 'seq'));
     }
 
     /**
      * 保存処理
      *
-     * フォーマットチェック、更新キー処理、データ組み立てを行い、更新または挿入を実行する
+     * 更新キー処理、データ組み立てを行い、更新または挿入を実行する
+     * バリデーションは save() で実行（setTargetCid() や setTargetBid() の後に実行される）
      *
      * @return void
-     * @throws RuntimeException フォーマットエラーまたは重複キーエラー時
+     * @throws RuntimeException 重複キーエラー時
      */
     public function save(): void
     {
-        $this->formatCheck();
+        // 完全なバリデーションを実行（参照整合性チェックなど）
+        $this->validate();
+
         $this->updateKey();
         $this->build();
 
@@ -124,47 +130,84 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
     }
 
     /**
-     * データフォーマットの検証
+     * バリデーション
      *
-     * 各フィールドの値が適切なフォーマットかを検証する
+     * save() メソッドで実行される完全なバリデーション
+     * 必須フィールドの存在確認、データフォーマットの検証、重複チェックを実行する
+     *
+     * @return void
+     * @throws RuntimeException バリデーションエラー時
+     */
+    protected function validate(): void
+    {
+        // 1. 基本的なフォーマットチェック（既存の formatCheck の内容）
+        $this->validateBasicFormat();
+
+        // 2. 文字数制限チェック
+        $this->validateFieldLengths();
+
+        // 3. エントリーコードのバリデーション
+        $this->validateEntryCode();
+
+        // 4. カテゴリー・ユーザーの存在チェック
+        $this->validateReferences();
+
+        // 5. タグ・サブカテゴリーのバリデーション
+        $this->validateTagsAndSubCategories();
+
+        // 6. 日時の妥当性チェック
+        $this->validateDateTimes();
+    }
+
+    /**
+     * 基本的なフォーマットチェック
+     *
+     * validate() 内で実行される基本的なフォーマットチェック
      *
      * @return void
      * @throws RuntimeException フォーマットが不正な場合
      */
-    protected function formatCheck(): void
+    private function validateBasicFormat(): void
     {
         foreach ($this->data as $key => $value) {
             switch ($key) {
                 case 'entry_id':
+                    // 新規作成の場合は空文字列が許可される
+                    if ($value !== '' && !is_numeric($value)) {
+                        throw new \RuntimeException('数値でない値が設定されています（' . $key . '）。入力された値: ' . $value);
+                    }
+                    break;
                 case 'entry_summary_range':
                 case 'entry_category_id':
                 case 'entry_user_id':
-                    if (!is_numeric($value)) {
-                        throw new \RuntimeException('数値でない値が設定されています（' . $key . '）');
+                    if ($value !== '' && !is_numeric($value)) {
+                        throw new \RuntimeException('数値でない値が設定されています（' . $key . '）。入力された値: ' . $value);
                     }
                     break;
                 case 'entry_status':
                     if (!in_array($value, ['open', 'close', 'draft', 'trash'], true)) {
-                        throw new \RuntimeException('不正な値が設定されています（' . $key . '）');
+                        throw new \RuntimeException('不正な値が設定されています（' . $key . '）。open, close, draft, trash のいずれかを指定してください。入力された値: ' . $value);
                     }
                     break;
                 case 'entry_datetime':
                 case 'entry_updated_datetime':
+                case 'entry_posted_datetime':
+                    if ($value !== '' && !preg_match('@^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$@', $value)) {
+                        throw new \RuntimeException('日時のフォーマットが間違っています（' . $key . '）。YYYY-MM-DD HH:MM:SS 形式で指定してください。入力された値: ' . $value);
+                    }
+                    break;
                 case 'entry_start_datetime':
                 case 'entry_end_datetime':
-                case 'entry_posted_datetime':
-                    if (!preg_match('@^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$@', $value)) {
-                        throw new \RuntimeException('日時のフォーマットが間違っています（' . $key . '）');
+                    // 空文字列の場合はスキップ（オプショナルフィールド）
+                    if ($value !== '' && !preg_match('@^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$@', $value)) {
+                        throw new \RuntimeException('日時のフォーマットが間違っています（' . $key . '）。YYYY-MM-DD HH:MM:SS 形式で指定してください。入力された値: ' . $value);
                     }
                     break;
                 case 'entry_indexing':
-                    if (!in_array($value, ['on', 'off'], true)) {
-                        throw new \RuntimeException('on または off 以外の値が設定されています（' . $key . '）');
-                    }
-                    break;
                 case 'entry_members_only':
-                    if (!in_array($value, ['on', 'off'], true)) {
-                        throw new \RuntimeException('on または off 以外の値が設定されています（' . $key . '）');
+                    // 空文字列の場合はスキップ（デフォルト値が使用される）
+                    if ($value !== '' && !in_array($value, ['on', 'off'], true)) {
+                        throw new \RuntimeException('on または off 以外の値が設定されています（' . $key . '）。入力された値: ' . $value);
                     }
                     break;
             }
@@ -172,49 +215,200 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
     }
 
     /**
-     * 更新キーの処理
+     * 文字数制限チェック
      *
-     * プロ版限定機能。フィールドキーを使用してエントリーを特定し、更新対象として設定する
-     *
-     * @return bool 処理が実行された場合true、プロ版でない場合はfalse
-     * @throws RuntimeException 重複するキーが見つかった場合
+     * @return void
+     * @throws RuntimeException 文字数制限を超えている場合
      */
-    protected function updateKey(): bool
+    private function validateFieldLengths(): void
     {
-        // プロ版以上限定
-        if (!editionWithProfessional()) {
-            return false;
-        }
-        $updateKey = null;
-
-        $DB = DB::singleton(dsn());
-        $SQL = SQL::newSelect('field');
-        $SQL->addSelect('field_eid');
-        $SQL->addWhereOpr('field_blog_id', $this->importBid);
-
-        foreach ($this->labels as $key) {
-            if (strpos($key, 'unit@') === 0) {
-                continue;
-            }
-            if (preg_match('/^\*/', $key)) {
-                $updateKey = ltrim($key, '*');
-                break;
+        // entry_title: varchar(255)
+        if (isset($this->data['entry_title']) && $this->data['entry_title'] !== '') {
+            $length = mb_strlen($this->data['entry_title'], 'UTF-8');
+            if ($length > 255) {
+                throw new \RuntimeException('タイトルが長すぎます（entry_title）。最大255文字まで入力できます。現在: ' . $length . '文字。入力された値: ' . $this->data['entry_title']);
             }
         }
-        if (isset($this->data['*' . $updateKey])) {
-            $SQL->addWhereOpr('field_key', $updateKey);
-            $SQL->addWhereOpr('field_value', $this->data['*' . $updateKey]);
-            $all = $DB->query($SQL->get(dsn()), 'all');
 
-            if (count($all) === 1) {
-                $eid = $all[0]['field_eid'];
-                $this->csvId = $eid;
-                $this->isUpdate = true;
-            } elseif (count($all) > 1) {
-                throw new RuntimeException('重複するキーがあったためこのエントリーのインポートを中止しました。');
+        // entry_code: varchar(64) - 拡張子をつけた後の文字数でチェック
+        if (isset($this->data['entry_code']) && $this->data['entry_code'] !== '') {
+            $code = $this->data['entry_code'];
+            $originalCode = $code;
+            // 拡張子が含まれていない場合は拡張子を追加
+            $code = Entry::formatEntryCode($code);
+            $length = mb_strlen($code, 'UTF-8');
+            if ($length > 64) {
+                throw new \RuntimeException('エントリーコードが長すぎます（entry_code）。最大64文字まで入力できます（拡張子を含む）。現在: ' . $length . '文字。入力された値: ' . $originalCode);
             }
         }
-        return false;
+
+        // entry_link: varchar(255)
+        if (isset($this->data['entry_link']) && $this->data['entry_link'] !== '') {
+            $length = mb_strlen($this->data['entry_link'], 'UTF-8');
+            if ($length > 255) {
+                throw new \RuntimeException('リンクが長すぎます（entry_link）。最大255文字まで入力できます。現在: ' . $length . '文字。入力された値: ' . $this->data['entry_link']);
+            }
+        }
+    }
+
+    /**
+     * エントリーコードのバリデーション
+     *
+     * @return void
+     * @throws RuntimeException エントリーコードが不正な場合
+     */
+    private function validateEntryCode(): void
+    {
+        if (!isset($this->data['entry_code'])) {
+            return; // エントリーコードが指定されていない場合はスキップ（自動生成される）
+        }
+
+        $code = $this->data['entry_code'];
+
+        if ($code !== '') {
+            // 拡張子が含まれていない場合は拡張子を追加してチェック
+            $code = Entry::formatEntryCode($code);
+        }
+
+        // 形式チェック
+        if ($code !== '' && !isValidCode($code)) {
+            $originalCode = $this->data['entry_code'];
+            throw new \RuntimeException('エントリーコードの形式が正しくありません（entry_code）。改行、タブ、制御文字、引用符を含むことはできません。入力された値: ' . $originalCode);
+        }
+
+        // 予約語チェック（拡張子を追加した後に行う）
+        if (isReserved($code, false)) {
+            throw new \RuntimeException('エントリーコードに予約語が使用されています（entry_code: ' . $code . '）。別のコードを指定してください。');
+        }
+
+        // 重複チェック
+        if (config('check_duplicate_entry_code') === 'on') {
+            $categoryId = isset($this->data['entry_category_id']) && is_numeric($this->data['entry_category_id'])
+                ? intval($this->data['entry_category_id'])
+                : $this->importCid;
+            $entryId = $this->isUpdate ? $this->csvId : null;
+            if (Entry::validEntryCodeDouble($code, $this->importBid, $categoryId, $entryId)) {
+                throw new \RuntimeException('エントリーコードが重複しています（entry_code: ' . $code . '）。別のコードを指定してください。');
+            }
+        }
+    }
+
+    /**
+     * カテゴリー・ユーザーの存在チェック
+     *
+     * @return void
+     * @throws RuntimeException 参照先が存在しない場合
+     */
+    private function validateReferences(): void
+    {
+        // カテゴリーIDの存在チェック
+        if (isset($this->data['entry_category_id']) && $this->data['entry_category_id'] !== '') {
+            $categoryId = intval($this->data['entry_category_id']);
+            if ($categoryId > 0) {
+                $categoryRepository = Application::make('category.repository');
+                assert($categoryRepository instanceof \Acms\Services\Category\CategoryRepository);
+                if (!$categoryRepository->exists($categoryId, $this->importBid)) {
+                    throw new \RuntimeException('指定されたカテゴリーIDが存在しないか、現在のブログに属していません（entry_category_id: ' . $categoryId . '）。入力された値: ' . $this->data['entry_category_id']);
+                }
+            }
+        }
+
+        // ユーザーIDの存在チェック
+        if (isset($this->data['entry_user_id']) && $this->data['entry_user_id'] !== '') {
+            $userId = intval($this->data['entry_user_id']);
+            if ($userId > 0) {
+                $userRepository = Application::make('user.repository');
+                assert($userRepository instanceof \Acms\Services\User\UserRepository);
+                if (!$userRepository->exists($userId)) {
+                    throw new \RuntimeException('指定されたユーザーIDが存在しません（entry_user_id: ' . $userId . '）。入力された値: ' . $this->data['entry_user_id']);
+                }
+            }
+        }
+    }
+
+    /**
+     * タグ・サブカテゴリーのバリデーション
+     *
+     * @return void
+     * @throws TagValidationException タグのバリデーションエラーがある場合
+     * @throws SubCategoryValidationException サブカテゴリーのバリデーションエラーがある場合
+     */
+    private function validateTagsAndSubCategories(): void
+    {
+        // タグのバリデーション（Entry::Helper のメソッドを使用）
+        if (isset($this->data['entry_tag']) && $this->data['entry_tag'] !== '') {
+            $tags = Common::getTagsFromString($this->data['entry_tag'], false);
+            if (count($tags) > 0) {
+                Entry::validateTagNames($tags);
+            }
+        }
+
+        // サブカテゴリーのバリデーション（Entry::Helper のメソッドを使用）
+        if (isset($this->data['entry_sub_category']) && $this->data['entry_sub_category'] !== '') {
+            $subCategoryIds = Entry::getSubCategoryFromString($this->data['entry_sub_category'], ',');
+            if (count($subCategoryIds) > 0) {
+                Entry::validateSubCategoryIds($subCategoryIds);
+            }
+        }
+    }
+
+    /**
+     * 日時の妥当性チェック
+     *
+     * @return void
+     * @throws RuntimeException 日時が不正な場合
+     */
+    private function validateDateTimes(): void
+    {
+        $startDatetime = isset($this->data['entry_start_datetime']) ? $this->data['entry_start_datetime'] : null;
+        $endDatetime = isset($this->data['entry_end_datetime']) ? $this->data['entry_end_datetime'] : null;
+
+        if ($startDatetime !== null && $startDatetime !== '' && $endDatetime !== null && $endDatetime !== '') {
+            $startTimestamp = strtotime($startDatetime);
+            $endTimestamp = strtotime($endDatetime);
+            if ($startTimestamp === false) {
+                throw new \RuntimeException('開始日時が不正です（entry_start_datetime）。入力された値: ' . $startDatetime);
+            }
+            if ($endTimestamp === false) {
+                throw new \RuntimeException('終了日時が不正です（entry_end_datetime）。入力された値: ' . $endDatetime);
+            }
+            if ($startTimestamp > $endTimestamp) {
+                throw new \RuntimeException('開始日時が終了日時より後になっています（entry_start_datetime, entry_end_datetime）。開始日時は終了日時より前である必要があります。開始日時: ' . $startDatetime . ', 終了日時: ' . $endDatetime);
+            }
+        }
+    }
+
+    /**
+     * フィールドIDカラム名を返す
+     *
+     * @return string
+     */
+    protected function getFieldIdColumn(): string
+    {
+        return 'field_eid';
+    }
+
+    /**
+     * カスタムフィールドキーで特定したIDを適用する
+     *
+     * @param int $id
+     * @return void
+     */
+    protected function applyFoundId(int $id): void
+    {
+        $this->csvId = $id;
+        $this->isUpdate = true;
+    }
+
+    /**
+     * updateKeyの検索対象から除外するラベルか判定する
+     *
+     * @param string $key
+     * @return bool
+     */
+    protected function shouldSkipUpdateKeyLabel(string $key): bool
+    {
+        return strpos($key, 'unit@') === 0;
     }
 
     /**
@@ -273,13 +467,12 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
      */
     private function _insertEntry(): void
     {
-        $DB = DB::singleton(dsn());
 
-        $SQL = SQL::newInsert('entry');
+        $sql = SQL::newInsert('entry');
         foreach ($this->entry as $key => $val) {
-            $SQL->addInsert($key, $val);
+            $sql->addInsert($key, $val);
         }
-        $DB->query($SQL->get(dsn()), 'exec');
+        DB::query($sql->get(dsn()), 'exec');
     }
 
     /**
@@ -291,7 +484,6 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
      */
     private function _updateEntry(int $eid): void
     {
-        $DB = DB::singleton(dsn());
 
         if (!ACMS_RAM::entryStatus($eid)) {
             throw new RuntimeException('Not Found Entry.');
@@ -306,14 +498,14 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
             $this->entry['entry_blog_id']
         );
 
-        if (!empty($this->entry)) {
-            $SQL    = SQL::newUpdate('entry');
+        if (count($this->entry) > 0) {
+            $sql = SQL::newUpdate('entry');
             foreach ($this->entry as $key => $val) {
-                $SQL->addUpdate($key, $val);
+                $sql->addUpdate($key, $val);
             }
-            $SQL->addWhereOpr('entry_id', $eid);
-            $SQL->addWhereOpr('entry_blog_id', $this->importBid);
-            $DB->query($SQL->get(dsn()), 'exec');
+            $sql->addWhereOpr('entry_id', $eid);
+            $sql->addWhereOpr('entry_blog_id', $this->importBid);
+            DB::query($sql->get(dsn()), 'exec');
             ACMS_RAM::entry($eid, null);
         }
     }
@@ -326,24 +518,23 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
      */
     private function _insertSubCategory(int $eid): void
     {
-        if (empty($this->subCategories)) {
+        if (count($this->subCategories) === 0) {
             return;
         }
-        $DB = DB::singleton(dsn());
-        $SQL = SQL::newDelete('entry_sub_category');
-        $SQL->addWhereOpr('entry_sub_category_eid', $eid);
-        $DB->query($SQL->get(dsn()), 'exec');
+        $deleteSql = SQL::newDelete('entry_sub_category');
+        $deleteSql->addWhereOpr('entry_sub_category_eid', $eid);
+        DB::query($deleteSql->get(dsn()), 'exec');
 
-        $sql = SQL::newBulkInsert('entry_sub_category');
+        $insertSql = SQL::newBulkInsert('entry_sub_category');
         foreach ($this->subCategories as $cid) {
-            $sql->addInsert([
+            $insertSql->addInsert([
                 'entry_sub_category_eid' => $eid,
                 'entry_sub_category_id' => $cid,
                 'entry_sub_category_blog_id' => $this->importBid,
             ]);
         }
-        if ($sql->hasData()) {
-            $DB->query($sql->get(dsn()), 'exec');
+        if ($insertSql->hasData()) {
+            DB::query($insertSql->get(dsn()), 'exec');
         }
     }
 
@@ -355,25 +546,24 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
      */
     private function _insertTag(int $eid): void
     {
-        if (empty($this->tags)) {
+        if (count($this->tags) === 0) {
             return;
         }
-        $DB = DB::singleton(dsn());
-        $SQL = SQL::newDelete('tag');
-        $SQL->addWhereOpr('tag_entry_id', $eid);
-        $DB->query($SQL->get(dsn()), 'exec');
+        $deleteSql = SQL::newDelete('tag');
+        $deleteSql->addWhereOpr('tag_entry_id', $eid);
+        DB::query($deleteSql->get(dsn()), 'exec');
 
-        $sql = SQL::newBulkInsert('tag');
+        $insertSql = SQL::newBulkInsert('tag');
         foreach ($this->tags as $sort => $tag) {
-            $sql->addInsert([
+            $insertSql->addInsert([
                 'tag_name' => $tag,
                 'tag_sort' => $sort + 1,
                 'tag_entry_id' => $eid,
                 'tag_blog_id' => $this->importBid,
             ]);
         }
-        if ($sql->hasData()) {
-            $DB->query($sql->get(dsn()), 'exec');
+        if ($insertSql->hasData()) {
+            DB::query($insertSql->get(dsn()), 'exec');
         }
     }
 
@@ -385,20 +575,19 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
      */
     private function _insertGeo(int $eid): void
     {
-        if (empty($this->geoLat) || empty($this->geoLng)) {
+        if ($this->geoLat === 0.0 || $this->geoLng === 0.0) {
             return;
         }
-        $DB = DB::singleton(dsn());
-        $SQL = SQL::newDelete('geo');
-        $SQL->addWhereOpr('geo_eid', $eid);
-        $DB->query($SQL->get(dsn()), 'exec');
+        $deleteSql = SQL::newDelete('geo');
+        $deleteSql->addWhereOpr('geo_eid', $eid);
+        DB::query($deleteSql->get(dsn()), 'exec');
 
-        $SQL = SQL::newInsert('geo');
-        $SQL->addInsert('geo_geometry', SQL::newGeometry($this->geoLat, $this->geoLng));
-        $SQL->addInsert('geo_zoom', intval($this->geoZoom));
-        $SQL->addInsert('geo_eid', $eid);
-        $SQL->addInsert('geo_blog_id', $this->importBid);
-        $DB->query($SQL->get(dsn()), 'exec');
+        $insertSql = SQL::newInsert('geo');
+        $insertSql->addInsert('geo_geometry', SQL::newGeometry($this->geoLat, $this->geoLng));
+        $insertSql->addInsert('geo_zoom', intval($this->geoZoom));
+        $insertSql->addInsert('geo_eid', $eid);
+        $insertSql->addInsert('geo_blog_id', $this->importBid);
+        DB::query($insertSql->get(dsn()), 'exec');
     }
 
     /**
@@ -408,7 +597,7 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
      */
     private function _insertUnit(): void
     {
-        if (!empty($this->units)) {
+        if (count($this->units) > 0) {
             $sql = SQL::newBulkInsert('column');
             foreach ($this->units as $cval) {
                 $cval['column_id'] = $this->generateNewIdTrait();
@@ -432,20 +621,20 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         }
         $eid = $this->csvId;
 
-        if (!empty($this->units)) {
-            $SQL = SQL::newDelete('column');
-            $SQL->addWhereOpr('column_entry_id', $eid);
-            $SQL->addWhereOpr('column_type', 'text');
-            DB::query($SQL->get(dsn()), 'exec');
+        if (count($this->units) > 0) {
+            $deleteSql = SQL::newDelete('column');
+            $deleteSql->addWhereOpr('column_entry_id', $eid);
+            $deleteSql->addWhereIn('column_type', ['text', 'block-editor']);
+            DB::query($deleteSql->get(dsn()), 'exec');
 
-            $sql = SQL::newBulkInsert('column');
+            $insertSql = SQL::newBulkInsert('column');
             foreach ($this->units as $cval) {
                 $cval['column_id'] = $this->generateNewIdTrait();
                 $cval['column_entry_id'] = $eid;
-                $sql->addInsert($cval);
+                $insertSql->addInsert($cval);
             }
-            if ($sql->hasData()) {
-                DB::query($sql->get(dsn()), 'exec');
+            if ($insertSql->hasData()) {
+                DB::query($insertSql->get(dsn()), 'exec');
             }
         }
     }
@@ -459,7 +648,7 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
     {
         $eid = $this->nextId;
 
-        if (!empty($this->fields)) {
+        if (count($this->fields) > 0) {
             Common::deleteField('eid', $eid);
 
             $sql = SQL::newBulkInsert('field');
@@ -484,10 +673,10 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         }
         $eid = $this->csvId;
 
-        if (!empty($this->fields)) {
+        if (count($this->fields) > 0) {
             $fkey = [];
-            $SQL = SQL::newDelete('field');
-            $SQL->addWhereOpr('field_eid', $eid);
+            $deleteSql = SQL::newDelete('field');
+            $deleteSql->addWhereOpr('field_eid', $eid);
             foreach ($this->fields as $dval) {
                 foreach ($dval as $key => $val) {
                     if ($key === 'field_key') {
@@ -495,18 +684,18 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
                     }
                 }
             }
-            $SQL->addWhereIn('field_key', $fkey);
-            DB::query($SQL->get(dsn()), 'exec');
+            $deleteSql->addWhereIn('field_key', $fkey);
+            DB::query($deleteSql->get(dsn()), 'exec');
             Common::deleteFieldCache('eid', $eid);
 
-            $sql = SQL::newBulkInsert('field');
+            $insertSql = SQL::newBulkInsert('field');
             foreach ($this->fields as $fval) {
                 $fval['field_eid'] = $eid;
                 $fval['field_blog_id'] = ACMS_RAM::entryBlog($eid);
-                $sql->addInsert($fval);
+                $insertSql->addInsert($fval);
             }
-            if ($sql->hasData()) {
-                DB::query($sql->get(dsn()), 'exec');
+            if ($insertSql->hasData()) {
+                DB::query($insertSql->get(dsn()), 'exec');
             }
         }
     }
@@ -609,8 +798,14 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
                 }
                 break;
             case 'entry_code':
-                $value = preg_replace('@\.([^\.]+)$@', '', $value);
-                $this->entry[$key] = $value . $this->getExtension();
+                if ($value !== '') {
+                    // エントリーコードを空で上書きできるようにするために空文字でないときのみ加工処理を行う
+                    $value = (string) preg_replace('@\.([^\.]+)$@', '', $value);
+                    if ($value !== '') {
+                        $value = Entry::formatEntryCode($value);
+                    }
+                }
+                $this->entry[$key] = $value;
                 break;
             case 'entry_posted_datetime':
                 if (preg_match('@^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$@', $value)) {
@@ -621,7 +816,7 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
             case 'entry_category_id':
                 $cid = intval($value);
                 $ccode = ACMS_RAM::categoryCode($cid);
-                if (empty($ccode)) {
+                if ($ccode === null || $ccode === '') {
                     $this->entry[$key] = null;
                 } else {
                     $this->entry[$key] = $cid;
@@ -671,7 +866,7 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
         }
         foreach ($subCategoryIds as $cid) {
             $cid = intval(trim($cid));
-            if (empty($cid)) {
+            if ($cid === 0) {
                 continue;
             }
             $this->subCategories[] = $cid;
@@ -687,7 +882,7 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
     private function buildTag(string $value): void
     {
         $tags = Common::getTagsFromString($value);
-        if (empty($tags)) {
+        if (count($tags) === 0) {
             return;
         }
         foreach ($tags as $sort => $tag) {
@@ -711,6 +906,11 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
             $sort   = intval(preg_replace('@\[|\]@', '', $matchs[0]));
             $type    = preg_replace('@\[\d+\]$@', '', $type);
         }
+        if ($sort < 1) {
+            throw new \RuntimeException(
+                'ユニットの添字は1以上を指定してください（' . $key . '）。入力された値: ' . $sort
+            );
+        }
         if ($type === null || $type === '') {
             return;
         }
@@ -723,65 +923,37 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
             if ($tokens === false) {
                 return;
             }
-            $unit['column_field_2'] = array_shift($tokens);
+            $tag = array_shift($tokens);
+            $unit['column_field_2'] = $tag;
             $id = '';
             $class  = '';
             while ($mark = array_shift($tokens)) {
-                if (!$val = array_shift($tokens)) {
+                $val = array_shift($tokens);
+                if (is_null($val)) {
                     continue;
                 }
-                if ('#' == $mark) {
+                if ('#' === $mark) {
                     $id = $val;
                 } else {
-                    $class  = $val;
+                    $class = $val;
                 }
             }
 
             $attr   = '';
-            if (!empty($id)) {
+            if ($id !== '') {
                 $attr .= ' id="' . $id . '"';
             }
-            if (!empty($class)) {
+            if ($class !== '') {
                 $attr .= ' class="' . $class . '"';
             }
-            if (!empty($attr)) {
+            if ($attr !== '') {
                 $unit['column_attr'] = $attr;
             }
         }
-        $unit['column_sort']      = $sort;
-        $unit['column_field_1']   = $value;
+        $unit['column_sort'] = $sort;
+        $unit['column_field_1'] = $value;
 
         $this->units[] = $unit;
-    }
-
-    /**
-     * フィールドの組み立て
-     *
-     * @param array<string, mixed> $field フィールドベースデータ
-     * @param string $key フィールドキー
-     * @param string $value フィールド値
-     * @return void
-     */
-    private function buildField(array $field, string $key, string $value): void
-    {
-        $sort = 1;
-        if (preg_match('@\[\d+\]$@', $key, $matchs)) {
-            $sort = intval(preg_replace('@\[|\]@', '', $matchs[0]));
-            $key = preg_replace('@\[\d+\]$@', '', $key);
-        }
-        if ($key === null || $key === '') {
-            return;
-        }
-        $fieldTypeValue = null;
-        if (preg_match('/@(html|media|title)$/', $key, $matches)) {
-            $fieldTypeValue = $matches[1];
-        }
-        $field['field_key'] = ltrim($key, '*');
-        $field['field_type'] = $fieldTypeValue;
-        $field['field_value'] = $value;
-        $field['field_sort'] = $sort;
-
-        $this->fields[] = $field;
     }
 
     /**
@@ -795,7 +967,7 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
 
         return [
             'entry_id'              => $this->nextId,
-            'entry_code'            => config('entry_code_prefix') . $this->nextId . $this->getExtension(),
+            'entry_code'            => Entry::generateEntryCode($this->nextId),
             'entry_status'          => 'open',
             'entry_sort'            => null,
             'entry_user_sort'       => null,
@@ -857,17 +1029,5 @@ class ACMS_POST_Import_Model_Entry extends ACMS_POST_Import_Model
             'field_eid'     => $this->nextId,
             'field_blog_id' => $this->importBid,
         ];
-    }
-
-    /**
-     * エントリーコードの拡張子を取得
-     *
-     * @return string 拡張子（先頭にドットを含む）
-     */
-    protected function getExtension(): string
-    {
-        $extension = config('entry_code_extension');
-
-        return empty($extension) ? '' : '.' . $extension;
     }
 }

@@ -1,6 +1,6 @@
 import useSWR, { preload } from 'swr';
 import { useCallback } from 'react';
-import { isAxiosError } from 'axios';
+import { isFetchError } from '../../../lib/fetch-client';
 import { CustomColumnsFailedResponse, fetchCustomColumns, saveCustomColumns } from '../api';
 import {
   CustomAccessorColumn,
@@ -42,7 +42,7 @@ export default function useEntryCustomColumnsSWR() {
       try {
         data = (await _mutate(saveCustomColumns(formData))) || [];
       } catch (error) {
-        if (isAxiosError<CustomColumnsFailedResponse>(error)) {
+        if (isFetchError<CustomColumnsFailedResponse>(error)) {
           if (error.response?.data.errors) {
             const errors = transformErrors(error.response.data.errors);
             return { errors };

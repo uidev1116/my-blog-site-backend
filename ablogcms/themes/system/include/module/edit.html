@@ -48,9 +48,13 @@
       </select>
       <input type="hidden" name="module[]" value="name">
       <input type="hidden" name="name:validator#required" id="name-validator-required">
+      <input type="hidden" name="name:validator#maxlength" value="64" id="name-validator-maxlength">
       <div role="alert" aria-live="assertive">
         <div data-validator-label="name-validator-required" class="validator-result-{name:validator#required}">
           <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->モジュールを選択してください。<!--/T--></p>
+        </div>
+        <div data-validator-label="name-validator-maxlength" class="validator-result-{name:validator#maxlength}">
+          <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->モジュール名は64文字以内で入力してください。<!--/T--></p>
         </div>
         <div data-validator-label="name-validator-safeName" class="validator-result-{name:validator#safeName}">
           <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->不正なモジュール名です。<!--/T--></p>
@@ -65,9 +69,13 @@
       <input type="hidden" name="module[]" value="identifier">
       <input type="hidden" name="identifier:validator#required" id="identifier-validator-required">
       <input type="hidden" name="identifier:validator#double" value="%{mid}" id="identifier-validator-double">
+      <input type="hidden" name="identifier:validator#maxlength" value="64" id="identifier-validator-maxlength">
       <div role="alert" aria-live="assertive">
         <div data-validator-label="identifier-validator-required" class="validator-result-{identifier:validator#required}">
           <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->モジュールIDを入力して下さい。<!--/T--></p>
+        </div>
+        <div data-validator-label="identifier-validator-maxlength" class="validator-result-{identifier:validator#maxlength}">
+          <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->モジュールIDは64文字以内で入力してください。<!--/T--></p>
         </div>
         <div data-validator-label="identifier-validator-double" class="validator-result-{identifier:validator#double}">
           <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->モジュールIDが重複しています。<!--/T--></p>
@@ -81,9 +89,13 @@
       <input type="text" name="label" value="{label}" size="50" class="acms-admin-form-width-full">
       <input type="hidden" name="module[]" value="label">
       <input type="hidden" name="label:validator#required" id="label-validator-required">
+      <input type="hidden" name="label:validator#maxlength" value="255" id="label-validator-maxlength">
       <div role="alert" aria-live="assertive">
         <div data-validator-label="label-validator-required" class="validator-result-{label:validator#required}">
           <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->名前を入力してください。<!--/T--></p>
+        </div>
+        <div data-validator-label="label-validator-maxlength" class="validator-result-{label:validator#maxlength}">
+          <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->名前は255文字以内で入力してください。<!--/T--></p>
         </div>
       </div>
     </td>
@@ -93,6 +105,12 @@
     <td>
       <textarea name="description" rows="5" style="width:100%;">{description}</textarea>
       <input type="hidden" name="module[]" value="description">
+      <input type="hidden" name="description:validator#maxlength" value="255" id="description-validator-maxlength">
+      <div role="alert" aria-live="assertive">
+        <div data-validator-label="description-validator-maxlength" class="validator-result-{description:validator#maxlength}">
+          <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->説明は255文字以内で入力してください。<!--/T--></p>
+        </div>
+      </div>
     </td>
   </tr>
   <tr>
@@ -129,6 +147,16 @@
   <tr>
     <th class="acms-admin-table-nowrap">レイアウト/ユニット<i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->チェックをすると、このモジュールIDがレイアウトモジュールで選択できるようになります。<!--/T-->"></i></th>
     <td>
+    <!-- BEGIN_IF [{name}/lk/V2_] -->
+    <input type="hidden" name="layout_use" value="0">
+    <div class="acms-admin-form-checkbox">
+      <input type="checkbox" name="layout_use" value="1" disabled="disabled" id="input-type-layout-use">
+      <label for="input-type-layout-use">
+        <i class="acms-admin-ico-checkbox"></i><!--T-->レイアウトモジュール、モジュールユニットで使用<!--/T-->
+      </label>
+    </div>
+    <p class="acms-admin-text-helper acms-admin-mt-1"><!--T-->V2モジュールはレイアウトモジュール/モジュールユニットで使用できません<!--/T--></p>
+    <!-- ELSE -->
     <input type="hidden" name="layout_use" value="0">
     <div class="acms-admin-form-checkbox">
       <!-- BEGIN_IF [<!-- BEGIN submit#update -->1<!-- END submit#update -->/eq/1] --><input type="checkbox" name="layout_use" value="1"{layout_use:checked#1} id="input-type-layout-use"><!-- ELSE --><input type="checkbox" name="layout_use" value="1" checked="checked" id="input-type-layout-use"><!-- END_IF -->
@@ -137,6 +165,7 @@
         <i class="acms-admin-ico-checkbox"></i><!--T-->レイアウトモジュールで使用<!--/T--><!-- END_IF -->
       </label>
     </div>
+    <!-- END_IF -->
     <input type="hidden" name="module[]" value="layout_use">
     </td>
   </tr>
@@ -173,6 +202,7 @@
       <input class="js-arg_guidance_edit argEdit" type="text" name="bid" value="{bid}">
       <input type="hidden" name="module[]" value="bid">
       <!-- <input type="hidden" name="bid:validator#intOrGlobalVars" id="bid-validator-intOrGlobalVars"> -->
+      <input type="hidden" name="bid:validator#maxlength" value="1024" id="bid-validator-maxlength">
       <input type="hidden" name="bid:c" value="a">
       <div class="acms-admin-inline js-arg_guidance_label">
         <span class="acms-admin-icon-blog-children js-arg_guidance_multi_icon js-arg_guidance_multi_icon_bid js-acms-tooltip-hover acms-admin-inline-space" data-acms-tooltip="<!--T-->複数のIDを指定可能です<!--/T-->"></span>
@@ -185,6 +215,9 @@
       <div role="alert" aria-live="assertive">
         <div data-validator-label="bid-validator-intOrGlobalVars" class="validator-result-{bid:validator#intOrGlobalVars}">
           <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->数字またはグローバル変数を入力してください。<!--/T--></p>
+        </div>
+        <div data-validator-label="bid-validator-maxlength" class="validator-result-{bid:validator#maxlength}">
+          <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->指定できるIDの数が上限を超えました。IDを減らしてから保存してください。<!--/T--></p>
         </div>
       </div>
     </td>
@@ -211,6 +244,7 @@
       <input class="js-arg_guidance_edit argEdit" type="text" name="uid" value="{uid}">
       <input type="hidden" name="module[]" value="uid">
       <!-- <input type="hidden" name="uid:validator#intOrGlobalVars" id="uid-validator-intOrGlobalVars"> -->
+      <input type="hidden" name="uid:validator#maxlength" value="1024" id="uid-validator-maxlength">
       <input type="hidden" name="uid:c" value="a">
       <div class="acms-admin-inline js-arg_guidance_label">
         <span class="acms-admin-icon-blog-children js-arg_guidance_multi_icon js-arg_guidance_multi_icon_uid js-acms-tooltip-hover acms-admin-inline-space" data-acms-tooltip="<!--T-->複数のIDを指定可能です<!--/T-->"></span>
@@ -223,6 +257,9 @@
       <div role="alert" aria-live="assertive">
         <div data-validator-label="uid-validator-intOrGlobalVars" class="validator-result-{uid:validator#intOrGlobalVars}">
           <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->数字またはグローバル変数を入力してください。<!--/T--></p>
+        </div>
+        <div data-validator-label="uid-validator-maxlength" class="validator-result-{uid:validator#maxlength}">
+          <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->指定できるIDの数が上限を超えました。IDを減らしてから保存してください。<!--/T--></p>
         </div>
       </div>
     </td>
@@ -249,6 +286,7 @@
       <input class="js-arg_guidance_edit argEdit" type="text" name="cid" value="{cid}">
       <input type="hidden" name="module[]" value="cid">
       <!-- <input type="hidden" name="cid:validator#intOrGlobalVars" id="cid-validator-intOrGlobalVars"> -->
+      <input type="hidden" name="cid:validator#maxlength" value="1024" id="cid-validator-maxlength">
       <input type="hidden" name="cid:c" value="a">
       <div class="acms-admin-inline js-arg_guidance_label">
         <span class="acms-admin-icon-blog-children js-arg_guidance_multi_icon js-arg_guidance_multi_icon_cid js-acms-tooltip-hover acms-admin-inline-space" data-acms-tooltip="<!--T-->複数のIDを指定可能です<!--/T-->"></span>
@@ -261,6 +299,9 @@
       <div role="alert" aria-live="assertive">
         <div data-validator-label="cid-validator-intOrGlobalVars" class="validator-result-{cid:validator#intOrGlobalVars}">
           <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->数字またはグローバル変数を入力してください。<!--/T--></p>
+        </div>
+        <div data-validator-label="cid-validator-maxlength" class="validator-result-{cid:validator#maxlength}">
+          <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->指定できるIDの数が上限を超えました。IDを減らしてから保存してください。<!--/T--></p>
         </div>
       </div>
     </td>
@@ -287,6 +328,7 @@
       <input class="js-arg_guidance_edit argEdit" type="text" name="eid" value="{eid}">
       <input type="hidden" name="module[]" value="eid">
       <!-- <input type="hidden" name="eid:validator#intOrGlobalVars" id="eid-validator-intOrGlobalVars"> -->
+      <input type="hidden" name="eid:validator#maxlength" value="1024" id="eid-validator-maxlength">
       <input type="hidden" name="eid:c" value="a">
 
       <div class="acms-admin-inline js-arg_guidance_label">
@@ -301,6 +343,9 @@
       <div role="alert" aria-live="assertive">
         <div data-validator-label="eid-validator-intOrGlobalVars" class="validator-result-{eid:validator#intOrGlobalVars}">
           <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->数字またはグローバル変数を入力してください。<!--/T--></p>
+        </div>
+        <div data-validator-label="eid-validator-maxlength" class="validator-result-{eid:validator#maxlength}">
+          <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->指定できるIDの数が上限を超えました。IDを減らしてから保存してください。<!--/T--></p>
         </div>
       </div>
       <div role="alert" aria-live="assertive">
@@ -327,6 +372,12 @@
     <td>
       <input type="text" name="keyword" value="{keyword}" class="acms-admin-form-width-large">
       <input type="hidden" name="module[]" value="keyword">
+      <input type="hidden" name="keyword:validator#maxlength" value="255" id="keyword-validator-maxlength">
+      <div role="alert" aria-live="assertive">
+        <div data-validator-label="keyword-validator-maxlength" class="validator-result-{keyword:validator#maxlength}">
+          <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->255文字以下で入力してください。<!--/T--></p>
+        </div>
+      </div>
     </td>
   </tr>
   <tr id="js-arg_guidance_tag">
@@ -346,6 +397,12 @@
     <td>
       <input type="text" name="tag" value="{tag}" class="acms-admin-form-width-large">
       <input type="hidden" name="module[]" value="tag">
+      <input type="hidden" name="tag:validator#maxlength" value="255" id="tag-validator-maxlength">
+      <div role="alert" aria-live="assertive">
+        <div data-validator-label="tag-validator-maxlength" class="validator-result-{tag:validator#maxlength}">
+          <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->255文字以下で入力してください。<!--/T--></p>
+        </div>
+      </div>
     </td>
   </tr>
   <tr id="js-arg_guidance_field_">
@@ -365,6 +422,12 @@
     <td>
       <input type="text" name="field_" value="{field_}" class="acms-admin-form-width-large">
       <input type="hidden" name="module[]" value="field_">
+      <input type="hidden" name="field_:validator#maxlength" value="255" id="field-validator-maxlength">
+      <div role="alert" aria-live="assertive">
+        <div data-validator-label="field-validator-maxlength" class="validator-result-{field_:validator#maxlength}">
+          <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->255文字以下で入力してください。<!--/T--></p>
+        </div>
+      </div>
     </td>
   </tr>
   <tr id="js-arg_guidance_start">
@@ -450,6 +513,12 @@
     <td>
       <input type="text" name="order" value="{order}" class="acms-admin-form-width-large">
       <input type="hidden" name="module[]" value="order">
+      <input type="hidden" name="order:validator#maxlength" value="255" id="order-validator-maxlength">
+      <div role="alert" aria-live="assertive">
+        <div data-validator-label="order-validator-maxlength" class="validator-result-{order:validator#maxlength}">
+          <p class="error-text"><span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span><!--T-->255文字以下で入力してください。<!--/T--></p>
+        </div>
+      </div>
     </td>
   </tr>
 </table>

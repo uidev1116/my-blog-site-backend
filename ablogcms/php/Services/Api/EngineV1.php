@@ -26,9 +26,9 @@ class EngineV1 extends Contracts\Api
             ];
             $this->exec($apiInfo);
         } catch (NotFoundModuleException $e) {
-            AcmsLogger::error('API機能: 有効なモジュールIDが存在しません', [
+            AcmsLogger::notice('API機能: 有効なモジュールIDが存在しません', Common::exceptionArray($e, [
                 'identifier' => $identifier,
-            ]);
+            ]));
             $this->notFound('有効なモジュールIDが存在しません');
         }
     }

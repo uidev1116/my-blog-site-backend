@@ -1,7 +1,20 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_POST_Member_Tfa_Register extends ACMS_POST_Member
 {
+    /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @inheritDoc
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return Login::isValidAuthenticatedPath(BID, TFA_UPDATE_SEGMENT) ||
+            Login::isValidAuthenticatedPath(BID, BID_SEGMENT . '/' . BID . '/' . UID_SEGMENT . '/' . SUID . '/admin/user_tfa');
+    }
+
     /**
      * 2段階認証を有効化
      *
@@ -38,7 +51,7 @@ class ACMS_POST_Member_Tfa_Register extends ACMS_POST_Member
      */
     protected function validate(Field_Validation $tfaField): void
     {
-        if (!SUID) {
+        if (!Login::isLoggedIn()) {
             $tfaField->setMethod('tfa', 'isOperable', false);
             httpStatusCode('403 Forbidden');
         }

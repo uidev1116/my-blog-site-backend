@@ -40,7 +40,7 @@ class ACMS_GET_Admin_Dashboard_LicenseStatus extends ACMS_GET
             $vars['expire'] = date('Y-m-d H:i', strtotime(LICENSE_EXPIRE));
         }
 
-        if (LICENSE_BLOG_LIMIT == UNLIMITED_NUMBER_OF_USERS) {
+        if (licenseHasUnlimitedUsers()) {
             $Tpl->add('unlimited');
         } else {
             $SQL = SQL::newSelect('user');
@@ -64,7 +64,7 @@ class ACMS_GET_Admin_Dashboard_LicenseStatus extends ACMS_GET
         if (defined('LICENSE_OPTION_OEM') && !!LICENSE_OPTION_OEM) {
             $type[] = gettext('OEMライセンス');
         }
-        if (LICENSE_BLOG_LIMIT == 2147483647) {
+        if (licenseHasUnlimitedUsers()) {
             $type[] = gettext('ユーザー数無制限オプション');
         }
         if (LICENSE_BLOG_LIMIT == 1 && !defined('LICENSE_PLAN')) {

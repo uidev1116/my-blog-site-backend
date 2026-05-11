@@ -1,6 +1,6 @@
 import useSWR, { preload } from 'swr';
 import { useCallback, useMemo } from 'react';
-import { isAxiosError } from 'axios';
+import { isFetchError } from '../../../lib/fetch-client';
 import { ColumnConfigFailedResponse, fetchColumnConfig, saveColumnConfig } from '../api';
 import {
   type ColumnConfig,
@@ -45,7 +45,7 @@ export default function useColumnConfigSWR() {
       try {
         data = (await _mutate<ColumnConfig>(saveColumnConfig(formData))) as ColumnConfig;
       } catch (error) {
-        if (isAxiosError<ColumnConfigFailedResponse>(error)) {
+        if (isFetchError<ColumnConfigFailedResponse>(error)) {
           if (error.response?.data.errors) {
             const errors = transformErrors(error.response.data.errors);
             return { errors };

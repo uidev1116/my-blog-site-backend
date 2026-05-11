@@ -23,24 +23,27 @@ class ACMS_POST_Entry_Update_Detail extends ACMS_POST_Entry_Update
         assert($this->unitRepository instanceof \Acms\Services\Unit\Repository);
         assert($this->lockService instanceof \Acms\Services\Entry\Lock);
 
-        $updatedResponse = $this->update();
+        /** @var int<1, max>|null $entryId */
+        $entryId = EID;
+        if ($entryId === null) {
+            throw new \LogicException('Entry ID is required.');
+        }
+        $updatedResponse = $this->update($entryId); // バージョンの更新には非対応のため、revisionIdをnullに設定
 
         if (is_array($updatedResponse)) {
-            $Session =& Field::singleton('session');
-            $Session->add('entry_action', 'update');
             $info = [
                 'bid'   => BID,
                 'cid'   => $updatedResponse['cid'],
-                'eid'   => EID,
+                'eid'   => $entryId,
             ];
-            if ($updatedResponse['trash'] == 'trash') {
+            if ($updatedResponse['status'] === 'trash') {
                 $info['query'] = ['trash' => 'show'];
             }
             $this->redirect(acmsLink($info));
         }
         $this->redirect(acmsLink([
             'bid' => BID,
-            'eid' => EID,
+            'eid' => $entryId,
             'admin' => 'entry-edit',
         ]));
     }

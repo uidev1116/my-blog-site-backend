@@ -20,34 +20,8 @@ class ACMS_POST_Revision_Delete extends ACMS_POST
             if (!RVID) {
                 throw new \RuntimeException('バージョンが指定されていません');
             }
-            if (roleAvailableUser()) {
-                if (!roleAuthorization('entry_edit', BID, EID)) {
-                    throw new \RuntimeException('権限がありません');
-                }
-            } else {
-                if (!sessionWithCompilation(BID)) {
-                    if (!sessionWithContribution(BID)) {
-                        throw new \RuntimeException('権限がありません');
-                    }
-                    if (SUID != ACMS_RAM::entryUser(EID)) {
-                        throw new \RuntimeException('権限がありません');
-                    }
-                }
-            }
-            if (roleAvailableUser()) {
-                if (!roleAuthorization('entry_edit', BID, EID)) {
-                    die403();
-                }
-            } else {
-                if (!sessionWithCompilation(BID)) {
-                    if (!sessionWithContribution(BID)) {
-                        die403();
-                    }
-
-                    if (SUID != ACMS_RAM::entryUser(EID)) {
-                        die403();
-                    }
-                }
+            if (!Entry::canDeleteEntryRevision((int)EID, (int)RVID)) {
+                throw new \RuntimeException('権限がありません');
             }
             $DB = DB::singleton(dsn());
             $revision = Entry::getRevision(EID, RVID);

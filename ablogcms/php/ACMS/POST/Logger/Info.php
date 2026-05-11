@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Common;
+
 class ACMS_POST_Logger_Info extends ACMS_POST
 {
     public function post()
@@ -97,23 +99,6 @@ class ACMS_POST_Logger_Info extends ACMS_POST
      */
     protected function isManagedDomain(string $url): bool
     {
-        if (empty($url)) {
-            return false;
-        }
-        $domain = parse_url($url, PHP_URL_HOST);
-        if (empty($domain)) {
-            return false;
-        }
-        $sql = SQL::newSelect('blog');
-        $sql->addWhereOpr('blog_domain', $domain);
-        if (!DB::query($sql->get(dsn()), 'row')) {
-            $sql = SQL::newSelect('alias');
-            $sql->addWhereOpr('alias_domain', $domain);
-            $sql->addWhereOpr('alias_status', 'open');
-            if (!DB::query($sql->get(dsn()), 'row')) {
-                return false;
-            }
-        }
-        return true;
+        return Common::isManagedDomain($url);
     }
 }

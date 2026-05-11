@@ -8,6 +8,8 @@ import { defaultEditorSettings } from '@features/unit-editor/config';
 import { notify } from '../../../../lib/notify';
 import EditorContent from '../editor-content';
 
+const EMPTY_UNIT_TREE: UnitTree = [];
+
 interface UnitEditorProps {
   defaultValue?: UnitTree;
   settings?: UnitEditorSettings;
@@ -19,7 +21,7 @@ interface UnitEditorProps {
  * ユニットエディターのメインコンポーネント
  */
 const UnitEditor = ({
-  defaultValue = [],
+  defaultValue = EMPTY_UNIT_TREE,
   settings = defaultEditorSettings,
   onCreate,
   onContentChange,

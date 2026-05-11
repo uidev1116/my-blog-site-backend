@@ -257,11 +257,18 @@
             /><!--T--> (日本語可)<!--/T-->
             <input type="hidden" name="user[]" value="name" />
             <input type="hidden" name="name:validator#required" id="validator-name-required" />
+            <input type="hidden" name="name:validator#maxlength" value="255" id="validator-name-maxlength" />
             <div role="alert" aria-live="assertive">
               <div data-validator-label="validator-name-required" class="validator-result-{name:validator#required}">
                 <p class="error-text">
                   <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
                   <!--T-->名前が入力されていません。<!--/T-->
+                </p>
+              </div>
+              <div data-validator-label="validator-name-maxlength" class="validator-result-{name:validator#maxlength}">
+                <p class="error-text">
+                  <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                  <!--T-->名前は255文字以内で入力してください。<!--/T-->
                 </p>
               </div>
             </div>
@@ -287,7 +294,14 @@
             /> <!--T--> (英数字)<!--/T-->
             <input type="hidden" name="user[]" value="code" />
             <input type="hidden" name="code:validator#regex" value="%{REGEX_VALID_ID}" id="validator-code-regex" />
+            <input type="hidden" name="code:validator#maxlength" value="64" id="validator-code-maxlength" />
             <div role="alert" aria-live="assertive">
+              <div data-validator-label="validator-code-maxlength" class="validator-result-{code:validator#maxlength}">
+                <p class="error-text">
+                  <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                  <!--T-->ユーザーIDは64文字以内で入力してください。<!--/T-->
+                </p>
+              </div>
               <div data-validator-label="validator-code-regex" class="validator-result-{code:validator#regex}">
                 <p class="error-text">
                   <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
@@ -303,7 +317,7 @@
               <div data-validator-label="validator-code-string" class="validator-result-{code:validator#string}">
                 <p class="error-text">
                   <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
-                  <!--T-->不正な文字が含まれています。<!--/T-->
+                  <!--T-->コードに使用できない文字が含まれています。スラッシュ(/)、../ などの危険な文字列、URL特殊文字、制御文字、空白文字は使用できません。<!--/T-->
                 </p>
               </div>
             </div>
@@ -370,6 +384,7 @@
             <input type="hidden" name="user[]" value="mail" />
             <input type="hidden" name="mail:validator#required" id="validator-mail-required" />
             <input type="hidden" name="mail:validator#email" id="validator-mail-email" />
+            <input type="hidden" name="mail:validator#maxlength" value="255" id="validator-mail-maxlength" />
             <input type="hidden" name="mail_magazine" value="off" />
             <div class="acms-admin-form-checkbox">
               <input
@@ -390,6 +405,12 @@
                 <p class="error-text">
                   <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
                   <!--T-->メールアドレスが入力されていません。<!--/T-->
+                </p>
+              </div>
+              <div data-validator-label="validator-mail-maxlength" class="validator-result-{mail:validator#maxlength}">
+                <p class="error-text">
+                  <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                  <!--T-->メールアドレスは255文字以内で入力してください。<!--/T-->
                 </p>
               </div>
               <div data-validator-label="validator-mail-email" class="validator-result-{mail:validator#email}">
@@ -429,7 +450,14 @@
             />
             <input type="hidden" name="user[]" value="url" />
             <input type="hidden" name="url:validator#url" id="validator-url-url" />
+            <input type="hidden" name="url:validator#maxlength" value="255" id="validator-url-maxlength" />
             <div role="alert" aria-live="assertive">
+              <div data-validator-label="validator-url-maxlength" class="validator-result-{url:validator#maxlength}">
+                <p class="error-text">
+                  <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                  <!--T-->URLは255文字以内で入力してください。<!--/T-->
+                </p>
+              </div>
               <div data-validator-label="validator-url-url" class="validator-result-{url:validator#url}">
                 <p class="error-text">
                   <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
@@ -827,8 +855,10 @@
       </table>
     </div>
     <div id="acms_custom" class="acms-admin-tabs-panel">
-      @include("/admin/user/field.html")
-      <!-- BEGIN_MODULE Admin_InjectTemplate id="admin-user-field" --><!-- END_MODULE Admin_InjectTemplate -->
+      <div class="acms-admin-field-container">
+        @include("/admin/user/field.html")
+        <!-- BEGIN_MODULE Admin_InjectTemplate id="admin-user-field" --><!-- END_MODULE Admin_InjectTemplate -->
+      </div>
     </div>
   </div>
 </form>

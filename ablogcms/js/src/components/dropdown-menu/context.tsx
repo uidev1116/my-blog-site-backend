@@ -29,11 +29,7 @@ export const useMenuContext = () => {
 
 // 親メニューのコンテキストを取得（存在しない場合はundefined）
 export const useParentMenuContext = (): MenuContextType | undefined => {
-  try {
-    return useMenuContext();
-  } catch {
-    return undefined;
-  }
+  return useContext(MenuContext);
 };
 
 // Context to handle menu state

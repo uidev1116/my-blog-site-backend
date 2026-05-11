@@ -26,12 +26,16 @@ class ACMS_POST_Webhook_Update extends ACMS_POST
 
         $input->setMethod('status', 'in', ['open', 'close']);
         $input->setMethod('name', 'required');
+        $input->setMethod('name', 'maxlength', '255');
         $input->setMethod('type', 'required');
+        $input->setMethod('type', 'in', ['entry', 'form', 'user']);
         $input->setMethod('events', 'required');
+        $input->setMethod('events', 'maxlength', '128');
         $input->setMethod('url', 'required');
         $input->setMethod('url', 'webhookScheme');
         $input->setMethod('url', 'webhookWhitelist');
         $input->setMethod('webhook', 'operative', sessionWithAdministration($bid));
+        $input->setMethod('secret', 'maxlength', '128');
         $input->validate(new ACMS_Validator());
 
         if ($this->Post->isValidAll()) {

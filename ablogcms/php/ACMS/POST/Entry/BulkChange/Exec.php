@@ -13,13 +13,22 @@ class ACMS_POST_Entry_BulkChange_Exec extends ACMS_POST_Entry_BulkChange_Confirm
         try {
             $this->set();
             $this->validate();
-            $this->bulkChange();
+            $entry = $this->extract('entry');
+            $field = $this->extract('field');
+            $this->fix(entry: $entry, field: $field);
+            $this->validateEntry(entry: $entry, field: $field);
+            if (!$this->Post->isValidAll()) {
+                $this->Post->set('step', '2');
+                $this->Post->set('error', 'validationFailed');
+                return $this->Post;
+            }
+            $this->bulkChange(entry: $entry, field: $field);
 
             AcmsLogger::info('エントリーの一括変更を行いました', [
                 'eids' => implode(',', $this->targetEids),
                 'action' => $this->entryActions,
-                'entry' => Common::extract('entry'),
-                'field' => Common::extract('field'),
+                'entry' => $entry->_aryField,
+                'field' => $field->_aryField,
             ]);
 
             $this->Post->set('step', '4');
@@ -42,13 +51,16 @@ class ACMS_POST_Entry_BulkChange_Exec extends ACMS_POST_Entry_BulkChange_Confirm
 
     /**
      * Bulk change
+     * @param \Field_Validation $entry
+     * @param \Field_Validation $field
+     * @return void
      */
-    protected function bulkChange()
+    protected function bulkChange(\Field_Validation $entry, \Field_Validation $field): void
     {
         set_time_limit(0);
 
-        $this->changeEntry();
-        $this->changeEntryField();
+        $this->changeEntry(entry: $entry);
+        $this->changeEntryField(field: $field);
 
         foreach ($this->targetEids as $eid) {
             Common::saveFulltext('eid', $eid, Common::loadEntryFulltext($eid));
@@ -57,11 +69,12 @@ class ACMS_POST_Entry_BulkChange_Exec extends ACMS_POST_Entry_BulkChange_Confirm
 
     /**
      * 部分的なエントリー情報を保存
+     * @param \Field_Validation $entry
+     * @return void
      */
-    protected function changeEntry()
+    protected function changeEntry(\Field_Validation $entry): void
     {
         $db = DB::singleton(dsn());
-        $entry = Common::extract('entry');
 
         $sql = SQL::newUpdate('entry');
         foreach ($this->entryActions as $action) {
@@ -84,9 +97,13 @@ class ACMS_POST_Entry_BulkChange_Exec extends ACMS_POST_Entry_BulkChange_Confirm
     }
 
 
-    protected function changeEntryField()
+    /**
+     * エントリーフィールドを一括変更
+     * @param \Field_Validation $field
+     * @return void
+     */
+    protected function changeEntryField(\Field_Validation $field): void
     {
-        $field = Common::extract('field');
         $field->addField('updateField', 'on');
         foreach ($this->targetEids as $eid) {
             Common::saveField('eid', $eid, clone $field);

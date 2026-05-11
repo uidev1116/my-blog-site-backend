@@ -1,6 +1,5 @@
-import { isCancel } from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import axiosLib from '../../../lib/axios';
+import { fetchClient, isAbortError } from '../../../lib/fetch-client';
 
 /**
  * e.g.
@@ -50,8 +49,8 @@ export default class IncrementalSearch {
       (req) => req.input.dataset.requestId === event.target.dataset.requestId
     );
     this.timer = setTimeout(() => {
-      if (typeof this.source.cancel === 'function') {
-        this.source.cancel();
+      if (this.abortController) {
+        this.abortController.abort();
       }
       this.request(endpoint, value).then((json) => {
         if (Array.isArray(json)) {
@@ -75,18 +74,15 @@ export default class IncrementalSearch {
     this.abortController = new AbortController();
 
     return new Promise((resolve, reject) => {
-      axiosLib({
-        method: 'POST',
-        url: endpoint,
-        responseType: 'json',
-        signal: this.abortController.signal,
-        data: params,
-      })
+      fetchClient
+        .post(endpoint, params, {
+          signal: this.abortController.signal,
+        })
         .then((response) => {
           resolve(response.data);
         })
         .catch((thrown) => {
-          if (!isCancel(thrown)) {
+          if (!isAbortError(thrown)) {
             reject(thrown.message);
           }
         });

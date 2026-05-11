@@ -30,44 +30,21 @@
   </div>
   <ul>
     <li><!--T-->CSV形式のファイル(カンマ区切りデータ)をユーザーと、ユーザーのカスタムフィールドに変換してインポートします。<!--/T--></li>
-    <li><!--T-->user_code, user_mail, user_passは必須項目です。<!--/T--></li>
-    <li><!--T-->user_passに空文字を設定すると以前のパスワードが引き継がれます<!--/T--></li>
+    <li><!--T-->新規追加時に user_pass を省略または空文字にした場合、推測不可能なランダムな初期パスワードが自動生成されます。ログインするにはパスワードリセット等で本人がパスワードを設定し直す必要があります。<!--/T--></li>
+    <li><!--T-->既存ユーザー更新時に user_pass を省略または空文字にした場合、既存のパスワードが維持されます。<!--/T--></li>
     <li><!--T-->CSVに <strong>user_id</strong> を指定することで既存のユーザーを上書きすることができます。<!--/T--></li>
+    <li><!--T-->プロフェッショナルライセンス以上では、カスタムフィールドのキーの先頭に <strong>*</strong>（アスタリスク）を付けることで、そのフィールドの値で既存ユーザーを特定して上書きすることができます。<!--/T--></li>
+    <li><!--T-->値の先頭を <strong>str-data_</strong> にしたデータは、表計算ソフトで文字列として扱い、値の自動変換を防止します。取り込み時はこの先頭の文字は無視してインポートされます。数値や日付のデータにお使いください。<!--/T--></li>
   </ul>
 </div>
 
 <!-- BEGIN_MODULE Admin_Import_UserCsv -->
 <!-- BEGIN_IF [{processing}/eq/1]-->
 <h2 class="acms-admin-admin-title2"><!--T-->CSVインポート状況<!--/T--></h2>
-<div id="js-background-csv-import" data-type="import_user">
-  <div class="js-progress acms-admin-progress acms-admin-progress-striped acms-admin-active"
-       style="display: none;">
-    <div class="acms-admin-progress-bar">
-      <span></span>
-    </div>
-  </div>
-  <script type="text/template" class="js-processing-template">
-    <% if (!processing && success) { %>
-    <p class="acms-admin-alert acms-admin-alert-info">
-      <!--T-->インポートが完了しました。<!--/T-->
-    </p>
-    <% } else if (!processing && error) { %>
-    <p class="acms-admin-alert acms-admin-alert-warning">
-      <!--T-->インポートに失敗しました。<!--/T-->
-    </p>
-    <% } %>
-
-    <ul>
-      <% _.each(processList, function(item) { %>
-      <% if (item.status === 'ng') { %>
-      <li class="acms-admin-text-danger">[Error] <%= item.message %></li>
-      <% } else { %>
-      <li><%= item.message %></li>
-      <% } %>
-      <% }) %>
-    </ul>
-  </script>
-  <div class="js-processing-box"></div>
+<div id="js-background-csv-import"
+     data-type="import_user"
+     data-success-message="<!--T-->インポートが完了しました。<!--/T-->"
+     data-error-message="<!--T-->インポートに失敗しました。<!--/T-->">
 </div>
 <!-- ELSE -->
 <form action="" method="post" enctype="multipart/form-data" class="acms-admin-form">
@@ -85,7 +62,7 @@
       <th></th>
       <td>
         <button
-          class="acms-admin-btn-admin acms-admin-btn-admin-primary acms-admin-margin-sp"
+          class="acms-admin-btn-admin acms-admin-btn-admin-primary"
           type="submit"
           name="ACMS_POST_Import_User"
           onclick="return confirm('<!--T-->インポートを実行します。よろしいですか？<!--/T-->');"
@@ -120,7 +97,7 @@
       <tr>
         <th>user_code</th>
         <td>文字列</td>
-        <td>必須項目。コードを指定</td>
+        <td>コードを指定</td>
         <td>user123</td>
         <td>user-[uid]</td>
       </tr>
@@ -141,17 +118,17 @@
       <tr>
         <th>user_mail</th>
         <td>文字列</td>
-        <td>必須項目。メールアドレスを指定。</td>
+        <td>メールアドレスを指定。空文字を設定した場合はデフォルト値が使用されます。</td>
         <td>info@example.com</td>
         <td>user-[uid]@example.com</td>
       </tr>
       <tr>
         <th>user_pass</th>
         <td>文字列</td>
-        <td>必須項目。ユーザー更新時に空文字を指定した場合、既存のパスワードを継承します。</td>
+        <td>パスワードを指定。新規追加時に省略または空文字の場合はランダムな初期パスワードが自動生成されます（本人がパスワードリセット等で設定し直す必要があります）。更新時に省略または空文字の場合は既存のパスワードが維持されます。</td>
         <td>xxxxxx</td>
         <td>
-          既存のパスワードを継承（更新時のみ）
+          新規: ランダム生成<br>更新: 既存のパスワードを維持
         </td>
       </tr>
       <tr>
@@ -243,7 +220,8 @@
         <td></td>
         <td>
           カスタムフィールド としてインポートされます。インポート先のフィールド仕様にあった値を設定ください。<br>
-          また、保存されるカスタムフィールドの値は、自動的に検索対象となります。
+          また、保存されるカスタムフィールドの値は、自動的に検索対象となります。<br>
+          プロフェッショナルライセンス以上では、フィールド名の先頭に <strong>*</strong>（アスタリスク）を付けることで、そのフィールドの値で既存ユーザーを特定して上書きします（例: <strong>*member_id</strong>）。
         </td>
         <td></td>
         <td></td>

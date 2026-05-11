@@ -1,4 +1,4 @@
-import axiosClient from '../../../lib/axios';
+import { fetchClient } from '../../../lib/fetch-client';
 import type {
   BlockMenuItem,
   CustomClassItem,
@@ -40,9 +40,7 @@ const fetchSettings = async (): Promise<EditorSettings> => {
       imageSizes: [] as ImageSizesItem[],
       colorPalette: [] as string[],
     },
-  } = await axiosClient.get<EditorSettings>(endpoint, {
-    responseType: 'json',
-  });
+  } = await fetchClient.get<EditorSettings>(endpoint);
   return options;
 };
 

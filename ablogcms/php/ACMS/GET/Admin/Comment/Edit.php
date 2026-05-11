@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_GET_Admin_Comment_Edit extends ACMS_GET_Admin
 {
     function get()
@@ -29,10 +31,13 @@ class ACMS_GET_Admin_Comment_Edit extends ACMS_GET_Admin
                 $Comment->setField('title', ACMS_RAM::entryTitle(EID));
                 $Tpl->add('header#insert');
             }
-            if ($suid = SUID) {
-                $Comment->setField('name', ACMS_RAM::userName($suid));
-                $Comment->setField('mail', ACMS_RAM::userMail($suid));
-                $Comment->setField('url', ACMS_RAM::userUrl($suid));
+            if (Login::isLoggedIn()) {
+                /** @var int|null $sessionUserId */
+                $sessionUserId = SUID;
+                assert(is_int($sessionUserId)); // ログインしていることが保証されている
+                $Comment->setField('name', ACMS_RAM::userName($sessionUserId));
+                $Comment->setField('mail', ACMS_RAM::userMail($sessionUserId));
+                $Comment->setField('url', ACMS_RAM::userUrl($sessionUserId));
             }
         }
 

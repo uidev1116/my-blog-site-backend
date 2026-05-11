@@ -306,6 +306,10 @@ class ACMS_GET_Admin_Config extends ACMS_GET_Admin
                     'field_4' => isset($field4s[$i]) ? $field4s[$i] : '',
                     'field_5' => isset($field5s[$i]) ? $field5s[$i] : '',
                 ];
+                if (!is_string($type) || $type === '') {
+                    // 不正なユニットタイプが指定されている場合はスキップ
+                    continue;
+                }
                 $model = $repository->makeModel($type);
                 if ($model === null) {
                     throw new \LogicException(sprintf('Unit type "%s" is not registered.', $type));
@@ -360,7 +364,7 @@ class ACMS_GET_Admin_Config extends ACMS_GET_Admin
                 'a_attr'    => $Config->get('navigation_a_attr', null, $i),
                 'media'     => $mediaId,
                 'media_type' => $mediaType,
-                'media_thumbnail' => $mediaThumbnail ? Common::toAbsoluteUrl($mediaThumbnail, MEDIA_LIBRARY_DIR) : '',
+                'media_thumbnail' => $mediaThumbnail ? Common::toRootRelativeUrl($mediaThumbnail, MEDIA_LIBRARY_DIR) : '',
                 'marks'     => [],
             ];
             $Count[$pid]    = (isset($Count[$pid]) ? $Count[$pid] : 0) + 1;

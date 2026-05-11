@@ -1,5 +1,6 @@
 <?php
 
+use Acms\Services\Facades\Login;
 use Acms\Services\Facades\Tfa;
 
 class ACMS_GET_Member_Tfa_Check extends ACMS_GET_Member_Signup
@@ -21,19 +22,24 @@ class ACMS_GET_Member_Tfa_Check extends ACMS_GET_Member_Signup
      */
     protected function buildTpl(Template $tpl): void
     {
-        if (!SUID || !Tfa::isAvailable()) {
+        if (!Login::isLoggedIn() || !Tfa::isAvailable()) {
             return;
         }
-        if (UID && SUID !== UID) {
+        /** @var int|null $userId */
+        $userId = UID;
+        /** @var int|null $sessionUserId */
+        $sessionUserId = SUID;
+        assert(is_int($sessionUserId)); // ログインしていることが保証されている
+        if ($userId !== null && $sessionUserId !== $userId) {
             return;
         }
         $vars = [];
 
-        if ($secret = Tfa::getSecretKey(SUID)) {
+        if (Tfa::hasValidSecretKey($sessionUserId)) {
             // 登録済み
             $vars['step'] = 'registered';
         } else {
-            // 未登録
+            // 未登録 or 復号失敗 → 再登録に誘導
             $vars['step'] = 'unregistered';
         }
         $tpl->add(null, $vars);

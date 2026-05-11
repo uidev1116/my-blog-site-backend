@@ -328,7 +328,7 @@ class Image extends Model implements ImageUnit, AssetProvider, UnitListModule, E
     /**
      * @inheritDoc
      */
-    public function saveFiles(array $post, bool $removeOld = true): void
+    public function saveFiles(array $post): void
     {
         if (is_null($this->imageData)) {
             throw new \LogicException('Image data must be set before calling saveFiles');
@@ -337,7 +337,7 @@ class Image extends Model implements ImageUnit, AssetProvider, UnitListModule, E
             throw new \LogicException('Unit ID must be set before calling saveFiles');
         }
 
-        $manager = new ImageFileManager($this->getId(), $removeOld);
+        $manager = new ImageFileManager($this->getId());
         $results = $manager->processImages($this->imageData);
 
         $filePaths = [];

@@ -6,6 +6,8 @@ import useConfigEditor from './hooks/use-config-editor';
 import { UnitConfigEditorSettings } from './types';
 import { SettingsProvider, useSettings } from './stores/settings';
 
+const EMPTY_UNIT_CONFIG_LIST: UnitConfigList = [];
+
 interface UnitAppenderProps {
   editor: ConfigEditor;
 }
@@ -50,7 +52,7 @@ interface UnitConfigEditorProps {
 const UnitConfigEditor = ({
   id,
   label,
-  defaultValue = [],
+  defaultValue = EMPTY_UNIT_CONFIG_LIST,
   settings = defaultConfigEditorSettings,
 }: UnitConfigEditorProps) => {
   const editor = useConfigEditor({ id, defaultValue });

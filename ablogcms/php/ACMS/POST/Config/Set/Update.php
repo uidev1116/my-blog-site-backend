@@ -9,7 +9,8 @@ class ACMS_POST_Config_Set_Update extends ACMS_POST_Config_Set_Insert
 
         $configSet = $this->extract('config_set');
         $configSet->setMethod('name', 'required');
-        $configSet->setMethod('alias', 'operable', IS_LICENSED and sessionWithAdministration() and $setid);
+        $configSet->setMethod('name', 'maxlength', '255');
+        $configSet->setMethod('alias', 'operable', $this->isOperable($setid));
         $configSet->validate(new ACMS_Validator());
 
         if ($this->Post->isValidAll()) {
@@ -38,5 +39,32 @@ class ACMS_POST_Config_Set_Update extends ACMS_POST_Config_Set_Insert
             AcmsLogger::info('「' . ACMS_RAM::configSetName($setid) . '」' . $label . 'の更新に失敗しました');
         }
         return $this->Post;
+    }
+
+    /**
+     * コンフィグセットの更新が可能なユーザーかどうか
+     *
+     * @param int $setid
+     * @return bool
+     */
+    protected function isOperable(int $setid): bool
+    {
+        if (!defined('IS_LICENSED')) {
+            return false;
+        }
+
+        if (!IS_LICENSED) {
+            return false;
+        }
+
+        if (!sessionWithAdministration()) {
+            return false;
+        }
+
+        if ($setid < 1) {
+            return false;
+        }
+
+        return true;
     }
 }

@@ -17,6 +17,7 @@ class CategoryServiceProvider extends ServiceProvider
     public function register(Container $container)
     {
         $container->singleton('category', 'Acms\Services\Category\Helper');
+        $container->singleton('category.repository', \Acms\Services\Category\CategoryRepository::class);
     }
 
     /**

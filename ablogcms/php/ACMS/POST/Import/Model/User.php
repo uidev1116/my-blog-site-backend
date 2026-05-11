@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Traits\CsvImport\UpdateByFieldKey;
+
 /**
  * ユーザーCSVインポート用モデルクラス
  *
@@ -7,11 +9,10 @@
  */
 class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
 {
+    use UpdateByFieldKey;
+
     /** @var array<string, mixed> ユーザーデータ */
     protected array $user = [];
-
-    /** @var array<int, array<string, mixed>> フィールドデータ配列 */
-    protected array $fields = [];
 
     /** @var string IDラベル名 */
     protected string $idLabel = 'user_id';
@@ -47,63 +48,104 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
      */
     protected function nextId(): void
     {
-        $DB = DB::singleton(dsn());
-        $this->nextId = intval($DB->query(SQL::nextval('user_id', dsn()), 'seq'));
+        $this->nextId = intval(DB::query(SQL::nextval('user_id', dsn()), 'seq'));
     }
 
     /**
      * バリデーション処理
      *
+     * save() メソッドで実行される完全なバリデーション
      * 必須フィールドの存在確認、データフォーマットの検証、重複チェックを実行する
      *
      * @return void
      * @throws RuntimeException バリデーションエラー時
      */
+    /**
+     * フィールドIDカラム名を返す
+     *
+     * @return string
+     */
+    protected function getFieldIdColumn(): string
+    {
+        return 'field_uid';
+    }
+
+    /**
+     * 保存処理
+     *
+     * @return void
+     */
+    public function save(): void
+    {
+        $this->validate();
+        $this->updateKey();
+        $this->build();
+        $this->duplicateCheck();
+
+        if ($this->isUpdate) {
+            $this->update();
+        } else {
+            $this->insert();
+        }
+    }
+
     protected function validate(): void
     {
-        if (array_search('user_code', $this->labels, true) === false) {
-            throw new RuntimeException('コード (user_code) フィールドがありません。');
-        }
-        if (array_search('user_mail', $this->labels, true) === false) {
-            throw new RuntimeException('メールアドレス (user_mail) フィールドがありません。');
-        }
-        if (array_search('user_pass', $this->labels, true) === false) {
-            throw new RuntimeException('パスワード (user_pass) フィールドがありません。');
-        }
+        // 1. 基本的なフォーマットチェック
+        $this->validateBasicFormat();
 
+        // 2. 文字数制限チェック
+        $this->validateFieldLengths();
+
+        // 3. ユーザーコードのバリデーション
+        $this->validateUserCode();
+    }
+
+    /**
+     * 基本的なフォーマットチェック
+     *
+     * validate() 内で実行される基本的なフォーマットチェック
+     *
+     * @return void
+     * @throws RuntimeException フォーマットが不正な場合
+     */
+    private function validateBasicFormat(): void
+    {
         foreach ($this->data as $key => $value) {
             switch ($key) {
                 case 'user_id':
-                case 'user_sort':
-                    if (!is_numeric($value)) {
-                        throw new \RuntimeException('数値でない値が設定されています（' . $key . '）');
+                    // 新規作成の場合は空文字列が許可される
+                    if ($value !== '' && !is_numeric($value)) {
+                        throw new \RuntimeException('数値でない値が設定されています（' . $key . '）。入力された値: ' . $value);
                     }
                     break;
-                case 'user_mail':
-                    if (empty($value)) {
-                        throw new \RuntimeException('必須入力項目に空の値がセットされています。（' . $key . '）');
+                case 'user_sort':
+                    if ($value !== '' && !is_numeric($value)) {
+                        throw new \RuntimeException('数値でない値が設定されています（' . $key . '）。入力された値: ' . $value);
                     }
                     break;
                 case 'user_status':
                     if (!in_array($value, ['open', 'close', 'withdrawal', 'pseudo'], true)) {
-                        throw new \RuntimeException('不正な値が設定されています（' . $key . '）');
+                        throw new \RuntimeException('不正な値が設定されています（' . $key . '）。open, close, withdrawal, pseudo のいずれかを指定してください。入力された値: ' . $value);
                     }
                     break;
                 case 'user_auth':
                     if (!in_array($value, ['administrator', 'editor', 'contributor', 'subscriber'], true)) {
-                        throw new \RuntimeException('不正な値が設定されています（' . $key . '）');
+                        throw new \RuntimeException('不正な値が設定されています（' . $key . '）。administrator, editor, contributor, subscriber のいずれかを指定してください。入力された値: ' . $value);
                     }
                     break;
                 case 'user_login_expire':
-                    if (!preg_match('@^\d{4}-\d{2}-\d{2}$@', $value)) {
-                        throw new \RuntimeException('日付のフォーマットが間違っています（' . $key . '）');
+                    // 空文字列の場合はスキップ（オプショナルフィールド）
+                    if ($value !== '' && !preg_match('@^\d{4}-\d{2}-\d{2}$@', $value)) {
+                        throw new \RuntimeException('日付のフォーマットが間違っています（' . $key . '）。YYYY-MM-DD 形式で指定してください。入力された値: ' . $value);
                     }
                     break;
                 case 'user_login_datetime':
                 case 'user_updated_datetime':
                 case 'user_generated_datetime':
-                    if (!preg_match('@^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$@', $value)) {
-                        throw new \RuntimeException('日時のフォーマットが間違っています（' . $key . '）');
+                    // 空文字列の場合はスキップ（オプショナルフィールド）
+                    if ($value !== '' && !preg_match('@^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$@', $value)) {
+                        throw new \RuntimeException('日時のフォーマットが間違っています（' . $key . '）。YYYY-MM-DD HH:MM:SS 形式で指定してください。入力された値: ' . $value);
                     }
                     break;
                 case 'user_indexing':
@@ -112,13 +154,79 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
                 case 'user_login_anywhere':
                 case 'user_global_auth':
                 case 'user_login_terminal_restriction':
-                    if (!in_array($value, ['on', 'off'], true)) {
-                        throw new \RuntimeException('on または off 以外の値が設定されています（' . $key . '）');
+                    // 空文字列の場合はスキップ（デフォルト値が使用される）
+                    if ($value !== '' && !in_array($value, ['on', 'off'], true)) {
+                        throw new \RuntimeException('on または off 以外の値が設定されています（' . $key . '）。入力された値: ' . $value);
                     }
                     break;
             }
         }
-        $this->duplicateCheck();
+    }
+
+    /**
+     * 文字数制限チェック
+     *
+     * @return void
+     * @throws RuntimeException 文字数制限を超えている場合
+     */
+    private function validateFieldLengths(): void
+    {
+        // user_name: varchar(255)
+        if (isset($this->data['user_name']) && $this->data['user_name'] !== '') {
+            $length = mb_strlen($this->data['user_name'], 'UTF-8');
+            if ($length > 255) {
+                throw new \RuntimeException('ユーザー名が長すぎます（user_name）。最大255文字まで入力できます。現在: ' . $length . '文字。入力された値: ' . $this->data['user_name']);
+            }
+        }
+
+        // user_code: varchar(64)
+        if (isset($this->data['user_code']) && $this->data['user_code'] !== '') {
+            $length = mb_strlen($this->data['user_code'], 'UTF-8');
+            if ($length > 64) {
+                throw new \RuntimeException('ユーザーコードが長すぎます（user_code）。最大64文字まで入力できます。現在: ' . $length . '文字。入力された値: ' . $this->data['user_code']);
+            }
+        }
+
+        // user_mail: varchar(255)
+        if (isset($this->data['user_mail']) && $this->data['user_mail'] !== '') {
+            $length = mb_strlen($this->data['user_mail'], 'UTF-8');
+            if ($length > 255) {
+                throw new \RuntimeException('メールアドレスが長すぎます（user_mail）。最大255文字まで入力できます。現在: ' . $length . '文字。入力された値: ' . $this->data['user_mail']);
+            }
+        }
+
+        // user_url: varchar(255)
+        if (isset($this->data['user_url']) && $this->data['user_url'] !== '') {
+            $length = mb_strlen($this->data['user_url'], 'UTF-8');
+            if ($length > 255) {
+                throw new \RuntimeException('URLが長すぎます（user_url）。最大255文字まで入力できます。現在: ' . $length . '文字。入力された値: ' . $this->data['user_url']);
+            }
+        }
+    }
+
+    /**
+     * ユーザーコードのバリデーション
+     *
+     * @return void
+     * @throws RuntimeException ユーザーコードが不正な場合
+     */
+    private function validateUserCode(): void
+    {
+        if (!isset($this->data['user_code']) || $this->data['user_code'] === '') {
+            return; // ユーザーコードが指定されていない場合はスキップ（自動生成される）
+        }
+
+        $code = $this->data['user_code'];
+
+        // 形式チェック
+        if (!isValidCode($code)) {
+            throw new \RuntimeException('ユーザーコードの形式が正しくありません（user_code）。改行、タブ、制御文字、引用符を含むことはできません。入力された値: ' . $code);
+        }
+
+        // 予約語チェック
+        if (isReserved($code, false)) {
+            throw new \RuntimeException('ユーザーコードに予約語が使用されています（user_code: ' . $code . '）。別のコードを指定してください。');
+        }
     }
 
     /**
@@ -131,22 +239,33 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
      */
     protected function duplicateCheck(): void
     {
-        $DB = DB::singleton(dsn());
+        $userCode = (string) ($this->user['user_code'] ?? '');
+        $userMail = (string) ($this->user['user_mail'] ?? '');
 
-        $WHERE = SQL::newWhere();
-        if (!!$this->data['user_code']) {
-            $WHERE->addWhereOpr('user_code', $this->data['user_code'], '=', 'OR');
+        if ($userMail === '') {
+            throw new RuntimeException('メールアドレスが設定されていません。（user_mail）');
         }
-        $WHERE->addWhereOpr('user_mail', $this->data['user_mail'], '=', 'OR');
 
-        $SQL = SQL::newSelect('user');
-        $SQL->addWhere($WHERE, 'AND');
-        $q = $SQL->get(dsn());
+        $where = SQL::newWhere();
+        if ($userCode !== '') {
+            $where->addWhereOpr('user_code', $userCode, '=', 'OR');
+        }
+        $where->addWhereOpr('user_mail', $userMail, '=', 'OR');
 
-        if ($row = $DB->query($q, 'row')) {
-            if (array_search('user_id', $this->labels, true) === false || $row['user_id'] != $this->data['user_id']) {
-                throw new RuntimeException('既に存在するユーザーが含まれています。');
+        $sql = SQL::newSelect('user');
+        $sql->addWhere($where, 'AND');
+        // 更新時は自分自身を重複対象から除外する（UpdateByFieldKey でも csvId が設定される）
+        if ($this->isUpdate && $this->csvId !== null) {
+            $sql->addWhereOpr('user_id', $this->csvId, '<>');
+        }
+
+        if (DB::query($sql->get(dsn()), 'row')) {
+            $duplicateInfo = [];
+            if ($userCode !== '') {
+                $duplicateInfo[] = 'user_code: ' . $userCode;
             }
+            $duplicateInfo[] = 'user_mail: ' . $userMail;
+            throw new RuntimeException('既に存在するユーザーが含まれています。 重複した値: ' . implode(', ', $duplicateInfo));
         }
     }
 
@@ -191,13 +310,12 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
      */
     protected function insertUser(): void
     {
-        $DB = DB::singleton(dsn());
 
-        $SQL = SQL::newInsert('user');
+        $sql = SQL::newInsert('user');
         foreach ($this->user as $key => $val) {
-            $SQL->addInsert($key, $val);
+            $sql->addInsert($key, $val);
         }
-        $DB->query($SQL->get(dsn()), 'exec');
+        DB::query($sql->get(dsn()), 'exec');
     }
 
     /**
@@ -209,7 +327,7 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
     {
         $uid = $this->nextId;
 
-        if (!empty($this->fields)) {
+        if (count($this->fields) > 0) {
             Common::deleteField('uid', $uid);
 
             $sql = SQL::newBulkInsert('field');
@@ -234,15 +352,14 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
         if ($this->csvId === null) {
             return;
         }
-        $DB = DB::singleton(dsn());
         $uid = $this->csvId;
-        $SQL = SQL::newUpdate('user');
+        $sql = SQL::newUpdate('user');
         foreach ($this->user as $key => $val) {
-            $SQL->addUpdate($key, $val);
+            $sql->addUpdate($key, $val);
         }
-        $SQL->addWhereOpr('user_id', $uid);
-        $SQL->addWhereOpr('user_blog_id', BID);
-        $DB->query($SQL->get(dsn()), 'exec');
+        $sql->addWhereOpr('user_id', $uid);
+        $sql->addWhereOpr('user_blog_id', BID);
+        DB::query($sql->get(dsn()), 'exec');
         ACMS_RAM::user($uid, null);
     }
 
@@ -258,10 +375,10 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
         }
         $uid = $this->csvId;
 
-        if (!empty($this->fields)) {
+        if (count($this->fields) > 0) {
             $fkey = [];
-            $SQL    = SQL::newDelete('field');
-            $SQL->addWhereOpr('field_uid', $uid);
+            $deleteSql = SQL::newDelete('field');
+            $deleteSql->addWhereOpr('field_uid', $uid);
             foreach ($this->fields as $dval) {
                 foreach ($dval as $key => $val) {
                     if ($key === 'field_key') {
@@ -269,18 +386,18 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
                     }
                 }
             }
-            $SQL->addWhereIn('field_key', $fkey);
-            DB::query($SQL->get(dsn()), 'exec');
+            $deleteSql->addWhereIn('field_key', $fkey);
+            DB::query($deleteSql->get(dsn()), 'exec');
             Common::deleteFieldCache('uid', $uid);
 
-            $sql = SQL::newBulkInsert('field');
+            $insertSql = SQL::newBulkInsert('field');
             foreach ($this->fields as $fval) {
                 $fval['field_uid'] = $uid;
                 $fval['field_blog_id'] = ACMS_RAM::userBlog($uid);
-                $sql->addInsert($fval);
+                $insertSql->addInsert($fval);
             }
-            if ($sql->hasData()) {
-                DB::query($sql->get(dsn()), 'exec');
+            if ($insertSql->hasData()) {
+                DB::query($insertSql->get(dsn()), 'exec');
             }
         }
     }
@@ -297,10 +414,13 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
         $this->user = $this->userBase();
         $field = $this->fieldBase();
 
+        if ($this->isUpdate && $this->csvId !== null) {
+            $field['field_uid'] = $this->csvId;
+        }
+
         foreach ($this->data as $key => $value) {
             if ($key === 'user_id' && $this->isUpdate) {
                 $this->user['user_id'] = $this->csvId;
-                $field['field_uid'] = $this->csvId;
             }
             if (array_key_exists($key, $this->user)) {
                 $this->buildUser($key, $value);
@@ -308,8 +428,9 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
                 $this->buildField($field, $key, $value);
             }
         }
-        // パスワードが空の場合は、アップデートしないように修正
-        if (empty($this->user['user_pass'])) {
+        // パスワードが空の場合は、更新時に元のパスワードを維持するために unset
+        // （新規作成時は userBase() でデフォルトパスワードが設定されているのでここには到達しない）
+        if (!isset($this->user['user_pass']) || $this->user['user_pass'] === '') {
             unset($this->user['user_pass']);
             unset($this->user['user_pass_generation']);
         }
@@ -330,13 +451,11 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
      */
     protected function nextSortId(): int
     {
-        $DB = DB::singleton(dsn());
-
-        $SQL = SQL::newSelect('user');
-        $SQL->setSelect('user_sort');
-        $SQL->setOrder('user_sort', 'DESC');
-        $SQL->addWhereOpr('user_blog_id', BID);
-        $sort = intval($DB->query($SQL->get(dsn()), 'one')) + 1;
+        $sql = SQL::newSelect('user');
+        $sql->setSelect('user_sort');
+        $sql->setOrder('user_sort', 'DESC');
+        $sql->addWhereOpr('user_blog_id', BID);
+        $sort = intval(DB::query($sql->get(dsn()), 'one')) + 1;
 
         return $sort;
     }
@@ -364,12 +483,12 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
                 break;
             case 'user_code':
             case 'user_mail':
-                if (!empty($value)) {
+                if ($value !== '') {
                     $this->user[$key] = $value;
                 }
                 break;
             case 'user_pass':
-                if (!empty($value)) {
+                if ($value !== '') {
                     $this->user['user_pass'] = acmsUserPasswordHash($value);
                     $this->user['user_pass_generation'] = PASSWORD_ALGORITHM_GENERATION;
                 }
@@ -382,36 +501,6 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
             default:
                 $this->user[$key] = $value;
         }
-    }
-
-    /**
-     * ユーザーフィールドの組み立て
-     *
-     * @param array<string, mixed> $field フィールドベースデータ
-     * @param string $key フィールドキー
-     * @param string $value フィールド値
-     * @return void
-     */
-    protected function buildField(array $field, string $key, string $value): void
-    {
-        $sort = 1;
-        if (preg_match('@\[\d+\]$@', $key, $matchs)) {
-            $sort = intval(preg_replace('@\[|\]@', '', $matchs[0]));
-            $key = preg_replace('@\[\d+\]$@', '', $key);
-        }
-        if (!$key) {
-            return;
-        }
-        $fieldTypeValue = null;
-        if (preg_match('/@(html|media|title)$/', $key, $matches)) {
-            $fieldTypeValue = $matches[1];
-        }
-        $field['field_key'] = $key;
-        $field['field_type'] = $fieldTypeValue;
-        $field['field_value'] = $value;
-        $field['field_sort'] = $sort;
-
-        $this->fields[] = $field;
     }
 
     /**
@@ -446,7 +535,8 @@ class ACMS_POST_Import_Model_User extends ACMS_POST_Import_Model
         ];
 
         if (!$this->isUpdate) {
-            $base['user_pass'] = acmsUserPasswordHash('user-' . $this->nextId);
+            // 新規作成時のデフォルトパスワードは予測不能なランダム値とする（user_id 由来の推測可能値は使わない）
+            $base['user_pass'] = acmsUserPasswordHash(Common::genPass(16));
             $base['user_pass_generation'] = PASSWORD_ALGORITHM_GENERATION;
         }
 

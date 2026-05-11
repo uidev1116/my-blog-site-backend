@@ -11,6 +11,7 @@ use ACMS_RAM;
 use SQL_Select;
 use SQL;
 use Field;
+use Field_Validation;
 use Template;
 
 class EntryRepository
@@ -144,9 +145,9 @@ class EntryRepository
         if (isset($primaryImageInfo['path'])) {
             $path = $primaryImageInfo['path'];
             if (isset($primaryImageInfo['media']) && $primaryImageInfo['media']) {
-                $url = Common::toAbsoluteUrl($path, MEDIA_LIBRARY_DIR, true);
+                $url = Common::toAbsoluteUrl($path, MEDIA_LIBRARY_DIR);
             } else {
-                $url = Common::toAbsoluteUrl($path, ARCHIVES_DIR, true);
+                $url = Common::toAbsoluteUrl($path, ARCHIVES_DIR);
             }
             return [
                 'id' => $tempId,
@@ -189,6 +190,7 @@ class EntryRepository
     {
         $acmsTplEngine = Application::make('template.acms');
         assert($acmsTplEngine instanceof \Acms\Services\Template\Acms);
+        $acmsTplEngine->setPostData(new Field_Validation());
         $acmsTplEngine->load($templatePath, config('theme'), BID);
         return $acmsTplEngine->render();
     }

@@ -152,6 +152,7 @@ class ACMS_POST_Backup_Import extends ACMS_POST_Backup_Base
         if ($line === false) {
             return;
         }
+        $line = trim($line); // エクスポートデータによっては、末尾にスペースが入っている場合があるので、trimする
         if (substr($line, 0, 2) === '--') {
             if ($this->versionCheck === 'on' and preg_match('/^--Version_.*/', $line)) {
                 $version = trim(substr($line, 2));

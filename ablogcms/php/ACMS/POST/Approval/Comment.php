@@ -1,6 +1,6 @@
 <?php
 
-class ACMS_POST_Approval_Comment extends ACMS_POST_Approval
+class ACMS_POST_Approval_Comment extends ACMS_POST
 {
     public function post()
     {

@@ -13,28 +13,75 @@
 <!-- BEGIN_MODULE Touch_SessionWithAdministration -->
 <!-- BEGIN_MODULE Admin_Import_Message -->
 <!-- BEGIN message:veil -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span
-    class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span><button
-    class="js-acms-alert-close acms-admin-alert-icon-after">×</button>
-  <!-- BEGIN_IF [{importMessage}/eq/0] -->
+<!-- BEGIN_IF [{importMessage}/eq/0] -->
+<div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
   <!--T-->インポートに成功しました<!--/T-->
-  <!-- ELSE_IF [{importMessage}/eq/1/_or_/{importMessage}/eq/2] -->
+</div>
+<!-- ELSE_IF [{importMessage}/nem] -->
+<div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+  <!-- BEGIN_IF [{importMessage}/eq/1/_or_/{importMessage}/eq/2] -->
   <!--T-->ファイルサイズが大きすぎます<!--/T-->
   <!-- ELSE_IF [{importMessage}/eq/4] -->
   <!--T-->ファイルが選択されていません<!--/T-->
   <!-- ELSE -->
-  <!--T-->エラーが発生しました。<!--/T-->{importMessage}
+  {importMessage}
   <!-- END_IF -->
-</p>
+</div>
+<!-- END_IF -->
 <!-- END message:veil -->
-
-<!-- BEGIN import:data -->
-<p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info"><span
-    class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span><button
-    class="js-acms-alert-close acms-admin-alert-icon-after">×</button>
-  <!--T--><!--$1-->{blog}<!--/$1--> ブログ, <!--$2-->{category}<!--/$2--> に<!--$3-->{entry_count}<!--/$3-->件、インポートしました。<!--/T-->
-</p>
-<!-- END import:data -->
+<!-- BEGIN import:veil -->
+<!-- BEGIN_IF [{success}/eq/on] -->
+<div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+  type="button"
+  class="js-acms-alert-close acms-admin-alert-icon-after"
+  aria-label="アラートを閉じる"
+  >
+  ×
+</button>
+  <!-- BEGIN import -->
+  <!--T--><!--$1-->{blogName}<!--/$1--> ブログ <!--$2-->{categoryName}<!--/$2--> に <!--$3-->{entryCount}<!--/$3-->件、インポートしました。<!--/T-->
+  <!-- BEGIN_IF [{errorCount}/gt/0] -->
+  <!--T--> <!--$4-->{errorCount}<!--/$4-->件はエラーのためスキップしました。<!--/T-->
+  <!-- END_IF -->
+  <!-- END import -->
+</div>
+<!-- END_IF -->
+<!-- END import:veil -->
+<!-- BEGIN errors:veil -->
+<div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+  <ul>
+    <!-- BEGIN errors:loop -->
+    <li>{index}件目: {message}</li>
+    <!-- END errors:loop -->
+  </ul>
+</div>
+<!-- END errors:veil -->
 <!-- END_MODULE Admin_Import_Message -->
 
 <div class="acms-admin-panel">

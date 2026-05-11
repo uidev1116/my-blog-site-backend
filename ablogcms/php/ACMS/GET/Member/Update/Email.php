@@ -2,6 +2,7 @@
 
 use Acms\Services\Login\Exceptions\BadRequestException;
 use Acms\Services\Login\Exceptions\ExpiredException;
+use Acms\Services\Facades\Login;
 
 class ACMS_GET_Member_Update_Email extends ACMS_GET_Member
 {
@@ -34,7 +35,7 @@ class ACMS_GET_Member_Update_Email extends ACMS_GET_Member
      */
     protected function init(): void
     {
-        if (!SUID) {
+        if (!Login::isLoggedIn()) {
             page404();
         }
     }

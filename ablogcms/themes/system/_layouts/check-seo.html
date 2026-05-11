@@ -2,110 +2,110 @@
 <!-- BEGIN_MODULE Touch_NotEdit -->
 <!-- BEGIN_MODULE Touch_NotPreview -->
 <script>
-ACMS.Ready(function()
-{
-  var tpl = _.template($('#js-seo_info_template').html());
-  var output, keywords, description, ogimage, robots;
+  ACMS.Ready(function () {
+    function escapeHtml(str) {
+      if (!str) return '';
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
+    }
 
-  if ( keywords = document.getElementsByName('keywords').item(0) ) {
-    keywords = keywords.content;
-  }
-  if ( description = document.getElementsByName('description').item(0) ) {
-    description = description.content;
-  }
-  if ( robots = document.getElementsByName('robots').item(0) ) {
-    robots = robots.content;
-  }
+    var keywords, description, ogimage, robots;
 
-  ogimage = $('meta[property="og:image"]').attr('content');
+    if ((keywords = document.getElementsByName('keywords').item(0))) {
+      keywords = keywords.content;
+    }
+    if ((description = document.getElementsByName('description').item(0))) {
+      description = description.content;
+    }
+    if ((robots = document.getElementsByName('robots').item(0))) {
+      robots = robots.content;
+    }
 
-  if (!!ogimage) {
-    var checkImg = new Image();
-    checkImg.src = ogimage;
-    checkImg.onerror = function() {
-      $('#js-seo_info_ogimage').remove();
-    };
-  }
-  output = tpl({
-    title: document.title,
-    keywords: keywords,
-    description: description,
-    ogimage: ogimage,
-    robots: robots
+    ogimage = $('meta[property="og:image"]').attr('content');
+
+    if (!!ogimage) {
+      var checkImg = new Image();
+      checkImg.src = ogimage;
+      checkImg.onerror = function () {
+        $('#js-seo_info_ogimage').remove();
+      };
+    }
+
+    var $info = $('#js-seo_info');
+    $info.find('[data-seo-value]').each(function () {
+      var key = $(this).data('seo-value');
+      if (key === 'title') $(this).text(document.title);
+      else if (key === 'keywords') $(this).text(keywords || '');
+      else if (key === 'description') $(this).text(description || '');
+      else if (key === 'ogimage') $(this).attr('src', ogimage || '');
+    });
+    $info.find('[data-seo-if]').each(function () {
+      var cond = $(this).data('seo-if');
+      var show = false;
+      if (cond === 'keywords') show = !!keywords;
+      else if (cond === 'noindex') show = !!(robots && robots.match(/noindex/));
+      else if (cond === 'ogimage') show = !!ogimage;
+      if (!show) $(this).remove();
+    });
+    $info.show();
   });
-
-  $('#js-seo_info').html(output);
-});
 </script>
 
-<div id="js-seo_info"></div>
-
-<script id="js-seo_info_template" type="text/template">
-<section class="acms-container">
-  <div class="acms-admin-edit-info">
-    @section("check-search-engine")
-    <p>
-      <!--T-->※以下の内容は管理者のみに表示されています。<!--/T-->
-      <a href="https://www.google.co.jp/search?q=site:%{INHERLINK}" target="_blank"><!--T-->Googleで確認<!--/T--></a> |
-      <a href="https://search.yahoo.co.jp/search?p=site:%{INHERLINK}" target="_blank"><!--T-->Yahoo!で確認<!--/T--></a> |
-      <a href="https://developers.facebook.com/tools/debug/sharing/?q=%{INHERLINK}" target="_blank"><!--T-->Facebookで確認<!--/T--></a>
-    </p>
-    @endsection
-    <h3 class="acms-admin-edit-info-heading"><!--T-->情報<!--/T--></h3>
-    <table class="acms-admin-table acms-edit-info-table">
-      @section("title")
-      <tr>
-        <th class="acms-admin-text-nowrap"><!--T-->タイトル<!--/T--> - <small>title</small></th>
-        <td>
-          <%- title %>
-        </td>
-      </tr>
+<div id="js-seo_info" style="display: none;">
+  <section class="acms-container">
+    <div class="acms-admin-edit-info">
+      @section("check-search-engine")
+      <p>
+        <!--T-->※以下の内容は管理者のみに表示されています。<!--/T-->
+        <a href="https://www.google.co.jp/search?q=site:%{INHERLINK}" target="_blank"><!--T-->Googleで確認<!--/T--></a> |
+        <a href="https://search.yahoo.co.jp/search?p=site:%{INHERLINK}" target="_blank"><!--T-->Yahoo!で確認<!--/T--></a> |
+        <a href="https://developers.facebook.com/tools/debug/sharing/?q=%{INHERLINK}" target="_blank"><!--T-->Facebookで確認<!--/T--></a>
+      </p>
       @endsection
-      @section("keywords")
-      <% if ( !!keywords ) { %>
-      <tr>
-        <th class="acms-admin-text-nowrap"><!--T-->キーワード<!--/T--> - <small>keywords</small></th>
-        <td>
-          <%- keywords %>
-        </td>
-      </tr>
-      @endsection
-      <% } %>
-      @section("description")
-      <tr>
-        <th class="acms-admin-text-nowrap"><!--T-->概要文<!--/T--> - <small>description</small></th>
-        <td>
-          <%- description %>
-        </td>
-      </tr>
-      @endsection
-      @section("search-engine")
-      <tr>
-        <th class="acms-admin-text-nowrap"><!--T-->検索エンジン<!--/T--> - <small>robots</small></th>
-        <td>
-          <% if ( robots && robots.match(/noindex/) ) { %>
-          <span class="acms-admin-label acms-admin-label-danger"><!--T-->検索エンジンに表示しない<!--/T--></span>
-          <% } %>
-        </td>
-      </tr>
-      @endsection
-      @section("ogp")
-      <tr>
-        <th class="acms-admin-text-nowrap"><!--T-->OGP画像<!--/T--> - <small>og:image</small></th>
-        <td>
-          <% if (ogimage) { %>
-          <img id="js-seo_info_ogimage" src="<%- ogimage %>" alt="OGP画像" class="acms-admin-edit-info-ogpimage">
-          <% }%>
-        </td>
-      </tr>
-      @endsection
-      @section("others")
-      @include("/include/check-seo-extend.html")
-      @endsection
-    </table>
-  </div>
-</section>
-</script>
+      <h3 class="acms-admin-edit-info-heading"><!--T-->情報<!--/T--></h3>
+      <table class="acms-admin-table acms-edit-info-table">
+        @section("title")
+        <tr>
+          <th class="acms-admin-text-nowrap"><!--T-->タイトル<!--/T--> - <small>title</small></th>
+          <td data-seo-value="title"></td>
+        </tr>
+        @endsection
+        @section("keywords")
+        <tr data-seo-if="keywords">
+          <th class="acms-admin-text-nowrap"><!--T-->キーワード<!--/T--> - <small>keywords</small></th>
+          <td data-seo-value="keywords"></td>
+        </tr>
+        @endsection
+        @section("description")
+        <tr>
+          <th class="acms-admin-text-nowrap"><!--T-->概要文<!--/T--> - <small>description</small></th>
+          <td data-seo-value="description"></td>
+        </tr>
+        @endsection
+        @section("search-engine")
+        <tr>
+          <th class="acms-admin-text-nowrap"><!--T-->検索エンジン<!--/T--> - <small>robots</small></th>
+          <td>
+            <span data-seo-if="noindex" class="acms-admin-label acms-admin-label-danger"><!--T-->検索エンジンに表示しない<!--/T--></span>
+          </td>
+        </tr>
+        @endsection
+        @section("ogp")
+        <tr>
+          <th class="acms-admin-text-nowrap"><!--T-->OGP画像<!--/T--> - <small>og:image</small></th>
+          <td>
+            <img data-seo-if="ogimage" data-seo-value="ogimage" id="js-seo_info_ogimage" src="" alt="OGP画像" class="acms-admin-edit-info-ogpimage">
+          </td>
+        </tr>
+        @endsection
+        @section("others")
+        @include("/include/check-seo-extend.html")
+        @endsection
+      </table>
+    </div>
+  </section>
+</div>
 <!-- END_MODULE Touch_NotPreview -->
 <!-- END_MODULE Touch_NotEdit -->
 <!-- END_MODULE Touch_SessionWithAdministration -->

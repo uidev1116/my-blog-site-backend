@@ -3,13 +3,15 @@ import { Table } from '@tanstack/react-table';
 import VisuallyHidden from '@components/visually-hidden';
 import type { BulkAction } from '../../types';
 
+const EMPTY_ACTIONS: never[] = [];
+
 interface BulkActionsProps<T> {
   actions: BulkAction<T>[];
   data: T[];
   table: Table<T>;
 }
 
-const BulkActions = <T,>({ actions = [], data, table }: BulkActionsProps<T>) => {
+const BulkActions = <T,>({ actions = EMPTY_ACTIONS, data, table }: BulkActionsProps<T>) => {
   const [selectedActionId, setSelectedActionId] = useState<BulkAction<T>['id']>('');
   const activeActions = useMemo(
     () => actions.filter((action) => action.condition === undefined || action.condition(data)),

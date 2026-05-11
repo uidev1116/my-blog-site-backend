@@ -5,6 +5,7 @@ namespace Acms\Services\Logger\Handler;
 use Acms\Services\Facades\Database as DB;
 use Acms\Services\Facades\Application;
 use Monolog\Handler\AbstractProcessingHandler;
+use Acms\Services\Facades\Login;
 use Session;
 use SQL;
 
@@ -35,7 +36,7 @@ class DatabaseHandler extends AbstractProcessingHandler
             /** @var int|null $rid */
             $rid = defined('RID') ? RID : null;
             /** @var int $suid */
-            $suid = (defined('SUID') && !is_null(SUID)) ? SUID : 0;
+            $suid = Login::isLoggedIn() ? SUID : 0;
             $acmsPost = (defined('ACMS_POST') && !!ACMS_POST) ? ACMS_POST : '';
 
             $sessionUserId = $suid;

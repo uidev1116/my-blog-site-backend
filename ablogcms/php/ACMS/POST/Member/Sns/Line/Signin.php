@@ -3,6 +3,16 @@
 class ACMS_POST_Member_Sns_Line_Signin extends ACMS_POST_Member_Sns_Base
 {
     /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @inheritDoc
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return Login::canLoginPage(BID, SIGNIN_SEGMENT);
+    }
+
+    /**
      * アクションを設定（signin|admin-login|signup|register）
      * @return string
      */

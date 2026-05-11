@@ -1,49 +1,49 @@
 <?php
 
-class HTMLPurifier_HTML5Definition
+abstract class HTMLPurifier_HTML5Definition
 {
     /**
      * Adds HTML5 element and attributes to a provided definition object.
      *
      * @param  HTMLPurifier_HTMLDefinition $def
+     * @param  HTMLPurifier_Config $config
      * @return HTMLPurifier_HTMLDefinition
-     * @throws HTMLPurifier_Exception
+     * @internal
      */
-    public static function setupDefinition(HTMLPurifier_HTMLDefinition $def)
+    public static function setupHTMLDefinition(HTMLPurifier_HTMLDefinition $def, HTMLPurifier_Config $config)
     {
         $def->manager->doctypes->register(
             'HTML5',
-            false,
+            $config->get('HTML.XHTML'),
             // Order of modules is important - the latter ones override the former.
             // Place common HTML5 modules at the end of the list
             array(
-                'CommonAttributes', 'HTML5_Text', 'HTML5_Hypertext', 'HTML5_List',
-                'Presentation', 'HTML5_Edit', 'HTML5_Bdo', 'Tables', 'Image',
+                'HTML5_CommonAttributes', 'HTML5_Text', 'HTML5_Hypertext', 'HTML5_List',
+                'HTML5_Edit', 'HTML5_Bdo', 'HTML5_Tables', 'Image',
                 'StyleAttribute', 'HTML5_Media', 'HTML5_Ruby', 'Name',
-                'NonXMLCommonAttributes',
+                'HTML5_SafeForms',
                 // Unsafe:
                 'HTML5_Scripting', 'HTML5_Interactive', 'Object', 'HTML5_Forms',
-                'HTML5_Iframe',
+                'HTML5_Iframe', 'HTML5_Link',
+                // Transitional:
+                'HTML5_Legacy',
             ),
-            array('Tidy_Transitional', 'Tidy_Proprietary'),
+            array('Tidy_HTML5'),
             array()
         );
 
-        // override default SafeScripting module
-        // Because how the built-in SafeScripting module is enabled in ModuleManager,
-        // to override it exactly the same name must be provided (without HTML5_ prefix)
-        $safeScripting = new HTMLPurifier_HTMLModule_HTML5_SafeScripting();
-        $safeScripting->name = 'SafeScripting';
-        $def->manager->registerModule($safeScripting);
+        // Override default SafeScripting module if HTML5 doctype is used.
+        // Because of how the built-in SafeScripting module is enabled in the ModuleManager,
+        // in order to override it the same name must be provided (without HTML5_ prefix)
+        if (stripos($config->get('HTML.Doctype'), 'HTML5') !== false) {
+            $safeScripting = new HTMLPurifier_HTMLModule_HTML5_SafeScripting();
+            $safeScripting->name = 'SafeScripting';
+            $def->manager->registerModule($safeScripting);
+        }
 
-        // use fixed implementation of Boolean attributes, instead of a buggy
+        // Use fixed implementation of Boolean attributes, instead of a buggy
         // one provided with 4.6.0
         $def->manager->attrTypes->set('Bool', new HTMLPurifier_AttrDef_HTML_Bool2());
-
-        // add support for Floating point number attributes
-        $def->manager->attrTypes->set('Float', new HTMLPurifier_AttrDef_Float());
-
-        $def->manager->attrTypes->set('Datetime', new HTMLPurifier_AttrDef_HTML5_Datetime());
 
         return $def;
     }

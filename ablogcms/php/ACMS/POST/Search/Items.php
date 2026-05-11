@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_POST_Search_Items extends ACMS_POST
 {
     public $isCacheDelete = false;
@@ -32,7 +34,7 @@ class ACMS_POST_Search_Items extends ACMS_POST
         if (
             1
             && !empty($this->keyword)
-            && !!SUID
+            && Login::isLoggedIn()
         ) {
             $json[] = [
                 'title' => gettext('ブログ'),

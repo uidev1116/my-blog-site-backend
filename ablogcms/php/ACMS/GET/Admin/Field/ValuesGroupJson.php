@@ -10,7 +10,7 @@ class ACMS_GET_Admin_Field_ValuesGroupJson extends ACMS_GET
         try {
             $this->validate($this->Get);
         } catch (\Throwable $th) {
-            Logger::error($th->getMessage(), Common::exceptionArray($th));
+            Logger::notice($th->getMessage(), Common::exceptionArray($th));
             return Common::responseJson([
                 'status' => 'failure',
                 'message' => $th->getMessage(),

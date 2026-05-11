@@ -2,12 +2,16 @@
 
 namespace Acms\Services\Entry;
 
+use Acms\Services\Entry\Enums\EntryApprovalStatus;
 use Acms\Services\Facades\Common;
 use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Preview;
 use Acms\Services\Facades\Auth;
+use Acms\Services\Facades\Login;
 use Acms\Services\Facades\Database as DB;
 use Acms\Services\Facades\Entry;
+use Acms\Services\Entry\Exceptions\TagValidationException;
+use Acms\Services\Entry\Exceptions\SubCategoryValidationException;
 use ACMS_RAM;
 use Field;
 use SQL;
@@ -20,7 +24,7 @@ class Helper
     /**
      * サマリーの表示で使うユニットの範囲を取得
      *
-     * @var int
+     * @var int|null
      */
     protected $summaryRange;
 
@@ -49,7 +53,7 @@ class Helper
      * サマリーの表示で使うユニットの範囲を取得
      * extractUnits 後に決定
      *
-     * @return int
+     * @return int|null
      */
     public function getSummaryRange()
     {
@@ -163,22 +167,24 @@ class Helper
      * エントリーのタグをバリデート
      *
      * @param \Field_Validation $Entry
-     *
+     * @param string $fieldName
      * @return \Field_Validation
      */
-    public function validTag($Entry)
+    public function validTag($Entry, string $fieldName = 'tag')
     {
-        $tags = $Entry->get('tag');
-        if (!empty($tags)) {
+        $tags = $Entry->get($fieldName);
+        if ($tags !== '') {
             $tags = Common::getTagsFromString($tags, false);
-            foreach ($tags as $sort => $tag) {
-                if (isReserved($tag)) {
-                    $Entry->setMethod('tag', 'reserved', false);
-                    break;
-                }
-                if (!preg_match(REGEX_INVALID_TAG_NAME, $tag)) {
-                    $Entry->setMethod('tag', 'string', false);
-                    break;
+            try {
+                $this->validateTagNames($tags);
+            } catch (TagValidationException $e) {
+                $errors = $e->getErrors();
+                foreach ($errors as $error) {
+                    if ($error['type'] === 'reserved') {
+                        $Entry->setMethod($fieldName, 'reserved', false);
+                    } elseif ($error['type'] === 'invalid_format') {
+                        $Entry->setMethod($fieldName, 'string', false);
+                    }
                 }
             }
         }
@@ -192,16 +198,97 @@ class Helper
      *
      * @return \Field_Validation
      */
-    public function validSubCategory($Entry)
+    public function validSubCategory($Entry, string $fieldName = 'sub_category_id')
     {
-        $limit = config('entry_edit_sub_category_limit');
-        if (is_numeric($limit)) {
-            $subCategoryIds = $this->getSubCategoryFromString($Entry->get('sub_category_id'), ',');
-            if (count($subCategoryIds) > intval($limit)) {
-                $Entry->setMethod('sub_category_id', 'max_sub_category_id', false);
+        $subCategoryIds = $this->getSubCategoryFromString($Entry->get($fieldName), ',');
+        if (count($subCategoryIds) > 0) {
+            try {
+                $this->validateSubCategoryIds($subCategoryIds);
+            } catch (SubCategoryValidationException $e) {
+                $errors = $e->getErrors();
+                foreach ($errors as $error) {
+                    if ($error['type'] === 'limit_exceeded') {
+                        $Entry->setMethod($fieldName, 'max_sub_category_id', false);
+                    }
+                }
             }
         }
         return $Entry;
+    }
+
+    /**
+     * タグ名の配列をバリデート
+     *
+     * Field オブジェクトを使わずにタグ名の配列を直接バリデートする
+     * すべてのタグをチェックし、複数のエラーを一度に検知する
+     *
+     * @param array<int, string> $tags タグ名の配列
+     * @return void
+     * @throws TagValidationException タグのバリデーションエラーがある場合（複数のエラーをまとめて保持）
+     */
+    public function validateTagNames(array $tags): void
+    {
+        $errors = [];
+
+        foreach ($tags as $index => $tag) {
+            // 予約語チェック
+            if (isReserved($tag)) {
+                $errors[] = [
+                    'tag' => $tag,
+                    'index' => $index,
+                    'type' => 'reserved',
+                    'message' => 'タグ名に予約語が使用されています（entry_tag: ' . $tag . '）。別のタグ名を指定してください。',
+                ];
+            }
+
+            // 形式チェック
+            if (!preg_match(REGEX_INVALID_TAG_NAME, $tag)) {
+                $errors[] = [
+                    'tag' => $tag,
+                    'index' => $index,
+                    'type' => 'invalid_format',
+                    'message' => 'タグ名の形式が正しくありません（entry_tag: ' . $tag . '）。#, / を含むことはできません。',
+                ];
+            }
+        }
+
+        if (count($errors) > 0) {
+            throw new TagValidationException($errors);
+        }
+    }
+
+    /**
+     * サブカテゴリーIDの配列をバリデート
+     *
+     * Field オブジェクトを使わずにサブカテゴリーIDの配列を直接バリデートする
+     * すべてのサブカテゴリーをチェックし、複数のエラーを一度に検知する
+     *
+     * @param array<int> $subCategoryIds サブカテゴリーIDの配列
+     * @return void
+     * @throws SubCategoryValidationException サブカテゴリーのバリデーションエラーがある場合（複数のエラーをまとめて保持）
+     */
+    public function validateSubCategoryIds(array $subCategoryIds): void
+    {
+        $errors = [];
+
+        // 上限チェック
+        $limit = config('entry_edit_sub_category_limit');
+        if (is_numeric($limit)) {
+            $count = count($subCategoryIds);
+            $limitInt = intval($limit);
+            if ($count > $limitInt) {
+                $errors[] = [
+                    'type' => 'limit_exceeded',
+                    'message' => 'サブカテゴリーの数が上限を超えています（entry_sub_category）。最大 ' . $limitInt . ' 個まで指定できます。現在: ' . $count . ' 個',
+                    'limit' => $limitInt,
+                    'count' => $count,
+                ];
+            }
+        }
+
+        if (count($errors) > 0) {
+            throw new SubCategoryValidationException($errors);
+        }
     }
 
     /**
@@ -273,8 +360,8 @@ class Helper
             // ユニットを削除 & ユニットのファイル類を削除
             $unitRepository->removeUnits($eid, null, true);
         } else {
-            // ユニットデータのみ削除
-            $unitRepository->removeUnits($eid, null, false);
+            // changeRevision 経路: column_rev にも参照がない孤児ファイルのみ物理削除する
+            $unitRepository->removeUnitsWithReferenceCheck($eid, null);
         }
 
         //------------------
@@ -341,66 +428,58 @@ class Helper
     }
 
     /**
-     * バージョンの切り替え
+     * 予約公開バージョンの登録
+     *
+     * @param int $rvid
+     * @param int $eid
+     *
+     * @return void
+     */
+    public function reserveRevision($rvid, $eid): void
+    {
+        $sql = SQL::newUpdate('entry');
+        $sql->setUpdate('entry_reserve_rev_id', $rvid);
+        // 承認フロー完了のため承認ステータスをクリアする。
+        // フロント側の表示制御は entry_current_rev_id / entry_reserve_rev_id の組み合わせで行う。
+        $sql->addUpdate('entry_approval', EntryApprovalStatus::None->value);
+        $sql->addWhereOpr('entry_id', $eid);
+        DB::query($sql->get(dsn()), 'exec');
+    }
+
+    /**
+     * バージョンの切り替え（即時公開）
      *
      * @param int $rvid
      * @param int $eid
      * @param int $bid
      *
-     * @return int|null|false カテゴリ-ID
+     * @return void
      */
-    function changeRevision($rvid, $eid, $bid)
+    public function changeRevision($rvid, $eid, $bid): void
     {
-        $DB = DB::singleton(dsn());
-        $cid = null;
-        $primaryImageId = null;
-        if (!is_numeric($rvid)) {
-            return false;
-        }
-        $sql = SQL::newSelect('entry_rev');
-        $sql->addWhereOpr('entry_id', $eid);
-        $sql->addWhereOpr('entry_rev_id', $rvid);
-        $revision = DB::query($sql->get(dsn()), 'row');
-        if (empty($revision)) {
-            return false;
-        }
-        $publicDatetime = $revision['entry_start_datetime'];
-        if (strtotime($publicDatetime) > REQUEST_TIME) {
-            $sql = SQL::newUpdate('entry');
-            $sql->setUpdate('entry_reserve_rev_id', $rvid);
-            $sql->addWhereOpr('entry_id', $eid);
-            DB::query($sql->get(dsn()), 'exec');
-            return ACMS_RAM::entryCategory($eid);
+        $revision = $this->getRevision($eid, $rvid);
+        if ($revision === false) {
+            return;
         }
 
         // エントリの情報を削除
-        Entry::entryDelete($eid, true);
+        $this->entryDelete($eid, true);
 
-        //-------
-        // entry
-        $SQL = SQL::newSelect('entry_rev');
-        $SQL->addWhereOpr('entry_id', $eid);
-        $SQL->addWhereOpr('entry_rev_id', $rvid);
-        $q = $SQL->get(dsn());
-
-        $primaryImageUnitId = null;
-        $Entry = SQL::newInsert('entry');
-        if ($row = $DB->query($q, 'row')) {
-            $cid = $row['entry_category_id'];
-            foreach ($row as $key => $val) {
-                if (!preg_match('@^(entry_rev|entry_approval)@', $key)) {
-                    $Entry->addInsert($key, $val);
-                }
+        $entryInsertSql = SQL::newInsert('entry');
+        foreach ($revision as $key => $val) {
+            if (!preg_match('@^(entry_rev|entry_approval)@', $key)) {
+                $entryInsertSql->addInsert($key, $val);
             }
-            $Entry->addInsert('entry_current_rev_id', $rvid);
-            $Entry->addInsert('entry_reserve_rev_id', 0);
-            if (SUID) {
-                $Entry->addInsert('entry_last_update_user_id', SUID);
-            }
-            $DB->query($Entry->get(dsn()), 'exec');
-
-            $primaryImageUnitId = (string)$row['entry_primary_image'];
         }
+        $entryInsertSql->addInsert('entry_current_rev_id', $rvid);
+        $entryInsertSql->addInsert('entry_reserve_rev_id', 0);
+        if (Login::isLoggedIn()) {
+            /** @var int|null $sessionUserId */
+            $sessionUserId = SUID;
+            assert(is_int($sessionUserId)); // ログインしていることが保証されている
+            $entryInsertSql->addInsert('entry_last_update_user_id', $sessionUserId);
+        }
+        DB::query($entryInsertSql->get(dsn()), 'exec');
 
         //------
         // unit
@@ -418,82 +497,96 @@ class Helper
             $primaryImageUpdateSql = SQL::newUpdate('entry');
             $primaryImageUpdateSql->addUpdate('entry_primary_image', $newPrimaryImageUnitId);
             $primaryImageUpdateSql->addWhereOpr('entry_id', $eid);
-            $DB->query($primaryImageUpdateSql->get(dsn()), 'exec');
+            DB::query($primaryImageUpdateSql->get(dsn()), 'exec');
         }
         ACMS_RAM::entry($eid, null);
 
         //-------
         // field
-        $Field = loadEntryField($eid, $rvid);
-        Common::saveField('eid', $eid, $Field);
+        $field = loadEntryField($eid, $rvid);
+        Common::saveField('eid', $eid, $field);
 
         //-------
         // tag
-        $SQL = SQL::newSelect('tag_rev');
-        $SQL->addWhereOpr('tag_entry_id', $eid);
-        $SQL->addWhereOpr('tag_rev_id', $rvid);
-        $q = $SQL->get(dsn());
-        $statement = $DB->query($q, 'exec');
+        $tagRevSql = SQL::newSelect('tag_rev');
+        $tagRevSql->addWhereOpr('tag_entry_id', $eid);
+        $tagRevSql->addWhereOpr('tag_rev_id', $rvid);
+        $q = $tagRevSql->get(dsn());
+        $tagRevStatement = DB::query($q, 'exec');
 
-        $insert = SQL::newBulkInsert('tag');
-        if ($statement && ($row = $DB->next($statement))) {
+        $tagInsertSql = SQL::newBulkInsert('tag');
+        if ($tagRevStatement && ($row = DB::next($tagRevStatement))) {
             do {
                 unset($row['tag_rev_id']);
-                $insert->addInsert($row);
-            } while ($row = $DB->next($statement));
+                $tagInsertSql->addInsert($row);
+            } while ($row = DB::next($tagRevStatement));
         }
-        if ($insert->hasData()) {
-            $DB->query($insert->get(dsn()), 'exec');
+        if ($tagInsertSql->hasData()) {
+            DB::query($tagInsertSql->get(dsn()), 'exec');
         }
 
         //---------------
         // sub category
-        $SQL = SQL::newDelete('entry_sub_category');
-        $SQL->addWhereOpr('entry_sub_category_eid', $eid);
-        $DB->query($SQL->get(dsn()), 'exec');
+        $subCategoryDeleteSql = SQL::newDelete('entry_sub_category');
+        $subCategoryDeleteSql->addWhereOpr('entry_sub_category_eid', $eid);
+        DB::query($subCategoryDeleteSql->get(dsn()), 'exec');
 
-        $SQL = SQL::newSelect('entry_sub_category_rev');
-        $SQL->addWhereOpr('entry_sub_category_eid', $eid);
-        $SQL->addWhereOpr('entry_sub_category_rev_id', $rvid);
-        $q = $SQL->get(dsn());
-        $statement = $DB->query($q, 'exec');
+        $subCategoryRevSql = SQL::newSelect('entry_sub_category_rev');
+        $subCategoryRevSql->addWhereOpr('entry_sub_category_eid', $eid);
+        $subCategoryRevSql->addWhereOpr('entry_sub_category_rev_id', $rvid);
+        $q = $subCategoryRevSql->get(dsn());
+        $subCategoryRevStatement = DB::query($q, 'exec');
 
-        $subCategory = SQL::newBulkInsert('entry_sub_category');
-        if ($statement && ($row = $DB->next($statement))) {
+        $subCategoryInsertSql = SQL::newBulkInsert('entry_sub_category');
+        if ($subCategoryRevStatement && ($row = DB::next($subCategoryRevStatement))) {
             do {
                 unset($row['entry_sub_category_rev_id']);
-                $subCategory->addInsert($row);
-            } while ($row = $DB->next($statement));
+                $subCategoryInsertSql->addInsert($row);
+            } while ($row = DB::next($subCategoryRevStatement));
         }
-        if ($subCategory->hasData()) {
-            $DB->query($subCategory->get(dsn()), 'exec');
+        if ($subCategoryInsertSql->hasData()) {
+            DB::query($subCategoryInsertSql->get(dsn()), 'exec');
         }
 
         //---------------
         // related entry
-        $SQL = SQL::newSelect('relationship_rev');
-        $SQL->addWhereOpr('relation_id', $eid);
-        $SQL->addWhereOpr('relation_rev_id', $rvid);
-        $relations = $DB->query($SQL->get(dsn()), 'all');
+        $relationshipRevSql = SQL::newSelect('relationship_rev');
+        $relationshipRevSql->addWhereOpr('relation_id', $eid);
+        $relationshipRevSql->addWhereOpr('relation_rev_id', $rvid);
+        $relations = DB::query($relationshipRevSql->get(dsn()), 'all');
 
-        $insert = SQL::newBulkInsert('relationship');
+        $relationshipInsertSql = SQL::newBulkInsert('relationship');
         foreach ($relations as $relation) {
-            $insert->addInsert([
+            $relationshipInsertSql->addInsert([
                 'relation_id' => $eid,
                 'relation_eid' => $relation['relation_eid'],
                 'relation_type' => $relation['relation_type'],
                 'relation_order' => $relation['relation_order'],
             ]);
         }
-        if ($insert->hasData()) {
-            $DB->query($insert->get(dsn()), 'exec');
+        if ($relationshipInsertSql->hasData()) {
+            DB::query($relationshipInsertSql->get(dsn()), 'exec');
         }
 
         //----------
         // fulltext
         Common::saveFulltext('eid', $eid, Common::loadEntryFulltext($eid));
+    }
 
-        return $cid;
+    /**
+     * 現時点で公開可能な予約公開バージョンを取得
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function findPublishableReservedRevisions(): array
+    {
+        $revisionAliasName = 'revision';
+        $reservedRevisionsSql = SQL::newSelect('entry_rev', $revisionAliasName);
+        $reservedRevisionsSql->addSelect('*', null, $revisionAliasName);
+        $reservedRevisionsSql->addInnerJoin('entry', 'entry_reserve_rev_id', 'entry_rev_id', 'entry', $revisionAliasName);
+        $reservedRevisionsSql->addWhereOpr('entry_start_datetime', date('Y-m-d H:i:s', REQUEST_TIME), '<', 'AND', $revisionAliasName);
+        $reservedRevisions = DB::query($reservedRevisionsSql->get(dsn()), 'all');
+        return $reservedRevisions;
     }
 
     /**
@@ -510,7 +603,6 @@ class Helper
     public function saveSubCategory($eid, $masterCid, $cids, $bid = BID, $rvid = null)
     {
         try {
-            $DB = DB::singleton(dsn());
             $table = 'entry_sub_category';
             if (!empty($rvid)) {
                 $table = 'entry_sub_category_rev';
@@ -520,7 +612,7 @@ class Helper
             if (!empty($rvid)) {
                 $SQL->addWhereOpr('entry_sub_category_rev_id', $rvid);
             }
-            $DB->query($SQL->get(dsn()), 'exec');
+            DB::query($SQL->get(dsn()), 'exec');
 
             $cidAry = $this->getSubCategoryFromString($cids, ',');
 
@@ -540,7 +632,7 @@ class Helper
                 $insert->addInsert($data);
             }
             if ($insert->hasData()) {
-                $DB->query($insert->get(dsn()), 'exec');
+                DB::query($insert->get(dsn()), 'exec');
             }
         } catch (\Exception $e) {
         }
@@ -549,20 +641,41 @@ class Helper
     /**
      * @param string $string
      * @param string $delimiter
-     * @return array
+     * @return int<1, max>[]
      */
-    public function getSubCategoryFromString($string, $delimiter = ',')
+    public function getSubCategoryFromString(string $string, string $delimiter = ','): array
     {
         $delimiter = $delimiter ? $delimiter : ',';
         $cidAry = explode($delimiter, $string);
         $list = [];
         foreach ($cidAry as $item) {
             $item = preg_replace('/^[\s　]+|[\s　]+$/u', '', $item);
-            if ($item !== '') {
+            if ($item !== '' && $item !== null) {
                 $list[] = $item;
             }
         }
+        $list = array_map('trim', $list);
+        $list = array_map('intval', $list);
+        $list = array_filter($list, function ($item) {
+            return $item > 0;
+        });
         return $list;
+    }
+
+    /**
+     * 関連エントリーのサムネイルフィールドを解決する。
+     * 指定されたフィールドが空の場合は main_image_field_name にフォールバックする。
+     *
+     * @param string|null $thumbnailField サムネイルフィールド名（空の場合はフォールバック）
+     * @return string 解決されたフィールド名（空の場合は unit ターゲットを使用することを示す）
+     */
+    public function resolveRelatedEntryThumbnailField(?string $thumbnailField): string
+    {
+        if ($thumbnailField !== null && $thumbnailField !== '') {
+            return $thumbnailField;
+        }
+
+        return config('main_image_field_name', '');
     }
 
     /**
@@ -577,7 +690,6 @@ class Helper
      */
     public function saveRelatedEntries($eid, $entryAry = [], $rvid = null, $typeAry = [], $loadedTypes = [])
     {
-        $DB = DB::singleton(dsn());
         $table = 'relationship';
         if (!empty($rvid)) {
             $table = 'relationship_rev';
@@ -588,7 +700,7 @@ class Helper
         if (!empty($rvid)) {
             $SQL->addWhereOpr('relation_rev_id', $rvid);
         }
-        $DB->query($SQL->get(dsn()), 'exec');
+        DB::query($SQL->get(dsn()), 'exec');
 
         $exists = [];
         $insert = SQL::newBulkInsert($table);
@@ -616,7 +728,7 @@ class Helper
             }
         }
         if ($insert->hasData()) {
-            $DB->query($insert->get(dsn()), 'exec');
+            DB::query($insert->get(dsn()), 'exec');
         }
     }
 
@@ -624,7 +736,7 @@ class Helper
      * エントリーのバージョンを保存
      *
      * @param int $eid
-     * @param int $rvid
+     * @param int|null $rvid
      * @param array $entryAry
      * @param string $type
      * @param string $memo
@@ -736,7 +848,7 @@ class Helper
             return false;
         }
 
-        Common::saveField('eid', $eid, $Field, null, $rvid);
+        Common::saveField('eid', $eid, $Field, null, $rvid, BID);
 
         return true;
     }
@@ -818,7 +930,7 @@ class Helper
      * 指定されたリビジョンを取得
      * @param int $eid
      * @param int $rvid
-     * @return array
+     * @return array<string, mixed>|false
      */
     public function getRevision($eid, $rvid)
     {
@@ -827,6 +939,25 @@ class Helper
         $sql->addWhereOpr('entry_rev_id', $rvid);
 
         return DB::query($sql->get(dsn()), 'row');
+    }
+
+    /**
+     * 現行リビジョンIDと予約リビジョンIDを1クエリで取得する。
+     *
+     * @param int $eid
+     * @return array{current: int, reserve: int}
+     */
+    public function getRevisionIds(int $eid): array
+    {
+        $sql = SQL::newSelect('entry');
+        $sql->addSelect('entry_current_rev_id');
+        $sql->addSelect('entry_reserve_rev_id');
+        $sql->addWhereOpr('entry_id', $eid);
+        $row = DB::query($sql->get(dsn()), 'row');
+        return [
+            'current' => intval($row['entry_current_rev_id'] ?? 0),
+            'reserve' => intval($row['entry_reserve_rev_id'] ?? 0),
+        ];
     }
 
     /**
@@ -875,11 +1006,13 @@ class Helper
             return false;
         }
 
-        if ($entry['entry_approval'] === 'pre_approval') {
+        // 承認前エントリーはリビジョン1（作業領域）に変更内容が保存されており、
+        // メインエントリーをダイレクト編集で書き換えると作業領域と乖離するため不可とする。
+        if ($entry['entry_approval'] === EntryApprovalStatus::PreApproval->value) {
             return false;
         }
 
-        if (enableApproval() && !sessionWithApprovalAdministrator()) {
+        if ($this->requiresApproval(BID, CID)) {
             // 承認機能が有効で、かつ最終承認者でない場合はダイレクト編集は利用不可
             return false;
         }
@@ -996,7 +1129,9 @@ class Helper
         }
 
         if ($entryId !== null && $entryId > 0) {
-            if (ACMS_RAM::entryApproval($entryId) === 'pre_approval') {
+            // 承認前エントリーはまだ公開されておらず、承認フローの途中であるため、
+            // 承認管理者の特権ではなくロール・通常の権限に基づいて削除可否を判定する。
+            if (ACMS_RAM::entryApproval($entryId) === EntryApprovalStatus::PreApproval->value) {
                 // エントリーが承認前ステータスのときは、ロール及び通常の権限に従う
                 if (roleAvailableUser()) {
                     return $this->canDeleteByRole($blogId, $entryId);
@@ -1361,6 +1496,21 @@ class Helper
     }
 
     /**
+     * 現在のログインユーザーがエントリー保存時に承認フローを経る必要があるかどうかを判定する。
+     *
+     * 承認機能が有効かつ承認管理者でない場合に true を返す。
+     * 承認管理者はフローをバイパスして即時公開できるため false となる。
+     *
+     * @param int $bid ブログID
+     * @param int|null $cid カテゴリID
+     * @return bool
+     */
+    public function requiresApproval(int $bid, ?int $cid): bool
+    {
+        return enableApproval($bid, $cid) && !sessionWithApprovalAdministrator($bid, $cid);
+    }
+
+    /**
      * 現在のログインユーザーがエントリーの承認履歴を閲覧可能かどうかを判定する
      * @param int $entryId
      * @return bool
@@ -1371,10 +1521,12 @@ class Helper
         $categoryId = ACMS_RAM::entryCategory($entryId);
 
         if (!enableApproval($blogId, $categoryId)) {
+            // 承認機能が無効な場合は承認履歴は存在しないため閲覧不可
             return false;
         }
 
         if (!sessionWithApprovalAdministrator($blogId, $categoryId)) {
+            // 承認管理者でない場合は承認履歴を閲覧不可
             return false;
         }
         return true;
@@ -1406,6 +1558,249 @@ class Helper
             return true;
         }
         return false;
+    }
+
+    /**
+     * 現在のログインユーザーが指定したエントリーリビジョンを削除可能かどうかを判定する
+     *
+     * 承認機能有効時は承認管理者のみ許可。承認機能無効時は `sessionWithCompilation`
+     * またはエントリー所有者の投稿者のみ許可。作業領域 (rvid=1)、公開中のリビジョン、
+     * 公開予約中のリビジョンは削除不可。
+     *
+     * @param int $entryId
+     * @param int $revisionId
+     * @return bool
+     */
+    public function canDeleteEntryRevision(int $entryId, int $revisionId): bool
+    {
+        if (Preview::isPreviewMode()) {
+            // プレビューモード中はリビジョンの削除を行わない
+            return false;
+        }
+        if (!enableRevision()) {
+            // リビジョン機能が無効な場合は削除不可
+            return false;
+        }
+        if ($entryId <= 0 || $revisionId <= 1) {
+            // 作業領域 (rvid=1) は削除不可、不正なIDも弾く
+            return false;
+        }
+
+        $entry = ACMS_RAM::entry($entryId);
+        if (!is_array($entry) || $entry === []) {
+            // 対象エントリーが存在しない場合は削除不可
+            return false;
+        }
+
+        $blogId = intval($entry['entry_blog_id']);
+        $categoryId = ACMS_RAM::entryCategory($entryId);
+
+        if (intval($entry['entry_current_rev_id']) === $revisionId) {
+            // 公開中のリビジョンは削除不可
+            return false;
+        }
+        if (intval($entry['entry_reserve_rev_id']) === $revisionId) {
+            // 公開予約中のリビジョンは削除不可
+            return false;
+        }
+
+        $revision = Entry::getRevision($entryId, $revisionId);
+        if (!is_array($revision) || $revision === []) {
+            // 対象リビジョンが存在しない場合は削除不可
+            return false;
+        }
+
+        if (enableApproval($blogId, $categoryId)) {
+            // 承認機能が有効な場合は、承認フローをバイパスできる承認管理者のみ削除可能
+            // (requiresApproval が false となるのは承認管理者のケース)
+            return !$this->requiresApproval($blogId, $categoryId);
+        }
+
+        if (roleAvailableUser()) {
+            // ロール機能が適用されているユーザーはロールの権限に従う
+            return roleAuthorization('entry_edit', $blogId, $entryId);
+        }
+
+        if (sessionWithCompilation($blogId)) {
+            // 編集者以上の場合は削除可能
+            return true;
+        }
+
+        if (
+            sessionWithContribution($blogId) &&
+            intval(SUID) === intval(ACMS_RAM::entryUser($entryId))
+        ) {
+            // 投稿者の場合でも、エントリーの所有ユーザーの場合は削除可能
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 現在のログインユーザーが指定したエントリーのリビジョンを複製可能かどうかを判定する
+     *
+     * 本機能は「作業領域から承認依頼」ボタンからのみ実行される承認機能専用の動線であり、
+     * 承認フローを経由する必要があるユーザー（= requiresApproval が true）のみ許可する。
+     *
+     * @param int $entryId
+     * @return bool
+     */
+    public function canDuplicateEntryRevision(int $entryId): bool
+    {
+        if (Preview::isPreviewMode()) {
+            // プレビューモード中はリビジョンの複製を行わない
+            return false;
+        }
+        if (!enableRevision()) {
+            // リビジョン機能が無効な場合は複製不可
+            return false;
+        }
+        if ($entryId <= 0) {
+            return false;
+        }
+
+        $entry = ACMS_RAM::entry($entryId);
+        if (!is_array($entry) || $entry === []) {
+            // 対象エントリーが存在しない場合は複製不可
+            return false;
+        }
+
+        $blogId = intval($entry['entry_blog_id']);
+        $categoryId = ACMS_RAM::entryCategory($entryId);
+
+        if (!enableApproval($blogId, $categoryId)) {
+            // 承認機能専用の動線のため、承認機能無効時は複製不可
+            return false;
+        }
+
+        if (!$this->requiresApproval($blogId, $categoryId)) {
+            // 承認管理者は「作業領域から承認依頼」の対象外
+            return false;
+        }
+
+        if (roleAvailableUser()) {
+            // ロール機能が適用されているユーザーはロールの権限に従う
+            return roleAuthorization('entry_edit', $blogId, $entryId);
+        }
+
+        if (sessionWithContribution($blogId)) {
+            // 承認フローを経由する投稿者権限以上のユーザーは作業領域から承認依頼可能
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 現在のログインユーザーが指定したエントリーのリビジョンを公開バージョンへ切り替え可能かどうかを判定する
+     *
+     * 作業領域 (rvid=1)、公開中バージョン、公開予約中バージョンは切り替え対象外。
+     * 承認機能有効時は、対象リビジョンが承認済み (approved) かつ承認管理者のみ許可。
+     * 承認機能無効時は、ロールの権限、編集者以上、または投稿者本人 (エントリー所有者) のみ許可。
+     *
+     * @param int $entryId
+     * @param int $revisionId
+     * @return bool
+     */
+    public function canChangeEntryRevision(int $entryId, int $revisionId): bool
+    {
+        if (Preview::isPreviewMode()) {
+            // プレビューモード中はリビジョンの切り替えを行わない
+            return false;
+        }
+        if (!enableRevision()) {
+            // リビジョン機能が無効な場合は切り替え不可
+            return false;
+        }
+        if ($entryId <= 0 || $revisionId <= 1) {
+            // 作業領域 (rvid=1) は切り替え対象外、不正なIDも弾く
+            return false;
+        }
+
+        $entry = ACMS_RAM::entry($entryId);
+        if (!is_array($entry) || $entry === []) {
+            // 対象エントリーが存在しない場合は切り替え不可
+            return false;
+        }
+
+        $blogId = intval($entry['entry_blog_id']);
+        $categoryId = ACMS_RAM::entryCategory($entryId);
+
+        if (intval($entry['entry_current_rev_id']) === $revisionId) {
+            // 既に公開中のリビジョンは切り替え不要
+            return false;
+        }
+        if (intval($entry['entry_reserve_rev_id']) === $revisionId) {
+            // 既に公開予約中のリビジョンは重複予約を防止するため切り替え不可
+            return false;
+        }
+
+        $revision = Entry::getRevision($entryId, $revisionId);
+        if (!is_array($revision) || $revision === []) {
+            // 対象リビジョンが存在しない場合は切り替え不可
+            return false;
+        }
+
+        if (enableApproval($blogId, $categoryId)) {
+            // 承認機能有効時は承認済みのリビジョンのみ、かつ承認管理者のみ切り替え可能
+            if (($revision['entry_rev_status'] ?? '') !== 'approved') {
+                return false;
+            }
+            return sessionWithApprovalAdministrator($blogId, $categoryId);
+        }
+
+        if (roleAvailableUser()) {
+            // ロール機能が適用されているユーザーはロールの権限に従う
+            return roleAuthorization('entry_edit', $blogId, $entryId);
+        }
+
+        if (sessionWithCompilation($blogId)) {
+            // 編集者以上の場合は切り替え可能
+            return true;
+        }
+
+        if (
+            sessionWithContribution($blogId) &&
+            intval(SUID) === intval(ACMS_RAM::entryUser($entryId))
+        ) {
+            // 投稿者でもエントリー所有者なら切り替え可能
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 現在のログインユーザーが指定したエントリーリビジョンの編集画面 (admin=entry_editor) を
+     * 開いて更新可能な状態かどうかを判定する
+     *
+     * @param int $entryId
+     * @param int $revisionId
+     * @return bool
+     */
+    public function canUpdateEntryRevision(int $entryId, int $revisionId): bool
+    {
+        if (!enableRevision()) {
+            return false;
+        }
+        if ($entryId <= 0 || $revisionId <= 0) {
+            return false;
+        }
+
+        $entry = ACMS_RAM::entry($entryId);
+        if (!is_array($entry) || $entry === []) {
+            return false;
+        }
+        $blogId = intval($entry['entry_blog_id']);
+        $categoryId = ACMS_RAM::entryCategory($entryId);
+
+        $revision = $this->getRevision($entryId, $revisionId);
+        if (!is_array($revision) || $revision === []) {
+            return false;
+        }
+
+        return $this->canEditView($entryId, $blogId, $categoryId);
     }
 
     /**
@@ -1468,7 +1863,7 @@ class Helper
                 if (intval($revision['entry_rev_user_id']) !== SUID && !sessionWithApprovalAdministrator($bid, $cid)) { // @phpstan-ignore-line
                     return false;
                 }
-                if (enableApproval($bid, $cid) && !sessionWithApprovalAdministrator($bid, $cid)) {
+                if ($this->requiresApproval($bid, $cid)) {
                     if ($revision['entry_rev_status'] === 'approved') {
                         // 承認済みバージョンなので変更不可
                         return false;
@@ -1515,5 +1910,75 @@ class Helper
             }
         }
         return true;
+    }
+
+    /**
+     * エントリーコードに拡張子を追加
+     *
+     * 既に拡張子が含まれている場合はそのまま返し、含まれていない場合は拡張子を追加する
+     *
+     * @param non-empty-string $code 拡張子を含まない可能性のあるエントリーコード
+     * @return non-empty-string 拡張子が追加されたエントリーコード
+     */
+    public function formatEntryCode(string $code): string
+    {
+        // 既に拡張子が含まれている場合はそのまま返す
+        if (preg_match('@\.([^\.]+)$@', $code)) {
+            return $code;
+        }
+
+        // 拡張子を追加
+        $extension = $this->getEntryCodeExtension();
+        return $code . $extension;
+    }
+
+    /**
+     * 完全なエントリーコードを生成
+     *
+     * プレフィックス + ID + 拡張子で完全なエントリーコードを生成する
+     *
+     * @param int $entryId エントリーID
+     * @return non-empty-string 完全なエントリーコード（例: prefix123.html）
+     */
+    public function generateEntryCode(int $entryId): string
+    {
+        $prefix = config('entry_code_prefix');
+        $extension = $this->getEntryCodeExtension();
+        return $prefix . $entryId . $extension;
+    }
+
+    /**
+     * タイトルまたはIDからエントリーコードを生成
+     *
+     * entry_code_title 設定に応じて、タイトルから生成するか、プレフィックス+IDで生成するかを決定する
+     * 生成後、拡張子を追加して返す
+     *
+     * @param non-empty-string $title エントリータイトル
+     * @param int $entryId エントリーID
+     * @return non-empty-string 完全なエントリーコード（拡張子を含む）
+     */
+    public function generateEntryCodeFromTitleOrId(string $title, int $entryId): string
+    {
+        if (config('entry_code_title') === 'on') {
+            $code = stripWhitespace($title);
+            assert($code !== '');
+            return $this->formatEntryCode($code);
+        } else {
+            return $this->generateEntryCode($entryId);
+        }
+    }
+
+    /**
+     * エントリーコードの拡張子を取得
+     *
+     * 設定から拡張子を取得し、先頭にドットを含む形式で返す
+     * 設定が空の場合は空文字列を返す
+     *
+     * @return string 拡張子文字列（例: .html または ''）
+     */
+    public function getEntryCodeExtension(): string
+    {
+        $extension = config('entry_code_extension');
+        return ($extension === '') ? '' : '.' . $extension;
     }
 }

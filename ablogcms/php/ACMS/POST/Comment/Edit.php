@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_POST_Comment_Edit extends ACMS_POST_Comment
 {
     function post()
@@ -10,11 +12,11 @@ class ACMS_POST_Comment_Edit extends ACMS_POST_Comment
 
         if ($this->Post->isValidAll()) {
             if (
-                $suid   = intval(SUID)
+                Login::isLoggedIn()
                 and ( 0
                     or sessionWithCompilation()
-                    or ACMS_RAM::entryUser(EID) == $suid
-                    or ACMS_RAM::commentUser(CMID) == $suid
+                    or ACMS_RAM::entryUser(EID) == SUID
+                    or ACMS_RAM::commentUser(CMID) == SUID
                 )
             ) {
                 $Comment->setField('name', ACMS_RAM::commentName(CMID));

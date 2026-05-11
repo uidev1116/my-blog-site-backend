@@ -21,9 +21,7 @@
             <th class="acms-admin-table-nowrap"><!--T-->承認ステータス<!--/T--></th>
             <!-- END_MODULE Touch_Approval -->
             <th class="th7 acms-admin-table-nowrap"><!--T-->編集<!--/T--></th>
-            <!-- BEGIN_MODULE Touch_RevisionAdministrator -->
             <th class="th8 acms-admin-table-nowrap"></th>
-            <!-- END_MODULE Touch_RevisionAdministrator -->
           </tr>
         </thead>
         <tbody>
@@ -92,18 +90,17 @@
               <a href="{editUrl}" class="acms-admin-btn acms-admin-btn-admin"><!--T-->編集<!--/T--></a>
               <!-- END edit -->
             </td>
-            <!-- BEGIN_MODULE Touch_RevisionAdministrator -->
             <td class="th8 acms-admin-table-nowrap">
               <!-- BEGIN delete -->
-              <input
+              <button
                 id="%{BID}-%{EID}-{_rvid}"
                 type="button"
                 class="js-revision_delete acms-admin-btn-admin acms-admin-btn-admin-danger"
-                value="<!--T-->削除<!--/T-->"
-              />
+              >
+                <!--T-->削除<!--/T-->
+              </button>
               <!-- END delete -->
             </td>
-            <!-- END_MODULE Touch_RevisionAdministrator -->
           </tr>
           <!-- END revision:loop -->
         </tbody>

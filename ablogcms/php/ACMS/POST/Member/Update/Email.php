@@ -1,11 +1,22 @@
 <?php
 
 use Acms\Services\Validator\Signin as SigninValidator;
+use Acms\Services\Facades\Common;
 use Acms\Services\Facades\Login;
 
 class ACMS_POST_Member_Update_Email extends ACMS_POST_Member
 {
     use Acms\Services\Login\Traits\CreateAuthUrl;
+
+    /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @inheritDoc
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return Login::isValidAuthenticatedPath(BID, EMAIL_UPDATE_SEGMENT);
+    }
 
     /**
      * トークンのキーを取得
@@ -79,7 +90,6 @@ class ACMS_POST_Member_Update_Email extends ACMS_POST_Member
 
     /**
      * @return Field_Validation
-     * @throws Exception
      */
     public function post(): Field_Validation
     {
@@ -111,17 +121,22 @@ class ACMS_POST_Member_Update_Email extends ACMS_POST_Member
         ], $token, $data, $lifetime);
 
         // メール送信
-        $isSend = $this->send($inputField->get('mail'), $inputField, $authUrl);
-
-        if ($isSend) {
-            // メール送信成功
-            $this->Post->set('sent', 'success');
-            AcmsLogger::info('メールアドレス変更のための、認証メールを送信しました', $data);
-        } else {
-            // メール送信失敗
+        try {
+            $isSend = $this->send($inputField->get('mail'), $inputField, $authUrl);
+            if ($isSend) {
+                // メール送信成功
+                $this->Post->set('sent', 'success');
+                AcmsLogger::info('メールアドレス変更のための、認証メールを送信しました', $data);
+            } else {
+                // メール送信失敗
+                $inputField->setMethod('mail', 'send', false);
+                $inputField->validate(new SigninValidator());
+                AcmsLogger::warning('メールアドレス変更のための、認証メール送信に失敗しました', $data);
+            }
+        } catch (Exception $e) {
             $inputField->setMethod('mail', 'send', false);
             $inputField->validate(new SigninValidator());
-            AcmsLogger::warning('メールアドレス変更のための、認証メール送信に失敗しました', $data);
+            AcmsLogger::warning('メールアドレス変更のための、認証メール送信に失敗しました', Common::exceptionArray($e, $data));
         }
         return $this->Post;
     }
@@ -138,6 +153,7 @@ class ACMS_POST_Member_Update_Email extends ACMS_POST_Member
             httpStatusCode('403 Forbidden');
         }
         $inputField->setMethod('mail', 'required');
+        $inputField->setMethod('mail', 'maxlength', '255');
         $inputField->setMethod('mail', 'email');
         if (!!$inputField->get('mail')) {
             $inputField->setMethod('mail', 'doubleMail');

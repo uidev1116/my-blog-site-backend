@@ -41,12 +41,18 @@ import dispatchTooltip from './dispatch/dispatch-tooltip';
 import dispatchGoogleMapsPicker from './dispatch/dispatch-google-maps-picker';
 import dispatchOpenStreetMapPicker from './dispatch/dispatch-open-street-map-picker';
 import dispatchModal from './dispatch/dispatch-modal';
+import dispatchDrawer from './dispatch/dispatch-drawer';
 import dispatchResizeImageCF from './dispatch/dispatch-resize-image-cf';
 import dispatchDialog from './dispatch/dispatch-dialog';
 import dispatchUnitConfigEditor from './dispatch/dispatch-unit-config-editor';
+import { renderModuleInfo } from './features/module-dialog/render-module-info';
 
-ACMS.Library.React = React;
+(function (global) {
+  global.ACMS.Library = global.ACMS.Library || {};
 
+  global.ACMS.Library.React = React;
+  global.ACMS.Library.renderModuleInfo = renderModuleInfo;
+})(window);
 ACMS.Ready(() => {
   __webpack_public_path__ = ACMS.Config.root; // eslint-disable-line
 
@@ -97,6 +103,11 @@ ACMS.Ready(() => {
    * モーダル
    */
   dispatchModal();
+
+  /**
+   * ドロワー
+   */
+  dispatchDrawer();
 
   /**
    * Unit Editor

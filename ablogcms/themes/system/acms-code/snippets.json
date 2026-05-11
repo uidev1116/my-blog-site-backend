@@ -64,6 +64,12 @@
     },
     {
       "bid": "%{BID}",
+      "title": "<!--T-->カテゴリーフラット<!--/T-->",
+      "subtitle": "Category_Flat",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/category_flat.html"
+    },
+    {
+      "bid": "%{BID}",
       "title": "<!--T-->コンティニュー<!--/T-->",
       "subtitle": "Entry_Continue",
       "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/entry_continue.html"
@@ -337,6 +343,12 @@
       "title": "<!--T-->V2_カテゴリーツリー<!--/T-->",
       "subtitle": "V2_Category_Tree",
       "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_category_tree.html"
+    },
+    {
+      "bid": "%{BID}",
+      "title": "<!--T-->V2_カテゴリーフラット<!--/T-->",
+      "subtitle": "V2_Category_Flat",
+      "url": "%{ADMIN_BASE_URL}bid/%{BID}/acms-code/snippets/v2_category_flat.html"
     },
     {
       "bid": "%{BID}",

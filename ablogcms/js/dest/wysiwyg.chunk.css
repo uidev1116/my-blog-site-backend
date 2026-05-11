@@ -118,11 +118,6 @@
   margin-top: 24px;
 }
 
-.trumbowyg-table-cell-selection-mode ::-moz-selection {
-  color: inherit;
-  background-color: transparent;
-}
-
 .trumbowyg-table-cell-selection-mode ::selection {
   color: inherit;
   background-color: transparent;
@@ -295,7 +290,6 @@
   outline: none;
   overflow: auto;
   -webkit-user-select: text;
-     -moz-user-select: text;
           user-select: text;
 }
 .trumbowyg-editor-box.trumbowyg-autogrow-on-enter,
@@ -438,7 +432,6 @@
   width: auto;
   line-height: 35px;
   -webkit-user-select: none;
-     -moz-user-select: none;
           user-select: none;
 }
 .trumbowyg-button-pane.trumbowyg-disable button:not(.trumbowyg-not-disable):not(.trumbowyg-active),

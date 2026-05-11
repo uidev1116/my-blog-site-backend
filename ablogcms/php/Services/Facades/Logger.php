@@ -11,6 +11,7 @@ namespace Acms\Services\Facades;
  * @method static void critical(string $message, array $context = []) クリティカルレベルのログを記録
  * @method static void alert(string $message, array $context = []) アラートレベルのログを記録
  * @method static void emergency(string $message, array $context = []) 緊急レベルのログを記録
+ * @method static void log(int|string $level, string $message, array $context = []) 任意レベルのログを記録
  */
 class Logger extends Facade
 {

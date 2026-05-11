@@ -10,6 +10,7 @@ use Acms\Services\Unit\Contracts\AnkerUnitInterface;
 use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Facades\Entry;
 use Acms\Services\Unit\Services\File\FileDataExtractor;
+use Acms\Services\Unit\Services\File\FileIconResolver;
 use Acms\Services\Unit\Services\File\FileManager;
 use Acms\Services\Common\MimeTypeValidator;
 use Acms\Traits\Unit\AlignableUnitTrait;
@@ -205,13 +206,13 @@ class File extends Model implements AssetProvider, ExportEntry, AlignableUnitInt
     /**
      * @inheritDoc
      */
-    public function saveFiles(array $post, bool $removeOld = true): void
+    public function saveFiles(array $post): void
     {
         if (is_null($this->fileData)) {
             throw new \LogicException('File data must be set before calling saveFiles');
         }
 
-        $manager = new FileManager($removeOld);
+        $manager = new FileManager();
         // ファイル処理（保存・アップロード・削除）
         $results = $manager->processFiles($this->fileData);
 
@@ -385,14 +386,8 @@ class File extends Model implements AssetProvider, ExportEntry, AlignableUnitInt
                     $t = 'audio';
                 }
                 $fileList = LocalStorage::getFileList(THEMES_DIR . 'system/' . IMAGES_DIR . 'fileicon/');
-                $icon = $t;
-                $pattern = '/' . strtolower($e) . '.*$/';
-                foreach ($fileList as $filePath) {
-                    if (preg_match($pattern, strtolower($filePath))) {
-                        $icon = $e;
-                        break;
-                    }
-                }
+                $resolved = FileIconResolver::resolve($e, $fileList);
+                $icon = $resolved ?? $t;
                 $vars['icon' . $fx]   = $icon;
                 $vars['type' . $fx]   = $icon;
             }

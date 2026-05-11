@@ -1,0 +1,31 @@
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/acms-code/vars/css/vars.css" />
+<title>Category_Flat</title>
+</head>
+<body>
+  <h1>Category_Flat</h1>
+  <var>parent.loop.class<span>ループ親クラス</span></var>
+  <fieldset class="loop"><legend class="loop">category:loop<var class="textTooLong"><a href="%{ADMIN_BASE_URL}acms-code/vars/field.html" target="_blank">categoryField</a><span>カテゴリーのカスタムフィールド</span></var></legend>
+    <var>url<span>カテゴリーURL</span></var>
+    <var>name<span>カテゴリー名</span></var>
+    <fieldset class="veil"><legend class="veil">amount:veil</legend>
+      <var>amount<span>子カテゴリーを含んだエントリー数</span></var>
+    </fieldset>
+    <var>singleAmount<span>そのカテゴリーのエントリー数</span></var>
+    <var>cid<span>カテゴリーID</span></var>
+    <var>ccd<span>カテゴリーコード</span></var>
+    <var>bid<span>ブログID</span></var>
+    <var>selected<span>現在いるカテゴリー</span></var>
+    <var>depth<span>カテゴリー階層（1始まり）</span></var>
+    <var>level<span>カテゴリー階層（depth のエイリアス）</span></var>
+    <var>category:loop.class<span>コンフィグで設定したクラス名</span></var>
+    <var>geo_zoom<span>ズームレベル</span></var>
+    <var>geo_lat<span>緯度</span></var>
+    <var>geo_lng<span>経度</span></var>
+    <fieldset><legend>glue<span>カテゴリーループの接続ブロック（2件目以降の頭で出力）</span></legend></fieldset>
+  </fieldset>
+</body>
+</html>

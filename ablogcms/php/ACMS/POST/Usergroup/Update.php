@@ -8,9 +8,11 @@ class ACMS_POST_Usergroup_Update extends ACMS_POST_Usergroup
 
         $Usergroup->setMethod('usergroup', 'operable', $ugid = intval($this->Get->get('ugid')) and sessionWithEnterpriseAdministration() and BID === RBID);
         $Usergroup->setMethod('name', 'required');
+        $Usergroup->setMethod('name', 'maxlength', '255');
         $Usergroup->setMethod('name', 'double', $ugid);
         $Usergroup->setMethod('role_id', 'required');
         $Usergroup->setMethod('approval_point', 'required');
+        $Usergroup->setMethod('description', 'maxlength', '512');
 
         $Usergroup->validate(new ACMS_Validator_Usergroup());
 

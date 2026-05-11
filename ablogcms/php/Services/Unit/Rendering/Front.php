@@ -2,6 +2,7 @@
 
 namespace Acms\Services\Unit\Rendering;
 
+use Acms\Services\Entry\Enums\EntryApprovalStatus;
 use Acms\Services\Unit\Constants\UnitAlign;
 use Acms\Services\Unit\Contracts\Model;
 use Acms\Services\Facades\Media;
@@ -38,7 +39,7 @@ class Front
         }
 
         // データの整理
-        if (!$this->canDisplayInvisibleUnit(BID, $entry)) {
+        if (!$this->canDisplayInvisibleUnit($entry)) {
             // 非表示ユニットを表示しない場合
             $collection = $collection->filter(function (Model $unit) {
                 return !$unit->isHidden();
@@ -338,19 +339,18 @@ class Front
     /**
      * 非表示ユニットを表示するかどうか
      *
-     * @param int $bid
-     * @param array $entry
+     * @param array<string, mixed> $entry
      * @return bool
      */
-    protected function canDisplayInvisibleUnit(int $bid, array $entry): bool
+    protected function canDisplayInvisibleUnit(array $entry): bool
     {
         // 基本的な権限チェック
-        if (!sessionWithContribution($bid)) {
+        if (!sessionWithContribution($entry['entry_blog_id'])) {
             // 投稿者以上の権限がない場合は非表示ユニットを表示しない
             return false;
         }
 
-        if (!roleEntryUpdateAuthorization($bid, $entry)) {
+        if (!roleEntryUpdateAuthorization($entry['entry_blog_id'], $entry)) {
             // エントリ編集権限がない場合は非表示ユニットを表示しない
             return false;
         }
@@ -367,13 +367,13 @@ class Front
         }
 
         // 承認機能関連のチェック
-        if (enableApproval() && !sessionWithApprovalAdministrator()) {
+        if (Entry::requiresApproval($entry['entry_blog_id'], $entry['entry_category_id'] ?? null)) {
             // 承認機能が有効かつ承認者でない場合は非表示ユニットを表示しない
             return false;
         }
 
         // エントリ状態のチェック
-        if ($entry['entry_approval'] === 'pre_approval') {
+        if ($entry['entry_approval'] === EntryApprovalStatus::PreApproval->value) {
             // 承認待ちのエントリの場合は非表示ユニットを表示しない
             return false;
         }

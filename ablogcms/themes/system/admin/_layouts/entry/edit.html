@@ -3,8 +3,8 @@
 <!-- BEGIN_MODULE Admin_Entry_Edit -->
 @section("entry-form")
 <!-- BEGIN entry:validator#operable -->
-<div role="alert" class="acms-admin-alert acms-admin-alert-danger">
-  <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
   <!--T-->この操作は許可されていません。<!--/T-->
   <button
     type="button"
@@ -16,8 +16,8 @@
 </div>
 <!-- END entry:validator#operable -->
 <!-- BEGIN entry:validator#lock -->
-<div role="alert" class="acms-admin-alert acms-admin-alert-warning">
-  <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-warning">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
   <!--T-->エントリーがロックされているため、エントリーを保存できませんでした。<!--/T--><br>
   <!--T-->「新しいバージョン」として保存することで、現在の編集内容を別バージョンとして残しておけます。<!--/T-->
   <button
@@ -29,6 +29,97 @@
   </button>
 </div>
 <!-- END entry:validator#lock -->
+<!-- BEGIN code:validator#maxlength -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <!--T-->ファイル名は64文字以内で入力してください。<!--/T-->
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+</div>
+<!-- END code:validator#maxlength -->
+<!-- BEGIN code:validator#reserved -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <!--T-->システムで予約されているキーワードです。(詳細設定を開いてファイル名を変更してください)<!--/T-->
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+</div>
+<!-- END code:validator#reserved -->
+<!-- BEGIN code:validator#double -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <!--T-->同ブログ内に同じファイル名が存在します。(詳細設定を開いてファイル名を変更してください)<!--/T-->
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+</div>
+<!-- END code:validator#double -->
+<!-- BEGIN code:validator#string -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <!--T-->ファイル名に使用できない文字が含まれています。スラッシュ(/)、../ などの危険な文字列、URL特殊文字、制御文字、空白文字は使用できません。<!--/T-->
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+</div>
+<!-- END code:validator#string -->
+<!-- BEGIN indexing:validator#required -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <!--T-->インデキシングが入力されていません。<!--/T-->
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+</div>
+<!-- END indexing:validator#required -->
+<!-- BEGIN indexing:validator#in -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <!--T-->インデキシングの値が不正です。<!--/T-->
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+</div>
+<!-- END indexing:validator#in -->
+<!-- BEGIN link:validator#maxlength -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-attention acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <!--T-->リンク先URLは255文字以内で入力してください。<!--/T-->
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+</div>
+<!-- END link:validator#maxlength -->
 <!-- GET_Rendered id="entry_edit_status_display" -->
 <form
   action=""
@@ -38,7 +129,7 @@
   class="js-validator js-admin_unload_alert acms-admin-form acms-admin-form-edit"
 >
   <div class="entryFormWrapper">
-    <div>
+    <div class="acms-admin-field-container">
       <div class="entryFormHead">
         <table class="entryFormTable acms-admin-table-entry acms-admin-table-admin-entry">
           @section("entry-status")
@@ -86,11 +177,18 @@
               />
               <input type="hidden" name="entry[]" value="title" />
               <input type="hidden" name="title:validator#required" id="validator-title-required" />
+              <input type="hidden" name="title:validator#maxlength" value="255" id="validator-title-maxlength" />
               <div role="alert" aria-live="assertive">
                 <div data-validator-label="validator-title-required" class="validator-result-{title:validator#required}">
                   <p class="error-text">
                     <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
                     <!--T-->タイトルが入力されていません。<!--/T-->
+                  </p>
+                </div>
+                <div data-validator-label="validator-title-maxlength" class="validator-result-{title:validator#maxlength}">
+                  <p class="error-text">
+                    <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                    <!--T-->タイトルは255文字以内で入力してください。<!--/T-->
                   </p>
                 </div>
               </div>
@@ -266,28 +364,6 @@
         @include("/admin/entry/related.html")
         @endsection
       </div>
-      @section("entry-alert")
-      <div role="alert" aria-live="assertive">
-        <div data-validator-label="validator-code-reserved" class="validator-result-{code:validator#reserved}">
-          <p class="error-text">
-            <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
-            <!--T-->システムで予約されているキーワードです。(詳細設定を開いてファイル名を変更してください)<!--/T-->
-          </p>
-        </div>
-        <div data-validator-label="validator-code-double" class="validator-result-{code:validator#double}">
-          <p class="error-text">
-            <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
-            <!--T-->同ブログ内に同じファイル名が存在します。(詳細設定を開いてファイル名を変更してください)<!--/T-->
-          </p>
-        </div>
-        <div data-validator-label="validator-code-string" class="validator-result-{code:validator#string}">
-          <p class="error-text">
-            <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
-            <!--T-->不正な文字が含まれています。<!--/T-->
-          </p>
-        </div>
-      </div>
-      @endsection
       <details id="js-entry-details" data-target="#entry-details-table" class="acms-admin-accordion">
         <summary class="acms-admin-accordion-button">
           <!--T-->詳細設定<!--/T-->
@@ -314,6 +390,15 @@
                     placeholder="例）entry-<!-- BEGIN_IF [{next_eid}/nem] -->{next_eid}<!-- ELSE -->1<!-- END_IF -->.html"
                   />
                   <input type="hidden" name="entry[]" value="code" />
+                  <input type="hidden" name="code:validator#maxlength" value="64" id="validator-code-maxlength" />
+                  <div role="alert" aria-live="assertive">
+                    <div data-validator-label="validator-code-maxlength" class="validator-result-{code:validator#maxlength}">
+                      <p class="error-text">
+                        <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                        <!--T-->ファイル名は64文字以内で入力してください。<!--/T-->
+                      </p>
+                    </div>
+                  </div>
                 </td>
               </tr>
               @endsection
@@ -440,6 +525,15 @@
                     placeholder="例）https://example.com"
                   />
                   <input type="hidden" name="entry[]" value="link" />
+                  <input type="hidden" name="link:validator#maxlength" value="255" id="validator-link-maxlength" />
+                  <div role="alert" aria-live="assertive">
+                    <div data-validator-label="validator-link-maxlength" class="validator-result-{link:validator#maxlength}">
+                      <p class="error-text">
+                        <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                        <!--T-->リンク先URLは255文字以内で入力してください。<!--/T-->
+                      </p>
+                    </div>
+                  </div>
                 </td>
               </tr>
               @endsection
@@ -468,7 +562,7 @@
       @endsection
     </div>
 
-    <div>
+    <div class="acms-admin-field-container">
       @include("/admin/entry/field_foot.html")
       <!-- BEGIN_MODULE Admin_InjectTemplate id="admin-entry-field-foot" --><!-- END_MODULE Admin_InjectTemplate -->
     </div>

@@ -10,6 +10,16 @@ class ACMS_POST_Member_Signup_Confirm extends ACMS_POST_Member
     protected $subscribeLoginAnywhere = false;
 
     /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @inheritDoc
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return Login::canLoginPage(BID, SIGNUP_SEGMENT);
+    }
+
+    /**
      * 会員登録の入力確認
      *
      * @return Field_Validation
@@ -102,7 +112,7 @@ class ACMS_POST_Member_Signup_Confirm extends ACMS_POST_Member
         $user->setMethod('code', 'regex', REGEX_VALID_ID);
         $user->setMethod('mail_mobile', 'email');
         $user->setMethod('url', 'url');
-        if (SUID || !Login::canMemberSignin() || config('subscribe') !== 'on') { // @phpstan-ignore-line
+        if (Login::isLoggedIn() || !Login::canMemberSignin() || config('subscribe') !== 'on') {
             $user->setMethod('login', 'isOperable', false);
             httpStatusCode('403 Forbidden');
         }

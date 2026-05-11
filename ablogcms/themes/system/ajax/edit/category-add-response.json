@@ -11,10 +11,18 @@
       {
         "field": "name",
         "option": "required"
+      },<!-- END_IF --><!-- BEGIN_IF [{name:validator#maxlength}/eq/0] -->
+      {
+        "field": "name",
+        "option": "maxlength"
       },<!-- END_IF --><!-- BEGIN_IF [{code:validator#required}/eq/0] -->
       {
         "field": "code",
         "option": "required"
+      },<!-- END_IF --><!-- BEGIN_IF [{code:validator#maxlength}/eq/0] -->
+      {
+        "field": "code",
+        "option": "maxlength"
       },<!-- END_IF --><!-- BEGIN_IF [{code:validator#double}/eq/0] -->
       {
         "field": "code",

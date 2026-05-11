@@ -53,6 +53,10 @@ export interface UseFocusTrapReturn {
 const useFocusTrap = (options: Options = {}): UseFocusTrapReturn => {
   const trapRef = useRef<FocusTrap | null>(null);
 
+  // options を最新参照で保持し、setRef の deps から外して安定化させる
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -78,34 +82,33 @@ const useFocusTrap = (options: Options = {}): UseFocusTrapReturn => {
     }
   }, []);
 
-  const setRef = useCallback(
-    (node: HTMLElement | null) => {
-      if (node === null) {
-        return;
-      }
-
+  const setRef = useCallback((node: HTMLElement | null) => {
+    if (node === null) {
+      // 要素がアンマウントされたタイミングで trap を破棄する
       if (trapRef.current) {
-        return trapRef.current.updateContainerElements(node);
+        trapRef.current.deactivate();
+        trapRef.current = null;
       }
+      return;
+    }
 
-      trapRef.current = createFocusTrap(node, {
-        ...options,
-        onActivate() {
-          setIsActive(true);
-          if (options.onActivate) {
-            options.onActivate();
-          }
-        },
-        onDeactivate() {
-          setIsActive(false);
-          if (options.onDeactivate) {
-            options.onDeactivate();
-          }
-        },
-      });
-    },
-    [options]
-  );
+    if (trapRef.current) {
+      trapRef.current.updateContainerElements(node);
+      return;
+    }
+
+    trapRef.current = createFocusTrap(node, {
+      ...optionsRef.current,
+      onActivate() {
+        setIsActive(true);
+        optionsRef.current.onActivate?.();
+      },
+      onDeactivate() {
+        setIsActive(false);
+        optionsRef.current.onDeactivate?.();
+      },
+    });
+  }, []);
 
   useEffect(
     () => () => {

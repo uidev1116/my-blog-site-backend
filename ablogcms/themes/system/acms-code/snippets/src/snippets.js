@@ -1,4 +1,6 @@
-hljs.highlightAll();
+if (typeof hljs !== 'undefined') {
+  hljs.highlightAll();
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   const code = document.querySelector('pre') || document.querySelector('textarea');

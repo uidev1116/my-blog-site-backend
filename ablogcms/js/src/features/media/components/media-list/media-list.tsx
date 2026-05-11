@@ -2,13 +2,12 @@ import classnames from 'classnames';
 import RangeSlider from 'rc-slider';
 import dayjs from 'dayjs';
 import styled from 'styled-components';
-import { AxiosResponse } from 'axios';
 import 'rc-slider/assets/index.css';
 
 import { Component, createRef } from 'react';
 import { Grid, GridItem } from '@components/grid';
 import { MediaItem, MediaAjaxConfig, MediaViewFileType, MediaTag } from '../../types';
-import axiosLib from '../../../../lib/axios';
+import { fetchClient, type FetchResponse } from '../../../../lib/fetch-client';
 import { formatBytes, parseQuery } from '../../../../utils';
 import {
   Menu,
@@ -52,6 +51,7 @@ interface MediaListProps {
   extensions?: string[];
   selectedTags: string[];
   config: Required<MediaAjaxConfig>;
+  // eslint-disable-next-line react/no-unused-prop-types -- 呼び出し元で渡すため型にのみ存在
   lastPage: number;
   mode: string;
   total: number;
@@ -207,16 +207,24 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
     if ('history' in window) {
       history.replaceState(null, '', `#mid=${media_id}`);
     }
-    axiosLib
-      .get(url, {
+    fetchClient
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .get<any>(url, {
         params: {
           _mid: media_id,
         },
       })
       .then((res) => {
+        if (res.data.status === 'failure') {
+          notify.danger(ACMS.i18n('media.get_media_error'));
+          return;
+        }
         if (res.data.item && res.data.item.media_id) {
           this.props.actions.setItem(res.data.item as MediaItem);
         }
+      })
+      .catch(() => {
+        notify.danger(ACMS.i18n('media.get_media_error'));
       });
     return false;
   }
@@ -440,32 +448,30 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
   }
 
   getFilteredOptions(tags: string[]) {
-    axiosLib({
-      method: 'GET',
-      url: ACMS.Library.acmsLink(
-        {
-          tpl: 'ajax/edit/media-tag.json',
-          bid: ACMS.Config.bid,
-          Query: {
-            cache: new Date().getTime().toString(),
-          },
+    const tagUrl = ACMS.Library.acmsLink(
+      {
+        tpl: 'ajax/edit/media-tag.json',
+        bid: ACMS.Config.bid,
+        Query: {
+          cache: new Date().getTime().toString(),
         },
-        false
-      ),
-      responseType: 'json',
-      params: {
-        tags,
       },
-    }).then((response: AxiosResponse<string[]>) => {
-      const { data } = response;
-      const filteredOptions = data.map((item) => ({
-        value: item,
-        label: item,
-      }));
-      this.setState({
-        filteredOptions,
+      false
+    );
+    fetchClient
+      .get<string[]>(tagUrl, {
+        params: { tags: tags.join(',') },
+      })
+      .then((response: FetchResponse<string[]>) => {
+        const { data } = response;
+        const filteredOptions = data.map((item) => ({
+          value: item,
+          label: item,
+        }));
+        this.setState({
+          filteredOptions,
+        });
       });
-    });
   }
 
   onChangeDisplayNumber(e: React.ChangeEvent<HTMLSelectElement>) {
@@ -1200,6 +1206,7 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
                       formatCreateLabel={(inputValue) => ACMS.i18n('media.add_tag', { name: inputValue })}
                       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
                       closeMenuOnSelect={false}
+                      hideSelectedOptions
                     />
                   </div>
                   <button type="button" className="acms-admin-btn" onClick={this.addLabelToItems.bind(this)}>
@@ -1221,8 +1228,9 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
                   <tr>
                     <th className="acms-admin-media-row-check acms-admin-table-nowrap">
                       {mode === 'edit' && (
-                        <label // eslint-disable-line jsx-a11y/label-has-associated-control
+                        <label
                           htmlFor="checkAll"
+                          aria-label="すべて選択"
                           className="acms-admin-form-checkbox acms-admin-m-0"
                           onChange={this.toggleAllCheck.bind(this)}
                         >
@@ -1352,39 +1360,42 @@ export default class MediaList extends Component<MediaListProps, MediaListState>
                       <td className="acms-admin-media-row-check acms-admin-table-nowrap">
                         {item.media_editable}
                         {(mode !== 'edit' || item.media_editable) && (
-                          // eslint-disable-next-line jsx-a11y/label-has-associated-control
-                          <label className="acms-admin-form-checkbox acms-admin-m-0">
+                          <label aria-label="選択" className="acms-admin-form-checkbox acms-admin-m-0">
                             <input
                               type="checkbox"
                               name="checks[]"
                               value={`${item.media_bid}:${item.media_id}`}
                               checked={item.checked}
                               onChange={this.toggleCheck.bind(this, item)}
+                              aria-label={item.media_title || `${item.media_id}`}
                             />
                             <i className="acms-admin-ico-checkbox" />
                           </label>
                         )}
                       </td>
                       {menu.image && (
-                        <td className="acms-admin-media-row-image acms-admin-table-nowrap">
-                          <ConditionalWrap
-                            // eslint-disable-next-line react/no-unstable-nested-components
-                            wrap={(chidren) => (
-                              <a href={item.media_permalink} target="_blank" rel="noopener noreferrer">
-                                {chidren}
-                              </a>
-                            )}
-                            condition={item.media_type === 'file'}
-                          >
-                            <div className="acms-admin-media-list-thumbnail-wrap">
-                              <img
-                                src={`${item.media_thumbnail}?date=${item.media_last_modified}`}
-                                className="acms-admin-media-list-thumbnail"
-                                alt=""
-                              />
-                            </div>
-                          </ConditionalWrap>
-                        </td>
+                        <>
+                          {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
+                          <td className="acms-admin-media-row-image acms-admin-table-nowrap">
+                            <ConditionalWrap
+                              // eslint-disable-next-line react/no-unstable-nested-components
+                              wrap={(chidren) => (
+                                <a href={item.media_permalink} target="_blank" rel="noopener noreferrer">
+                                  {chidren}
+                                </a>
+                              )}
+                              condition={item.media_type === 'file'}
+                            >
+                              <div className="acms-admin-media-list-thumbnail-wrap">
+                                <img
+                                  src={`${item.media_thumbnail}?date=${item.media_last_modified}`}
+                                  className="acms-admin-media-list-thumbnail"
+                                  alt=""
+                                />
+                              </div>
+                            </ConditionalWrap>
+                          </td>
+                        </>
                       )}
                       {menu.id && (
                         <td className="acms-admin-media-row-id acms-admin-table-nowrap">

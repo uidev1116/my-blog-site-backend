@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 
 export enum ColumnLayout {
+  OneColumn = 'one-column',
   TwoColumn = 'two-column',
   ThreeColumn = 'three-column',
 }
@@ -19,7 +20,8 @@ export const Columns = Node.create({
 
   group: 'columns',
 
-  content: 'column column column?',
+  // 1-3カラムまで対応
+  content: 'column column? column?',
 
   defining: true,
 
@@ -42,14 +44,13 @@ export const Columns = Node.create({
       setColumns:
         (layout = ColumnLayout.TwoColumn) =>
         ({ commands }) => {
-          const isThree = layout === ColumnLayout.ThreeColumn;
-          const columns = isThree
-            ? [
-                '<div data-type="column"><p></p></div>',
-                '<div data-type="column"><p></p></div>',
-                '<div data-type="column"><p></p></div>',
-              ]
-            : ['<div data-type="column"><p></p></div>', '<div data-type="column"><p></p></div>'];
+          let count = 2;
+          if (layout === ColumnLayout.OneColumn) {
+            count = 1;
+          } else if (layout === ColumnLayout.ThreeColumn) {
+            count = 3;
+          }
+          const columns = Array.from({ length: count }, () => '<div data-type="column"><p></p></div>');
 
           return commands.insertContent(`<div data-type="columns" data-layout="${layout}">${columns.join('')}</div>`);
         },
@@ -61,13 +62,15 @@ export const Columns = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
+    const layout = HTMLAttributes['data-layout'] || ColumnLayout.TwoColumn;
+
     return [
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         id: HTMLAttributes.id,
-        class: `layout-${HTMLAttributes['data-layout'] || ColumnLayout.TwoColumn}`,
+        class: `layout-${layout}`,
         'data-type': 'columns',
-        'data-layout': HTMLAttributes['data-layout'] || ColumnLayout.TwoColumn,
+        'data-layout': layout,
       }),
       0,
     ];

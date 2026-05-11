@@ -58,17 +58,7 @@ class Helper
         $this->removeLastEmptyParagraph($xpath); // 最後の空の段落を削除
 
         // 最終HTML生成
-        $innerHTML = '';
-        foreach ($doc->childNodes as $node) {
-            $innerHTML .= $doc->saveHTML($node);
-        }
-        // 不要なXML宣言を除去
-        $innerHTML = str_ireplace('<?xml encoding="UTF-8">', '', $innerHTML);
-
-        // V2モジュール、V2APIの場合は絶対URLに変換する
-        if (isApiBuildOrV2Module()) {
-            $innerHTML = Common::convertRelativeUrlsToAbsolute($innerHTML, BASE_URL);
-        }
+        $innerHTML = $this->getInnerHTML($doc);
         $innerHTML = Common::replaceDeliveryUrlAll($innerHTML);
 
         return $innerHTML;
@@ -100,6 +90,7 @@ class Helper
                 }
             }
         }
+
         return $mediaIds;
     }
 
@@ -129,15 +120,7 @@ class Helper
                 }
             }
         }
-        // 最終HTML生成
-        $innerHTML = '';
-        foreach ($doc->childNodes as $node) {
-            $innerHTML .= $doc->saveHTML($node);
-        }
-        // 不要なXML宣言を除去
-        $innerHTML = str_ireplace('<?xml encoding="UTF-8">', '', $innerHTML);
-
-        return $innerHTML;
+        return $this->getInnerHTML($doc);
     }
 
     /**
@@ -146,14 +129,35 @@ class Helper
      * @param string $html
      * @return DOMDocument
      */
-    protected function loadHTML(string $html): DOMDocument
+    private function loadHTML(string $html): DOMDocument
     {
         libxml_use_internal_errors(true);
         $doc = new DOMDocument('1.0', 'UTF-8');
-        $doc->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        // UTF-8を明示的に指定するためにXML宣言を追加
+        // 参考: https://akamist.com/blog/archives/4649
+        $wrapped = '<?xml encoding="utf-8" ?><body>' . $html . '</body>';
+        $doc->loadHTML($wrapped, LIBXML_HTML_NODEFDTD);
         libxml_clear_errors();
 
         return $doc;
+    }
+
+    /**
+     * DOMDocumentからHTML文字列を取得する
+     *
+     * @param DOMDocument $doc
+     * @return string
+     */
+    private function getInnerHTML(DOMDocument $doc): string
+    {
+        $innerHTML = '';
+        $body = $doc->getElementsByTagName('body')->item(0);
+        if ($body) {
+            foreach ($body->childNodes as $node) {
+                $innerHTML .= $doc->saveHTML($node);
+            }
+        }
+        return $innerHTML;
     }
 
     /**
@@ -170,9 +174,10 @@ class Helper
      *  iconHeight: string,
      *  extension: string,
      *  fileSize: int,
+     *  imagePermalink: string,
      * }[]
      */
-    protected function loadMedia(DOMXPath $xpath): array
+    private function loadMedia(DOMXPath $xpath): array
     {
         $mediaList = [];
         if ($mediaIdDom = $xpath->query('//*[@data-mid]')) {
@@ -201,11 +206,12 @@ class Helper
      *  iconHeight: string,
      *  extension: string,
      *  fileSize: int,
+     *  imagePermalink: string,
      * }[] $mediaList
      * @param boolean $resize
      * @return void
      */
-    protected function fixMediaImages(DOMXPath $xpath, array $mediaList, bool $resize = true): void
+    private function fixMediaImages(DOMXPath $xpath, array $mediaList, bool $resize = true): void
     {
         $imgBlocks = $xpath->query('//div[@data-type="imageBlock"]');
         if (!$imgBlocks || $imgBlocks->length === 0) {
@@ -231,7 +237,7 @@ class Helper
                     $factory = CorrectorFactory::singleton();
                     $path = $factory->call('resizeImg', $media['path'], [$this->resizeImageSize]); // 画像リサイズ
                 }
-                $imgTag->setAttribute('src', $path ? $path : '');
+                $imgTag->setAttribute('src', Common::convertRelativeUrlToAbsolute($path ? $path : '', BASE_URL));
                 $imgTag->setAttribute('width', $media['width']);
                 $imgTag->setAttribute('height', $media['height']);
                 if (!$block->getAttribute('data-link')) {
@@ -239,7 +245,7 @@ class Helper
                     if ($linkTags && $linkTags->length > 0) {
                         $linkTag = $linkTags->item(0);
                         if ($linkTag instanceof DOMElement) {
-                            $linkTag->setAttribute('href', $media['path']);
+                            $linkTag->setAttribute('href', Common::convertRelativeUrlToAbsolute($media['imagePermalink'], BASE_URL));
                             if ($linkTag->getAttribute('data-no-lightbox') !== 'false') {
                                 $linkTag->setAttribute('class', $this->lightboxClass);
                                 $linkTag->setAttribute('data-group', $block->getAttribute('data-eid'));
@@ -265,10 +271,11 @@ class Helper
      *  iconHeight: string,
      *  extension: string,
      *  fileSize: int,
+     *  imagePermalink: string,
      * }[] $mediaList
      * @return void
      */
-    protected function fixMediaFiles(DOMXPath $xpath, array $mediaList): void
+    private function fixMediaFiles(DOMXPath $xpath, array $mediaList): void
     {
         $fileBlocks = $xpath->query('//div[@data-type="fileBlock"]');
         if (!$fileBlocks || $fileBlocks->length === 0) {
@@ -280,8 +287,9 @@ class Helper
                 continue;
             }
             $media = $mediaList[$mid];
+            $iconAbsoluteUrl = Common::convertRelativeUrlToAbsolute($media['icon'], BASE_URL);
             if ($block instanceof DOMElement) {
-                $block->setAttribute('data-icon', $media['icon']);
+                $block->setAttribute('data-icon', $iconAbsoluteUrl);
                 $block->setAttribute('data-icon-width', $media['iconWidth']);
                 $block->setAttribute('data-icon-height', $media['iconHeight']);
                 $block->setAttribute('data-extension', $media['extension']);
@@ -292,13 +300,13 @@ class Helper
             if ($linkTags && $linkTags->length > 0) {
                 $linkTag = $linkTags->item(0);
                 if ($linkTag instanceof DOMElement) {
-                    $linkTag->setAttribute('href', $media['permalink']);
+                    $linkTag->setAttribute('href', Common::convertRelativeUrlToAbsolute($media['permalink'], BASE_URL));
                 }
             }
             if ($iconTags && $iconTags->length > 0) {
                 $iconTag = $iconTags->item(0);
                 if ($iconTag instanceof DOMElement) {
-                    $iconTag->setAttribute('src', $media['icon']);
+                    $iconTag->setAttribute('src', $iconAbsoluteUrl);
                     $iconTag->setAttribute('width', $media['iconWidth']);
                     $iconTag->setAttribute('height', $media['iconHeight']);
                 }
@@ -312,7 +320,7 @@ class Helper
      * @param DOMXPath $xpath
      * @return void
      */
-    protected function removeLastEmptyParagraph(DOMXPath $xpath): void
+    private function removeLastEmptyParagraph(DOMXPath $xpath): void
     {
         $paragraphs = $xpath->query('//p');
         if ($paragraphs && $paragraphs->length > 0) {

@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Entry;
+
 class ACMS_GET_Admin_Entry_Revision_Index extends ACMS_GET_Admin_Entry_Revision
 {
     public function get()
@@ -62,7 +64,7 @@ class ACMS_GET_Admin_Entry_Revision_Index extends ACMS_GET_Admin_Entry_Revision
                     ],
                 ]),
             ];
-            if (sessionWithApprovalAdministrator(BID, $rev['entry_category_id']) || $auid === SUID) {
+            if (Entry::canUpdateEntryRevision((int)EID, $rvid)) {
                 $revision['editUrl'] = acmsLink([
                     'bid' => BID,
                     'eid' => EID,
@@ -71,17 +73,11 @@ class ACMS_GET_Admin_Entry_Revision_Index extends ACMS_GET_Admin_Entry_Revision
                         'rvid' => $rev['entry_rev_id'],
                     ],
                 ]);
-
-                if (
-                    1
-                    && $rvid !== 1
-                    && $currentRvid !== $rvid
-                    && $reserveRvid !== $rvid
-                ) {
-                    $tpl->add(['delete', 'revision:loop'], [
-                        '_rvid' => $rvid,
-                    ]);
-                }
+            }
+            if (Entry::canDeleteEntryRevision((int)EID, $rvid)) {
+                $tpl->add(['delete', 'revision:loop'], [
+                    '_rvid' => $rvid,
+                ]);
             }
             if (empty($rev['entry_rev_status'])) {
                 $rev['entry_rev_status'] = 'none';

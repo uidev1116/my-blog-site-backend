@@ -4,8 +4,9 @@ namespace Acms\Services\Cache;
 
 use Acms\Services\Cache\Adapters\Standard;
 use Acms\Services\Cache\Adapters\Tag;
-use Acms\Services\Cache\Adapters\NoCache;
 use Acms\Services\Cache\Exceptions\NotFoundException;
+use Symfony\Component\Cache\Adapter\NullAdapter;
+use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 use Symfony\Component\Cache\Adapter\ApcuAdapter;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
@@ -84,13 +85,18 @@ class CacheManager
             return $cache;
         }
         if (defined('IS_SETUP') && IS_SETUP) {
-            $cache = new NoCache();
+            $cache = $this->createTagNoCache();
+            return $cache;
+        }
+        if (isset($this->config['type']['config']['driver']) && $this->config['type']['config']['driver'] === '') {
+            $cache = $this->createTagNoCache();
             return $cache;
         }
         try {
             $config = $this->config['type']['config'];
             $driver = $this->createTagDriver($config['driver'], $this->getNameSpace($config['namespace']), $config['lifetime']);
             $cache = new Tag($driver);
+            return $cache;
         } catch (NotFoundException $e) {
             AcmsLogger::warning(
                 'キャッシュ機能: 利用可能なキャッシュドライバーが見つかりませんでした。cms 設置ディレクトリ直下の .env ファイルを確認してください。',
@@ -99,11 +105,10 @@ class CacheManager
                     'driver' => $config['driver']
                 ]
             );
-            $cache = new NoCache();
         } catch (\Exception $e) {
             AcmsLogger::warning('キャッシュ機能: ' . $e->getMessage());
-            $cache = new NoCache();
         }
+        $cache = $this->createTagNoCache();
         return $cache;
     }
 
@@ -118,13 +123,18 @@ class CacheManager
             return $cache;
         }
         if (defined('IS_SETUP') && IS_SETUP) {
-            $cache = new NoCache();
+            $cache = $this->createTagNoCache();
+            return $cache;
+        }
+        if (isset($this->config['type']['page']['driver']) && $this->config['type']['page']['driver'] === '') {
+            $cache = $this->createTagNoCache();
             return $cache;
         }
         try {
             $config = $this->config['type']['page'];
             $driver = $this->createTagDriver($config['driver'], $this->getNameSpace($config['namespace']));
             $cache = new Tag($driver);
+            return $cache;
         } catch (NotFoundException $e) {
             AcmsLogger::warning(
                 'キャッシュ機能: 利用可能なキャッシュドライバーが見つかりませんでした。cms 設置ディレクトリ直下の .env ファイルを確認してください。',
@@ -133,11 +143,10 @@ class CacheManager
                     'driver' => $config['driver']
                 ]
             );
-            $cache = new NoCache();
         } catch (\Exception $e) {
             AcmsLogger::warning('キャッシュ機能: ' . $e->getMessage());
-            $cache = new NoCache();
         }
+        $cache = $this->createTagNoCache();
         return $cache;
     }
 
@@ -190,6 +199,26 @@ class CacheManager
     }
 
     /**
+     * キャッシュしないキャッシュドライバーの作成
+     *
+     * @return \Acms\Services\Cache\Contracts\AdapterInterface
+     */
+    protected function createStandardNoCache()
+    {
+        return new Standard(new NullAdapter());
+    }
+
+    /**
+     * キャッシュしない（タグ対応なし）キャッシュドライバーの作成
+     *
+     * @return \Acms\Services\Cache\Contracts\AdapterInterface
+     */
+    protected function createTagNoCache()
+    {
+        return new Tag(new TagAwareAdapter(new NullAdapter()));
+    }
+
+    /**
      * 標準キャッシュの生成
      *
      * @param string $name
@@ -203,7 +232,11 @@ class CacheManager
             return $cache[$name];
         }
         if (defined('IS_SETUP') && IS_SETUP) {
-            $cache[$name] = new NoCache();
+            $cache[$name] = $this->createStandardNoCache();
+            return $cache[$name];
+        }
+        if ($config['driver'] === '') {
+            $cache[$name] = $this->createStandardNoCache();
             return $cache[$name];
         }
         try {
@@ -213,6 +246,7 @@ class CacheManager
                 $config['lifetime']
             );
             $cache[$name] = new Standard($driver);
+            return $cache[$name];
         } catch (NotFoundException $e) {
             AcmsLogger::warning(
                 'キャッシュ機能: 利用可能なキャッシュドライバーが見つかりませんでした。cms 設置ディレクトリ直下の .env ファイルを確認してください。',
@@ -221,12 +255,10 @@ class CacheManager
                     'driver' => $config['driver']
                 ]
             );
-            $cache[$name] = new NoCache();
         } catch (\Exception $e) {
             AcmsLogger::warning('キャッシュ機能: ' . $e->getMessage());
-            $cache[$name] = new NoCache();
         }
-
+        $cache[$name] = $this->createStandardNoCache();
         return $cache[$name];
     }
 

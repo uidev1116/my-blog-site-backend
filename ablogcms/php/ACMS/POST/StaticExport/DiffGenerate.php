@@ -73,7 +73,6 @@ class ACMS_POST_StaticExport_DiffGenerate extends ACMS_POST_StaticExport_Generat
         $domain = $setting->get('static_dest_domain');
         $destDiffDir = $setting->get('static_dest_diff');
         $maxPublish = intval($setting->get('static_max_publish', 3));
-        $nameServer = config('static_export_name_server', '8.8.8.8');
         $blogCode = ACMS_RAM::blogCode(BID);
         $config = new stdClass();
         $config->theme = config('theme');
@@ -109,12 +108,7 @@ class ACMS_POST_StaticExport_DiffGenerate extends ACMS_POST_StaticExport_Generat
             $destination = App::make('static-export.destination');
             $fromDatetime = $this->Post->get('diff_date') . ' ' . $this->Post->get('diff_time');
 
-            if (
-                0
-                || empty($document_root)
-                || empty($domain)
-                || empty($maxPublish)
-            ) {
+            if (!$document_root || !$domain || $maxPublish <= 0) {
                 throw new \RuntimeException('Configuration is incorrect.');
             }
 
@@ -124,8 +118,8 @@ class ACMS_POST_StaticExport_DiffGenerate extends ACMS_POST_StaticExport_Generat
             $destination->setDestinationDomain($domain);
             $destination->setBlogCode($blogCode);
             $logger->initLog();
-            $engine->init($logger, $destination, $maxPublish, $nameServer, $config);
-            $engine->runDiff($fromDatetime);
+            $engine->init($logger, $destination, $maxPublish, $config);
+            $engine->runDiff(BID, $fromDatetime);
             $this->saveExportDatetime($exportDate, $exportTime);
 
             AcmsLogger::info('部分静的書き出しを完了しました', [

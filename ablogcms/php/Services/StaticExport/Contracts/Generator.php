@@ -2,22 +2,26 @@
 
 namespace Acms\Services\StaticExport\Contracts;
 
+use Acms\Services\PageGeneration\Contracts\PageGenerationListenerInterface;
+use Acms\Services\PageGeneration\PageGenerationService;
+use Acms\Services\PageGeneration\Entities\Page;
 use Acms\Services\StaticExport\Destination;
 use Acms\Services\StaticExport\Logger;
 use Acms\Services\StaticExport\Compiler as PublishCompiler;
-use Acms\Services\StaticExport\Entities\Page;
-use React;
-use React\Promise\Promise;
+use Acms\Services\Process\ProcessResult;
+use ACMS_RAM;
 
-use function React\Async\await;
-use function React\Promise\all;
-
-abstract class Generator
+abstract class Generator implements PageGenerationListenerInterface
 {
     /**
      * @var int
      */
-    private const PUBLISH_INTERVAL_SECONDS = 500000; // 0.5秒
+    protected $targetBlogId;
+
+    /**
+     * @var string
+     */
+    protected $targetBlogName;
 
     /**
      * @var \Acms\Services\StaticExport\Compiler
@@ -40,58 +44,53 @@ abstract class Generator
     protected $maxPublishCount;
 
     /**
-     * @var \React\Http\Browser
+     * @var \Acms\Services\PageGeneration\PageGenerationService
      */
-    protected $httpClient;
+    protected $pageGenerationService;
 
     /**
      * Generator constructor.
+     *
+     * @param int $targetBlogId
      * @param \Acms\Services\StaticExport\Compiler $compiler
      * @param \Acms\Services\StaticExport\Destination $destination
      * @param \Acms\Services\StaticExport\Logger $logger
      * @param int $maxPublishCount
      */
     public function __construct(
+        int $targetBlogId,
         PublishCompiler $compiler,
         Destination $destination,
         Logger $logger,
-        int $maxPublishCount = 5,
-        string $nameServer = '8.8.8.8'
+        int $maxPublishCount = 5
     ) {
+        $this->targetBlogId = $targetBlogId;
+        $this->targetBlogName = ACMS_RAM::blogName($targetBlogId) ?? '不明なブログ';
         $this->compiler = $compiler;
         $this->destination = $destination;
         $this->logger = $logger;
         if ($maxPublishCount > 0) {
             $this->maxPublishCount = $maxPublishCount;
         }
-        $this->httpClient = $this->createHttpClient($nameServer);
+        $this->pageGenerationService = new PageGenerationService();
     }
 
     /**
-     * @param \Acms\Services\StaticExport\Entities\Page[] $pages
-     * @return \React\Promise\PromiseInterface<void>
+     * 書き出しのために、ページ取得を開始する
+     *
+     * @return void
      */
-    final protected function handle(array $pages): \React\Promise\PromiseInterface
+    final protected function handle(): void
     {
-        return new Promise(
-            function (callable $resolve) use ($pages) {
-                $publishChunks = array_chunk($pages, $this->maxPublishCount > 0 ? $this->maxPublishCount : 5);
-                foreach ($publishChunks as $publishChunk) {
-                    if (!$this->shouldGenerateNextPage()) {
-                        break;
-                    }
-                    await($this->generate($publishChunk));
-                    usleep(self::PUBLISH_INTERVAL_SECONDS);
-                }
-                $resolve(null);
-            }
-        );
+        $this->pageGenerationService->run(maxParallel: $this->maxPublishCount, listener: $this, withData: false);
     }
 
     /**
-     * @return \React\Promise\PromiseInterface<void>
+     * ページ生成を開始する
+     *
+     * @return void
      */
-    abstract public function run(): \React\Promise\PromiseInterface;
+    abstract public function run(): void;
 
     /**
      * @param string $path
@@ -104,48 +103,15 @@ abstract class Generator
     /**
     * @param \Throwable $th
     * @param string $url
+    * @param int $statusCode
+    * @return void
     */
-    abstract protected function handleError(\Throwable $th, string $url): void;
+    abstract protected function handleError(\Throwable $th, string $url, int $statusCode): void;
 
     /**
-     * @param \Acms\Services\StaticExport\Entities\Page[] $pages
-     * @return \React\Promise\PromiseInterface<array<void>>
-     */
-    private function generate(array $pages = []): \React\Promise\PromiseInterface
-    {
-        $promises = array_map(
-            function (Page $page) {
-                if ($this->logger) {
-                    $this->logger->processing($page->getDestinationPathname());
-                };
-                $this->onBeforeRequest($page);
-                return $this->request(
-                    $page->getUrl(),
-                    function (string $data) use ($page) {
-                        $this->writeContents($page->getDestinationPathname(), $data);
-                    },
-                    function (\Throwable $th) use ($page) {
-                        $this->handleError($th, $page->getUrl());
-                    }
-                );
-            },
-            $pages
-        );
-        return all($promises);
-    }
-
-    /**
-     * 次のページを生成するかどうか
-     * @return bool
-     */
-    protected function shouldGenerateNextPage(): bool
-    {
-        return true;
-    }
-
-    /**
-     * // Do something before sending HTTP request
-     * @param \Acms\Services\StaticExport\Entities\Page $page
+     * リクエスト前の処理
+     *
+     * @param \Acms\Services\PageGeneration\Entities\Page $page
      * @return void
      */
     protected function onBeforeRequest(Page $page): void
@@ -153,48 +119,120 @@ abstract class Generator
     }
 
     /**
-     * @param string $url
-     * @param callable $onSuccess
-     * @param callable $onFailure
-     * @return \React\Promise\PromiseInterface<void>
+     * リクエスト成功時の処理
+     *
+     * @param \Acms\Services\PageGeneration\Entities\Page $page
+     * @param string $data
+     * @param int $statusCode
+     * @return void
      */
-    final protected function request(
-        string $url,
-        callable $onSuccess = null,
-        callable $onFailure = null
-    ): \React\Promise\PromiseInterface {
-        return $this->httpClient->get($url)
-            ->then(
-                function (\Psr\Http\Message\ResponseInterface $response) use ($onSuccess) {
-                    $data = (string)$response->getBody();
-                    $code = $response->getStatusCode();
-                    if (!empty($data)) {
-                        $data = $this->compiler->compile($data);
-                    }
-                    if ($onSuccess !== null) {
-                        $onSuccess($data, $code);
-                    }
-                }
-            )->catch(
-                function (\Throwable $th) use ($onFailure) {
-                    if ($onFailure !== null) {
-                        $onFailure($th);
-                    }
-                }
-            );
+    protected function onSuccess(Page $page, string $data, int $statusCode): void
+    {
     }
 
     /**
-     * @param string $nameServer
-     * @return \React\Http\Browser
+     * ページを追加する
+     *
+     * @param string $url
+     * @param string $destinationPathname
+     * @return void
      */
-    private function createHttpClient($nameServer): \React\Http\Browser
+    public function addPage(string $url, string $destinationPathname): void
     {
-        $dnsResolverFactory = new React\Dns\Resolver\Factory();
-        $dnsResolver = $dnsResolverFactory->createCached($nameServer);
-        $connector = new React\Socket\Connector([
-            'dns' => $dnsResolver
-        ]);
-        return new React\Http\Browser($connector);
+        $this->pageGenerationService->addPage($url, $destinationPathname);
+    }
+
+    /**
+     * エントリーページを追加する
+     *
+     * @param string $url
+     * @param string $destinationPathname
+     * @param int $entryId
+     * @return void
+     */
+    public function addEntryPage(string $url, string $destinationPathname, int $entryId): void
+    {
+        $this->pageGenerationService->addEntryPage($url, $destinationPathname, $entryId);
+    }
+
+    /**
+     * 停止を要求する
+     *
+     * @return void
+     */
+    public function requestStop(): void
+    {
+        $this->pageGenerationService->requestStop();
+    }
+
+    /**
+     * 開始時の処理
+     *
+     * @param Page $page
+     * @return bool
+     */
+    public function onPageGenerationStart(Page $page): bool
+    {
+        $this->logger->processing($page->getDestinationPathname());
+        $this->onBeforeRequest($page);
+        return true;
+    }
+
+    /**
+     * ページ生成成功時の処理
+     *
+     * @param Page $page
+     * @param string $stdout
+     * @param int $statusCode
+     * @param ProcessResult $result
+     * @return void
+     */
+    public function onPageGenerationSuccess(Page $page, string $stdout, int $statusCode, ProcessResult $result): void
+    {
+        $html = $stdout;
+        if ($html !== '') {
+            $html = $this->compiler->compile($html);
+        }
+        if ($statusCode === 200 && $html !== '') {
+            $this->onSuccess($page, $html, $statusCode);
+            $this->writeContents($page->getDestinationPathname(), $html);
+            return;
+        }
+        // エラー処理
+        // 200ステータスで、空文字列の場合はエラーとして扱わない
+        if (!($statusCode === 200 && $html === '')) {
+            $this->handleError(
+                new \RuntimeException(sprintf(
+                    'Console script failed (exit=%d, status=%d): %s',
+                    $result->getExitCode(),
+                    $statusCode,
+                    trim($result->getStderr())
+                )),
+                $page->getUrl(),
+                $statusCode
+            );
+        }
+    }
+
+    /**
+     * ページ生成エラー時の処理
+     *
+     * @param Page $page
+     * @param int $statusCode
+     * @param ProcessResult $result
+     * @return void
+     */
+    public function onPageGenerationError(Page $page, int $statusCode, ProcessResult $result): void
+    {
+        $this->handleError(
+            new \RuntimeException(sprintf(
+                'Console script failed (exit=%d, status=%d): %s',
+                $result->getExitCode(),
+                $statusCode,
+                trim($result->getStderr())
+            )),
+            $page->getUrl(),
+            $statusCode
+        );
     }
 }

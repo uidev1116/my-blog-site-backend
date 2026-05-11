@@ -1,5 +1,6 @@
 <?php
 
+use Acms\Services\Entry\Enums\EntryApprovalStatus;
 use Acms\Services\Facades\Application;
 use Acms\Services\Facades\Entry;
 use Acms\Services\Facades\Category;
@@ -217,7 +218,9 @@ class ACMS_GET_Admin_Entry_Edit extends ACMS_GET_Admin
             return [null, $Field, $Geo, null];
         }
 
-        if (is_null($revisionId) && $entry['entry_approval'] === 'pre_approval') {
+        // 承認前エントリーはリビジョン1（作業領域）に編集内容が保存されているため、
+        // リビジョンが明示的に指定されていない場合はリビジョン1を編集対象とする。
+        if (is_null($revisionId) && $entry['entry_approval'] === EntryApprovalStatus::PreApproval->value) {
             $revisionId = 1;
         }
 
@@ -460,7 +463,7 @@ class ACMS_GET_Admin_Entry_Edit extends ACMS_GET_Admin
         // 通常の関連エントリー
         if ($relatedEids = $Entry->getArray('related')) {
             $Entry->delete('related');
-            Tpl::buildRelatedEntries($tpl, $relatedEids, [], $this->start, $this->end, 'related:loop', config('related_entry_first_thumbnail_field', config('main_image_field_name')));
+            Tpl::buildRelatedEntries($tpl, $relatedEids, [], $this->start, $this->end, 'related:loop', Entry::resolveRelatedEntryThumbnailField(config('related_entry_first_thumbnail_field')));
         }
 
         // 関連エントリーグループ
@@ -473,7 +476,7 @@ class ACMS_GET_Admin_Entry_Edit extends ACMS_GET_Admin
             $moduleId = config('related_entry_module_id', '', $i);
             $ctx = config('related_entry_ctx', '', $i);
             $maxItem = config('related_entry_max_item', '', $i);
-            $thumbnailField = config('related_entry_thumbnail_field', '', $i);
+            $thumbnailField = Entry::resolveRelatedEntryThumbnailField(config('related_entry_thumbnail_field', '', $i));
             if (!!$relatedEids) {
                 $Entry->delete('related_' . $type);
                 Tpl::buildRelatedEntries($tpl, $relatedEids, ['related_group:loop'], $this->start, $this->end, 'other_related:loop', $thumbnailField);

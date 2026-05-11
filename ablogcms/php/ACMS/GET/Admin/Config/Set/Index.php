@@ -39,10 +39,23 @@ class ACMS_GET_Admin_Config_Set_Index extends ACMS_GET_Admin
         $SQL = $this->buildQuery();
         if (!$all = $DB->query($SQL->get(dsn()), 'all')) {
             $Tpl->add('notFound');
-            return $Tpl->get();
+        } else {
+            $this->build($Tpl, $all);
         }
-        $this->build($Tpl, $all);
+        $this->addLegacyBlogConfigFlag($Tpl);
+
         return $Tpl->get();
+    }
+
+    /**
+     * コンフィグセットが未割当のときレガシー（このブログのコンフィグ）が使われる旨を一覧で示す
+     */
+    protected function addLegacyBlogConfigFlag(Template $Tpl): void
+    {
+        $effectiveSetId = $this->getEffectiveSetId();
+        $Tpl->add(null, [
+            'legacyBlogConfigInUse' => $effectiveSetId ? 0 : 1,
+        ]);
     }
 
     protected function validate()
@@ -70,6 +83,8 @@ class ACMS_GET_Admin_Config_Set_Index extends ACMS_GET_Admin
 
     protected function build(&$Tpl, $all)
     {
+        $effectiveSetId = $this->getEffectiveSetId();
+
         $cnt = count($all);
         $sort = 1;
         while ($row = array_shift($all)) {
@@ -100,6 +115,7 @@ class ACMS_GET_Admin_Config_Set_Index extends ACMS_GET_Admin
                 'name' => $row['config_set_name'],
                 'description' => $row['config_set_description'],
                 'disabled' => $disabled,
+                'usedByCurrentBlog' => ($effectiveSetId && $setid === intval($effectiveSetId)) ? 1 : 0,
             ];
 
             $setbid = intval($row['config_set_blog_id']);
@@ -120,6 +136,16 @@ class ACMS_GET_Admin_Config_Set_Index extends ACMS_GET_Admin
 
             $sort++;
         }
+    }
+
+    /**
+     * 現在のブログで有効なセットIDを取得する
+     *
+     * @return int|null
+     */
+    protected function getEffectiveSetId()
+    {
+        return Config::getEffectiveConfigSetIdByType($this->type);
     }
 
     protected function getLinkVars($bid, $setid)

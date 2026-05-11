@@ -45,6 +45,20 @@
             <option value="draft" {entry_status:selected#draft}><!--T-->下書き<!--/T--></option>
           </select>
           <input type="hidden" name="entry[]" value="entry_status"/>
+          <div role="alert" aria-live="assertive">
+            <div class="validator-result-{entry_status:validator#required}">
+              <p class="error-text">
+                <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                <!--T-->ステータスを選択してください。<!--/T-->
+              </p>
+            </div>
+            <div class="validator-result-{entry_status:validator#in}">
+              <p class="error-text">
+                <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                <!--T-->ステータスの値が不正です。<!--/T-->
+              </p>
+            </div>
+          </div>
         </td>
       </tr>
       <tr>
@@ -84,6 +98,14 @@
           })
           <input id="bulk-change-entry-sub-category-value" type="hidden" name="entry_sub_category_id" value="{entry_sub_category_id}">
           <input type="hidden" name="entry[]" value="entry_sub_category_id">
+          <div role="alert" aria-live="assertive">
+            <div class="validator-result-{entry_sub_category_id:validator#max_sub_category_id}">
+              <p class="error-text">
+                <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                <!--T-->登録できるサブカテゴリー数を超えています。<!--/T-->
+              </p>
+            </div>
+          </div>
         </td>
       </tr>
       <tr>
@@ -102,6 +124,20 @@
           })
           <input id="bulk-change-entry-tag-value" type="hidden" name="entry_tag" value="{entry_tag}">
           <input type="hidden" name="entry[]" value="entry_tag">
+          <div role="alert" aria-live="assertive">
+            <div class="validator-result-{entry_tag:validator#reserved}">
+              <p class="error-text">
+                <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                <!--T-->システムで予約されているキーワードです。<!--/T-->
+              </p>
+            </div>
+            <div class="validator-result-{entry_tag:validator#string}">
+              <p class="error-text">
+                <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                <!--T-->不正な文字が含まれています。<!--/T-->
+              </p>
+            </div>
+          </div>
         </td>
       </tr>
       <tr>
@@ -210,6 +246,20 @@
             <label for="input-checkbox-entry_indexing_value"><i class="acms-admin-ico-checkbox"></i><!--T-->一覧に表示する<!--/T--></label>
           </div>
           <input type="hidden" name="entry[]" value="entry_indexing"/>
+          <div role="alert" aria-live="assertive">
+            <div class="validator-result-{entry_indexing:validator#required}">
+              <p class="error-text">
+                <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                <!--T-->インデキシングが入力されていません。<!--/T-->
+              </p>
+            </div>
+            <div class="validator-result-{entry_indexing:validator#in}">
+              <p class="error-text">
+                <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                <!--T-->インデキシングの値が不正です。<!--/T-->
+              </p>
+            </div>
+          </div>
         </td>
       </tr>
       <tr>
@@ -224,6 +274,14 @@
         <td>
           <input type="text" name="entry_link" value="{entry_link}" class="acms-admin-form-width-full"/>
           <input type="hidden" name="entry[]" value="entry_link"/>
+          <div role="alert" aria-live="assertive">
+            <div class="validator-result-{entry_link:validator#maxlength}">
+              <p class="error-text">
+                <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+                <!--T-->リンク先URLは255文字以内で入力してください。<!--/T-->
+              </p>
+            </div>
+          </div>
         </td>
       </tr>
       <tr>

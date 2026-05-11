@@ -34,7 +34,7 @@ class ACMS_POST_Blog_Index_Parent extends ACMS_POST_Blog
                 $SQL->addSelect('blog_sort');
                 $SQL->addWhereOpr('blog_id', $bid);
                 if (!$row = $DB->query($SQL->get(dsn()), 'row')) {
-                    die();
+                    die500();
                 }
                 $fromLeft   = intval($row['blog_left']);
                 $fromRight  = intval($row['blog_right']);
@@ -54,7 +54,7 @@ class ACMS_POST_Blog_Index_Parent extends ACMS_POST_Blog
                 $SQL->addSelect('blog_right');
                 $SQL->addWhereOpr('blog_id', $toPid);
                 if (!$row = $DB->query($SQL->get(dsn()), 'row')) {
-                    die();
+                    die500();
                 }
                 $toLeft     = intval($row['blog_left']);
                 $toRight    = intval($row['blog_right']);

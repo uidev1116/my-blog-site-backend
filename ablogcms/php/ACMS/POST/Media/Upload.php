@@ -27,9 +27,9 @@ class ACMS_POST_Media_Upload extends ACMS_POST
             if (Media::isImageFile($type)) {
                 $data = Media::uploadImage('file');
             } elseif (Media::isSvgFile($type)) {
-                $data = Media::uploadSvg($info['size'], 'file');
+                $data = Media::uploadSvg('file');
             } else {
-                $data = Media::uploadFile($info['size'], 'file');
+                $data = Media::uploadFile('file');
             }
             if (empty($data)) {
                 throw new \RuntimeException('Upload failed.');
@@ -38,16 +38,20 @@ class ACMS_POST_Media_Upload extends ACMS_POST
 
             if (isset($_FILES['media_pdf_thumbnail'])) {
                 $res = Media::uploadPdfThumbnail('media_pdf_thumbnail');
-                if (isset($res['path'])) {
-                    $data['thumbnail'] = $res['path'];
-                    $data['size'] = $res['size'];
-                    $data['field_6'] = 1;
-                }
+                $data['thumbnail'] = $res['path'];
+                $data['size'] = $res['size'];
+                $data['field_6'] = 1;
             }
             Media::insertMedia($mid, $data, BID);
             Media::saveTags($mid, $tags, BID);
 
             $data = Media::getMedia($mid);
+            if ($data === null) {
+                throw new \RuntimeException(sprintf(
+                    'Could not reload media information after saving. (Media ID: %d)',
+                    $mid
+                ));
+            }
             $tags = Media::getMediaLabel($mid);
             $json = Media::buildJson($mid, $data, $tags, BID);
             $json['status'] = 'success';

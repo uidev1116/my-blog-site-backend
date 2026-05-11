@@ -22,7 +22,8 @@ class ACMS_POST_Export_Download extends ACMS_POST
             if (empty($fileName)) {
                 throw new \RuntimeException('ファイルが指定されていません。');
             }
-            $path = MEDIA_STORAGE_DIR . 'export_wxr/' . $fileName;
+            $path = PrivateStorage::validateDirectoryTraversal(MEDIA_STORAGE_DIR . 'export_wxr/', $fileName);
+
             if (!PrivateStorage::exists($path)) {
                 throw new \RuntimeException('ファイルが見つかりませんでした。');
             }

@@ -4,19 +4,9 @@ namespace Acms\Services\StaticExport\Generator;
 
 use Acms\Services\StaticExport\Contracts\Generator;
 use Acms\Services\Facades\LocalStorage;
-use Acms\Services\StaticExport\Entities\Page;
-use React\Promise\Promise;
-use React\Promise\PromiseInterface;
-
-use function React\Async\await;
 
 class PageGenerator extends Generator
 {
-    /**
-     * @var bool
-     */
-    protected $shouldGenerateNextPage = true;
-
     /**
      * @var int|null
      */
@@ -37,36 +27,33 @@ class PageGenerator extends Generator
     /**
      * @inheritDoc
      */
-    public function run(): PromiseInterface
+    public function run(): void
     {
-        return new Promise(
-            function (callable $resolve, callable $reject) {
-                if (is_null($this->maxPage)) {
-                    $reject(new \RuntimeException('no selected max page.'));
-                    return;
-                }
-                if ($this->maxPage < 2) {
-                    $reject(new \RuntimeException('max page is less than 2.'));
-                    return;
-                }
+        if (is_null($this->maxPage)) {
+            throw new \RuntimeException('no selected max page.');
+        }
+        if ($this->maxPage < 2) {
+            throw new \RuntimeException('max page is less than 2.');
+        }
 
-                $pages = array_map(
-                    function (int $page) {
-                        $url = acmsLink([
-                            'bid' => BID,
-                            'page' => $page,
-                        ]);
-                        $filename = 'page' . $page . '.html';
-                        return new Page($url, $filename);
-                    },
-                    range(2, $this->maxPage)
-                );
+        $pages = range(2, $this->maxPage);
 
-                $this->logger->start('2ページ以降を生成', count($pages));
-                await($this->handle($pages));
-                $resolve(null);
-            }
+        array_map(
+            function (int $page) {
+                $url = acmsLink([
+                    'bid' => $this->targetBlogId,
+                    'page' => $page,
+                ]);
+                $filename = 'page' . $page . '.html';
+
+                if ($url) {
+                    $this->addPage($url, $filename);
+                }
+            },
+            $pages
         );
+        $this->logger->start("2ページ以降を生成（{$this->targetBlogName}）", count($pages));
+        $this->handle();
     }
 
     /**
@@ -89,38 +76,13 @@ class PageGenerator extends Generator
     /**
      * @param \Throwable $th
      * @param string $url
+     * @param int $statusCode
      * @return void
      */
-    protected function handleError(\Throwable $th, string $url): void
+    protected function handleError(\Throwable $th, string $url, int $statusCode): void
     {
         // ページネーションの生成は1度404が返ってきたら、それ以降のページは404が返ってくるため、次のページの生成を中止する
-        $this->stopGenerateNextPage();
-        if ($th instanceof \React\Http\Message\ResponseException) {
-            $response = $th->getResponse();
-            $this->logger->error(
-                'データの取得に失敗しました。',
-                $url,
-                $response->getStatusCode()
-            );
-            return;
-        }
-        $this->logger->error($th->getMessage(), $url);
-    }
-
-    /**
-     * 次のページを生成するかどうか
-     * @return bool
-     */
-    protected function shouldGenerateNextPage(): bool
-    {
-        return $this->shouldGenerateNextPage;
-    }
-
-    /**
-     * @return void
-     */
-    private function stopGenerateNextPage(): void
-    {
-        $this->shouldGenerateNextPage = false;
+        $this->requestStop();
+        $this->logger->error($th->getMessage(), $url, $statusCode);
     }
 }

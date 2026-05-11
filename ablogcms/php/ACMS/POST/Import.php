@@ -1,22 +1,43 @@
 <?php
 
 use Acms\Services\Facades\Application;
+use Acms\Services\Facades\Entry;
 
 class ACMS_POST_Import extends ACMS_POST
 {
     use \Acms\Traits\Unit\UnitModelTrait;
 
+    /**
+     * ユニットタイプ
+     * @var string
+     */
     protected $unitType;
+
+    /**
+     * アップロードファイル名
+     * @var string
+     */
     protected $uploadFiledName;
 
     /**
      * @var \ACMS_Http_File
      */
     protected $httpFile;
-    protected $fileObject;
+    /**
+     * @var string|false
+     */
     protected $locale;
+    /**
+     * @var int
+     */
     protected $entryCount = 0;
+    /**
+     * @var array<string, int>
+     */
     protected $categoryList = [];
+    /**
+     * @var string
+     */
     protected $importType = '';
 
     /**
@@ -24,14 +45,46 @@ class ACMS_POST_Import extends ACMS_POST
      */
     protected $importCid;
 
+    /**
+     * インポートでスキップしたエントリーのエラー一覧
+     *
+     * @var array<int, array{index: int, message: string}>
+     */
+    protected $importErrors = [];
+
+    /**
+     * インポートを初期化
+     *
+     * @return void
+     */
     public function init()
     {
     }
 
+    /**
+     * インポートを実行
+     *
+     * @return void
+     */
     public function import()
     {
     }
 
+    /**
+     * インポートでスキップしたエントリーのエラーを記録する
+     *
+     * @param int $entryIndex エントリー番号（何件目か）
+     * @param string $message エラーメッセージ
+     * @return void
+     */
+    public function recordImportError($entryIndex, $message)
+    {
+        $this->importErrors[] = ['index' => $entryIndex, 'message' => $message];
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function post()
     {
         @set_time_limit(0);
@@ -58,13 +111,27 @@ class ACMS_POST_Import extends ACMS_POST
             return $this->Post;
         }
 
-        $this->Post->set('importMessage', 0);
-        $this->Post->set('success', 'on');
-        $this->Post->set('blogName', ACMS_RAM::blogName(BID));
+        $errorCount = count($this->importErrors);
         $this->Post->set('entryCount', $this->entryCount);
+        $this->Post->set('importErrorCount', $errorCount);
+        $importErrorsJson = json_encode($this->importErrors);
+        $this->Post->set('importErrors', $importErrorsJson !== false ? $importErrorsJson : '[]');
+
+        if ($this->entryCount > 0) {
+            $this->Post->set('importMessage', 0);
+            $this->Post->set('success', 'on');
+            $this->Post->set('blogName', ACMS_RAM::blogName(BID));
+        } elseif ($errorCount > 0) {
+            $this->Post->set('importMessage', 'すべてのエントリーでエラーが発生しました。');
+            $this->Post->set('success', 'off');
+        } else {
+            $this->Post->set('importMessage', 'インポートできるエントリーがありませんでした。');
+            $this->Post->set('success', 'off');
+        }
 
         AcmsLogger::info('「' . $this->importType . '」インポートを実行しました', [
             'success' => $this->entryCount,
+            'skipped' => $errorCount,
         ]);
 
         return $this->Post;
@@ -72,7 +139,9 @@ class ACMS_POST_Import extends ACMS_POST
 
     public function __destruct()
     {
-        setlocale(LC_ALL, $this->locale);
+        if ($this->locale !== false) {
+            setlocale(LC_ALL, $this->locale);
+        }
     }
 
     /**
@@ -82,7 +151,7 @@ class ACMS_POST_Import extends ACMS_POST
      *
      * @return int
      **/
-    public function nextEntrySort(int $blogId): int
+    protected function nextEntrySort($blogId)
     {
         $entryRepository = Application::make('entry.repository');
         assert($entryRepository instanceof \Acms\Services\Entry\EntryRepository);
@@ -96,7 +165,7 @@ class ACMS_POST_Import extends ACMS_POST
      * @param int $blogId
      * @return int
      **/
-    public function nextEntryUserSort(int $userId, int $blogId): int
+    protected function nextEntryUserSort($userId, $blogId)
     {
         $entryRepository = Application::make('entry.repository');
         assert($entryRepository instanceof \Acms\Services\Entry\EntryRepository);
@@ -111,19 +180,25 @@ class ACMS_POST_Import extends ACMS_POST
      *
      * @return int
      **/
-    public function nextEntryCategorySort(?int $categoryId, int $blogId): int
+    protected function nextEntryCategorySort($categoryId, $blogId)
     {
         $entryRepository = Application::make('entry.repository');
         assert($entryRepository instanceof \Acms\Services\Entry\EntryRepository);
         return $entryRepository->nextCategorySort($categoryId, $blogId);
     }
 
-    public function insertEntry($entry)
+    /**
+     * エントリーを挿入
+     *
+     * @param array<string, mixed> $entry
+     * @return void
+     */
+    public function insertEntry(array $entry)
     {
         $DB     = DB::singleton(dsn());
         $eid    = $DB->query(SQL::nextval('entry_id', dsn()), 'seq');
         $cid    = null;
-        $ecode  = config('entry_code_prefix') . $eid . '.html';
+        $ecode  = Entry::generateEntryCode($eid);
         if (isset($this->importCid) && !empty($this->importCid) && $this->importCid != 0) {
             if ($this->importCid > 0) {
                 $cid = $this->importCid;
@@ -131,8 +206,8 @@ class ACMS_POST_Import extends ACMS_POST
                 $cid = null;
             }
         }
-        if (isset($entry['ecode']) && !empty($entry['ecode'])) {
-            $ecode  = $entry['ecode'] . '.html';
+        if (isset($entry['ecode']) && $entry['ecode'] !== '') {
+            $ecode = Entry::formatEntryCode($entry['ecode']);
         }
 
         $status         = $entry['status'];
@@ -143,7 +218,7 @@ class ACMS_POST_Import extends ACMS_POST
         $this->insertUnit($eid, $contents);
 
         // category
-        if (isset($entry['category']) && !empty($entry['category'])) {
+        if (isset($entry['category']) && $entry['category'] !== '') {
             $cid = $this->insertCategory($entry['category']);
         }
 
@@ -196,7 +271,14 @@ class ACMS_POST_Import extends ACMS_POST
         }
     }
 
-    public function insertUnit($eid, $contents = [])
+    /**
+     * ユニットを挿入
+     *
+     * @param int $eid
+     * @param string[] $contents
+     * @return void
+     */
+    protected function insertUnit($eid, array $contents = [])
     {
         $sql = SQL::newBulkInsert('column');
         $sql->addColumn('column_id');
@@ -213,8 +295,8 @@ class ACMS_POST_Import extends ACMS_POST
                 'column_id' => $this->generateNewIdTrait(),
                 'column_sort' => $i + 1,
                 'column_type' => $this->unitType,
-                'column_entry_id' => intval($eid),
-                'column_blog_id' => intval(BID),
+                'column_entry_id' => $eid,
+                'column_blog_id' => BID,
                 'column_field_1' => $contents[$i],
             ];
             if ($this->unitType === 'text') {
@@ -227,25 +309,47 @@ class ACMS_POST_Import extends ACMS_POST
         }
     }
 
-    public function insertTag($eid, $entry)
+    /**
+     * タグを挿入
+     *
+     * @param int $eid
+     * @param array<string, mixed> $entry
+     * @return void
+     */
+    protected function insertTag($eid, array $entry)
     {
+        $tags = $entry['tags'];
+        $tags = array_map('trim', $tags);
+        $tags = array_map(function ($tag) {
+            $normalizedTag = preg_replace('/[ 　]+/u', '_', $tag);
+            if ($normalizedTag !== null) {
+                return $normalizedTag;
+            }
+            return $tag;
+        }, $tags);
+        $tags = array_filter($tags, function ($tag) {
+            return !isReserved($tag);
+        });
+        $tags = array_filter($tags, function ($tag) {
+            return !preg_match(REGEX_INVALID_TAG_NAME, $tag);
+        });
+        $tags = array_filter($tags, function ($tag) {
+            return $tag !== '';
+        });
+        $tags = array_values($tags); // 添字を0から始まる整数に変換
+        $tags = array_unique($tags);
+
         $sql = SQL::newBulkInsert('tag');
         $sql->addColumn('tag_name');
         $sql->addColumn('tag_sort');
         $sql->addColumn('tag_entry_id');
         $sql->addColumn('tag_blog_id');
-
-        $tags = array_unique($entry['tags']);
         foreach ($tags as $sort => $tag) {
-            if (isReserved($tag)) {
-                continue;
-            }
-            $tag = preg_replace('/[ 　]+/u', '_', $tag);
             $sql->addInsert([
                 'tag_name' => $tag,
-                'tag_sort' => intval($sort) + 1,
-                'tag_entry_id' => intval($eid),
-                'tag_blog_id' => intval(BID),
+                'tag_sort' => $sort + 1,
+                'tag_entry_id' => $eid,
+                'tag_blog_id' => BID,
             ]);
         }
         if ($sql->hasData()) {
@@ -253,9 +357,15 @@ class ACMS_POST_Import extends ACMS_POST
         }
     }
 
-    public function insertField($eid, $entry)
+    /**
+     * フィールドを挿入
+     *
+     * @param int $eid
+     * @param array<string, mixed> $entry
+     * @return void
+     */
+    protected function insertField($eid, array $entry)
     {
-        $DB = DB::singleton(dsn());
         Common::deleteField('eid', $eid);
 
         $sql = SQL::newBulkInsert('field');
@@ -278,7 +388,7 @@ class ACMS_POST_Import extends ACMS_POST
                 'field_type' => $fieldTypeValue,
                 'field_sort' => $i + 1,
                 'field_search' => 'on',
-                'field_eid' => intval($eid),
+                'field_eid' => $eid,
                 'field_blog_id' => BID,
             ]);
         }
@@ -287,7 +397,13 @@ class ACMS_POST_Import extends ACMS_POST
         }
     }
 
-    public function insertCategory($name, $_code = null)
+    /**
+     * カテゴリーを挿入
+     *
+     * @param string $name
+     * @return int
+     */
+    protected function insertCategory($name)
     {
         if (isset($this->categoryList[$name])) {
             return $this->categoryList[$name];
@@ -308,13 +424,8 @@ class ACMS_POST_Import extends ACMS_POST
             $right  = 2;
         }
 
-        $cid    = $DB->query(SQL::nextval('category_id', dsn()), 'seq');
-        if ($_code) {
-            $code = $_code;
-        } else {
-            $code = 'category-' . $cid;
-        }
-        $name   = $name;
+        $cid = (int) $DB->query(SQL::nextval('category_id', dsn()), 'seq');
+        $code = 'category-' . $cid;
 
         $SQL    = SQL::newInsert('category');
         $SQL->addInsert('category_id', $cid);

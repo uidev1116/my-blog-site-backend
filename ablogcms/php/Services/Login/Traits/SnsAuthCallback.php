@@ -375,7 +375,7 @@ trait SnsAuthCallback
      */
     protected function findAccount(string $key, string $id): ?array
     {
-        if (SUID || !Login::accessRestricted(false)) {
+        if (Login::isLoggedIn() || !Login::canAccessSigninFromCurrentIp()) {
             throw new RuntimeException('すでにログイン済みか、アクセスを制限されています');
         }
         $all = $this->searchUserFromDB($key, $id);
@@ -442,7 +442,7 @@ trait SnsAuthCallback
     protected function redirect(int $bid, array $params)
     {
         $params = array_merge([
-            'protocol' => (SSL_ENABLE && ('on' == config('login_ssl'))) ? 'https' : 'http',
+            'protocol' => SSL_ENABLE ? 'https' : 'http',
             'bid' => $bid,
         ], $params);
         $url = acmsLink($params, false);

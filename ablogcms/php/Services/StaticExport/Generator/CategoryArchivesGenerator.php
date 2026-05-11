@@ -3,11 +3,7 @@
 namespace Acms\Services\StaticExport\Generator;
 
 use Acms\Services\Facades\LocalStorage;
-use Acms\Services\StaticExport\Entities\Page;
-use React\Promise\Promise;
-use React\Promise\PromiseInterface;
-
-use function React\Async\await;
+use ACMS_RAM;
 
 class CategoryArchivesGenerator extends PageGenerator
 {
@@ -17,9 +13,9 @@ class CategoryArchivesGenerator extends PageGenerator
     protected $categoryId;
 
     /**
-     * @var array
+     * @var string
      */
-    protected $monthRange = [];
+    protected $range;
 
     /**
      * @var int|null
@@ -28,7 +24,12 @@ class CategoryArchivesGenerator extends PageGenerator
 
     protected function getName(): string
     {
-        return 'カテゴリー毎のアーカイブ書き出し 【 ' . \ACMS_RAM::categoryName($this->categoryId) . '（' . $this->categoryId .  '）】';
+        if (is_null($this->categoryId)) {
+            throw new \RuntimeException('no selected category.');
+        }
+        $bid = ACMS_RAM::categoryBlog($this->categoryId);
+        $blogName = ACMS_RAM::blogName($bid);
+        return 'カテゴリー毎のアーカイブ書き出し 【 ' . $blogName . '>' . ACMS_RAM::categoryName($this->categoryId) . '（' . $this->range .  '）】';
     }
 
     /**
@@ -41,12 +42,12 @@ class CategoryArchivesGenerator extends PageGenerator
     }
 
     /**
-     * @param string[] $monthRange
+     * @param string $range
      * @return void
      */
-    public function setMonthRange(array $monthRange): void
+    public function setRange(string $range): void
     {
-        $this->monthRange = $monthRange;
+        $this->range = $range;
     }
 
     /**
@@ -64,43 +65,33 @@ class CategoryArchivesGenerator extends PageGenerator
     /**
      * @inheritDoc
      */
-    public function run(): PromiseInterface
+    public function run(): void
     {
-        return new Promise(
-            function (callable $resolve, callable $reject) {
-                if (is_null($this->maxPage)) {
-                    $reject(new \RuntimeException('no selected max page.'));
-                    return;
-                }
-                if ($this->maxPage < 1) {
-                    $reject(new \RuntimeException('max page is less than 1.'));
-                    return;
-                }
+        if (is_null($this->maxPage)) {
+            throw new \RuntimeException('no selected max page.');
+        }
+        if ($this->maxPage < 1) {
+            throw new \RuntimeException('max page is less than 1.');
+        }
 
-                $pagesPerMonth = [];
-                foreach ($this->monthRange as $ym) {
-                    $pages = [];
-                    foreach (range(1, $this->maxPage) as $page) {
-                        $archiveContext = $this->getArchiveContext($ym);
-                        $archivePageContext = array_merge($archiveContext, ['page' => $page]);
-                        $url = acmsLink($archivePageContext, false);
+        $pages = range(1, $this->maxPage);
+        $this->logger->start($this->getName(), count($pages));
 
-                        $blogUrl = acmsLink(['bid' => BID]);
-                        $archiveUrl = acmsLink($archiveContext);
-                        $dir = substr($archiveUrl, strlen($blogUrl));
-                        $filepath = $dir . $this->getFileName($page);
-                        $pages[] = new Page($url, $filepath);
-                    }
-                    $pagesPerMonth[] = $pages;
-                }
+        foreach ($pages as $page) {
+            $archiveContext = $this->getArchiveContext($this->range);
+            $archivePageContext = array_merge($archiveContext, ['page' => $page]);
+            $url = acmsLink($archivePageContext, false);
 
-                $this->logger->start($this->getName(), count(array_flatten($pagesPerMonth)));
-                foreach ($pagesPerMonth as $pages) {
-                    await($this->handle($pages));
-                }
-                $resolve(null);
+            $blogUrl = acmsLink(['bid' => $this->targetBlogId]);
+            $archiveUrl = acmsLink($archiveContext);
+            $dir = substr($archiveUrl, strlen($blogUrl));
+            $filepath = $dir . $this->getFileName($page);
+            if (!$url || !$filepath) {
+                continue;
             }
-        );
+            $this->addPage($url, $filepath);
+        }
+        $this->handle();
     }
 
     /**
@@ -131,7 +122,7 @@ class CategoryArchivesGenerator extends PageGenerator
     protected function getArchiveContext(string $date): array
     {
         $context = [
-            'bid' => BID,
+            'bid' => $this->targetBlogId,
             'date' => $date,
         ];
         if (!is_null($this->categoryId) && $this->categoryId > 0) {

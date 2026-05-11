@@ -72,7 +72,6 @@ export default function setupMediaUnit(
         id={id}
         primaryImageId={primaryImageId}
         mediaSizes={mediaSizesFiltered}
-        mediaDir={mediaDir}
         active={active as 'on' | 'off'}
         lang={lang}
         primary={primary as 'true' | 'false'}

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import UserSelect from '@features/user/components/user-select/user-select';
 import CategorySelect from '@features/category/components/category-select/category-select';
 import BlogSelect from '@features/blog/components/blog-select/blog-select';
-import { isAxiosError } from 'axios';
+import { isFetchError } from '../../../lib/fetch-client';
 import type { BulkAction } from '../../../components/dataview/types';
 import type { EntrySort, EntrySortType, EntryType } from '../types';
 import { notify } from '../../../lib/notify';
@@ -263,10 +263,8 @@ export default function useEntryAdminBulkActions({ getBulkActions, context }: Us
             await exportEntries(formData);
             notify.info(ACMS.i18n('entry_index.bulk_action.feedback.export.success'));
           } catch (error) {
-            if (isAxiosError(error)) {
-              const text = await error.response?.data.text();
-              const data = JSON.parse(text);
-              notify.danger(data.messages[0]);
+            if (isFetchError(error)) {
+              notify.danger(error.message);
             } else {
               notify.danger(ACMS.i18n('entry_index.bulk_action.feedback.export.error'));
             }

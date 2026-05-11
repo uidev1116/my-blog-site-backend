@@ -304,7 +304,9 @@ const MenuDisclosure = <T,>({ isOpen, close, menu, data }: MenuDisclosureProps<T
   return null;
 };
 
-const MenuList = <T,>({ menus = [], data }: MenuListProps<T>) => {
+const EMPTY_MENUS: never[] = [];
+
+const MenuList = <T,>({ menus = EMPTY_MENUS, data }: MenuListProps<T>) => {
   const [selectedDisclosableMenu, setSelectedDisclosableMenu] = useState<ModalMenu<T> | DrawerMenu<T> | null>(null);
   const activeMenus = menus.filter((menu) => isActiveMenu(menu, data));
 

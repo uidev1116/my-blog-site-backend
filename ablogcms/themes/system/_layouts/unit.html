@@ -224,6 +224,22 @@
 <!-- BEGIN unit#osmap -->
 @section(osmap-unit)
 <!-- Open Street Map -->
+<!-- BEGIN_IF [%{UNIT_ALIGN_VERSION}/eq/v1] -->
+<div class="column-map column-map-{align} align-{align}<!-- BEGIN_IF [{display_size_class}/nem] --> js_notStyle {display_size_class}<!-- END_IF -->"{display_size}[raw]>
+  <div
+    <!-- BEGIN_IF [{anker}/nem] -->
+    id="{anker}"
+    <!-- END_IF -->
+    class="js-open-street-map"
+    style="width: {x}px; height: {y}px;"
+    data-lazy="true"
+    data-lat="{lat}"
+    data-lng="{lng}"
+    data-zoom="{zoom}"
+    data-msg="{msgRaw}"
+  ></div>
+</div>
+<!-- ELSE -->
 <div class="column-map column-map-{align} align-{align}" style="overflow: hidden;">
   <div class="{display_size_class}" {display_size}[raw]<!-- BEGIN_IF [{display_size_class}{display_size}/em] --> style="width: {x}px;"<!-- END_IF -->>
     <div
@@ -240,12 +256,46 @@
     ></div>
   </div>
 </div>
+<!-- END_IF -->
 @endsection
 <!-- END unit#osmap -->
 
 <!-- BEGIN unit#map -->
 @section(map-unit)
 <!-- Google Maps -->
+<!-- BEGIN_IF [%{UNIT_ALIGN_VERSION}/eq/v1] -->
+<!-- BEGIN_IF [{view_activate}/nem] -->
+<div class="column-street-view column-street-view-{align} align-{align}<!-- BEGIN_IF [{display_size_class}/nem] --> js_notStyle {display_size_class}<!-- END_IF -->"{display_size}[raw]>
+  <div
+    <!-- BEGIN_IF [{anker}/nem] -->
+    id="{anker}"
+    <!-- END_IF -->
+    class="js-street-view column-inner-street-view"
+    data-lazy="true"
+    data-lat="{lat}"
+    data-lng="{lng}"
+    data-pitch="{view_pitch}"
+    data-zoom="{view_zoom}"
+    data-heading="{view_heading}"
+  ></div>
+</div>
+<!-- ELSE -->
+<div class="column-map column-map-{align} align-{align}<!-- BEGIN_IF [{display_size_class}/nem] --> js_notStyle {display_size_class}<!-- END_IF -->"{display_size}[raw]>
+  @include("/include/gmaps-error.html")
+  <img
+    <!-- BEGIN_IF [{anker}/nem] -->
+    id="{anker}"
+    <!-- END_IF -->
+    class="js-s2d-ready"
+    width="{x}"
+    height="{y}"
+    src="https://maps.googleapis.com/maps/api/staticmap?center={lat},{lng}&zoom={zoom}&size={x}x{y}&maptype=roadmap&markers={lat},{lng}&key=%{GOOGLE_API_KEY}"
+    alt="{msg}"
+    data-lazy="true"
+  >
+</div>
+<!-- END_IF -->
+<!-- ELSE -->
 <!-- BEGIN_IF [{view_activate}/nem] -->
 <div class="column-street-view column-street-view-{align} align-{align}">
   <div class="{display_size_class}" {display_size}[raw]<!-- BEGIN_IF [{display_size_class}{display_size}/em] --> style="width: {x}px;"<!-- END_IF -->>
@@ -283,12 +333,30 @@
   </div>
 </div>
 <!-- END_IF -->
+<!-- END_IF -->
 @endsection
 <!-- END unit#map -->
 
 <!-- BEGIN unit#youtube -->
 @section(youtube-unit)
 <!-- YouTube -->
+<!-- BEGIN_IF [%{UNIT_ALIGN_VERSION}/eq/v1] -->
+<div class="column-youtube column-youtube-{align} align-{align}<!-- BEGIN_IF [{display_size_class}/nem] --> js_notStyle {display_size_class}<!-- END_IF -->"{display_size}[raw]>
+  <div class="column-iframe">
+    <iframe
+      <!-- BEGIN_IF [{anker}/nem] -->
+      id="{anker}"
+      <!-- END_IF -->
+      width="{x}"
+      height="{y}"
+      src="https://www.youtube.com/embed/{youtubeId}?wmode=transparent&rel=0"
+      frameborder="0"
+      allowfullscreen
+      loading="lazy"
+    ></iframe>
+  </div>
+</div>
+<!-- ELSE -->
 <div class="column-youtube column-youtube-{align} align-{align}">
   <div class="{display_size_class}" {display_size}[raw]>
     <div class="column-iframe">
@@ -309,12 +377,31 @@
     </div>
   </div>
 </div>
+<!-- END_IF -->
 @endsection
 <!-- END unit#youtube -->
 
 <!-- BEGIN unit#video -->
 @section(video-unit)
 <!-- Video -->
+<!-- BEGIN_IF [%{UNIT_ALIGN_VERSION}/eq/v1] -->
+<div class="column-video column-video-{align} align-{align}<!-- BEGIN_IF [{display_size_class}/nem] --> js_notStyle {display_size_class}<!-- END_IF -->"{display_size}[raw]>
+  <div class="column-iframe">
+    <iframe
+      <!-- BEGIN_IF [{anker}/nem] -->
+      id="{anker}"
+      <!-- END_IF -->
+      class="is-movie"
+      width="{x}"
+      height="{y}"
+      src="https://www.youtube.com/embed/{videoId}?wmode=transparent&rel=0"
+      frameborder="0"
+      allowfullscreen
+      loading="lazy"
+    ></iframe>
+  </div>
+</div>
+<!-- ELSE -->
 <div class="column-video column-video-{align} align-{align}">
   <div class="{display_size_class}" {display_size}[raw]>
     <div class="column-iframe">
@@ -336,6 +423,7 @@
     </div>
   </div>
 </div>
+<!-- END_IF -->
 @endsection
 <!-- END unit#video -->
 
@@ -389,7 +477,7 @@
 @section(media-unit)
 <!-- media -->
 <!-- BEGIN_IF [%{UNIT_ALIGN_VERSION}/eq/v1] -->
-<div role="figure" class="column-media column-media-{align} align-{align}" aria-labelledby="media-caption-{utid}">
+<div role="figure" class="column-media column-media-{align} align-{align} {display_size_class}"{display_size}[raw] aria-labelledby="media-caption-{utid}">
   <!-- BEGIN type#image -->
   <!-- BEGIN link#front -->
   <a href="{url}" {viewer}[raw] data-group="{link_eid}">

@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import DOMPurify from 'dompurify';
 import CreatableSelect from '../../../../components/rich-select/creatable-select';
 import { MediaAjaxConfig, MediaItem, MediaTag } from '../../types';
-import axiosLib from '../../../../lib/axios';
+import { xhrUpload } from '../../../../lib/xhr-upload';
 import DropZone from '../../../../components/drop-zone/drop-zone';
 import ProgressBar from '../../../../components/progress-bar/progress-bar';
 import ResizeImage from '../../../../lib/resize-image/util';
@@ -31,6 +31,7 @@ interface MediaUploadItem {
 interface MediaUploaderProps {
   showUploadButton?: boolean;
   largeSize: number;
+  // eslint-disable-next-line react/no-unused-prop-types -- 呼び出し元から渡されるが未使用
   config: MediaAjaxConfig;
   actions: typeof actions;
   files?: File[];
@@ -98,14 +99,13 @@ export default class MediaUploader extends Component<MediaUploaderProps, MediaUp
       fd.append('file', blob, name);
       fd.append('formToken', window.csrfToken);
       this.setProgressBar(item, 0);
-      axiosLib
-        .post(location.href, fd, {
-          onUploadProgress: (e) => {
-            if (typeof e.total === 'number') {
-              this.setProgressBar(item, 70 * (e.loaded / e.total));
-            }
-          },
-        })
+      xhrUpload(location.href, fd, {
+        onUploadProgress: (e) => {
+          if (typeof e.total === 'number') {
+            this.setProgressBar(item, 70 * (e.loaded / e.total));
+          }
+        },
+      })
         .then((res) => {
           if (res && res.data) {
             if (res.data.status === 'failure') {
@@ -200,7 +200,8 @@ export default class MediaUploader extends Component<MediaUploaderProps, MediaUp
         loading: true,
         hasUploadedItems: true,
       });
-      const [resizeType, largeSize] = ACMS.Config.lgImg.split(':');
+      // lgImg はログイン時のみ出力されるが、メディアアップローダーはログイン必須の管理画面でのみ使用される
+      const [resizeType, largeSize] = ACMS.Config.lgImg!.split(':');
 
       [].forEach.call(items, (item: MediaUploadItem) => {
         const { name, filetype, file } = item;
@@ -359,6 +360,7 @@ export default class MediaUploader extends Component<MediaUploaderProps, MediaUp
               isValidNewOption={(inputValue) => inputValue.trim().length > 0}
               noOptionsMessage={() => ACMS.i18n('media.tag_select_no_options_message')}
               closeMenuOnSelect={false}
+              hideSelectedOptions
               menuPortalTarget={document.body}
             />
           </div>

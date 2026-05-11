@@ -8,6 +8,16 @@ class ACMS_POST_Member_SigninWithEmail extends ACMS_POST_Member_Signin
     use Acms\Services\Login\Traits\VeryfyCode;
 
     /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @inheritDoc
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return Login::canLoginPage(BID, SIGNIN_SEGMENT);
+    }
+
+    /**
      * 確認コードのタイプを取得
      *
      * @return string
@@ -148,18 +158,23 @@ class ACMS_POST_Member_SigninWithEmail extends ACMS_POST_Member_Signin
         $loginField->set('verifyCode', $code);
 
         // メール送信
-        $isSend = $this->send($email, $loginField, $authUrl);
-
-        if ($isSend) {
-            // メール送信成功
-            $this->Post->set('sent', 'success');
-            $loginField->set('verifyCodeProcess', 'on');
-            AcmsLogger::info('サインインのための認証メールを送信しました', $data);
-        } else {
-            // メール送信失敗
+        try {
+            $isSend = $this->send($email, $loginField, $authUrl);
+            if ($isSend) {
+                // メール送信成功
+                $this->Post->set('sent', 'success');
+                $loginField->set('verifyCodeProcess', 'on');
+                AcmsLogger::info('サインインのための認証メールを送信しました', $data);
+            } else {
+                // メール送信失敗
+                $loginField->setMethod('mail', 'send', false);
+                $loginField->validate(new ACMS_Validator());
+                AcmsLogger::warning('サインインのための認証メール送信に失敗しました', $data);
+            }
+        } catch (Exception $e) {
             $loginField->setMethod('mail', 'send', false);
             $loginField->validate(new ACMS_Validator());
-            AcmsLogger::warning('サインインのための認証メール送信に失敗しました', $data);
+            AcmsLogger::warning('サインインのための認証メール送信に失敗しました', Common::exceptionArray($e, $data));
         }
         return $this->Post;
     }

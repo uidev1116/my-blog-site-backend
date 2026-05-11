@@ -8,6 +8,7 @@ class ACMS_POST_Config_Set_Insert extends ACMS_POST
 
         $configSet = $this->extract('config_set');
         $configSet->setMethod('name', 'required');
+        $configSet->setMethod('name', 'maxlength', '255');
         $configSet->setMethod('type', 'in', ['theme', 'editor']);
         $configSet->setMethod('confgiset', 'operable', IS_LICENSED and sessionWithAdministration());
         $configSet->validate(new ACMS_Validator());

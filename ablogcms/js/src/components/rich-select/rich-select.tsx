@@ -5,11 +5,12 @@ import type { SelectInstance, Props, GroupBase, StylesConfig } from 'react-selec
 import stylesConfig from './styles';
 import DropdownIndicator from './components/dropdown-indicator';
 
-type RichSelectProps<
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface RichSelectProps<
   Option = unknown,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>,
-> = Props<Option, IsMulti, Group>;
+> extends Props<Option, IsMulti, Group> {}
 
 const RichSelect = <Option, IsMulti extends boolean, Group extends GroupBase<Option>>(
   { styles, components, className, ...props }: RichSelectProps<Option, IsMulti, Group>,

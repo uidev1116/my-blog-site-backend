@@ -117,11 +117,6 @@ class ACMS_POST_Shop2_Form_Submit extends ACMS_POST_Shop2
             $SESSION->set('portrait_cart', array_values($TEMP));
 
             /**
-             * initVars
-             */
-            $suid = ( !!SUID ) ? SUID : 0;
-
-            /**
              * Update Item Stock Keeping Unit
              */
             if ('on' == config('shop_stock_change')) {

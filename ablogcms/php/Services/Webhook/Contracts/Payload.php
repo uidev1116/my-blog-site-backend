@@ -3,6 +3,7 @@
 namespace Acms\Services\Webhook\Contracts;
 
 use ACMS_RAM;
+use Acms\Services\Facades\Login;
 
 abstract class Payload
 {
@@ -17,10 +18,13 @@ abstract class Payload
             'url' => $url,
             'contents' => $contents,
         ];
-        if (SUID) {
+        if (Login::isLoggedIn()) {
+            /** @var int|null $sessionUserId */
+            $sessionUserId = SUID;
+            assert(is_int($sessionUserId)); // ログインしていることが保証されている
             $payload['actor'] = [
-                'uid' => SUID,
-                'name' => ACMS_RAM::userName(SUID),
+                'uid' => $sessionUserId,
+                'name' => ACMS_RAM::userName($sessionUserId),
             ];
         }
         return $payload;

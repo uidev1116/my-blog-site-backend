@@ -179,8 +179,6 @@ class ImagickEngine extends ImageEngine
         // 圧縮
         if ($format === 'png') {
             $imagick->setImageFormat('png');
-            $imagick->quantizeImage(256, Imagick::COLORSPACE_RGB, 0, false, true);
-            $imagick->setImageType(Imagick::IMGTYPE_PALETTEMATTE);
             $imagick->setOption('png:compression-level', '9');
             $imagick->setOption('png:compression-filter', '5');
             $imagick->setOption('png:compression-strategy', '1');

@@ -94,7 +94,7 @@ class ACMS_GET_Unit_List extends ACMS_GET_Entry_Summary
             return '';
         }
         $tpl = new Template($this->tpl, new ACMS_Corrector());
-        TemplateHelper::buildModuleField($tpl);
+        TemplateHelper::buildModuleField($tpl, $this->mid, $this->showField);
         $this->boot();
         $vars = [];
         $sql = $this->unitListHelper->buildUnitListQuery();

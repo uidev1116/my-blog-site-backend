@@ -118,11 +118,6 @@
   margin-top: 24px;
 }
 
-.trumbowyg-table-cell-selection-mode ::-moz-selection {
-  color: inherit;
-  background-color: transparent;
-}
-
 .trumbowyg-table-cell-selection-mode ::selection {
   color: inherit;
   background-color: transparent;
@@ -295,7 +290,6 @@
   outline: none;
   overflow: auto;
   -webkit-user-select: text;
-     -moz-user-select: text;
           user-select: text;
 }
 .trumbowyg-editor-box.trumbowyg-autogrow-on-enter,
@@ -438,7 +432,6 @@
   width: auto;
   line-height: 35px;
   -webkit-user-select: none;
-     -moz-user-select: none;
           user-select: none;
 }
 .trumbowyg-button-pane.trumbowyg-disable button:not(.trumbowyg-not-disable):not(.trumbowyg-active),
@@ -1030,7 +1023,6 @@ body.trumbowyg-body-fullscreen {
   cursor: grab;
   opacity: 0.8;
   -webkit-user-select: none;
-     -moz-user-select: none;
           user-select: none;
   touch-action: pan-x;
 }
@@ -1275,7 +1267,6 @@ body.trumbowyg-body-fullscreen {
   touch-action: none;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
-     -moz-user-select: none;
           user-select: none;
 }
 
@@ -1967,14 +1958,10 @@ body.trumbowyg-body-fullscreen {
 .leaflet-marker-icon,
 .leaflet-marker-shadow {
 	-webkit-user-select: none;
-	   -moz-user-select: none;
 	        user-select: none;
 	  -webkit-user-drag: none;
 	}
 /* Prevents IE11 from highlighting tiles in blue */
-.leaflet-tile::-moz-selection {
-	background: transparent;
-}
 .leaflet-tile::selection {
 	background: transparent;
 }
@@ -2511,7 +2498,6 @@ svg.leaflet-image-layer.leaflet-interactive path {
 	color: #222;
 	white-space: nowrap;
 	-webkit-user-select: none;
-	-moz-user-select: none;
 	user-select: none;
 	pointer-events: none;
 	box-shadow: 0 1px 3px rgba(0,0,0,0.4);

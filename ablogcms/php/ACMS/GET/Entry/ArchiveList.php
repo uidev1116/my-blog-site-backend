@@ -43,9 +43,7 @@ class ACMS_GET_Entry_ArchiveList extends ACMS_GET_Entry
 
             $tpl = new Template($this->tpl, new ACMS_Corrector());
             TemplateHelper::buildModuleField($tpl, $this->mid, $this->showField);
-            $archiveListHelper = new ArchiveListHelper($this->getBaseParams([]));
 
-            $substr = $archiveListHelper->getArchiveScope($this->config['scope']);
             if ($this->config['scope'] === 'biz_year') {
                 $date = $this->Q->getArray('date');
                 $biz_year = isset($date[0]) && $date[0] ? $date[0] : date('Y');
@@ -58,6 +56,9 @@ class ACMS_GET_Entry_ArchiveList extends ACMS_GET_Entry
                 $this->end = $biz_year . '-03-31 23:59:59';
                 $this->config['limit'] = 12;
             }
+
+            $archiveListHelper = new ArchiveListHelper($this->getBaseParams([]));
+            $substr = $archiveListHelper->getArchiveScope($this->config['scope']);
             $sql = $archiveListHelper->buildEntryArchiveListQuery($this->config['order'], $this->config['limit'], $substr);
             $q = $sql->get(dsn());
             $data = Database::query($q, 'all');

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import type {
   ConfigEditor,
   UnitConfigList,
@@ -93,9 +93,7 @@ export default function useConfigEditor({ id, defaultValue = [] }: UseConfigEdit
     [editor]
   );
 
-  const namePrefix = useMemo(() => {
-    return `column_def_${id}_`;
-  }, [id]);
+  const namePrefix = `column_def_${id}_`;
 
   if (!editor) {
     return null;

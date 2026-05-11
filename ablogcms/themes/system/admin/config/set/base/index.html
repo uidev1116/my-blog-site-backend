@@ -78,6 +78,9 @@
           <!-- BEGIN notMinePermit -->
           </a>
           <!-- END notMinePermit -->
+          <!-- BEGIN_IF [{usedByCurrentBlog}/eq/1] -->
+          <span class="acms-admin-label acms-admin-label-success acms-admin-ms-1"><!--T-->このブログで使用中<!--/T--></span>
+          <!-- END_IF -->
         </td>
         <td class="acms-admin-table-nowrap">
           <!-- BEGIN scope:touch#global -->
@@ -155,9 +158,8 @@
   </table>
 </div>
 <!-- END existSet -->
-<!-- END_MODULE Admin_Config_Set_Index -->
 
-<h3 class="acms-admin-admin-title2">レガシー設定</h3>
+<h3 class="acms-admin-admin-title2"><!--T-->レガシー設定<!--/T--></h3>
 
 <div class="acms-admin-table-responsive">
   <table class="acms-admin-table-admin acms-admin-table-hover">
@@ -170,13 +172,20 @@
     </thead>
     <tbody>
       <tr>
-        <td>
+        <td class="acms-admin-title-sp">
           <a href="%{HTTP_ROOT}bid/%{BID}/admin/config_index/<!-- BEGIN_IF [%{rid}/nem/] -->?rid=%{rid}<!-- END_IF -->">
             <!--T-->このブログのコンフィグ（レガシー設定）<!--/T-->
           </a>
+          <!-- BEGIN_IF [{legacyBlogConfigInUse}/eq/1] -->
+          <span class="acms-admin-label acms-admin-label-success acms-admin-ms-1"><!--T-->このブログで使用中<!--/T--></span>
+          <!-- END_IF -->
         </td>
         <td>
+          <!-- BEGIN_IF [{legacyBlogConfigInUse}/eq/1] -->
+          <!--T-->コンフィグセットが未設定のため、このブログのコンフィグ（レガシー設定）が適用されています。<!--/T-->
+          <!-- ELSE -->
           <!--T-->コンフィグセットが設定されている場合、使用されません。<!--/T-->
+          <!-- END_IF -->
         </td>
         <td class="acms-admin-table-nowrap">
           <a class="acms-admin-btn-admin" href="%{HTTP_ROOT}bid/%{BID}/admin/config_index/<!-- BEGIN_IF [%{rid}/nem/] -->?rid=%{rid}<!-- END_IF -->"><!--T-->コンフィグ<!--/T--></a>
@@ -185,3 +194,4 @@
     </tbody>
   </table>
 </div>
+<!-- END_MODULE Admin_Config_Set_Index -->

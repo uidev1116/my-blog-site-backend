@@ -5,6 +5,17 @@ use Acms\Services\Facades\Login;
 class ACMS_POST_Member_Tfa_Unregister extends ACMS_POST_Member
 {
     /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @inheritDoc
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return Login::isValidAuthenticatedPath(BID, TFA_UPDATE_SEGMENT) ||
+            Login::isValidAuthenticatedPath(BID, BID_SEGMENT . '/' . BID . '/' . UID_SEGMENT . '/' . SUID . '/admin/user_tfa');
+    }
+
+    /**
      * 2段階認証を無効化
      *
      * @return Field_Validation
@@ -13,7 +24,9 @@ class ACMS_POST_Member_Tfa_Unregister extends ACMS_POST_Member
     {
         $tfaField = $this->extract('tfa');
         $this->validate($tfaField);
-        $uid = SUID ?? 0; // @phpstan-ignore-line
+        /** @var int|null $uid */
+        $uid = SUID;
+        assert(is_int($uid)); // validate() でログイン済みが保証されている
         $this->disableTfa($uid);
 
         if ($this->Post->isValidAll()) {
@@ -38,7 +51,7 @@ class ACMS_POST_Member_Tfa_Unregister extends ACMS_POST_Member
             $tfaField->setMethod('tfa', 'isOperable', false);
             httpStatusCode('403 Forbidden');
         }
-        if (!SUID) { // @phpstan-ignore-line
+        if (!Login::isLoggedIn()) {
             $tfaField->setMethod('tfa', 'isOperable', false);
             httpStatusCode('403 Forbidden');
         }

@@ -116,10 +116,10 @@ class Helper
         }
 
         // 8. 文字数チェック（バイト数チェック）
-        // MySQLのvarchar(255)はバイト数で制限されるため、strlen()を使用
-        // mb_strlen()は文字数を返すため、日本語の場合にバイト数が255を超えても検証を通過してしまう
-        if (strlen($fileName) > 255) {
-            return ['valid' => false, 'error' => 'ファイル名が長すぎます(255バイト以内)', 'errorCode' => FileNameValidationError::TOO_LONG->value];
+        // ファイル名の長さはOSに依存するため、システムの仕様（large-やtiny-などの接頭語追加）を考慮して
+        // 余裕を持って200バイトに制限する。strlen()を使用してバイト数を正確にチェックする。
+        if (strlen($fileName) > 200) {
+            return ['valid' => false, 'error' => 'ファイル名が長すぎます(200バイト以内)', 'errorCode' => FileNameValidationError::TOO_LONG->value];
         }
 
         // 9. Windows予約語チェック
@@ -291,14 +291,6 @@ class Helper
         $filepath = $_FILES[$fieldName]['tmp_name'];
         $filename = $_FILES[$fieldName]['name'];
 
-        /**
-         * @var array{
-         *  path: string,
-         *  type: string,
-         *  name: string,
-         *  size: string
-         * } $data
-         */
         $data = $this->storeImage(
             filepath: $filepath,
             filename: $filename,
@@ -308,9 +300,9 @@ class Helper
         return [
             'path' => $data['path'],
             'type' => 'image',
-            'name' => PublicStorage::mbBasename($data['path']),
+            'name' => $data['name'],
             'size' => $data['size'],
-            'filesize' => PublicStorage::getFileSize(MEDIA_LIBRARY_DIR . $data['path']),
+            'filesize' => $data['filesize'],
             'extension' => $data['type'],
         ];
     }
@@ -340,7 +332,6 @@ class Helper
 
     /**
      * SVGをアップロード
-     * @param int $size
      * @param string $fieldName
      * @return array{
      *   path: string,
@@ -348,22 +339,24 @@ class Helper
      *   name: string,
      *   size: string,
      *   filesize: int,
+     *   extension: string,
      * }
      */
-    public function uploadSvg($size, $fieldName = 'file')
+    public function uploadSvg($fieldName = 'file')
     {
         $data = $this->createFile(MEDIA_LIBRARY_DIR, $fieldName, false);
-        $data['extension'] = $data['type'];
-        $data['type'] = 'svg';
-        $data['size'] = '';
-        $data['filesize'] = $size;
-
-        return $data;
+        return [
+            'path' => $data['path'],
+            'type' => 'svg',
+            'name' => $data['name'],
+            'size' => '',
+            'filesize' => $data['filesize'],
+            'extension' => $data['type'],
+        ];
     }
 
     /**
      * ファイルをアップロード
-     * @param int $size
      * @param string $fieldName
      * @return array{
      *   path: string,
@@ -374,18 +367,20 @@ class Helper
      *   extension: string,
      * }|false
      */
-    public function uploadFile($size, $fieldName = 'file')
+    public function uploadFile($fieldName = 'file')
     {
         $data = $this->createFile(MEDIA_STORAGE_DIR, $fieldName, false);
         if (!PrivateStorage::exists(MEDIA_STORAGE_DIR . $data['path'])) {
             return false;
         }
-        $data['extension'] = $data['type'];
-        $data['type'] = 'file';
-        $data['size'] = '';
-        $data['filesize'] = $size;
-
-        return $data;
+        return [
+            'path' => $data['path'],
+            'type' => 'file',
+            'name' => $data['name'],
+            'size' => '',
+            'filesize' => $data['filesize'],
+            'extension' => $data['type'],
+        ];
     }
 
     /**
@@ -507,26 +502,43 @@ class Helper
     }
 
     /**
-     * パスをURLエンコード
+     * URL のうちパスの末尾セグメント（ファイル名）と query / fragment を
+     * percent-encoding する。
+     *
+     * セマンティクスは PHP 組み込みの `rawurlencode` に揃える：
+     * - 入力は「**生（未エンコード）**の URL 文字列」を想定する。
+     *   ファイル名に含まれる非 ASCII 文字や半角スペースを percent-encoding する。
+     * - **idempotent ではない**。すでに percent-encoded された URL を渡すと
+     *   `%` が `%25` に再エンコードされて二重 encode になる。呼び出し側で
+     *   重複適用しないこと。
+     *
+     * 既エンコード入力にも安全な変換が必要な場合は本メソッドを 2 重に通さず、
+     * 別途 `rawurldecode` などで生形式に戻してから一度だけ通すこと。
      *
      * @param string $url
      * @return string
      */
     public function urlencode(string $url): string
     {
-        // parse_urlは相対URLにもある程度対応
+        // この関数の入力は「これからエンコードしたい未エンコード URL」なので、
+        // 非 ASCII 文字（ファイル名のマルチバイトなど）を含む。RFC 3986 厳格な
+        // Rfc3986Uri::parse() はこれを reject するため、ここはあえて PHP 標準の
+        // 寛容な parse_url を使う。
         $parts = parse_url($url);
+        if ($parts === false) {
+            return $url;
+        }
 
-        // パス部分処理
+        // パス部分処理 — 末尾セグメント（ファイル名）のみ rawurlencode する
         if ($parts['path'] ?? null) {
             $pathParts = explode('/', $parts['path']);
             $filename = array_pop($pathParts);
             $encodedFilename = rawurlencode($filename);
-            $encodedPath = implode('/', $pathParts) . '/' . $encodedFilename;
-            // パス先頭のスラッシュ考慮
-            if (substr($parts['path'], 0, 1) === '/') {
-                $encodedPath = '/' . ltrim($encodedPath, '/');
-            }
+            // ディレクトリ部が無い（単独ファイル名）入力で先頭スラッシュを付与しないよう
+            // pathParts が空のときは separator 連結をスキップする
+            $encodedPath = $pathParts === []
+                ? $encodedFilename
+                : implode('/', $pathParts) . '/' . $encodedFilename;
         } else {
             $encodedPath = '';
         }
@@ -538,10 +550,15 @@ class Helper
             $encodedQuery = http_build_query($queryArray, '', '&', PHP_QUERY_RFC3986);
         }
 
-        // 組み立て
+        // 組み立て — 完全な URL（scheme + host）と protocol-relative（host のみ）の双方を扱う
         $result = '';
-        if (($parts['scheme'] ?? null) && ($parts['host'] ?? null)) {
-            $result .= $parts['scheme'] . '://';
+        $scheme = $parts['scheme'] ?? null;
+        $host = $parts['host'] ?? null;
+        if ($host !== null) {
+            if ($scheme !== null) {
+                $result .= $scheme . ':';
+            }
+            $result .= '//';
             if ($parts['user'] ?? null) {
                 $result .= $parts['user'];
                 if ($parts['pass'] ?? null) {
@@ -549,7 +566,7 @@ class Helper
                 }
                 $result .= '@';
             }
-            $result .= $parts['host'];
+            $result .= $host;
             if ($parts['port'] ?? null) {
                 $result .= ':' . $parts['port'];
             }
@@ -1113,7 +1130,7 @@ class Helper
      * @param int $mid
      * @return string
      */
-    public function getMediaLabel($mid)
+    public function getMediaLabel(int $mid): string
     {
         $label = '';
         $DB = DB::singleton(dsn());
@@ -1193,6 +1210,7 @@ class Helper
      *  iconHeight: string,
      *  extension: string,
      *  fileSize: int,
+     *  imagePermalink: string,
      * }[]
      */
     public function getMediaList(array $midiaIds): array
@@ -1201,6 +1219,7 @@ class Helper
 
         return array_map(function ($media) {
             $path = $media['media_path'];
+            $cacheBustingPath = $path . $this->cacheBusting($media['media_update_date']);
             [$width, $height] = array_pad(explode('x', $media['media_image_size']), 2, '');
             $width = '';
             $height = '';
@@ -1210,8 +1229,8 @@ class Helper
             $iconHeight = '';
             if ($media['media_image_size']) {
                 [$width, $height] = array_pad(explode('x', $media['media_image_size']), 2, '');
-                $width = (string) $width;
-                $height = (string) $height;
+                $width = trim((string) $width);
+                $height = trim((string) $height);
             }
             if ($media['media_type'] === 'file') {
                 if ($media['media_status']) {
@@ -1235,6 +1254,7 @@ class Helper
                 'iconHeight' => $iconHeight,
                 'extension' => $media['media_extension'],
                 'fileSize' => $media['media_file_size'],
+                'imagePermalink' => $this->getImagePermalink($cacheBustingPath),
             ];
         }, $mediaList);
     }
@@ -1268,9 +1288,9 @@ class Helper
      *   last_update_user_id: int,
      *   last_update_user_name: string,
      *   editable: bool
-     * }|array{}
+     * }|null
      */
-    public function getMedia($mid)
+    public function getMedia(int $mid): array|null
     {
         $sql = SQL::newSelect('media', 'm');
         foreach (
@@ -1313,9 +1333,10 @@ class Helper
         $sql->addLeftJoin('user', 'user_id', 'media_user_id', 'user');
         $sql->addLeftJoin('user', 'user_id', 'media_last_update_user_id', 'last_update_user');
         $sql->addWhereOpr('media_id', $mid);
+        /** @var array<string, mixed>|false $row */
         $row = DB::query($sql->get(dsn()), 'row');
-        if (empty($row)) {
-            return [];
+        if ($row === false) {
+            return null;
         }
 
         return [
@@ -1546,6 +1567,10 @@ class Helper
     public function downloadFile($mid)
     {
         $media = $this->getMedia($mid);
+        if ($media === null) {
+            httpStatusCode('404 Not Found');
+            return;
+        }
         $download = new Download($media);
         if (!$download->exists()) {
             httpStatusCode('404 Not Found');
@@ -1576,7 +1601,7 @@ class Helper
      * @param string $archivesDir
      * @param string $fieldName
      * @param bool $random
-     * @return array{path: string, type: string, name: string, size: string}
+     * @return array{path: string, type: string, name: string, filesize: int}
      * @throws RuntimeException
      */
     protected function createFile(string $archivesDir, string $fieldName = 'file', bool $random = true): array
@@ -1613,10 +1638,10 @@ class Helper
      * ファイルを保存する
      *
      * @param string $archivesDir
-     * @param string $path 読み取り元のファイルパス（一時ファイルまたは既存ファイル）
+     * @param string $filepath 読み取り元のファイルパス（一時ファイルまたは既存ファイル）
      * @param string $filename 元のファイル名（拡張子を含む）
      * @param bool $random
-     * @return array{path: string, type: string, name: string, size: string}
+     * @return array{path: string, type: string, name: string, filesize: int}
      * @throws RuntimeException
      */
     public function storeFile(
@@ -1684,13 +1709,16 @@ class Helper
             $Hook = ACMS_Hook::singleton();
             $Hook->call('mediaCreate', $file);
         }
-        $fileSize = filesize($filepath);
+        // SVG はサニタイズで内容が書き換わるため、保存後のファイルサイズを参照する
+        $fileSize = $isPublicStorage
+            ? PublicStorage::getFileSize($file)
+            : PrivateStorage::getFileSize($file);
 
         return [
             'path' => $path,
             'type' => strtoupper($extension),
             'name' => $name . '.' . $extension,
-            'size' => $fileSize !== false ? byteConvert($fileSize) : '0B',
+            'filesize' => $fileSize,
         ];
     }
 
@@ -1701,7 +1729,7 @@ class Helper
      * @param string $filename 元のファイル名
      * @param int|null $angle
      * @param bool $original
-     * @return array{path: string, type: string, name: string, size: string}
+     * @return array{path: string, type: string, name: string, size: string, filesize: int}
      */
     public function storeImage(
         string $filepath,
@@ -1741,7 +1769,7 @@ class Helper
      *
      * @param string $filepath
      * @param string $filename
-     * @return array{path: string, type: string, name: string, size: string}
+     * @return array{path: string, type: string, name: string, size: string, filesize: int}
      */
     public function storePdfThumbnailImage(
         string $filepath,

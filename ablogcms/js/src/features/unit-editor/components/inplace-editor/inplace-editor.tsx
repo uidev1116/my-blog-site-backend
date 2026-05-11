@@ -16,6 +16,8 @@ import HStack from '@components/stack/h-stack';
 import Alert from '@components/alert/alert';
 import { notify } from '../../../../lib/notify';
 
+const EMPTY_UNIT_TREE: UnitTree = [];
+
 interface InplaceEditorProps {
   defaultValue?: UnitTree;
   settings?: UnitEditorSettings;
@@ -24,7 +26,11 @@ interface InplaceEditorProps {
 
 const BASE_CLASSNAME = 'acms-admin-unit';
 
-const InplaceEditor = ({ defaultValue = [], settings = defaultEditorSettings, unitId }: InplaceEditorProps) => {
+const InplaceEditor = ({
+  defaultValue = EMPTY_UNIT_TREE,
+  settings = defaultEditorSettings,
+  unitId,
+}: InplaceEditorProps) => {
   const handleError: EditorOptions['onError'] = useCallback((props) => {
     const { message } = props;
     notify.danger(message);

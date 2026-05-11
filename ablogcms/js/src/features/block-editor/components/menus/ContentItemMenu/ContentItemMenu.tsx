@@ -26,15 +26,6 @@ export const ContentItemMenu = ({ editor, getFilteredBlockMenus }: ContentItemMe
 
   const getAnchorRect = () => menuAnchorRef.current!.getBoundingClientRect();
 
-  // メニューが開いているときはドラッグハンドルをロックする
-  useEffect(() => {
-    if (menuOpen) {
-      editor.commands.setMeta('lockDragHandle', true);
-    } else {
-      editor.commands.setMeta('lockDragHandle', false);
-    }
-  }, [editor, menuOpen]);
-
   // ショートカット
   useEffect(() => {
     const { dom } = editor.view;
@@ -101,7 +92,14 @@ export const ContentItemMenu = ({ editor, getFilteredBlockMenus }: ContentItemMe
         >
           <Icon name="add" />
         </Toolbar.Button>
-        <Menu isOpen={menuOpen} onOpenChange={setMenuOpen} getAnchorRect={getAnchorRect}>
+        <Menu
+          isOpen={menuOpen}
+          onOpenChange={(open) => {
+            setMenuOpen(open);
+            editor.commands.setMeta('lockDragHandle', open);
+          }}
+          getAnchorRect={getAnchorRect}
+        >
           <Toolbar.Button
             type="button"
             size="small"
@@ -125,7 +123,9 @@ export const ContentItemMenu = ({ editor, getFilteredBlockMenus }: ContentItemMe
                 editor.view.dispatch(tr.setSelection(nodeSelection).scrollIntoView());
               }
 
-              setMenuOpen((prev) => !prev);
+              const newOpen = !menuOpen;
+              setMenuOpen(newOpen);
+              editor.commands.setMeta('lockDragHandle', newOpen);
             }}
           >
             <Icon name="drag_indicator" />

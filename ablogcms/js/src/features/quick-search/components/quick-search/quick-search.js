@@ -5,7 +5,7 @@ import classnames from 'classnames';
 import copy from 'copy-to-clipboard';
 import styled from 'styled-components';
 import { JSONTree } from 'react-json-tree';
-import axiosLib from '../../../../lib/axios';
+import { fetchClient } from '../../../../lib/fetch-client';
 import IncrementalSearch from '../../lib/incremental-search';
 import Modal from '../../../../components/modal/modal';
 import { ExpireLocalStorage } from '../../../../utils';
@@ -382,7 +382,7 @@ const CustomJsonLabelRenderer = ({ keyPath }) => {
   );
 };
 
-export default QuickSearch = ({ buttons }) => {
+const QuickSearch = ({ buttons }) => {
   const [lists, setLists] = useState([]);
   const [init, setInit] = useState(false);
   const [menus, setMenus] = useState(null);
@@ -434,12 +434,7 @@ export default QuickSearch = ({ buttons }) => {
     const params = new URLSearchParams();
     params.append('ACMS_POST_Search_GlobalVars', true);
     params.append('formToken', window.csrfToken);
-    axiosLib({
-      method: 'POST',
-      url: window.location.href,
-      responseType: 'json',
-      data: params,
-    }).then((res) => {
+    fetchClient.post(window.location.href, params).then((res) => {
       res.data.items.push({
         bid: ACMS.Config.bid,
         title: '\u0025{ROOT_TPL}',
@@ -464,7 +459,7 @@ export default QuickSearch = ({ buttons }) => {
       setVars(data.vars);
       loadGlobalVars();
     } else {
-      axiosLib
+      fetchClient
         .get(endpoint)
         .then((res) => {
           setMenus(res.data.menus);
@@ -522,7 +517,7 @@ export default QuickSearch = ({ buttons }) => {
 
   const showSnippets = (item) => {
     if (item) {
-      axiosLib.get(item.url).then((res) => {
+      fetchClient.get(item.url).then((res) => {
         const parser = new DOMParser();
         let html = parser.parseFromString(res.data, 'text/html');
         html = (html.querySelector('pre>code') || html.querySelector('textarea')).textContent;
@@ -534,7 +529,7 @@ export default QuickSearch = ({ buttons }) => {
 
   const showVars = (item) => {
     if (item) {
-      axiosLib.get(item.url).then((res) => {
+      fetchClient.get(item.url).then((res) => {
         const parser = new DOMParser();
         const html = parser.parseFromString(res.data, 'text/html');
         setModalContent(html.body.innerHTML);
@@ -961,6 +956,7 @@ export default QuickSearch = ({ buttons }) => {
                             className={classnames({ hover: getNumber(listIndex, index) === number })}
                           >
                             <td style={{ width: '1px', wordBreak: 'break-all' }}>
+                              {/* eslint-disable-next-line jsx-a11y/control-has-associated-label -- 頭文字装飾用で操作対象ではない */}
                               <div className={classnames('initial-mark', getInitialClassByName(list.enTitle))} />
                             </td>
                             <td>
@@ -1131,3 +1127,5 @@ export default QuickSearch = ({ buttons }) => {
     </>
   );
 };
+
+export default QuickSearch;

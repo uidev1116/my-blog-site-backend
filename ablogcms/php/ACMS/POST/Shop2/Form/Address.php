@@ -1,5 +1,6 @@
 <?php
 
+use Acms\Services\Facades\Login;
 use Acms\Services\Logger\Deprecated;
 
 /**
@@ -26,24 +27,42 @@ class ACMS_POST_Shop2_Form_Address extends ACMS_POST_Shop2
         // プライマリアドレスのバリデーションメソッドを追加
         $Primary = $this->extract('primary');
         $Primary->setMethod('name', 'required');
+        $Primary->setMethod('name', 'maxlength', '64');
         $Primary->setMethod('ruby', 'required');
+        $Primary->setMethod('ruby', 'maxlength', '64');
         $Primary->setMethod('zip', 'required');
+        $Primary->setMethod('zip', 'maxlength', '64');
         $Primary->setMethod('prefecture', 'required');
+        $Primary->setMethod('prefecture', 'maxlength', '64');
         $Primary->setMethod('city', 'required');
+        $Primary->setMethod('city', 'maxlength', '64');
         $Primary->setMethod('field_1', 'required');
+        $Primary->setMethod('field_1', 'maxlength', '64');
         $Primary->setMethod('telephone', 'required');
+        $Primary->setMethod('telephone', 'maxlength', '64');
+        $Primary->setMethod('country', 'maxlength', '64');
+        $Primary->setMethod('field_2', 'maxlength', '64');
         $Primary->validate(new ACMS_Validator());
 
         // 送り先がセカンダリで指定されていれば，バリデーションメソッドを追加
         $Secondary = $this->extract('secondary');
         if ($Order->get('sendto') == 'secondary') {
             $Secondary->setMethod('name#2', 'required');
+            $Secondary->setMethod('name#2', 'maxlength', '64');
             $Secondary->setMethod('ruby#2', 'required');
+            $Secondary->setMethod('ruby#2', 'maxlength', '64');
             $Secondary->setMethod('zip#2', 'required');
+            $Secondary->setMethod('zip#2', 'maxlength', '64');
             $Secondary->setMethod('prefecture#2', 'required');
+            $Secondary->setMethod('prefecture#2', 'maxlength', '64');
             $Secondary->setMethod('city#2', 'required');
+            $Secondary->setMethod('city#2', 'maxlength', '64');
             $Secondary->setMethod('field_1#2', 'required');
+            $Secondary->setMethod('field_1#2', 'maxlength', '64');
             $Secondary->setMethod('telephone#2', 'required');
+            $Secondary->setMethod('telephone#2', 'maxlength', '64');
+            $Secondary->setMethod('country#2', 'maxlength', '64');
+            $Secondary->setMethod('field_2#2', 'maxlength', '64');
         }
         $Secondary->validate(new ACMS_Validator());
 
@@ -53,7 +72,7 @@ class ACMS_POST_Shop2_Form_Address extends ACMS_POST_Shop2
             /**
              * プライマリアドレスをINSERTまたはUPDATEする
              */
-            if (!is_null(SUID)) {
+            if (Login::isLoggedIn()) {
                 $SQL = SQL::newSelect('shop_address');
                 $SQL->addWhereOpr('address_user_id', SUID);
                 $SQL->addWhereOpr('address_primary', 'on');
@@ -97,10 +116,10 @@ class ACMS_POST_Shop2_Form_Address extends ACMS_POST_Shop2
              * セカンダリアドレスの指定があり，かつ登録フラグが立っていればINSERTを発行
              */
             if (
-                !$Secondary->isNull() && // @phpstan-ignore-line
+                !$Secondary->isNull() &&
                 $Secondary->get('regist') === 'on' &&
                 $Order->get('sendto') === 'secondary' &&
-                !is_null(SUID) // @phpstan-ignore-line
+                Login::isLoggedIn()
             ) {
                 $aid    = $DB->query(SQL::nextval('shop_address_id', dsn()), 'seq');
                 $SQL    = SQL::newInsert('shop_address');
@@ -155,7 +174,7 @@ class ACMS_POST_Shop2_Form_Address extends ACMS_POST_Shop2
             //$SESSION =& Field::singleton('session');
             $SESSION =& $this->openSession();
 
-            if (is_null(SUID)) { // @phpstan-ignore-line
+            if (!Login::isLoggedIn()) {
                 $mail = $Primary->get('mail');
                 $Primary->delete('mail');
                 $SESSION->set('mail', $mail);

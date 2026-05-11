@@ -1,4 +1,4 @@
-import { forwardRef, useRef, useCallback, useMemo, isValidElement, cloneElement } from 'react';
+import { forwardRef, useRef, useCallback, isValidElement, cloneElement } from 'react';
 import { useListItem } from '@floating-ui/react';
 import { Icon } from '@components/icon';
 import type { PolymorphicProps } from '../../types/polymorphic';
@@ -73,9 +73,7 @@ const MenuItemRadio = forwardRef<HTMLDivElement, MenuItemRadioProps>(
       [setValue, valueProp, onKeyDown, isDisabled]
     );
 
-    const checked = useMemo(() => {
-      return value === valueProp;
-    }, [value, valueProp]);
+    const checked = value === valueProp;
 
     const Component = asChild ? Slot : 'div';
 

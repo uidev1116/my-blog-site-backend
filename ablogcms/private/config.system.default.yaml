@@ -37,6 +37,8 @@ ajax_security_level: 1 # ajaxリクエストのセキュリティレベルを設
 referrer_validation: allow_empty # リファラー必須（常にチェック）: 'require' | チェックしない: 'none' | 空の場合は許可する: 'allow_empty'
 
 ## ログイン・セッション
+deny_blog_login: off # on | off このブログではログイン画面を表示せず、ログインなどの認証系処理自体を受け付けない （＊ルートブログは禁止にできません）
+fix_login_url: off # on | off ログインなどの認証系画面・処理をブログトップに固定します（例: https://example.com/login/）
 subscribe_login_anywhere: off # on | off
 login_white_hosts: # CIDR記法(例：a.b.c.d/32)で指定されたIPアドレスからのアクセスに限りログインできるようになります。
 login_black_hosts: # CIDR記法(例：a.b.c.d/32)で指定されたIPアドレスからのアクセスに限りログインできないようになります。
@@ -110,7 +112,6 @@ addtype_mimetype:
 addtype_extension:
 '@addtype_group': [addtype_mimetype, addtype_extension]
 login_admin_path:
-login_ssl: off
 convert_kana:
 subscribe: off
 remove_comment: off
@@ -685,6 +686,15 @@ category_list_amount_zero: on
 category_list_level:
 category_list_field_search: entry
 category_list_field: on
+
+## カテゴリーフラット
+category_flat_order: amount-desc
+category_flat_amount: on
+category_flat_count_entries_in_subcategories: off
+category_flat_amount_zero: on
+category_flat_level:
+category_flat_field_search: entry
+category_flat_field: on
 
 ## カテゴリー位置リスト
 category_geo-list_reference_point: url_context

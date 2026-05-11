@@ -4,11 +4,6 @@ namespace Acms\Services\StaticExport\Generator;
 
 use Acms\Services\StaticExport\Contracts\Generator;
 use Acms\Services\Facades\LocalStorage;
-use Acms\Services\StaticExport\Entities\Page;
-use React\Promise\Promise;
-use React\Promise\PromiseInterface;
-
-use function React\Async\await;
 
 class CategoryGenerator extends Generator
 {
@@ -28,34 +23,32 @@ class CategoryGenerator extends Generator
 
     protected function getName(): string
     {
-        return 'カテゴリートップの書き出し';
+        return "カテゴリートップの書き出し（{$this->targetBlogName}）";
     }
 
     /**
      * @inheritDoc
      */
-    public function run(): PromiseInterface
+    public function run(): void
     {
-        return new Promise(
-            function (callable $resolve) {
-                $pages = array_map(
-                    function (int $categoryId) {
-                        $blogUrl = acmsLink(['bid' => BID]);
-                        $url = acmsLink([
-                            'bid' => BID,
-                            'cid' => $categoryId,
-                        ]);
-                        $categoryDir = substr($url, strlen($blogUrl));
-                        $filepath = $categoryDir . 'index.html';
-                        return new Page($url, $filepath);
-                    },
-                    $this->categoryIds
-                );
-                $this->logger->start($this->getName(), count($pages));
-                await($this->handle($pages));
-                $resolve(null);
-            }
+        array_map(
+            function (int $categoryId) {
+                $blogUrl = acmsLink(['bid' => $this->targetBlogId]);
+                $url = acmsLink([
+                    'bid' => $this->targetBlogId,
+                    'cid' => $categoryId,
+                ]);
+                $categoryDir = substr($url, strlen($blogUrl));
+                $filepath = $categoryDir . 'index.html';
+
+                if ($url) {
+                    $this->addPage($url, $filepath);
+                }
+            },
+            $this->categoryIds
         );
+        $this->logger->start($this->getName(), count($this->categoryIds));
+        $this->handle();
     }
 
     /**
@@ -78,19 +71,11 @@ class CategoryGenerator extends Generator
     /**
      * @param \Throwable $th
      * @param string $url
+     * @param int $statusCode
      * @return void
      */
-    protected function handleError(\Throwable $th, string $url): void
+    protected function handleError(\Throwable $th, string $url, int $statusCode): void
     {
-        if ($th instanceof \React\Http\Message\ResponseException) {
-            $response = $th->getResponse();
-            $this->logger->error(
-                'データの取得に失敗しました。',
-                $url,
-                $response->getStatusCode()
-            );
-            return;
-        }
-        $this->logger->error($th->getMessage(), $url);
+        $this->logger->error($th->getMessage(), $url, $statusCode);
     }
 }

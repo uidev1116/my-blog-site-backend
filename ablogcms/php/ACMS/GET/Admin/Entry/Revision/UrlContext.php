@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Entry;
+
 class ACMS_GET_Admin_Entry_Revision_UrlContext extends ACMS_GET_Admin_Entry_Revision
 {
     public function get()
@@ -28,8 +30,8 @@ class ACMS_GET_Admin_Entry_Revision_UrlContext extends ACMS_GET_Admin_Entry_Revi
             if (RVID > 1) {
                 break;
             }
-            // 承認機能有効で、管理者でない場合、保存できない
-            if (enableApproval(BID, CID) && !sessionWithApprovalAdministrator(BID, CID)) {
+            // 承認フローが必要なユーザーの場合、保存できない
+            if (Entry::requiresApproval(BID, CID)) {
                 break;
             }
             $tpl->add('enbaleUpdateEntry');
@@ -52,14 +54,9 @@ class ACMS_GET_Admin_Entry_Revision_UrlContext extends ACMS_GET_Admin_Entry_Revi
             if (intval($currentEntry['entry_current_rev_id']) === RVID) {
                 break;
             }
-            // 承認機能有効の場合
-            if (enableApproval(BID, CID)) {
-                if (!sessionWithApprovalAdministrator(BID, CID)) {
-                    // 最終承認できないユーザーで、承認前、承認中以外の場合は保存できない
-                    if (!in_array($revision['entry_rev_status'], ['none', 'in_review'])) {
-                        break;
-                    }
-                }
+            // 承認フローが必要なユーザーの場合、承認前・承認中以外のバージョンは保存できない
+            if (Entry::requiresApproval(BID, CID) && !in_array($revision['entry_rev_status'], ['none', 'in_review'])) {
+                break;
             }
             $tpl->add('enbaleUpdateVersion');
         } while (false);

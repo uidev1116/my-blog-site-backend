@@ -61,7 +61,14 @@ interface CommonUnitToolbarProps extends Omit<React.ComponentPropsWithoutRef<typ
   features?: Partial<UnitToolbarFeatures>;
 }
 
-const CommonUnitToolbar = ({ editor, unit, features: featuresProp = {}, ...props }: CommonUnitToolbarProps) => {
+const EMPTY_FEATURES: Partial<UnitToolbarFeatures> = {};
+
+const CommonUnitToolbar = ({
+  editor,
+  unit,
+  features: featuresProp = EMPTY_FEATURES,
+  ...props
+}: CommonUnitToolbarProps) => {
   const settings = useSettings();
 
   // featuresのマージ

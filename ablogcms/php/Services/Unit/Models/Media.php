@@ -631,18 +631,17 @@ class Media extends Model implements AlignableUnitInterface, ImageUnit, UnitList
             "use_icon{$suffix}" => $useIcon,
             "file_utid{$suffix}" => $this->getId(),
         ];
-        if ($useIcon === 'yes' || !$isPdfFile) {
+        if ($useIcon === 'yes' || !$isPdfFile || $media['media_thumbnail'] === '') {
+            // PDFのサムネイルは互換性のため存在しない可能性があるため、その場合はアイコンを出力する
             list($iconWidth, $iconHeight) = $this->getIconSize($iconPath);
             $vars += [
                 "x{$suffix}" => $iconWidth,
                 "y{$suffix}" => $iconHeight,
             ];
         } else {
-            if ($media['media_thumbnail'] !== '') {
-                $vars["thumbnail{$suffix}"] = $media['media_thumbnail'];
-                $size = $mediaSizes[$index] ?? '';
-                $vars = $this->resolveImageSize($vars, $suffix, $media['media_image_size'], $size, 'file', $media['media_thumbnail']);
-            }
+            $vars["thumbnail{$suffix}"] = $media['media_thumbnail'];
+            $size = $mediaSizes[$index] ?? '';
+            $vars = $this->resolveImageSize($vars, $suffix, $media['media_image_size'], $size, 'file', $media['media_thumbnail']);
         }
         return $vars;
     }

@@ -6,7 +6,9 @@ interface InplaceToolbarProps
   features?: Partial<Pick<UnitToolbarFeatures, 'anker' | 'align'>>;
 }
 
-const InplaceToolbar = ({ editor, unit, features = {}, ...props }: InplaceToolbarProps) => {
+const EMPTY_FEATURES: Partial<Pick<UnitToolbarFeatures, 'anker' | 'align'>> = {};
+
+const InplaceToolbar = ({ editor, unit, features = EMPTY_FEATURES, ...props }: InplaceToolbarProps) => {
   return (
     <CommonUnitToolbar
       editor={editor}

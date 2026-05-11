@@ -1,23 +1,25 @@
-{% if body.pageType in ['edit', 'editForm'] %}
-<article class="entry clearfix">
-  {% if body.pageType == 'edit' %}
-  <div class="titleWrapper">
-    {% if body.editAction == 'insert' %}
-    <h2>エントリー作成</h2>
-    <p>内容を入力し、「作成」ボタンを押してください。</p>
-    {% endif %}
-    {% if body.editAction == 'update' %}
-    <h2>エントリー変更</h2>
-    <p>内容を変更し、「保存」ボタンを押してください。</p>
-    {% endif %}
-  </div>
-  {{ include('/admin/entry/edit-parts.twig') }}
-  {% endif %}
-  {% if body.pageType == 'editForm' %}
-  <div class="acms-box-medium">
-    @include("/admin/form2/edit.html")
-    <hr class="clearHidden" />
-  </div>
-  {% endif %}
-</article>
-{% endif %}
+{#
+  互換性維持のために残している空ファイル。
+
+  かつて本ファイルは管理画面のエントリー編集画面のテンプレート実体として
+  使われていたが、現在は admin/entry/edit.html に集約されており実体は持たない。
+
+  ただし配布済みのサンプルテーマやパートナーテーマで以下のように
+  拡張子 .twig を明示してインクルードしているケースが残存している:
+
+      {{ include('/admin/entry/edit.twig', { ... }) }}
+
+  本ファイルを削除すると、これらの環境でバージョンアップ時に Twig の
+  テンプレート探索が失敗してエラー画面になるため、空のまま配布物に
+  含めている。Twig 内部 include 経路で本 stub が読み込まれた場合は空出力
+  となるだけでエラーにならない。
+
+  一方、a-blog cms のテンプレート探索（function findTemplate()）からは
+  Acms\Services\Template\TwigPolicy によって本パスを Twig 統合の対象外
+  として扱い、ユーザーテーマに残存した edit.twig を経由せず必ず
+  admin/entry/edit.html を解決させている（JS のダイレクト編集 fetch などで
+  本 stub が拾われて空応答になる事態を防ぐため）。
+
+  外部の edit.twig 依存箇所が完全に解消され次第、TwigPolicy::EXCLUDED_PATHS
+  から本パスを外し、本ファイルを物理削除する。
+#}

@@ -1,7 +1,6 @@
-import { AxiosError } from 'axios';
 import dayjs from 'dayjs';
 import { type CustomAccessorColumn, type OptionData, type ColumnConfig } from '../../../components/dataview/types';
-import axiosLib from '../../../lib/axios';
+import { fetchClient, FetchError } from '../../../lib/fetch-client';
 import { type EntryType } from '../types';
 import { getFileNameFromContentDisposition } from '../../../utils';
 
@@ -27,16 +26,10 @@ export async function fetchCustomColumns(): Promise<CustomAccessorColumn<EntryTy
     tpl: 'ajax/config/entry/custom-column.json',
   });
 
-  const response = await axiosLib.get<CustomColumnsResponse>(url);
+  const response = await fetchClient.get<CustomColumnsResponse>(url);
 
   if (response.data.status === 'failure') {
-    throw new AxiosError(
-      'Failed to fetch custom columns.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to fetch custom columns.', response.status, response.statusText, response);
   }
 
   return response.data.columns;
@@ -50,16 +43,10 @@ export async function saveCustomColumns(formData: FormData): Promise<CustomAcces
   });
 
   formData.append('ACMS_POST_Config', 'exec');
-  const response = await axiosLib.post<CustomColumnsResponse>(url, formData);
+  const response = await fetchClient.post<CustomColumnsResponse>(url, formData);
 
   if (response.data.status === 'failure') {
-    throw new AxiosError(
-      'Failed to save custom columns.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to save custom columns.', response.status, response.statusText, response);
   }
 
   return response.data.columns;
@@ -87,16 +74,10 @@ export async function fetchColumnConfig(): Promise<ColumnConfig> {
     tpl: 'ajax/config/entry/column-config.json',
   });
 
-  const response = await axiosLib.get<ColumnConfigResponse>(url);
+  const response = await fetchClient.get<ColumnConfigResponse>(url);
 
   if (response.data.status === 'failure') {
-    throw new AxiosError(
-      'Failed to fetch column config.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to fetch column config.', response.status, response.statusText, response);
   }
 
   return response.data.config;
@@ -110,16 +91,10 @@ export async function saveColumnConfig(formData: FormData): Promise<ColumnConfig
   });
 
   formData.append('ACMS_POST_Config', 'exec');
-  const response = await axiosLib.post<ColumnConfigResponse>(url, formData);
+  const response = await fetchClient.post<ColumnConfigResponse>(url, formData);
 
   if (response.data.status === 'failure') {
-    throw new AxiosError(
-      'Failed to save column config.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to save column config.', response.status, response.statusText, response);
   }
 
   return response.data.config;
@@ -147,16 +122,10 @@ export async function fetchOptionData(keys: string[] = []): Promise<OptionData<E
     },
   });
 
-  const response = await axiosLib.get<FieldValuesGroupResponse>(url);
+  const response = await fetchClient.get<FieldValuesGroupResponse>(url);
 
   if (response.data.status === 'failure') {
-    throw new AxiosError(
-      'Failed to fetch option data.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to fetch option data.', response.status, response.statusText, response);
   }
 
   return Object.entries(response.data.data).reduce((acc, [key, values]) => {
@@ -177,16 +146,10 @@ export async function duplicateEntry(entry: EntryType): Promise<void> {
   formData.append('eid', entry.id.toString());
   formData.append('formToken', window.csrfToken);
 
-  const response = await axiosLib.post<ActionResponse>(url.toString(), formData);
+  const response = await fetchClient.post<ActionResponse>(url.toString(), formData);
 
   if (response.data.status === 'error') {
-    throw new AxiosError(
-      'Failed to duplicate entry.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to duplicate entry.', response.status, response.statusText, response);
   }
 }
 
@@ -198,16 +161,10 @@ export async function trashEntry(entry: EntryType): Promise<void> {
   formData.append('eid', entry.id.toString());
   formData.append('formToken', window.csrfToken);
 
-  const response = await axiosLib.post<ActionResponse>(url.toString(), formData);
+  const response = await fetchClient.post<ActionResponse>(url.toString(), formData);
 
   if (response.data.status === 'error') {
-    throw new AxiosError(
-      'Failed to trash entry.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to trash entry.', response.status, response.statusText, response);
   }
 }
 
@@ -219,16 +176,10 @@ export async function unlockEntry(entry: EntryType): Promise<void> {
   formData.append('eid', entry.id.toString());
   formData.append('formToken', window.csrfToken);
 
-  const response = await axiosLib.post<ActionResponse>(url.toString(), formData);
+  const response = await fetchClient.post<ActionResponse>(url.toString(), formData);
 
   if (response.data.status === 'error') {
-    throw new AxiosError(
-      'Failed to unlock entry.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to unlock entry.', response.status, response.statusText, response);
   }
 }
 
@@ -238,16 +189,10 @@ export async function changeSort(formData: FormData): Promise<void> {
   formData.append('ACMS_POST_Entry_Index_Sort_Entry', 'exec');
   formData.append('formToken', window.csrfToken);
 
-  const response = await axiosLib.post<ActionResponse>(url.toString(), formData);
+  const response = await fetchClient.post<ActionResponse>(url.toString(), formData);
 
   if (response.data.status === 'error') {
-    throw new AxiosError(
-      'Failed to change sort.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to change sort.', response.status, response.statusText, response);
   }
 }
 
@@ -257,16 +202,10 @@ export async function changeCategorySort(formData: FormData): Promise<void> {
   formData.append('ACMS_POST_Entry_Index_Sort_Category', 'exec');
   formData.append('formToken', window.csrfToken);
 
-  const response = await axiosLib.post<ActionResponse>(url.toString(), formData);
+  const response = await fetchClient.post<ActionResponse>(url.toString(), formData);
 
   if (response.data.status === 'error') {
-    throw new AxiosError(
-      'Failed to change category sort.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to change category sort.', response.status, response.statusText, response);
   }
 }
 
@@ -276,16 +215,10 @@ export async function changeUserSort(formData: FormData): Promise<void> {
   formData.append('ACMS_POST_Entry_Index_Sort_User', 'exec');
   formData.append('formToken', window.csrfToken);
 
-  const response = await axiosLib.post<ActionResponse>(url.toString(), formData);
+  const response = await fetchClient.post<ActionResponse>(url.toString(), formData);
 
   if (response.data.status === 'error') {
-    throw new AxiosError(
-      'Failed to change user sort.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to change user sort.', response.status, response.statusText, response);
   }
 }
 
@@ -294,16 +227,10 @@ export async function bulkChangeStatus(formData: FormData): Promise<void> {
   formData.append('ACMS_POST_Entry_Index_Status', 'exec');
   formData.append('formToken', window.csrfToken);
 
-  const response = await axiosLib.post<ActionResponse>(url.toString(), formData);
+  const response = await fetchClient.post<ActionResponse>(url.toString(), formData);
 
   if (response.data.status === 'error') {
-    throw new AxiosError(
-      'Failed to bulk change status.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to bulk change status.', response.status, response.statusText, response);
   }
 }
 
@@ -312,16 +239,10 @@ export async function bulkChangeCategory(formData: FormData): Promise<void> {
   formData.append('ACMS_POST_Entry_Index_Category', 'exec');
   formData.append('formToken', window.csrfToken);
 
-  const response = await axiosLib.post<ActionResponse>(url.toString(), formData);
+  const response = await fetchClient.post<ActionResponse>(url.toString(), formData);
 
   if (response.data.status === 'error') {
-    throw new AxiosError(
-      'Failed to bulk change category.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to bulk change category.', response.status, response.statusText, response);
   }
 }
 
@@ -330,16 +251,10 @@ export async function bulkChangeUser(formData: FormData): Promise<void> {
   formData.append('ACMS_POST_Entry_Index_User', 'exec');
   formData.append('formToken', window.csrfToken);
 
-  const response = await axiosLib.post<ActionResponse>(url.toString(), formData);
+  const response = await fetchClient.post<ActionResponse>(url.toString(), formData);
 
   if (response.data.status === 'error') {
-    throw new AxiosError(
-      'Failed to bulk change user.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to bulk change user.', response.status, response.statusText, response);
   }
 }
 
@@ -348,16 +263,10 @@ export async function bulkChangeBlog(formData: FormData): Promise<void> {
   formData.append('ACMS_POST_Entry_Index_Blog', 'exec');
   formData.append('formToken', window.csrfToken);
 
-  const response = await axiosLib.post<ActionResponse>(url.toString(), formData);
+  const response = await fetchClient.post<ActionResponse>(url.toString(), formData);
 
   if (response.data.status === 'error') {
-    throw new AxiosError(
-      'Failed to bulk change blog.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to bulk change blog.', response.status, response.statusText, response);
   }
 }
 
@@ -366,16 +275,10 @@ export async function bulkDuplicate(formData: FormData): Promise<void> {
   formData.append('ACMS_POST_Entry_Index_Duplicate', 'exec');
   formData.append('formToken', window.csrfToken);
 
-  const response = await axiosLib.post<ActionResponse>(url.toString(), formData);
+  const response = await fetchClient.post<ActionResponse>(url.toString(), formData);
 
   if (response.data.status === 'error') {
-    throw new AxiosError(
-      'Failed to bulk duplicate.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to bulk duplicate.', response.status, response.statusText, response);
   }
 }
 
@@ -384,17 +287,15 @@ export async function bulkTrash(formData: FormData): Promise<void> {
   formData.append('ACMS_POST_Entry_Index_Trash', 'exec');
   formData.append('formToken', window.csrfToken);
 
-  const response = await axiosLib.post<ActionResponse>(url.toString(), formData);
+  const response = await fetchClient.post<ActionResponse>(url.toString(), formData);
 
   if (response.data.status === 'error') {
-    throw new AxiosError(
-      'Failed to bulk trash.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
-    );
+    throw new FetchError('Failed to bulk trash.', response.status, response.statusText, response);
   }
+}
+
+interface ExportErrorResponse {
+  messages: string[];
 }
 
 export async function exportEntries(formData: FormData): Promise<void> {
@@ -402,23 +303,23 @@ export async function exportEntries(formData: FormData): Promise<void> {
   formData.append('ACMS_POST_Entry_Index_Export', 'exec');
   formData.append('formToken', window.csrfToken);
 
-  const response = await axiosLib.post<BlobPart>(url.toString(), formData, {
+  const response = await fetchClient.post<Blob>(url.toString(), formData, {
     responseType: 'blob',
   });
 
-  const contentType = response.headers['content-type'];
+  const contentType = response.headers.get('content-type') || '';
   if (contentType.includes('application/json')) {
-    throw new AxiosError(
-      'Failed to export entries.',
-      `${response.status} ${response.statusText}`,
-      response.config,
-      response.request,
-      response
+    const text = await response.data.text();
+    const errorData = JSON.parse(text) as ExportErrorResponse;
+    throw new FetchError<ExportErrorResponse>(
+      errorData.messages[0] || 'Failed to export entries.',
+      response.status,
+      response.statusText
     );
   }
 
   // サーバーから送信されたContent-Dispositionヘッダーからファイル名を取得
-  const contentDisposition = response.headers['content-disposition'];
+  const contentDisposition = response.headers.get('content-disposition') || '';
   const defaultFileName = `entries_${dayjs().format('YYYYMMDD_HHmmss')}.zip`;
   const fileName = getFileNameFromContentDisposition(contentDisposition, defaultFileName);
 

@@ -1955,8 +1955,7 @@
 .acms-admin-btn {
   box-sizing: border-box;
   display: inline-flex;
-  -moz-column-gap: 0.5rem;
-       column-gap: 0.5rem;
+  column-gap: 0.5rem;
   align-items: center;
   justify-content: center;
   min-height: auto;
@@ -2297,9 +2296,7 @@
   align-items: center;
   justify-content: center;
   line-height: 1;
-  -webkit-appearance: auto;
-     -moz-appearance: auto;
-          appearance: auto;
+  appearance: auto;
   cursor: pointer;
   position: relative;
   display: inline-block;
@@ -2311,9 +2308,7 @@
   text-align: left;
   text-decoration: none;
   vertical-align: middle;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background: url(../images/marker/arrow_black03.png) right center;
   background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSI1IiB2aWV3Qm94PSIwIDAgMTggNSI+PGc+PGc+PHBhdGggZmlsbD0ibm9uZSIgZD0iTTAgMGgxOHY1SDB6Ii8+PHBhdGggZmlsbD0iIzk5OSIgZD0iTTQuMjIgMGg0LjIyTDYuMzMgMi41IDQuMjIgNSAyLjExIDIuNSAwIDBoNC4yMnoiLz48L2c+PC9nPjwvc3ZnPg==") right center;
   background-color: #fff;
@@ -2391,8 +2386,7 @@
   cursor: pointer;
   box-sizing: border-box;
   display: inline-flex;
-  -moz-column-gap: 0.5rem;
-       column-gap: 0.5rem;
+  column-gap: 0.5rem;
   align-items: center;
   justify-content: center;
   min-height: auto;
@@ -2715,8 +2709,7 @@
 .acms-admin-btn-admin {
   box-sizing: border-box;
   display: inline-flex;
-  -moz-column-gap: 0.5rem;
-       column-gap: 0.5rem;
+  column-gap: 0.5rem;
   align-items: center;
   justify-content: center;
   min-height: auto;
@@ -3001,8 +2994,7 @@ fieldset:disabled .acms-admin-btn {
 .acms-admin-btn-icon {
   box-sizing: border-box;
   display: inline-flex;
-  -moz-column-gap: 0.5rem;
-       column-gap: 0.5rem;
+  column-gap: 0.5rem;
   align-items: center;
   justify-content: center;
   min-height: auto;
@@ -3035,15 +3027,12 @@ fieldset:disabled .acms-admin-btn {
 .acms-admin-btn-icon-unstyled {
   font-size: var(--acms-admin-btn-material-icon-font-size, 24px);
   color: var(--acms-admin-btn-material-icon-color, #7e7e8b);
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background: transparent;
   border: 0;
   box-sizing: border-box;
   display: inline-flex;
-  -moz-column-gap: 0.5rem;
-       column-gap: 0.5rem;
+  column-gap: 0.5rem;
   align-items: center;
   justify-content: center;
   min-height: auto;
@@ -3074,9 +3063,7 @@ fieldset:disabled .acms-admin-btn {
   justify-content: center;
   padding: var(--acms-admin-btn-draggable-padding-y) var(--acms-admin-btn-draggable-padding-x);
   color: inherit;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   touch-action: none;
   cursor: grab;
   background: none;
@@ -3102,9 +3089,7 @@ fieldset:disabled .acms-admin-btn {
 
 :where(.acms-admin-btn-unstyled) {
   padding: 0;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background: transparent;
   border: 0;
 }
@@ -3158,8 +3143,7 @@ fieldset:disabled .acms-admin-btn {
   --acms-admin-btn-v2-disabled-box-shadow: 0 1px 4px 0 var(--acms-admin-btn-v2-disabled-box-shadow-rgb);
   box-sizing: border-box;
   display: inline-flex;
-  -moz-column-gap: var(--acms-admin-btn-v2-column-gap);
-       column-gap: var(--acms-admin-btn-v2-column-gap);
+  column-gap: var(--acms-admin-btn-v2-column-gap);
   align-items: center;
   justify-content: center;
   min-height: var(--acms-admin-btn-v2-min-height);
@@ -3617,9 +3601,7 @@ button,
 input[type=button],
 input[type=reset],
 input[type=submit] {
-  -webkit-appearance: auto;
-     -moz-appearance: auto;
-          appearance: auto;
+  appearance: auto;
   cursor: pointer;
 }
 
@@ -3657,9 +3639,7 @@ label {
   line-height: 1;
   color: #333;
   vertical-align: middle;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 3px;
@@ -3874,9 +3854,7 @@ label {
   max-width: var(--acms-admin-form-control-max-width);
 }
 .acms-admin-form input[type=search] {
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
 }
 .acms-admin-form textarea,
 .acms-admin-form .entryFormLiteEditor,
@@ -3978,10 +3956,6 @@ label {
 .acms-admin-form .entryFormLiteEditor img {
   max-width: 100%;
 }
-.acms-admin-form input[type=text]::-moz-placeholder, .acms-admin-form input[type=password]::-moz-placeholder, .acms-admin-form input[type=search]::-moz-placeholder, .acms-admin-form input[type=url]::-moz-placeholder, .acms-admin-form input[type=tel]::-moz-placeholder, .acms-admin-form input[type=email]::-moz-placeholder, .acms-admin-form textarea::-moz-placeholder, .acms-admin-form input.acms-admin-form-control::-moz-placeholder, .acms-admin-form textarea.acms-admin-form-control::-moz-placeholder {
-  color: #aaa;
-  text-overflow: ellipsis;
-}
 .acms-admin-form input[type=text]::placeholder,
 .acms-admin-form input[type=password]::placeholder,
 .acms-admin-form input[type=search]::placeholder,
@@ -3992,9 +3966,6 @@ label {
 .acms-admin-form input.acms-admin-form-control::placeholder,
 .acms-admin-form textarea.acms-admin-form-control::placeholder {
   color: #aaa;
-  text-overflow: ellipsis;
-}
-.acms-admin-form input[type=text]:-moz-placeholder-shown, .acms-admin-form input[type=password]:-moz-placeholder-shown, .acms-admin-form input[type=search]:-moz-placeholder-shown, .acms-admin-form input[type=url]:-moz-placeholder-shown, .acms-admin-form input[type=tel]:-moz-placeholder-shown, .acms-admin-form input[type=email]:-moz-placeholder-shown, .acms-admin-form textarea:-moz-placeholder-shown, .acms-admin-form input.acms-admin-form-control:-moz-placeholder-shown, .acms-admin-form textarea.acms-admin-form-control:-moz-placeholder-shown {
   text-overflow: ellipsis;
 }
 .acms-admin-form input[type=text]:placeholder-shown,
@@ -4020,9 +3991,7 @@ label {
   text-align: left;
   text-decoration: none;
   vertical-align: middle;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background: url(../images/marker/arrow_black03.png) right center;
   background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSI1IiB2aWV3Qm94PSIwIDAgMTggNSI+PGc+PGc+PHBhdGggZmlsbD0ibm9uZSIgZD0iTTAgMGgxOHY1SDB6Ii8+PHBhdGggZmlsbD0iIzk5OSIgZD0iTTQuMjIgMGg0LjIyTDYuMzMgMi41IDQuMjIgNSAyLjExIDIuNSAwIDBoNC4yMnoiLz48L2c+PC9nPjwvc3ZnPg==") right center;
   background-color: #fff;
@@ -4070,9 +4039,7 @@ label {
 .acms-admin-form select[multiple=multiple],
 .acms-admin-form select.acms-admin-form-select[multiple=multiple] {
   padding: 7px 10px;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background: #fff;
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1) inset;
 }
@@ -4108,8 +4075,7 @@ label {
 .acms-admin-form input[type=file]::file-selector-button {
   box-sizing: border-box;
   display: inline-flex;
-  -moz-column-gap: 0.5rem;
-       column-gap: 0.5rem;
+  column-gap: 0.5rem;
   align-items: center;
   justify-content: center;
   min-height: auto;
@@ -4212,9 +4178,7 @@ label {
   text-align: left;
   text-decoration: none;
   vertical-align: middle;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background: url(../images/marker/arrow_black03.png) right center;
   background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSI1IiB2aWV3Qm94PSIwIDAgMTggNSI+PGc+PGc+PHBhdGggZmlsbD0ibm9uZSIgZD0iTTAgMGgxOHY1SDB6Ii8+PHBhdGggZmlsbD0iIzk5OSIgZD0iTTQuMjIgMGg0LjIyTDYuMzMgMi41IDQuMjIgNSAyLjExIDIuNSAwIDBoNC4yMnoiLz48L2c+PC9nPjwvc3ZnPg==") right center;
   background-color: #fff;
@@ -4643,8 +4607,7 @@ label {
   cursor: pointer;
   box-sizing: border-box;
   display: inline-flex;
-  -moz-column-gap: 0.5rem;
-       column-gap: 0.5rem;
+  column-gap: 0.5rem;
   align-items: center;
   justify-content: center;
   min-height: auto;
@@ -4756,9 +4719,7 @@ label {
   position: relative;
   display: inline-block;
   padding: 9px;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background-color: #f1f1f1;
   border: 1px solid #c2c2ce;
   border-radius: 50px;
@@ -5163,7 +5124,6 @@ label {
   touch-action: none;
   cursor: col-resize;
   -webkit-user-select: none;
-     -moz-user-select: none;
           user-select: none;
   background: rgba(0, 0, 0, 0.5);
 }
@@ -5535,8 +5495,7 @@ label {
 .acms-admin-th-sort-btn {
   box-sizing: content-box;
   display: inline-flex;
-  -moz-column-gap: 0.5rem;
-       column-gap: 0.5rem;
+  column-gap: 0.5rem;
   align-items: center;
   width: 100%;
   padding: var(--acms-admin-table-cell-padding);
@@ -5544,9 +5503,7 @@ label {
   font-weight: inherit;
   line-height: inherit;
   color: inherit;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   cursor: pointer;
   background-color: transparent;
   border: none;
@@ -6039,9 +5996,7 @@ a.acms-admin-label-danger:focus {
 .acms-admin-toast-icon-btn {
   padding: 0;
   color: #333;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background: transparent;
   border: 0;
 }
@@ -6239,9 +6194,7 @@ a.acms-admin-label-danger:focus {
   font-weight: normal;
   line-height: 1;
   color: var(--acms-admin-alert-close-color);
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background: transparent;
   border: 0;
   outline: 0;
@@ -6657,6 +6610,7 @@ a.acms-admin-label-danger:focus {
   width: 95%;
   max-width: var(--acms-admin-modal-width);
   margin: var(--acms-admin-modal-margin) auto;
+  pointer-events: none;
 }
 
 .acms-admin-modal-dialog.large {
@@ -6704,6 +6658,7 @@ a.acms-admin-label-danger:focus {
   width: 100%;
   padding: var(--acms-admin-modal-content-padding);
   overflow: hidden;
+  pointer-events: auto;
   background: #fff;
   border-radius: var(--acms-admin-modal-border-radius);
   box-shadow: 0 4px 48px 0 rgba(0, 0, 0, 0.25);
@@ -7065,9 +7020,7 @@ ul.acms-admin-dropdown-menu > li > button,
   width: 100%;
   padding: var(--acms-admin-dropdown-menu-item-padding);
   color: #333;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   cursor: pointer;
   background: transparent;
   border: 0;
@@ -9348,8 +9301,7 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
 .acms-admin-pager li > button {
   box-sizing: border-box;
   display: inline-flex;
-  -moz-column-gap: 0.5rem;
-       column-gap: 0.5rem;
+  column-gap: 0.5rem;
   align-items: center;
   justify-content: center;
   min-height: auto;
@@ -10000,10 +9952,6 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
 .acms-admin-tabs-inverse .js-acms_admin_tabs button.js-acms_tab-active {
   background: #fff;
   border-bottom: 1px solid #fff;
-}
-
-.acms-admin-tabs-panel .acms-admin-table-admin-edit:last-child {
-  margin-bottom: 5px;
 }
 
 @media (min-width: 768px) {
@@ -10942,9 +10890,7 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
   font-size: 10px;
   color: #a2a2b3;
   text-align: center;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   cursor: pointer;
   background: #fff;
   border: 0;
@@ -11327,9 +11273,6 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
 :where(.acms-admin-block-editor .ProseMirror) .selection {
   display: inline;
 }
-:where(.acms-admin-block-editor .ProseMirror) *::-moz-selection {
-  background-color: var(--acms-admin-block-editor-sellection);
-}
 :where(.acms-admin-block-editor .ProseMirror) .selection,
 :where(.acms-admin-block-editor .ProseMirror) *::selection {
   background-color: var(--acms-admin-block-editor-sellection);
@@ -11369,10 +11312,6 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
   line-break: strict; /* 禁則処理を厳格に適用 */
 }
 
-.acms-admin-block-editor input::-moz-placeholder, .acms-admin-block-editor textarea::-moz-placeholder {
-  color: rgba(0, 0, 0, 0.5);
-}
-
 .acms-admin-block-editor input::placeholder,
 .acms-admin-block-editor textarea::placeholder {
   color: rgba(0, 0, 0, 0.5);
@@ -11400,9 +11339,7 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
 
 .acms-admin-block-editor input[type=range] {
   height: 0.625rem;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background-color: var(--acms-admin-block-editor-neutral-200);
   border: 0;
   border-radius: 0.25rem;
@@ -11414,8 +11351,7 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
 .acms-admin-block-editor input[type=range]::-webkit-slider-thumb {
   width: 0.75rem;
   height: 1.25rem;
-  -webkit-appearance: none;
-          appearance: none;
+  appearance: none;
   background-color: var(--acms-admin-block-editor-neutral-800);
   border-radius: 9999px;
   -webkit-transition: all 0.2s;
@@ -11605,9 +11541,6 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
   /* リセット */
   text-decoration: none;
   /* 選択時に操作用アイコンまでハイライトされないように */
-}
-.acms-admin-block-editor .ProseMirror table td a.ProseMirror-widget::-moz-selection, .acms-admin-block-editor .ProseMirror table th a.ProseMirror-widget::-moz-selection {
-  background-color: transparent;
 }
 .acms-admin-block-editor .ProseMirror table td a.ProseMirror-widget::selection,
 .acms-admin-block-editor .ProseMirror table th a.ProseMirror-widget::selection {
@@ -11856,9 +11789,7 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
   height: 100%;
   font-size: var(--acms-admin-block-editor-font-size-base);
   color: var(--acms-admin-block-editor-neutral-900);
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background: white;
   border: none;
   transition: background-color 0.2s ease;
@@ -12137,8 +12068,7 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
 
 .acms-admin-dataview-bulk-action-form {
   display: flex;
-  -moz-column-gap: 8px;
-       column-gap: 8px;
+  column-gap: 8px;
   align-items: flex-start;
 }
 
@@ -12315,9 +12245,7 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
   line-height: 30px;
   color: #333;
   text-align: center;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background-color: #f9f9f9;
   border: none;
   border-radius: 3px;
@@ -12471,7 +12399,7 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
 
 /* 投稿フォーム基本情報 */
 .entryFormHead {
-  margin: 0 -10px 20px;
+  margin: 0 -10px;
 }
 
 /* 投稿フォーム内容の囲み */
@@ -12498,7 +12426,7 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
     margin: 0 auto;
   }
   .entryFormHead {
-    margin: 0 0 13px;
+    margin: 0;
   }
   .entryFormWrapper {
     padding: 13px 20px 80px;
@@ -12757,7 +12685,7 @@ ul.acms-admin-dropdown-menu > li > button .acms-admin-dropdown-menu-chevron,
 }
 
 .acms-admin-accordion {
-  margin: 0 0 10px;
+  margin: 0;
 }
 
 .acms-admin-accordion-title {
@@ -13378,6 +13306,10 @@ table td.entryFormFileControl dt {
   }
 }
 
+.acms-admin-field-container > * + * {
+  margin-top: 8px;
+}
+
 .acms-admin-filter {
   --acms-admin-filter-border-radius: 6px;
   margin-bottom: 20px;
@@ -13457,8 +13389,7 @@ table td.entryFormFileControl dt {
 
 .acms-admin-filter-item {
   display: flex;
-  -moz-column-gap: 8px;
-       column-gap: 8px;
+  column-gap: 8px;
   align-items: center;
 }
 
@@ -13530,9 +13461,7 @@ button.acms-admin-filter-detail-btn {
   line-height: 1.5;
   color: #333;
   white-space: nowrap;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background: 0;
   border: 0;
 }
@@ -13596,8 +13525,7 @@ button.acms-admin-filter-detail-btn [class*=material-symbols] {
 .acms-admin-filter-toggle-btn {
   box-sizing: border-box;
   display: inline-flex;
-  -moz-column-gap: 0.5rem;
-       column-gap: 0.5rem;
+  column-gap: 0.5rem;
   align-items: center;
   justify-content: center;
   min-height: auto;
@@ -15050,9 +14978,7 @@ td.acms-admin-media-row-image::before {
 .acms-admin-media-grid-checkbox-wrap {
   padding: 0;
   line-height: 1.6;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   cursor: pointer;
   background-color: transparent;
   border: 0;
@@ -15206,9 +15132,7 @@ td.acms-admin-media-row-image::before {
   padding: 3px 10px;
   line-height: 1.3;
   color: #fff;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background-color: rgba(49, 52, 77, 0.6);
   border: 1px solid #fff;
   border-radius: 10em;
@@ -15998,8 +15922,7 @@ td.acms-admin-media-row-image::before {
 }
 
 .acms-admin-related-entry-image {
-  -o-object-fit: cover;
-     object-fit: cover;
+  object-fit: cover;
 }
 
 .acms-admin-related-entry-title {
@@ -16762,9 +16685,7 @@ td.acms-admin-media-row-image::before {
   justify-content: center;
   padding: var(--acms-admin-unit-toolbar-button-padding-y) var(--acms-admin-unit-toolbar-button-padding-x);
   color: var(--acms-admin-unit-toolbar-button-color);
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+  appearance: none;
   background-color: var(--acms-admin-unit-toolbar-button-bg-color);
   border: none;
   border-radius: 3px;
@@ -17407,24 +17328,19 @@ img.js-lazy-load.loaded {
     clear: both !important;
   }
   .acms-admin-object-fit-contain {
-    -o-object-fit: contain !important;
-       object-fit: contain !important;
+    object-fit: contain !important;
   }
   .acms-admin-object-fit-cover {
-    -o-object-fit: cover !important;
-       object-fit: cover !important;
+    object-fit: cover !important;
   }
   .acms-admin-object-fit-fill {
-    -o-object-fit: fill !important;
-       object-fit: fill !important;
+    object-fit: fill !important;
   }
   .acms-admin-object-fit-scale {
-    -o-object-fit: scale-down !important;
-       object-fit: scale-down !important;
+    object-fit: scale-down !important;
   }
   .acms-admin-object-fit-none {
-    -o-object-fit: none !important;
-       object-fit: none !important;
+    object-fit: none !important;
   }
   .acms-admin-opacity-0 {
     opacity: 0 !important;
@@ -19392,88 +19308,67 @@ img.js-lazy-load.loaded {
     row-gap: 5rem !important;
   }
   .acms-admin-column-gap-0 {
-    -moz-column-gap: 0 !important;
-         column-gap: 0 !important;
+    column-gap: 0 !important;
   }
   .acms-admin-column-gap-1 {
-    -moz-column-gap: 0.25rem !important;
-         column-gap: 0.25rem !important;
+    column-gap: 0.25rem !important;
   }
   .acms-admin-column-gap-2 {
-    -moz-column-gap: 0.5rem !important;
-         column-gap: 0.5rem !important;
+    column-gap: 0.5rem !important;
   }
   .acms-admin-column-gap-3 {
-    -moz-column-gap: 0.75rem !important;
-         column-gap: 0.75rem !important;
+    column-gap: 0.75rem !important;
   }
   .acms-admin-column-gap-4 {
-    -moz-column-gap: 1rem !important;
-         column-gap: 1rem !important;
+    column-gap: 1rem !important;
   }
   .acms-admin-column-gap-5 {
-    -moz-column-gap: 1.25rem !important;
-         column-gap: 1.25rem !important;
+    column-gap: 1.25rem !important;
   }
   .acms-admin-column-gap-6 {
-    -moz-column-gap: 1.5rem !important;
-         column-gap: 1.5rem !important;
+    column-gap: 1.5rem !important;
   }
   .acms-admin-column-gap-7 {
-    -moz-column-gap: 1.75rem !important;
-         column-gap: 1.75rem !important;
+    column-gap: 1.75rem !important;
   }
   .acms-admin-column-gap-8 {
-    -moz-column-gap: 2rem !important;
-         column-gap: 2rem !important;
+    column-gap: 2rem !important;
   }
   .acms-admin-column-gap-9 {
-    -moz-column-gap: 2.25rem !important;
-         column-gap: 2.25rem !important;
+    column-gap: 2.25rem !important;
   }
   .acms-admin-column-gap-10 {
-    -moz-column-gap: 2.5rem !important;
-         column-gap: 2.5rem !important;
+    column-gap: 2.5rem !important;
   }
   .acms-admin-column-gap-11 {
-    -moz-column-gap: 2.75rem !important;
-         column-gap: 2.75rem !important;
+    column-gap: 2.75rem !important;
   }
   .acms-admin-column-gap-12 {
-    -moz-column-gap: 3rem !important;
-         column-gap: 3rem !important;
+    column-gap: 3rem !important;
   }
   .acms-admin-column-gap-13 {
-    -moz-column-gap: 3.25rem !important;
-         column-gap: 3.25rem !important;
+    column-gap: 3.25rem !important;
   }
   .acms-admin-column-gap-14 {
-    -moz-column-gap: 3.5rem !important;
-         column-gap: 3.5rem !important;
+    column-gap: 3.5rem !important;
   }
   .acms-admin-column-gap-15 {
-    -moz-column-gap: 3.75rem !important;
-         column-gap: 3.75rem !important;
+    column-gap: 3.75rem !important;
   }
   .acms-admin-column-gap-16 {
-    -moz-column-gap: 4rem !important;
-         column-gap: 4rem !important;
+    column-gap: 4rem !important;
   }
   .acms-admin-column-gap-17 {
-    -moz-column-gap: 4.25rem !important;
-         column-gap: 4.25rem !important;
+    column-gap: 4.25rem !important;
   }
   .acms-admin-column-gap-18 {
-    -moz-column-gap: 4.5rem !important;
-         column-gap: 4.5rem !important;
+    column-gap: 4.5rem !important;
   }
   .acms-admin-column-gap-19 {
-    -moz-column-gap: 4.75rem !important;
-         column-gap: 4.75rem !important;
+    column-gap: 4.75rem !important;
   }
   .acms-admin-column-gap-20 {
-    -moz-column-gap: 5rem !important;
-         column-gap: 5rem !important;
+    column-gap: 5rem !important;
   }
   .acms-admin-font-monospace {
     font-family: var(--acms-admin-font-monospace, Menlo, Monaco, Courier New, monospace) !important;
@@ -19613,17 +19508,14 @@ img.js-lazy-load.loaded {
   }
   .acms-admin-user-select-all {
     -webkit-user-select: all !important;
-       -moz-user-select: all !important;
             user-select: all !important;
   }
   .acms-admin-user-select-auto {
     -webkit-user-select: auto !important;
-       -moz-user-select: auto !important;
             user-select: auto !important;
   }
   .acms-admin-user-select-none {
     -webkit-user-select: none !important;
-       -moz-user-select: none !important;
             user-select: none !important;
   }
   .acms-admin-pe-none {
@@ -19670,24 +19562,19 @@ img.js-lazy-load.loaded {
       float: none !important;
     }
     .acms-admin-object-fit-sm-contain {
-      -o-object-fit: contain !important;
-         object-fit: contain !important;
+      object-fit: contain !important;
     }
     .acms-admin-object-fit-sm-cover {
-      -o-object-fit: cover !important;
-         object-fit: cover !important;
+      object-fit: cover !important;
     }
     .acms-admin-object-fit-sm-fill {
-      -o-object-fit: fill !important;
-         object-fit: fill !important;
+      object-fit: fill !important;
     }
     .acms-admin-object-fit-sm-scale {
-      -o-object-fit: scale-down !important;
-         object-fit: scale-down !important;
+      object-fit: scale-down !important;
     }
     .acms-admin-object-fit-sm-none {
-      -o-object-fit: none !important;
-         object-fit: none !important;
+      object-fit: none !important;
     }
     .acms-admin-d-sm-inline {
       display: inline !important;
@@ -21469,88 +21356,67 @@ img.js-lazy-load.loaded {
       row-gap: 5rem !important;
     }
     .acms-admin-column-gap-sm-0 {
-      -moz-column-gap: 0 !important;
-           column-gap: 0 !important;
+      column-gap: 0 !important;
     }
     .acms-admin-column-gap-sm-1 {
-      -moz-column-gap: 0.25rem !important;
-           column-gap: 0.25rem !important;
+      column-gap: 0.25rem !important;
     }
     .acms-admin-column-gap-sm-2 {
-      -moz-column-gap: 0.5rem !important;
-           column-gap: 0.5rem !important;
+      column-gap: 0.5rem !important;
     }
     .acms-admin-column-gap-sm-3 {
-      -moz-column-gap: 0.75rem !important;
-           column-gap: 0.75rem !important;
+      column-gap: 0.75rem !important;
     }
     .acms-admin-column-gap-sm-4 {
-      -moz-column-gap: 1rem !important;
-           column-gap: 1rem !important;
+      column-gap: 1rem !important;
     }
     .acms-admin-column-gap-sm-5 {
-      -moz-column-gap: 1.25rem !important;
-           column-gap: 1.25rem !important;
+      column-gap: 1.25rem !important;
     }
     .acms-admin-column-gap-sm-6 {
-      -moz-column-gap: 1.5rem !important;
-           column-gap: 1.5rem !important;
+      column-gap: 1.5rem !important;
     }
     .acms-admin-column-gap-sm-7 {
-      -moz-column-gap: 1.75rem !important;
-           column-gap: 1.75rem !important;
+      column-gap: 1.75rem !important;
     }
     .acms-admin-column-gap-sm-8 {
-      -moz-column-gap: 2rem !important;
-           column-gap: 2rem !important;
+      column-gap: 2rem !important;
     }
     .acms-admin-column-gap-sm-9 {
-      -moz-column-gap: 2.25rem !important;
-           column-gap: 2.25rem !important;
+      column-gap: 2.25rem !important;
     }
     .acms-admin-column-gap-sm-10 {
-      -moz-column-gap: 2.5rem !important;
-           column-gap: 2.5rem !important;
+      column-gap: 2.5rem !important;
     }
     .acms-admin-column-gap-sm-11 {
-      -moz-column-gap: 2.75rem !important;
-           column-gap: 2.75rem !important;
+      column-gap: 2.75rem !important;
     }
     .acms-admin-column-gap-sm-12 {
-      -moz-column-gap: 3rem !important;
-           column-gap: 3rem !important;
+      column-gap: 3rem !important;
     }
     .acms-admin-column-gap-sm-13 {
-      -moz-column-gap: 3.25rem !important;
-           column-gap: 3.25rem !important;
+      column-gap: 3.25rem !important;
     }
     .acms-admin-column-gap-sm-14 {
-      -moz-column-gap: 3.5rem !important;
-           column-gap: 3.5rem !important;
+      column-gap: 3.5rem !important;
     }
     .acms-admin-column-gap-sm-15 {
-      -moz-column-gap: 3.75rem !important;
-           column-gap: 3.75rem !important;
+      column-gap: 3.75rem !important;
     }
     .acms-admin-column-gap-sm-16 {
-      -moz-column-gap: 4rem !important;
-           column-gap: 4rem !important;
+      column-gap: 4rem !important;
     }
     .acms-admin-column-gap-sm-17 {
-      -moz-column-gap: 4.25rem !important;
-           column-gap: 4.25rem !important;
+      column-gap: 4.25rem !important;
     }
     .acms-admin-column-gap-sm-18 {
-      -moz-column-gap: 4.5rem !important;
-           column-gap: 4.5rem !important;
+      column-gap: 4.5rem !important;
     }
     .acms-admin-column-gap-sm-19 {
-      -moz-column-gap: 4.75rem !important;
-           column-gap: 4.75rem !important;
+      column-gap: 4.75rem !important;
     }
     .acms-admin-column-gap-sm-20 {
-      -moz-column-gap: 5rem !important;
-           column-gap: 5rem !important;
+      column-gap: 5rem !important;
     }
     .acms-admin-text-sm-left {
       text-align: left !important;
@@ -21576,24 +21442,19 @@ img.js-lazy-load.loaded {
       float: none !important;
     }
     .acms-admin-object-fit-md-contain {
-      -o-object-fit: contain !important;
-         object-fit: contain !important;
+      object-fit: contain !important;
     }
     .acms-admin-object-fit-md-cover {
-      -o-object-fit: cover !important;
-         object-fit: cover !important;
+      object-fit: cover !important;
     }
     .acms-admin-object-fit-md-fill {
-      -o-object-fit: fill !important;
-         object-fit: fill !important;
+      object-fit: fill !important;
     }
     .acms-admin-object-fit-md-scale {
-      -o-object-fit: scale-down !important;
-         object-fit: scale-down !important;
+      object-fit: scale-down !important;
     }
     .acms-admin-object-fit-md-none {
-      -o-object-fit: none !important;
-         object-fit: none !important;
+      object-fit: none !important;
     }
     .acms-admin-d-md-inline {
       display: inline !important;
@@ -23375,88 +23236,67 @@ img.js-lazy-load.loaded {
       row-gap: 5rem !important;
     }
     .acms-admin-column-gap-md-0 {
-      -moz-column-gap: 0 !important;
-           column-gap: 0 !important;
+      column-gap: 0 !important;
     }
     .acms-admin-column-gap-md-1 {
-      -moz-column-gap: 0.25rem !important;
-           column-gap: 0.25rem !important;
+      column-gap: 0.25rem !important;
     }
     .acms-admin-column-gap-md-2 {
-      -moz-column-gap: 0.5rem !important;
-           column-gap: 0.5rem !important;
+      column-gap: 0.5rem !important;
     }
     .acms-admin-column-gap-md-3 {
-      -moz-column-gap: 0.75rem !important;
-           column-gap: 0.75rem !important;
+      column-gap: 0.75rem !important;
     }
     .acms-admin-column-gap-md-4 {
-      -moz-column-gap: 1rem !important;
-           column-gap: 1rem !important;
+      column-gap: 1rem !important;
     }
     .acms-admin-column-gap-md-5 {
-      -moz-column-gap: 1.25rem !important;
-           column-gap: 1.25rem !important;
+      column-gap: 1.25rem !important;
     }
     .acms-admin-column-gap-md-6 {
-      -moz-column-gap: 1.5rem !important;
-           column-gap: 1.5rem !important;
+      column-gap: 1.5rem !important;
     }
     .acms-admin-column-gap-md-7 {
-      -moz-column-gap: 1.75rem !important;
-           column-gap: 1.75rem !important;
+      column-gap: 1.75rem !important;
     }
     .acms-admin-column-gap-md-8 {
-      -moz-column-gap: 2rem !important;
-           column-gap: 2rem !important;
+      column-gap: 2rem !important;
     }
     .acms-admin-column-gap-md-9 {
-      -moz-column-gap: 2.25rem !important;
-           column-gap: 2.25rem !important;
+      column-gap: 2.25rem !important;
     }
     .acms-admin-column-gap-md-10 {
-      -moz-column-gap: 2.5rem !important;
-           column-gap: 2.5rem !important;
+      column-gap: 2.5rem !important;
     }
     .acms-admin-column-gap-md-11 {
-      -moz-column-gap: 2.75rem !important;
-           column-gap: 2.75rem !important;
+      column-gap: 2.75rem !important;
     }
     .acms-admin-column-gap-md-12 {
-      -moz-column-gap: 3rem !important;
-           column-gap: 3rem !important;
+      column-gap: 3rem !important;
     }
     .acms-admin-column-gap-md-13 {
-      -moz-column-gap: 3.25rem !important;
-           column-gap: 3.25rem !important;
+      column-gap: 3.25rem !important;
     }
     .acms-admin-column-gap-md-14 {
-      -moz-column-gap: 3.5rem !important;
-           column-gap: 3.5rem !important;
+      column-gap: 3.5rem !important;
     }
     .acms-admin-column-gap-md-15 {
-      -moz-column-gap: 3.75rem !important;
-           column-gap: 3.75rem !important;
+      column-gap: 3.75rem !important;
     }
     .acms-admin-column-gap-md-16 {
-      -moz-column-gap: 4rem !important;
-           column-gap: 4rem !important;
+      column-gap: 4rem !important;
     }
     .acms-admin-column-gap-md-17 {
-      -moz-column-gap: 4.25rem !important;
-           column-gap: 4.25rem !important;
+      column-gap: 4.25rem !important;
     }
     .acms-admin-column-gap-md-18 {
-      -moz-column-gap: 4.5rem !important;
-           column-gap: 4.5rem !important;
+      column-gap: 4.5rem !important;
     }
     .acms-admin-column-gap-md-19 {
-      -moz-column-gap: 4.75rem !important;
-           column-gap: 4.75rem !important;
+      column-gap: 4.75rem !important;
     }
     .acms-admin-column-gap-md-20 {
-      -moz-column-gap: 5rem !important;
-           column-gap: 5rem !important;
+      column-gap: 5rem !important;
     }
     .acms-admin-text-md-left {
       text-align: left !important;
@@ -23482,24 +23322,19 @@ img.js-lazy-load.loaded {
       float: none !important;
     }
     .acms-admin-object-fit-lg-contain {
-      -o-object-fit: contain !important;
-         object-fit: contain !important;
+      object-fit: contain !important;
     }
     .acms-admin-object-fit-lg-cover {
-      -o-object-fit: cover !important;
-         object-fit: cover !important;
+      object-fit: cover !important;
     }
     .acms-admin-object-fit-lg-fill {
-      -o-object-fit: fill !important;
-         object-fit: fill !important;
+      object-fit: fill !important;
     }
     .acms-admin-object-fit-lg-scale {
-      -o-object-fit: scale-down !important;
-         object-fit: scale-down !important;
+      object-fit: scale-down !important;
     }
     .acms-admin-object-fit-lg-none {
-      -o-object-fit: none !important;
-         object-fit: none !important;
+      object-fit: none !important;
     }
     .acms-admin-d-lg-inline {
       display: inline !important;
@@ -25281,88 +25116,67 @@ img.js-lazy-load.loaded {
       row-gap: 5rem !important;
     }
     .acms-admin-column-gap-lg-0 {
-      -moz-column-gap: 0 !important;
-           column-gap: 0 !important;
+      column-gap: 0 !important;
     }
     .acms-admin-column-gap-lg-1 {
-      -moz-column-gap: 0.25rem !important;
-           column-gap: 0.25rem !important;
+      column-gap: 0.25rem !important;
     }
     .acms-admin-column-gap-lg-2 {
-      -moz-column-gap: 0.5rem !important;
-           column-gap: 0.5rem !important;
+      column-gap: 0.5rem !important;
     }
     .acms-admin-column-gap-lg-3 {
-      -moz-column-gap: 0.75rem !important;
-           column-gap: 0.75rem !important;
+      column-gap: 0.75rem !important;
     }
     .acms-admin-column-gap-lg-4 {
-      -moz-column-gap: 1rem !important;
-           column-gap: 1rem !important;
+      column-gap: 1rem !important;
     }
     .acms-admin-column-gap-lg-5 {
-      -moz-column-gap: 1.25rem !important;
-           column-gap: 1.25rem !important;
+      column-gap: 1.25rem !important;
     }
     .acms-admin-column-gap-lg-6 {
-      -moz-column-gap: 1.5rem !important;
-           column-gap: 1.5rem !important;
+      column-gap: 1.5rem !important;
     }
     .acms-admin-column-gap-lg-7 {
-      -moz-column-gap: 1.75rem !important;
-           column-gap: 1.75rem !important;
+      column-gap: 1.75rem !important;
     }
     .acms-admin-column-gap-lg-8 {
-      -moz-column-gap: 2rem !important;
-           column-gap: 2rem !important;
+      column-gap: 2rem !important;
     }
     .acms-admin-column-gap-lg-9 {
-      -moz-column-gap: 2.25rem !important;
-           column-gap: 2.25rem !important;
+      column-gap: 2.25rem !important;
     }
     .acms-admin-column-gap-lg-10 {
-      -moz-column-gap: 2.5rem !important;
-           column-gap: 2.5rem !important;
+      column-gap: 2.5rem !important;
     }
     .acms-admin-column-gap-lg-11 {
-      -moz-column-gap: 2.75rem !important;
-           column-gap: 2.75rem !important;
+      column-gap: 2.75rem !important;
     }
     .acms-admin-column-gap-lg-12 {
-      -moz-column-gap: 3rem !important;
-           column-gap: 3rem !important;
+      column-gap: 3rem !important;
     }
     .acms-admin-column-gap-lg-13 {
-      -moz-column-gap: 3.25rem !important;
-           column-gap: 3.25rem !important;
+      column-gap: 3.25rem !important;
     }
     .acms-admin-column-gap-lg-14 {
-      -moz-column-gap: 3.5rem !important;
-           column-gap: 3.5rem !important;
+      column-gap: 3.5rem !important;
     }
     .acms-admin-column-gap-lg-15 {
-      -moz-column-gap: 3.75rem !important;
-           column-gap: 3.75rem !important;
+      column-gap: 3.75rem !important;
     }
     .acms-admin-column-gap-lg-16 {
-      -moz-column-gap: 4rem !important;
-           column-gap: 4rem !important;
+      column-gap: 4rem !important;
     }
     .acms-admin-column-gap-lg-17 {
-      -moz-column-gap: 4.25rem !important;
-           column-gap: 4.25rem !important;
+      column-gap: 4.25rem !important;
     }
     .acms-admin-column-gap-lg-18 {
-      -moz-column-gap: 4.5rem !important;
-           column-gap: 4.5rem !important;
+      column-gap: 4.5rem !important;
     }
     .acms-admin-column-gap-lg-19 {
-      -moz-column-gap: 4.75rem !important;
-           column-gap: 4.75rem !important;
+      column-gap: 4.75rem !important;
     }
     .acms-admin-column-gap-lg-20 {
-      -moz-column-gap: 5rem !important;
-           column-gap: 5rem !important;
+      column-gap: 5rem !important;
     }
     .acms-admin-text-lg-left {
       text-align: left !important;
@@ -25388,24 +25202,19 @@ img.js-lazy-load.loaded {
       float: none !important;
     }
     .acms-admin-object-fit-xl-contain {
-      -o-object-fit: contain !important;
-         object-fit: contain !important;
+      object-fit: contain !important;
     }
     .acms-admin-object-fit-xl-cover {
-      -o-object-fit: cover !important;
-         object-fit: cover !important;
+      object-fit: cover !important;
     }
     .acms-admin-object-fit-xl-fill {
-      -o-object-fit: fill !important;
-         object-fit: fill !important;
+      object-fit: fill !important;
     }
     .acms-admin-object-fit-xl-scale {
-      -o-object-fit: scale-down !important;
-         object-fit: scale-down !important;
+      object-fit: scale-down !important;
     }
     .acms-admin-object-fit-xl-none {
-      -o-object-fit: none !important;
-         object-fit: none !important;
+      object-fit: none !important;
     }
     .acms-admin-d-xl-inline {
       display: inline !important;
@@ -27187,88 +26996,67 @@ img.js-lazy-load.loaded {
       row-gap: 5rem !important;
     }
     .acms-admin-column-gap-xl-0 {
-      -moz-column-gap: 0 !important;
-           column-gap: 0 !important;
+      column-gap: 0 !important;
     }
     .acms-admin-column-gap-xl-1 {
-      -moz-column-gap: 0.25rem !important;
-           column-gap: 0.25rem !important;
+      column-gap: 0.25rem !important;
     }
     .acms-admin-column-gap-xl-2 {
-      -moz-column-gap: 0.5rem !important;
-           column-gap: 0.5rem !important;
+      column-gap: 0.5rem !important;
     }
     .acms-admin-column-gap-xl-3 {
-      -moz-column-gap: 0.75rem !important;
-           column-gap: 0.75rem !important;
+      column-gap: 0.75rem !important;
     }
     .acms-admin-column-gap-xl-4 {
-      -moz-column-gap: 1rem !important;
-           column-gap: 1rem !important;
+      column-gap: 1rem !important;
     }
     .acms-admin-column-gap-xl-5 {
-      -moz-column-gap: 1.25rem !important;
-           column-gap: 1.25rem !important;
+      column-gap: 1.25rem !important;
     }
     .acms-admin-column-gap-xl-6 {
-      -moz-column-gap: 1.5rem !important;
-           column-gap: 1.5rem !important;
+      column-gap: 1.5rem !important;
     }
     .acms-admin-column-gap-xl-7 {
-      -moz-column-gap: 1.75rem !important;
-           column-gap: 1.75rem !important;
+      column-gap: 1.75rem !important;
     }
     .acms-admin-column-gap-xl-8 {
-      -moz-column-gap: 2rem !important;
-           column-gap: 2rem !important;
+      column-gap: 2rem !important;
     }
     .acms-admin-column-gap-xl-9 {
-      -moz-column-gap: 2.25rem !important;
-           column-gap: 2.25rem !important;
+      column-gap: 2.25rem !important;
     }
     .acms-admin-column-gap-xl-10 {
-      -moz-column-gap: 2.5rem !important;
-           column-gap: 2.5rem !important;
+      column-gap: 2.5rem !important;
     }
     .acms-admin-column-gap-xl-11 {
-      -moz-column-gap: 2.75rem !important;
-           column-gap: 2.75rem !important;
+      column-gap: 2.75rem !important;
     }
     .acms-admin-column-gap-xl-12 {
-      -moz-column-gap: 3rem !important;
-           column-gap: 3rem !important;
+      column-gap: 3rem !important;
     }
     .acms-admin-column-gap-xl-13 {
-      -moz-column-gap: 3.25rem !important;
-           column-gap: 3.25rem !important;
+      column-gap: 3.25rem !important;
     }
     .acms-admin-column-gap-xl-14 {
-      -moz-column-gap: 3.5rem !important;
-           column-gap: 3.5rem !important;
+      column-gap: 3.5rem !important;
     }
     .acms-admin-column-gap-xl-15 {
-      -moz-column-gap: 3.75rem !important;
-           column-gap: 3.75rem !important;
+      column-gap: 3.75rem !important;
     }
     .acms-admin-column-gap-xl-16 {
-      -moz-column-gap: 4rem !important;
-           column-gap: 4rem !important;
+      column-gap: 4rem !important;
     }
     .acms-admin-column-gap-xl-17 {
-      -moz-column-gap: 4.25rem !important;
-           column-gap: 4.25rem !important;
+      column-gap: 4.25rem !important;
     }
     .acms-admin-column-gap-xl-18 {
-      -moz-column-gap: 4.5rem !important;
-           column-gap: 4.5rem !important;
+      column-gap: 4.5rem !important;
     }
     .acms-admin-column-gap-xl-19 {
-      -moz-column-gap: 4.75rem !important;
-           column-gap: 4.75rem !important;
+      column-gap: 4.75rem !important;
     }
     .acms-admin-column-gap-xl-20 {
-      -moz-column-gap: 5rem !important;
-           column-gap: 5rem !important;
+      column-gap: 5rem !important;
     }
     .acms-admin-text-xl-left {
       text-align: left !important;

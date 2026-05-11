@@ -54,6 +54,10 @@ class Rule
         if (version_compare($this->fromVersion, '2.10.0', '<')) {
             $this->update2100();
         }
+        // v3.2.18以前
+        if (version_compare($this->fromVersion, '3.2.18', '<')) {
+            $this->update3218();
+        }
 
         // v3.1.49 以前 & v3.2.6 以前 のバージョンでsetupからのDBアップデートで以下の処理が実行されていないため、
         // バージョン比較をせずに実行するようにしています。
@@ -633,5 +637,27 @@ class Rule
             };
         }
         return $filtered;
+    }
+
+    /**
+     * v3.2.18以前からのアップデート
+     * エントリーインポートのバグにより壊れたカスタムユニットのメディアフィールドの値を正しい値に修正する
+     *
+     * @return void
+     */
+    private function update3218(): void
+    {
+        $sql = "UPDATE `acms_field` AS `media`
+            INNER JOIN `acms_field` AS `base`
+                ON `base`.`field_unit_id` = `media`.`field_unit_id`
+                AND `base`.`field_blog_id` = `media`.`field_blog_id`
+                AND `base`.`field_key` = LEFT(`media`.`field_key`, CHAR_LENGTH(`media`.`field_key`) - 6)
+                AND `base`.`field_sort` = `media`.`field_sort`
+            SET `base`.`field_value` = `media`.`field_value`
+            WHERE `media`.`field_unit_id` IS NOT NULL
+                AND `media`.`field_unit_id` <> ''
+                AND `media`.`field_key` LIKE '%@media'
+        ";
+        DB::query($sql, 'exec');
     }
 }

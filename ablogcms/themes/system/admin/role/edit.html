@@ -134,11 +134,18 @@
         <input class="acms-admin-form-width-full" type="text" name="name" value="{name}" />
         <input type="hidden" name="role[]" value="name" />
         <input type="hidden" name="name:validator#required" id="validator-name-required" />
+        <input type="hidden" name="name:validator#maxlength" value="128" id="validator-name-maxlength" />
         <div role="alert" aria-live="assertive">
           <div data-validator-label="validator-name-required" class="validator-result-{name:validator#required}">
             <p class="error-text">
               <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
               <!--T-->名前が入力されていません。<!--/T-->
+            </p>
+          </div>
+          <div data-validator-label="validator-name-maxlength" class="validator-result-{name:validator#maxlength}">
+            <p class="error-text">
+              <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+              <!--T-->ロール名は128文字以内で入力してください。<!--/T-->
             </p>
           </div>
         </div>
@@ -155,6 +162,15 @@
       <td>
         <textarea name="description" style="width: 100%" rows="3">{description}</textarea>
         <input type="hidden" name="role[]" value="description" />
+        <input type="hidden" name="description:validator#maxlength" value="512" id="validator-description-maxlength" />
+        <div role="alert" aria-live="assertive">
+          <div data-validator-label="validator-description-maxlength" class="validator-result-{description:validator#maxlength}">
+            <p class="error-text">
+              <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
+              <!--T-->説明は512文字以内で入力してください。<!--/T-->
+            </p>
+          </div>
+        </div>
       </td>
     </tr>
     <!-- BEGIN_IF [{auth}/nem/] -->

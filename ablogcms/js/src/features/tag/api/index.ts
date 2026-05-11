@@ -1,4 +1,4 @@
-import axiosClient from '../../../lib/axios';
+import { fetchClient } from '../../../lib/fetch-client';
 import type { TagOption } from '../types';
 
 export async function fetchTagOptions(): Promise<TagOption[]> {
@@ -9,6 +9,6 @@ export async function fetchTagOptions(): Promise<TagOption[]> {
     },
     false
   );
-  const { data: options = [] } = await axiosClient.get<TagOption[]>(endpoint);
+  const { data: options = [] } = await fetchClient.get<TagOption[]>(endpoint);
   return options;
 }

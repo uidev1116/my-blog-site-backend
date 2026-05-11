@@ -73,59 +73,16 @@
 
             <div class="acms-admin-col-8 acms-admin-p-0">
               <div class="acms-admin-layout-scroll-area">
-                <script id="js-module_info_tpl" type="text/template">
-                  <% if ( module.mid ===  0  || module.mid === '') { %>
-                    <p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
-                      <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
-                      <!--T-->サイドバーからモジュールを選択すると、プレビューが表示されます<!--/T-->
-                    </p>
-                  <% } %>
-                  <% if ( module.mid >  0 ) { %>
-                  <header>
-                    <div class="acms-admin-module-title-sub clearfix">
-                      <p class="acms-admin-m-0 acms-admin-float-left"><span class="acms-admin-label acms-admin-margin-right-small"><%- module.mid %></span><%- module.moduleID %></p>
-                      <p class="acms-admin-m-0 acms-admin-float-right"><%- module.module %></p>
-                    </div>
-                    <div class="acms-admin-module-title-main clearfix">
-                      <h1 class="acms-admin-module-title acms-admin-float-left"><%- module.name %></h1>
-                      <ul class="acms-admin-list-nostyle acms-admin-m-0 acms-admin-float-right">
-                        <% if ( module.template.length > 0 ) { %>
-                          <li class="acms-admin-margin-left-small acms-admin-float-left"><span class="acms-admin-label"><%- module.template %></span></li>
-                          <% } %>
-                        <% if ( module.scope === 'global' ) { %>
-                        <li class="acms-admin-margin-left-small acms-admin-float-left"><span class="acms-admin-label acms-admin-label-info"><!--T-->グローバル<!--/T--></span></li>
-                        <% } %>
-                      </ul>
-                    </div>
-                  </header>
-
-                  <div class="acms-admin-margin-bottom-mini">
-                    <div class="acms-admin-float-right acms-admin-position-right">
-                      <button class="js-acms_layout_dup_module acms-admin-btn-admin" data-mid="<%- module.mid %>"><!--T-->複製<!--/T--></button>
-
-                      <button class="js-acms_layout_edit_module acms-admin-btn-admin" data-mid="<%- module.mid %>"><!--T-->設定<!--/T--></button>
-                    </div>
-
-                    <form id="module-template-form" class="acms-admin-form-inline" action="" method="post" enctype="multipart/form-data">
-                      <button type="submit" class="acms-admin-btn-admin acms-admin-btn-admin-primary">選択する</button>
-                      <input type="hidden" name="mid" value="<%- module.mid %>">
-                    </form>
-
-
-                    <select name="template" class="js-acms_layout_select_template js-select2" data-mid="<%- module.mid %>" data-default-tpl="%{tpl}" form="module-template-form">
-                      <% _.each(module.tpl_list, function(tpl) { %>
-                      <option value="<%- tpl.tpl %>" <%- tpl.selected ? 'selected' : undefined %>>
-                        <%- tpl.label %>
-                      </option>
-                      <% }); %>
-                    </select>
-                  </div>
-                  <h3 class="acms-admin-admin-title2"><!--T-->プレビュー<!--/T--> (<!--T-->75%表示<!--/T-->)</h3>
-                  <div class="acms-admin-layout-module-edit-inner acms-admin-padding-small">
-                    <div style="transform: scale(0.75); transform-origin:0 0; width: 133.3%;"><%= module.preview %></div>
-                  </div>
-                  <% } %>
-                </script>
+                <div id="js-module_info_tpl" style="display:none;"
+                     data-empty-message="<!--T-->サイドバーからモジュールを選択すると、プレビューが表示されます<!--/T-->"
+                     data-global-label="<!--T-->グローバル<!--/T-->"
+                     data-duplicate-label="<!--T-->複製<!--/T-->"
+                     data-settings-label="<!--T-->設定<!--/T-->"
+                     data-select-label="<!--T-->選択する<!--/T-->"
+                     data-preview-label="<!--T-->プレビュー<!--/T-->"
+                     data-preview-scale-label="<!--T-->75%表示<!--/T-->"
+                     data-default-tpl="%{tpl}">
+                </div>
                 <div id="js-module_info_box" class="acms-admin-padding-large">
                   <p class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">
                     <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>

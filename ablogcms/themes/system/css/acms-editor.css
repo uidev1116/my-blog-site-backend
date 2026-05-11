@@ -24,12 +24,12 @@
  ベーススタイル
 ------------------------------ */
 :where(.acms-entry) .acms-cssgrid {
-  --acms-gap: var(--unit-gap-x);
+  --acms-gap: 0 var(--unit-gap-x);
 }
 :where(.acms-entry) .acms-stack,
 :where(.acms-entry) .acms-vstack,
 :where(.acms-entry) .acms-hstack {
-  --acms-stack-spacing: var(--unit-gap-x);
+  --acms-stack-spacing: 0 var(--unit-gap-x);
 }
 
 :where(.acms-entry) {
@@ -67,9 +67,6 @@
 @media (hover: hover) {
   .acms-entry a:not(:where([class~=not-editor-style], [class~=not-editor-style] *, [class~=media-image-block], [class~=media-image-block] *, [class~=column-image], [class~=column-image] *, [class~=column-media], [class~=column-media] *, [class~=column-eximage], [class~=column-eximage] *)) {
     transition: color 0.2s linear;
-  }
-  .acms-entry a:not(:where([class~=not-editor-style], [class~=not-editor-style] *, [class~=media-image-block], [class~=media-image-block] *, [class~=column-image], [class~=column-image] *, [class~=column-media], [class~=column-media] *, [class~=column-eximage], [class~=column-eximage] *)):where(:-moz-any-link):hover {
-    color: color-mix(in srgb, currentcolor 80%, black);
   }
   .acms-entry a:not(:where([class~=not-editor-style], [class~=not-editor-style] *, [class~=media-image-block], [class~=media-image-block] *, [class~=column-image], [class~=column-image] *, [class~=column-media], [class~=column-media] *, [class~=column-eximage], [class~=column-eximage] *)):where(:any-link):hover {
     color: color-mix(in srgb, currentcolor 80%, black);
@@ -910,10 +907,6 @@
   :where(.acms-entry) [data-type=fileBlock][data-display-type=button] a {
     transition: background-color 0.2s ease;
   }
-  :where(.acms-entry) [data-type=linkButton] a:where(:-moz-any-link):hover, :where(.acms-entry) [data-type=fileBlock][data-display-type=button] a:where(:-moz-any-link):hover {
-    color: #fff; /* テキストリンクスタイル上書き用スタイル */
-    background-color: #35353a;
-  }
   :where(.acms-entry) [data-type=linkButton] a:where(:any-link):hover,
   :where(.acms-entry) [data-type=fileBlock][data-display-type=button] a:where(:any-link):hover {
     color: #fff; /* テキストリンクスタイル上書き用スタイル */
@@ -1086,9 +1079,6 @@
   :where(.acms-entry) [class*=column-media] a[href*=storage],
   :where(.acms-entry) [class*=column-file] a {
     transition: opacity 0.2s ease;
-  }
-  :where(.acms-entry) [data-type=fileBlock][data-display-type=icon] a:where(:-moz-any-link):hover, :where(.acms-entry) [class*=column-media] a[href*=media-download]:where(:-moz-any-link):hover, :where(.acms-entry) [class*=column-media] a[href*=storage]:where(:-moz-any-link):hover, :where(.acms-entry) [class*=column-file] a:where(:-moz-any-link):hover {
-    opacity: 0.7;
   }
   :where(.acms-entry) [data-type=fileBlock][data-display-type=icon] a:where(:any-link):hover,
   :where(.acms-entry) [class*=column-media] a[href*=media-download]:where(:any-link):hover,

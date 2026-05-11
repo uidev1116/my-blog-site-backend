@@ -7,17 +7,23 @@ class ACMS_POST_Alias_Update extends ACMS_POST_Alias
         $aliasId = (int)$this->Get->get('aid');
         $Alias = $this->extract('alias');
         $Alias->setMethod('name', 'required');
+        $Alias->setMethod('name', 'maxlength', '255');
         $Alias->setMethod('status', 'required');
         $Alias->setMethod('status', 'in', ['open', 'close']);
         $Alias->setMethod('indexing', 'in', ['on', 'off']);
         $Alias->setMethod('alias', 'operable', $this->isOperable($aliasId));
 
         $Alias->setMethod('domain', 'required');
+        $Alias->setMethod('domain', 'maxlength', '128');
         $Alias->setMethod('domain', 'domain', Blog::isDomain($Alias->get('domain'), $aliasId, true, true));
         $Alias->setMethod('scope', 'deny', $this->checkScope($Alias->get('scope')));
+        $Alias->setMethod('code', 'maxlength', '128');
         $Alias->setMethod('code', 'exists', Blog::isCodeExists($Alias->get('domain'), $Alias->get('code'), BID, $aliasId));
         $Alias->setMethod('code', 'reserved', !isReserved($Alias->get('code')));
-        $Alias->setMethod('code', 'string', isValidCode($Alias->get('code')));
+        if ($Alias->get('code') !== '') {
+            $Alias->setMethod('code', 'string', isValidCode($Alias->get('code'), true));
+        }
+        $Alias->setMethod('description', 'maxlength', '255');
 
         $Alias->validate(new ACMS_Validator());
 

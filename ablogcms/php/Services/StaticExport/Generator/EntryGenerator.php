@@ -5,13 +5,9 @@ namespace Acms\Services\StaticExport\Generator;
 use Acms\Services\StaticExport\CopyEntryArchive;
 use Acms\Services\StaticExport\Contracts\Generator;
 use Acms\Services\Facades\LocalStorage;
-use Acms\Services\StaticExport\Entities\Page;
-use Acms\Services\StaticExport\Entities\EntryPage;
-use React\Promise\Promise;
+use Acms\Services\PageGeneration\Entities\Page;
+use Acms\Services\PageGeneration\Entities\EntryPage;
 use ACMS_RAM;
-use React\Promise\PromiseInterface;
-
-use function React\Async\await;
 
 class EntryGenerator extends Generator
 {
@@ -48,42 +44,39 @@ class EntryGenerator extends Generator
 
     protected function getName(): string
     {
-        return 'エントリーの書き出し';
+        return "エントリーの書き出し（{$this->targetBlogName}）";
     }
 
     /**
      * @inheritDoc
      */
-    public function run(): PromiseInterface
+    public function run(): void
     {
-        return new Promise(
-            function (callable $resolve) {
-                $this->copyArchiveEngine = new CopyEntryArchive([
-                    $this->destination->getDestinationPath(),
-                    $this->destination->getDestinationDocumentRoot() . $this->destination->getDestinationOffsetDir()
-                ]);
+        $this->copyArchiveEngine = new CopyEntryArchive([
+            $this->destination->getDestinationPath(),
+            $this->destination->getDestinationDocumentRoot() . $this->destination->getDestinationOffsetDir()
+        ]);
 
-                $pages = array_map(
-                    function (int $entryId) {
-                        $url = acmsLink(['bid' => BID, 'eid' => $entryId]);
-                        $blogUrl = acmsLink(['bid' => BID]);
-                        $filepath = substr($url, strlen($blogUrl));
+        array_map(
+            function (int $entryId) {
+                $url = acmsLink(['bid' => $this->targetBlogId, 'eid' => $entryId]);
+                $blogUrl = acmsLink(['bid' => $this->targetBlogId]);
+                $filepath = substr($url, strlen($blogUrl));
 
-                        if (ACMS_RAM::entryCode($entryId) === '') {
-                            $filepath = $filepath . 'index.html';
-                        }
-                        if (substr($filepath, -1) === '/') {
-                            $filepath = rtrim($filepath, '/') . '.html';
-                        }
-                        return new EntryPage($url, $filepath, $entryId);
-                    },
-                    $this->entryIds
-                );
-                $this->logger->start($this->getName(), count($pages));
-                await($this->handle($pages));
-                $resolve(null);
-            }
+                if (ACMS_RAM::entryCode($entryId) === '') {
+                    $filepath = $filepath . 'index.html';
+                }
+                if (substr($filepath, -1) === '/') {
+                    $filepath = rtrim($filepath, '/') . '.html';
+                }
+                if ($url) {
+                    $this->addEntryPage($url, $filepath, $entryId);
+                }
+            },
+            $this->entryIds
         );
+        $this->logger->start($this->getName(), count($this->entryIds));
+        $this->handle();
     }
 
     /**
@@ -106,20 +99,12 @@ class EntryGenerator extends Generator
     /**
      * @param \Throwable $th
      * @param string $url
+     * @param int $statusCode
      * @return void
      */
-    protected function handleError(\Throwable $th, string $url): void
+    protected function handleError(\Throwable $th, string $url, int $statusCode): void
     {
-        if ($th instanceof \React\Http\Message\ResponseException) {
-            $response = $th->getResponse();
-            $this->logger->error(
-                'データの取得に失敗しました。',
-                $url,
-                $response->getStatusCode()
-            );
-            return;
-        }
-        $this->logger->error($th->getMessage(), $url);
+        $this->logger->error($th->getMessage(), $url, $statusCode);
     }
 
     /**

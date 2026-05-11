@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { isAxiosError } from 'axios';
+import { isFetchError } from '../../../../lib/fetch-client';
 import Modal from '../../../../components/modal/modal';
 import CategorySelect from '../category-select/category-select';
 import { CreateCategoryFailedResponse, createCategory } from '../../api';
@@ -26,12 +26,14 @@ const CategoryCreateModal = ({ isOpen, onClose, onCreate }: CategoryCreateModalP
   const [errors, setErrors] = useState<CreateCategoryErrorMap>({
     name: {
       required: false,
+      maxlength: false,
     },
     code: {
       required: false,
       double: false,
       reserved: false,
       string: false,
+      maxlength: false,
     },
     scope: {
       tree: false,
@@ -51,7 +53,7 @@ const CategoryCreateModal = ({ isOpen, onClose, onCreate }: CategoryCreateModalP
         const category = await createCategory(formData);
         onCreate?.(category);
       } catch (error) {
-        if (isAxiosError<CreateCategoryFailedResponse>(error)) {
+        if (isFetchError<CreateCategoryFailedResponse>(error)) {
           if (error.response?.data.errors) {
             const errors = transformErrors(error.response.data.errors);
             setErrors(errors);
@@ -81,7 +83,9 @@ const CategoryCreateModal = ({ isOpen, onClose, onCreate }: CategoryCreateModalP
           <input type="hidden" name="category[]" value="indexing" />
 
           <input type="hidden" name="name:validator#required" id="validator-name-required" />
+          <input type="hidden" name="name:validator#maxlength" value="255" id="validator-name-maxlength" />
           <input type="hidden" name="code:validator#required" id="validator-code-required" />
+          <input type="hidden" name="code:validator#maxlength" value="255" id="validator-code-maxlength" />
           <input type="hidden" name="code:validator#double" id="validator-code-double" />
           <input type="hidden" name="code:validator#reserved" id="validator-code-reserved" />
           <input type="hidden" name="scope:validator#required" id="validator-scope-required" />
@@ -107,13 +111,24 @@ const CategoryCreateModal = ({ isOpen, onClose, onCreate }: CategoryCreateModalP
               {ACMS.i18n('category.name')}
             </label>
             <input id="input-text-category-name" type="text" name="name" className="acms-admin-form-width-full" />
-            {errors?.name?.required && (
-              <div role="alert" aria-live="assertive">
+            <div role="alert" aria-live="assertive">
+              {errors?.name?.required && (
                 <div data-validator-label="validator-name-required" className="validator-result-0">
-                  <p className="error-text">{ACMS.i18n('category.error.name.required')}</p>
+                  <p className="error-text">
+                    <span className="acms-admin-icon acms-admin-icon-attention" aria-hidden="true" />
+                    {ACMS.i18n('category.error.name.required')}
+                  </p>
                 </div>
-              </div>
-            )}
+              )}
+              {errors?.name?.maxlength && (
+                <div data-validator-label="validator-name-maxlength" className="validator-result-0">
+                  <p className="error-text">
+                    <span className="acms-admin-icon acms-admin-icon-attention" aria-hidden="true" />
+                    {ACMS.i18n('category.error.name.maxlength')}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="acms-admin-form-group">
@@ -124,22 +139,42 @@ const CategoryCreateModal = ({ isOpen, onClose, onCreate }: CategoryCreateModalP
             <div role="alert" aria-live="assertive">
               {errors?.code?.required && (
                 <div data-validator-label="validator-code-required" className="validator-result-0">
-                  <p className="error-text">{ACMS.i18n('category.error.code.required')}</p>
+                  <p className="error-text">
+                    <span className="acms-admin-icon acms-admin-icon-attention" aria-hidden="true" />
+                    {ACMS.i18n('category.error.code.required')}
+                  </p>
+                </div>
+              )}
+              {errors?.code?.maxlength && (
+                <div data-validator-label="validator-code-maxlength" className="validator-result-0">
+                  <p className="error-text">
+                    <span className="acms-admin-icon acms-admin-icon-attention" aria-hidden="true" />
+                    {ACMS.i18n('category.error.code.maxlength')}
+                  </p>
                 </div>
               )}
               {errors?.code?.double && (
                 <div data-validator-label="validator-code-double" className="validator-result-0">
-                  <p className="error-text">{ACMS.i18n('category.error.code.double')}</p>
+                  <p className="error-text">
+                    <span className="acms-admin-icon acms-admin-icon-attention" aria-hidden="true" />
+                    {ACMS.i18n('category.error.code.double')}
+                  </p>
                 </div>
               )}
               {errors?.code?.reserved && (
                 <div data-validator-label="validator-code-reserved" className="validator-result-0">
-                  <p className="error-text">{ACMS.i18n('category.error.code.reserved')}</p>
+                  <p className="error-text">
+                    <span className="acms-admin-icon acms-admin-icon-attention" aria-hidden="true" />
+                    {ACMS.i18n('category.error.code.reserved')}
+                  </p>
                 </div>
               )}
               {errors?.code?.string && (
-                <div data-validator-label="validator-code-reserved" className="validator-result-0">
-                  <p className="error-text">{ACMS.i18n('category.error.code.string')}</p>
+                <div data-validator-label="validator-code-string" className="validator-result-0">
+                  <p className="error-text">
+                    <span className="acms-admin-icon acms-admin-icon-attention" aria-hidden="true" />
+                    {ACMS.i18n('category.error.code.string')}
+                  </p>
                 </div>
               )}
             </div>

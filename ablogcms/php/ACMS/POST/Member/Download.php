@@ -13,6 +13,16 @@ class ACMS_POST_Member_Download extends ACMS_POST
     protected $charset = 'UTF-8';
 
     /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @inheritDoc
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return Login::isValidAuthenticatedPath(BID, BID_SEGMENT . '/' . BID . '/admin/member_index');
+    }
+
+    /**
      * Main
      */
     function post()

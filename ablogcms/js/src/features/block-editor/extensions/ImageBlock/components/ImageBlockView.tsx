@@ -112,7 +112,6 @@ export const ImageBlockView = (props: ImageBlockViewProps) => {
             />
           </a>
         ) : (
-          // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-noninteractive-element-interactions
           <img
             src={src}
             className={`unit-id-${entryId || (typeof ACMS !== 'undefined' ? ACMS.Config.eid : '')}`}
@@ -123,7 +122,14 @@ export const ImageBlockView = (props: ImageBlockViewProps) => {
             decoding="async"
             data-mid={mediaId || undefined}
             draggable={false}
+            role="button" // eslint-disable-line jsx-a11y/no-noninteractive-element-to-interactive-role
+            tabIndex={0}
             onClick={onClick}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                onClick();
+              }
+            }}
           />
         )}
         {caption && <figcaption className="caption">{caption}</figcaption>}

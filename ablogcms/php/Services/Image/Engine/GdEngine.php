@@ -76,6 +76,7 @@ class GdEngine extends ImageEngine
         } else {
             PublicStorage::copy($srcPath, $destPath);
         }
+        $this->optimize($destPath);
     }
 
     /**
@@ -285,13 +286,16 @@ class GdEngine extends ImageEngine
      * @param GdImage|false $resource
      * @param string $imageType
      * @param string $destPath
-     * @throws \RuntimeException
+     * @throws InvalidArgumentException
      * @return void
      */
     protected function outputImage($resource, string $imageType, string $destPath): void
     {
-        if (!$imageType || !$resource) {
-            throw new RuntimeException('');
+        if (!$imageType) {
+            throw new InvalidArgumentException(sprintf('画像タイプが空のため書き出しに失敗しました（dest: %s）', $destPath));
+        }
+        if (!$resource) {
+            throw new InvalidArgumentException(sprintf('画像リソースが取得できなかったため書き出しに失敗しました（dest: %s, type: %s）', $destPath, $imageType));
         }
         ob_start();
         if ($imageType === 'webp' && $this->isWebpSupported()) {

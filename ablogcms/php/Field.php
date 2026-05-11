@@ -414,7 +414,7 @@ class Field
      * @template T of string|null
      * @param string $fd フィールド名
      * @param T $key メタ情報のキー
-     * @return (T is non-empty-string ? string|null : array)
+     * @return (T is non-empty-string ? mixed : array)
      */
     public function getMeta($fd, $key = null)
     {
@@ -545,7 +545,7 @@ class Field_Search extends Field
     public $_aryConnector = [];
 
     /**
-     * @var array<string, array<'and' | 'or'>>
+     * @var array<string, 'and'|'or'>
      */
     public $_arySeparator = [];
 
@@ -570,6 +570,14 @@ class Field_Search extends Field
     public function parse($query)
     {
         $tokens = preg_split('@(?<!\\\\)/@', $query);
+        if ($tokens === false) {
+            return;
+        }
+
+        // splitPath (TS 側) と挙動を揃えるため、末尾の空トークンは無視する
+        while (count($tokens) > 0 && end($tokens) === '') {
+            array_pop($tokens);
+        }
 
         $field          = null;
         $connector      = null;
@@ -593,10 +601,8 @@ class Field_Search extends Field
             }
 
             if ('' === $token) {
-                if (is_null($connector)) {
-                    $connector  = '';
-                    $operator   = '';
-                } elseif (is_null($operator)) {
+                // connector / operator どちらも未定の場合は何もしない（TS 側挙動）
+                if (!is_null($connector) && is_null($operator)) {
                     $operator   = 'eq';
                 }
             }
@@ -610,6 +616,10 @@ class Field_Search extends Field
                 // fd/or/ope/...
                 switch ($token) {
                     case 'eq':
+                        $operator   = $token;
+                        // eq の場合は connector を or に強制（TS 側挙動）
+                        $connector  = 'or';
+                        break;
                     case 'neq':
                     case 'lt':
                     case 'lte':
@@ -646,9 +656,9 @@ class Field_Search extends Field
             //-----------
             // connector
             if (is_null($connector)) {
-                //-----------
-                // fd/or/...
-                if ('or' === $token) {
+                //-------------------
+                // fd/or/... または fd/and/...
+                if (in_array($token, ['or', 'and'], true)) {
                     $connector  = $token;
                     continue;
 
@@ -944,6 +954,157 @@ class Field_Search extends Field
             $field->addSeparator($fieldName, $separator);
         }
         return $field;
+    }
+
+    /**
+     * POST データ（extract('field') の返り値など）から Field_Search を生成するファクトリーメソッド。
+     * field[field][]=key, field[key][]=value, field[key@operator][]=op,
+     * field[key@connector][]=con, field[key@separator]=sep の形式に対応。
+     *
+     * @param Field $post
+     * @return self
+     */
+    public static function fromPost(Field $post): self
+    {
+        /** @var list<'eq'|'neq'|'gt'|'gte'|'lt'|'lte'|'lk'|'nlk'|'re'|'nre'|'em'|'nem'> */
+        static $allowedOperators = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'lk', 'nlk', 're', 'nre', 'em', 'nem'];
+
+        $fieldSearch = new self();
+
+        $keys = $post->getArray('field');
+        foreach ($keys as $rawKey) {
+            $key = trim((string) $rawKey);
+            if ($key === '') {
+                continue;
+            }
+
+            $aryValue     = $post->getArray($key);
+            $aryConnector = $post->getArray($key . '@connector');
+            $aryOperator  = $post->getArray($key . '@operator');
+            $separator    = $post->get($key . '@separator', 'and') === 'or' ? 'or' : 'and';
+
+            $cnt = max(count($aryValue), count($aryConnector), count($aryOperator));
+
+            // 値が一件もない場合はフィールドだけ登録して終了（legacyBuildFieldSearch と同一挙動）
+            if ($cnt <= 0) {
+                $fieldSearch->set($key);
+                $fieldSearch->setConnector($key);
+                $fieldSearch->setOperator($key);
+                continue;
+            }
+
+            $defaultConnector = (count($aryConnector) === 0 && count($aryOperator) === 0) ? 'or' : 'and';
+            if (count($aryConnector) > 0) {
+                $defaultConnector = $aryConnector[0];
+            }
+            $defaultOperator = 'eq';
+            if (count($aryOperator) > 0 && in_array($aryOperator[0], $allowedOperators, true)) {
+                $defaultOperator = $aryOperator[0];
+            }
+
+            // 値を先に収集し、空値かつ em/nem 以外の行を除外する。
+            // Filter._field() の else 分岐が空 WHERE を外側クエリに直接追記するバグを防ぐため。
+            $rows = [];
+            for ($i = 0; $i < $cnt; $i++) {
+                $val         = $aryValue[$i] ?? '';
+                $connector   = $aryConnector[$i] ?? $defaultConnector;
+                $operatorRaw = $aryOperator[$i] ?? $defaultOperator;
+                $operator    = in_array($operatorRaw, $allowedOperators, true) ? $operatorRaw : 'eq';
+
+                if ($val === '' && $operator !== 'em' && $operator !== 'nem') {
+                    continue;
+                }
+                $rows[] = [$val, $connector, $operator];
+            }
+
+            // 有効な行がゼロ（全値が空文字の eq/neq 等）なら field ごとスキップ
+            if ($rows === []) {
+                continue;
+            }
+
+            $fieldSearch->set($key);
+            $fieldSearch->setConnector($key);
+            $fieldSearch->setOperator($key);
+            $fieldSearch->addSeparator($key, $separator);
+
+            foreach ($rows as [$val, $connector, $operator]) {
+                $fieldSearch->add($key, $val);
+                $fieldSearch->addConnector($key, $connector);
+                $fieldSearch->addOperator($key, $operator);
+            }
+        }
+
+        return $fieldSearch;
+    }
+
+    /**
+     * フィールド検索条件を人間が読みやすい文字列（スナップショット）に変換する。
+     *
+     * 出力例（各行が1つのフィールドキーに対応する）:
+     *   pref: 東京都 OR 大阪府
+     *   gender: 男性
+     *   age: >= 18 AND < 65
+     *
+     * ─ 同一フィールド内の複数値（コネクター） ─
+     * _aryConnector[$key] に従い AND / OR で連結する（省略時は AND）。
+     * 上記の例では "pref" の値 "東京都" と "大阪府" は OR で結合されている。
+     *
+     * ─ 異なるフィールドキー間（セパレーター） ─
+     * _arySeparator[$key] に AND / OR が設定される。2行目以降の行頭に
+     * セパレーターをプレフィックスとして付与する（最初のフィールドは先行条件がないため省略）。
+     *
+     *   pref: 東京都 OR 大阪府
+     *   AND gender: 男性
+     *   OR age: >= 18 AND < 65
+     *
+     * セパレーターには以下の制約がある:
+     * - フィールドの並び順は AND 条件を OR 条件より前にしなければならない（AND → OR の順序のみ許可）
+     * - em（空）演算子は OR セパレーターのフィールドでは使用できない
+     *
+     * 演算子の出力形式:
+     * - eq（等値一致）はラベルなしで値のみ出力する
+     * - em / nem は値の代わりに [空] / [非空] を出力する
+     * - その他の演算子は値の前にラベル（"!= ", "> ", "<= " 等）を付与する
+     *
+     * @return string 改行区切りの条件文字列（条件がない場合は空文字列）
+     */
+    public function toSnapshot(): string
+    {
+        $opLabels = [
+            'neq' => '!= ', 'gt'  => '> ',  'gte' => '>= ',
+            'lt'  => '< ',  'lte' => '<= ', 'lk'  => '[lk] ',
+            'nlk' => '[nlk] ', 're' => '[re] ', 'nre' => '[nre] ',
+        ];
+        $lines   = [];
+        $isFirst = true;
+        foreach ($this->listFields() as $key) {
+            $values     = $this->getArray($key);
+            $operators  = $this->_aryOperator[$key] ?? [];
+            $connectors = $this->_aryConnector[$key] ?? [];
+            $parts      = [];
+            // em/nem は空文字の値を持つため getArray が除去してしまう。
+            // operators の件数を基準にループし、値は存在しなければ '' で補う。
+            for ($i = 0, $count = count($operators); $i < $count; $i++) {
+                $value = $values[$i] ?? '';
+                $op    = $operators[$i] ?? 'eq';
+                $con   = strtoupper($connectors[$i] ?? 'and');
+                if ($op === 'em') {
+                    $token = '[空]';
+                } elseif ($op === 'nem') {
+                    $token = '[非空]';
+                } else {
+                    $token = ($opLabels[$op] ?? '') . $value;
+                }
+                $parts[] = ($i > 0 ? $con . ' ' : '') . $token;
+            }
+            if ($parts !== []) {
+                $separator = strtoupper($this->_arySeparator[$key] ?? 'and');
+                $line      = $key . ': ' . implode(' ', $parts);
+                $lines[]   = $isFirst ? $line : $separator . ' ' . $line;
+                $isFirst   = false;
+            }
+        }
+        return implode("\n", $lines);
     }
 }
 

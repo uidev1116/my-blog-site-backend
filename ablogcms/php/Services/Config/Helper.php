@@ -513,6 +513,23 @@ class Helper
     }
 
     /**
+     * コンフィグセット一覧のタイプ（theme / editor / ベース）に応じた、現在のブログで有効なセットIDを返します。
+     *
+     * @param 'theme'|'editor'|null $type Index/Edit の $type と同じ値
+     */
+    public function getEffectiveConfigSetIdByType(?string $type): ?int
+    {
+        if ($type === 'theme') {
+            return $this->getCurrentThemeSetId();
+        }
+        if ($type === 'editor') {
+            return $this->getCurrentEditorSetId();
+        }
+
+        return $this->getCurrentConfigSetId();
+    }
+
+    /**
      * 現在のコンテキストでのコンフィグセット名を返します
      */
     public function getCurrentConfigSetName()

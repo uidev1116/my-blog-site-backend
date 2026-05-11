@@ -105,18 +105,18 @@ const Unit = ({ editor, unit }: UnitProps) => {
   const Edit = unitDef.edit;
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div
       ref={setNodeRef}
       style={style}
+      role="button"
       className={classnames(BASE_CLASSNAME, {
         'acms-admin-unit-hidden': unit.status === 'close',
         'acms-admin-unit-dragging': isDragging,
-        'acms-admin-unit-selected': editor.selectors.isSelectedUnit(unit.id), // 選択状態のスタイル
+        'acms-admin-unit-selected': editor.selectors.isSelectedUnit(unit.id),
       })}
-      onClick={handleClick} // クリックで選択
+      onClick={handleClick}
       onKeyDown={handleKeyDown}
-      tabIndex={-1} // JavaScriptで選択状態を制御するために必要
+      tabIndex={0}
       data-unit-id={unit.id}
       data-unit-type={unit.type}
       data-unit-status={unit.status}

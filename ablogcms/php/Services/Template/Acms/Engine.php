@@ -3,10 +3,11 @@
 namespace Acms\Services\Template\Acms;
 
 use Acms\Services\Facades\Common;
-use Acms\Services\Facades\Http;
+use Acms\Services\Facades\Session;
 use Acms\Services\Facades\LocalStorage;
 use Acms\Services\Facades\Logger as AcmsLogger;
 use Acms\Services\Facades\Vite;
+use Acms\Services\PageGeneration\PageGenerationService;
 use Exception;
 use Field;
 use RuntimeException;
@@ -291,30 +292,35 @@ class Engine
         if ($domain = $Q->get('domain')) {
             $redirectRoot .= '/' . DOMAIN_SEGMENT . '/' . $domain . '/';
         }
+        $url = rtrim(BASE_URL, '/') . $redirectRoot . $trimmedPath;
+
         try {
-            $req = Http::init(BASE_URL . $redirectRoot . $trimmedPath, 'GET');
-            $req->setRequestHeaders([
-                'User-Agent: ' . 'acms-include ' . UA,
-                'Accept-Language: ' . HTTP_ACCEPT_LANGUAGE,
-            ]);
-            $response = $req->send();
-            if (strpos(Http::getResponseHeader('http_code'), '200') === false) {
-                throw new RuntimeException(Http::getResponseHeader('http_code'));
+            if (ACMS_SID) { // @phpstan-ignore-line
+                $phpSession = Session::handle();
+                $phpSession->writeClose(); // セッションをクローズ（デッドロック対応）
             }
-            $txt = (string) $response->getResponseBody();
-            if (empty($txt)) {
-                throw new RuntimeException('empty file.');
+            $pageGenerationService = new PageGenerationService();
+            $pageGenerationService->addPage($url, 'acms_template', null, true);
+            $results = $pageGenerationService->run(maxParallel: 1, listener: null, withData: true);
+            if (!isset($results[0])) {
+                throw new RuntimeException('テンプレートを取得できませんでした');
             }
-            $charset = mb_detect_encoding($txt, 'UTF-8, EUC-JP, SJIS-win, SJIS');
-            if ($charset && 'UTF-8' != $charset) {
-                $txt = mb_convert_encoding($txt, 'UTF-8', $charset);
+            $result = $results[0];
+            $data = $result->getData();
+            if ($result->isSuccess() && $result->getStatusCode() === 200 && $data !== null && $data !== '') {
+                $charset = mb_detect_encoding($data, 'UTF-8, EUC-JP, SJIS-win, SJIS');
+                if ($charset && 'UTF-8' != $charset) {
+                    $data = mb_convert_encoding($data, 'UTF-8', $charset);
+                }
+                if ($data === false) {
+                    return '';
+                }
+                return $data;
+            } else {
+                throw new RuntimeException('テンプレートを取得できませんでした');
             }
-            if ($txt === false) {
-                return '';
-            }
-            return $txt;
-        } catch (Exception $e) {
-            AcmsLogger::warning('テンプレートを取得できませんでした', Common::exceptionArray($e, ['path' => $trimmedPath]));
+        } catch (\Exception $e) {
+            AcmsLogger::warning('テンプレートを取得できませんでした', Common::exceptionArray($e, ['url' => $url]));
         }
         return '';
     }

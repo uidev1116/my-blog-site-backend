@@ -7,6 +7,7 @@ use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\DebugExtension;
 use Acms\Services\Template\Twig\AcmsExtension;
+use Acms\Services\Template\Twig\CommentedIncludeExtension;
 use Acms\Services\Template\Twig\TokenParser\MarkdownTokenParser;
 use Acms\Services\Template\Twig\CustomLoader;
 use RecursiveIteratorIterator;
@@ -62,6 +63,7 @@ class Twig
         $acmsExtension->setDefaultFilters($defaultFilters);
         $this->addExtension($acmsExtension);
         $this->addExtension(new DebugExtension());
+        $this->addExtension(new CommentedIncludeExtension());
 
         // カスタムタグを追加
         $this->twig->addTokenParser(new MarkdownTokenParser());

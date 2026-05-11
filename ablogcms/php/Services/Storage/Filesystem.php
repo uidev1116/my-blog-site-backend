@@ -43,6 +43,9 @@ class Filesystem extends Base implements FilesystemInterface
     public function exists(string $path): bool
     {
         $path = $this->convertStrToLocal($path);
+        if ($path === '') {
+            return false;
+        }
         $resolved = $this->safeRealpath($path);
         if ($resolved === false) {
             return false;
@@ -59,6 +62,9 @@ class Filesystem extends Base implements FilesystemInterface
     public function isFile(string $path): bool
     {
         $path = $this->convertStrToLocal($path);
+        if ($path === '') {
+            return false;
+        }
         $resolved = $this->safeRealpath($path);
         if ($resolved === false) {
             return false;
@@ -75,6 +81,9 @@ class Filesystem extends Base implements FilesystemInterface
     public function isDirectory(string $path): bool
     {
         $path = $this->convertStrToLocal($path);
+        if ($path === '') {
+            return false;
+        }
         $resolved = $this->safeRealpath($path);
         if ($resolved === false) {
             return false;

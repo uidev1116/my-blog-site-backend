@@ -88,12 +88,6 @@ class ACMS_POST_Image extends ACMS_POST
     public $ARCHIVES_DIR;
 
     /**
-     * 古い画像を削除するかどうかのフラグ
-     * @var bool
-     */
-    public $olddel;
-
-    /**
      * サムネイルサイズ
      * @var int
      */
@@ -131,17 +125,14 @@ class ACMS_POST_Image extends ACMS_POST
 
     /**
      * コンストラクタ
-     *
-     * @param bool $olddel 古い画像を削除するかどうか
      */
-    public function __construct($olddel = true)
+    public function __construct()
     {
         //-------
         // init
         $this->delete = '';
         $this->angle = null;
 
-        $this->olddel = $olddel;
         $this->ARCHIVES_DIR = ARCHIVES_DIR;
     }
 
@@ -329,7 +320,9 @@ class ACMS_POST_Image extends ACMS_POST
         if ($data !== null) {
             $this->editAndSaveImage($data);
         }
-        $this->deleteImage();
+        // 差し替え・削除指定時の古いファイル物理削除はここでは行わない。
+        // 呼び出し元 (Unit/Field の保存処理) が、メイン column と column_rev を
+        // 両方更新した後に参照チェックを挟んで物理削除する。
         PublicStorage::removeDirectory(self::ARCHIVES_TMP_DIR);
 
         return $data;
@@ -554,58 +547,13 @@ class ACMS_POST_Image extends ACMS_POST
             }
 
             try {
-                Image::resizeImg($data['target'], $_file, $ext, $_width, $_height, $_size, $_angle);
+                Image::resizeImg($data['target'], $_file, $_width, $_height, $_size, $_angle);
                 if (HOOK_ENABLE) {
                     $Hook = ACMS_Hook::singleton();
                     $Hook->call('mediaCreate', $_file);
                 }
             } catch (\Exception $e) {
                 AcmsLogger::error('GDによる画像の生成に失敗しました', Common::exceptionArray($e, ['path' => $_file]));
-            }
-        }
-    }
-
-    /**
-     * 不要になった画像を削除
-     *
-     * 新規バージョン作成時は削除を行わない
-     * @return void
-     */
-    private function deleteImage(): void
-    {
-        if (Entry::isNewVersion()) {
-            return;
-        }
-        if ($this->delete !== null && $this->delete !== '') {
-            if (PublicStorage::isFile($this->delete)) {
-                $name   = PublicStorage::mbBasename($this->delete);
-                $dir    = substr($this->delete, 0, (strlen($this->delete) - strlen($name)));
-                if ($this->olddel === true) {
-                    $this->deleteExtensionImage($this->delete);
-
-                    PublicStorage::remove($this->delete);
-                    PublicStorage::remove($dir . 'tiny-' . $name);
-                    PublicStorage::remove($dir . 'large-' . $name);
-                    PublicStorage::remove($dir . 'square-' . $name);
-
-                    PublicStorage::remove($this->delete . '.webp');
-                    PublicStorage::remove($dir . 'tiny-' . $name . '.webp');
-                    PublicStorage::remove($dir . 'large-' . $name . '.webp');
-                    PublicStorage::remove($dir . 'square-' . $name . '.webp');
-
-                    if (HOOK_ENABLE) {
-                        $Hook = ACMS_Hook::singleton();
-                        $Hook->call('mediaDelete', $this->delete);
-                        $Hook->call('mediaDelete', $dir . 'tiny-' . $name);
-                        $Hook->call('mediaDelete', $dir . 'large-' . $name);
-                        $Hook->call('mediaDelete', $dir . 'square-' . $name);
-
-                        $Hook->call('mediaDelete', $this->delete . '.webp');
-                        $Hook->call('mediaDelete', $dir . 'tiny-' . $name . '.webp');
-                        $Hook->call('mediaDelete', $dir . 'large-' . $name . '.webp');
-                        $Hook->call('mediaDelete', $dir . 'square-' . $name . '.webp');
-                    }
-                }
             }
         }
     }

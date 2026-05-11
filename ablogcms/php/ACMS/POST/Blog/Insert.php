@@ -10,11 +10,16 @@ class ACMS_POST_Blog_Insert extends ACMS_POST_Blog
         $Blog->setMethod('status', 'status', Blog::isValidStatus($Blog->get('status')));
         $Blog->setMethod('status', 'root', true);
         $Blog->setMethod('name', 'required');
+        $Blog->setMethod('name', 'maxlength', '255');
         $Blog->setMethod('domain', 'required');
+        $Blog->setMethod('domain', 'maxlength', '128');
         $Blog->setMethod('domain', 'domain', Blog::isDomain($Blog->get('domain'), $this->Get->get('aid')));
+        $Blog->setMethod('code', 'maxlength', '255');
         $Blog->setMethod('code', 'exists', Blog::isCodeExists($Blog->get('domain'), $Blog->get('code')));
         $Blog->setMethod('code', 'reserved', !isReserved($Blog->get('code')));
-        $Blog->setMethod('code', 'string', isValidCode($Blog->get('code')));
+        if ($Blog->get('code') !== '') {
+            $Blog->setMethod('code', 'string', isValidCode($Blog->get('code'), allowSlash: true));
+        }
         $Blog->setMethod('config_set_id', 'value', $this->checkConfigSetScope($Blog->get('config_set_id')));
         $Blog->setMethod('config_set_scope', 'in', ['local', 'global']);
         $Blog->setMethod('theme_set_id', 'value', $this->checkConfigSetScope($Blog->get('theme_set_id')));

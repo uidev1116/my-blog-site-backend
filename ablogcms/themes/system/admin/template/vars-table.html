@@ -6,7 +6,10 @@
 		var $sidebar = $('#side-nav'),
 			$offset = $sidebar.offset(),
 			$sidebarItem = $('.js-scrollspy-item');
-		var throttled = _.throttle(function () {
+		var timer = null;
+		var throttled = function () {
+			if (timer) return;
+			timer = setTimeout(function () { timer = null; }, 30);
 			// 追従ナビゲーション
 			if ($(window).scrollTop() > $offset.top) {
 				$sidebar.addClass('fixed');
@@ -29,7 +32,7 @@
 					flag = true;
 				}
 			});
-		}, 30);
+		};
 		$(window).scroll(throttled).scroll();
 
 		// プレビュータブをクリックしたとき、Setしたテンプレートの組み込みJSを動作させる

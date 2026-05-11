@@ -11,6 +11,7 @@ class ACMS_GET_Admin_Config_Set_Edit extends ACMS_GET_Admin_Edit
                 $configSet->overload(loadConfigSet($setid));
             }
         }
+
         return true;
     }
 }

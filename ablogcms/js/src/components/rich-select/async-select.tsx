@@ -6,11 +6,12 @@ import type { AsyncProps } from 'react-select/async';
 import DropdownIndicator from './components/dropdown-indicator';
 import stylesConfig from './styles';
 
-type AsyncSelectProps<
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface AsyncSelectProps<
   Option = unknown,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>,
-> = AsyncProps<Option, IsMulti, Group>;
+> extends AsyncProps<Option, IsMulti, Group> {}
 
 const AsyncSelect = <Option, IsMulti extends boolean, Group extends GroupBase<Option>>(
   { styles, components, className, ...props }: AsyncSelectProps<Option, IsMulti, Group>,

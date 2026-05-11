@@ -50,6 +50,8 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
 
   filenameInputRef: React.RefObject<HTMLInputElement>;
 
+  tagsInputRef: React.RefObject<HTMLInputElement>;
+
   modalRef: React.RefObject<HTMLDivElement>;
 
   root: HTMLElement;
@@ -79,6 +81,7 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
     this.form = null;
     this.modalRef = createRef();
     this.filenameInputRef = createRef();
+    this.tagsInputRef = createRef();
   }
 
   getDefaultPreview(item: MediaItem) {
@@ -355,19 +358,17 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
     }));
   }
 
-  addTags(tags: readonly MediaTag[]) {
-    const { actions, item } = this.props;
-    if (item === null) {
-      return;
-    }
-    const label = tags.reduce((val, tag, idx) => {
+  handleTagsChange(tags: readonly MediaTag[]) {
+    const value = tags.reduce((val, tag, idx) => {
       if (idx === 0) {
         return tag.value;
       }
       return `${val}${delimiter}${tag.value}`;
     }, '');
 
-    actions.setItem({ ...item, media_label: label });
+    if (this.tagsInputRef.current) {
+      this.tagsInputRef.current.value = value;
+    }
   }
 
   openEditDialog() {
@@ -456,7 +457,8 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
         nextState.preview = preview;
         nextState.blob = blob;
       } else {
-        const [resizeType, largeSize] = ACMS.Config.lgImg.split(':');
+        // lgImg はログイン時のみ出力されるが、メディアモーダルはログイン必須の管理画面でのみ使用される
+        const [resizeType, largeSize] = ACMS.Config.lgImg!.split(':');
         const { blob, resize } = await resizeImage.getBlobFromFile(file, resizeType, parseInt(largeSize, 10));
         const preview = await this.blobToDataURL(blob);
         nextState.preview = preview;
@@ -621,8 +623,7 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
                                 />
                               </th>
                               <td>
-                                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                                <label>
+                                <label aria-label={ACMS.i18n('media.managed_media_change')}>
                                   <input type="file" onChange={this.changeImage.bind(this)} />
                                 </label>
                               </td>
@@ -666,7 +667,12 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
                               }}
                             >
                               <th className="acms-admin-table-nowrap">
-                                {ACMS.i18n('media.filename')}
+                                <label
+                                  id={`media-modal-filename-label-${item.media_id}`}
+                                  htmlFor={`media-modal-filename-${item.media_id}`}
+                                >
+                                  {ACMS.i18n('media.filename')}
+                                </label>
                                 <i
                                   className="acms-admin-icon-tooltip acms-admin-margin-left-mini js-acms-tooltip-hover"
                                   data-acms-position="top"
@@ -677,6 +683,8 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
                                 <input
                                   ref={this.filenameInputRef}
                                   type="text"
+                                  id={`media-modal-filename-${item.media_id}`}
+                                  aria-labelledby={`media-modal-filename-label-${item.media_id}`}
                                   defaultValue={item.media_title}
                                   name="file_name"
                                   className="acms-admin-form-width-full"
@@ -696,9 +704,9 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
                               <td>
                                 <CreatableSelect<MediaTag, true>
                                   isMulti
-                                  value={this.makeTags(item.media_label)}
+                                  defaultValue={this.makeTags(item.media_label)}
                                   className="acms-admin-form-width-full"
-                                  onChange={this.addTags.bind(this)}
+                                  onChange={this.handleTagsChange.bind(this)}
                                   options={
                                     tags &&
                                     tags.map((tag) => ({
@@ -711,8 +719,14 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
                                   formatCreateLabel={(inputValue) => ACMS.i18n('media.add_tag', { name: inputValue })}
                                   isValidNewOption={(inputValue) => inputValue.trim().length > 0}
                                   closeMenuOnSelect={false}
+                                  hideSelectedOptions
                                 />
-                                <input type="hidden" value={item.media_label} name="media_label" />
+                                <input
+                                  ref={this.tagsInputRef}
+                                  type="hidden"
+                                  defaultValue={item.media_label}
+                                  name="media_label"
+                                />
                                 <input type="hidden" name="media[]" value="media_label" />
                               </td>
                             </tr>
@@ -727,7 +741,12 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
                               }}
                             >
                               <th className="acms-admin-table-nowrap">
-                                {ACMS.i18n('media.caption')}
+                                <label
+                                  id={`media-modal-caption-label-${item.media_id}`}
+                                  htmlFor={`media-modal-caption-${item.media_id}`}
+                                >
+                                  {ACMS.i18n('media.caption')}
+                                </label>
                                 <i
                                   className="acms-admin-icon-tooltip acms-admin-margin-left-mini js-acms-tooltip-hover"
                                   data-acms-position="top"
@@ -737,6 +756,8 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
                               <td>
                                 <input
                                   type="text"
+                                  id={`media-modal-caption-${item.media_id}`}
+                                  aria-labelledby={`media-modal-caption-label-${item.media_id}`}
                                   defaultValue={item.media_caption}
                                   name="field_1"
                                   className="acms-admin-form-width-full"
@@ -755,7 +776,12 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
                               }}
                             >
                               <th className="acms-admin-table-nowrap">
-                                {ACMS.i18n('media.alt')}
+                                <label
+                                  id={`media-modal-alt-label-${item.media_id}`}
+                                  htmlFor={`media-modal-alt-${item.media_id}`}
+                                >
+                                  {ACMS.i18n('media.alt')}
+                                </label>
                                 <i
                                   className="acms-admin-icon-tooltip acms-admin-margin-left-mini js-acms-tooltip-hover"
                                   data-acms-position="top"
@@ -764,6 +790,8 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
                               </th>
                               <td>
                                 <AutoResizeTextarea
+                                  id={`media-modal-alt-${item.media_id}`}
+                                  aria-labelledby={`media-modal-alt-label-${item.media_id}`}
                                   defaultValue={item.media_alt}
                                   name="field_3"
                                   className="acms-admin-form-width-full"
@@ -774,7 +802,12 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
                             {item.media_type !== 'file' && (
                               <tr>
                                 <th className="acms-admin-table-nowrap">
-                                  {ACMS.i18n('media.link')}
+                                  <label
+                                    id={`media-modal-link-label-${item.media_id}`}
+                                    htmlFor={`media-modal-link-${item.media_id}`}
+                                  >
+                                    {ACMS.i18n('media.link')}
+                                  </label>
                                   <i
                                     className="acms-admin-icon-tooltip acms-admin-margin-left-mini js-acms-tooltip-hover"
                                     data-acms-position="top"
@@ -784,6 +817,8 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
                                 <td>
                                   <input
                                     type="text"
+                                    id={`media-modal-link-${item.media_id}`}
+                                    aria-labelledby={`media-modal-link-label-${item.media_id}`}
                                     defaultValue={item.media_link}
                                     name="field_2"
                                     className="acms-admin-form-width-full"
@@ -794,7 +829,12 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
                             )}
                             <tr>
                               <th className="acms-admin-table-nowrap">
-                                {ACMS.i18n('media.memo')}
+                                <label
+                                  id={`media-modal-memo-label-${item.media_id}`}
+                                  htmlFor={`media-modal-memo-${item.media_id}`}
+                                >
+                                  {ACMS.i18n('media.memo')}
+                                </label>
                                 <i
                                   className="acms-admin-icon-tooltip acms-admin-margin-left-mini js-acms-tooltip-hover"
                                   data-acms-position="top"
@@ -803,6 +843,8 @@ export default class MediaModal extends Component<MediaModalProps, MediaModalSta
                               </th>
                               <td>
                                 <textarea
+                                  id={`media-modal-memo-${item.media_id}`}
+                                  aria-labelledby={`media-modal-memo-label-${item.media_id}`}
                                   defaultValue={item.media_text}
                                   name="field_4"
                                   className="acms-admin-form-width-full"

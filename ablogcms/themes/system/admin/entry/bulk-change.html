@@ -14,7 +14,7 @@
   <!--T-->一括編集をするエントリーを少なくとも１つ選択する必要があります。<!--/T-->
   <button
     type="button"
-    class="js-acms-alert-close acms-alert-icon-after"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
     aria-label="アラートを閉じる"
   >
     ×
@@ -27,13 +27,26 @@
   <!--T-->実行する一括操作を少なくとも１つ選択する必要があります。<!--/T-->
   <button
     type="button"
-    class="js-acms-alert-close acms-alert-icon-after"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
     aria-label="アラートを閉じる"
   >
     ×
   </button>
 </div>
 <!-- END error:operationEmpty -->
+<!-- BEGIN error:validationFailed -->
+<div role="alert" class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-danger">
+  <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+  <!--T-->入力内容に誤りがあります。<!--/T-->
+  <button
+    type="button"
+    class="js-acms-alert-close acms-admin-alert-icon-after"
+    aria-label="アラートを閉じる"
+  >
+    ×
+  </button>
+</div>
+<!-- END error:validationFailed -->
 
 <!-- BEGIN step#1 -->
 <!-- BEGIN_MODULE Touch_EntryAdminV1 -->

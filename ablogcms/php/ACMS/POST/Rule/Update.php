@@ -102,10 +102,12 @@ class ACMS_POST_Rule_Update extends ACMS_POST_Rule
     protected function validate(\Field_Validation $Rule)
     {
         $Rule->setMethod('name', 'required');
+        $Rule->setMethod('name', 'maxlength', '64');
         $Rule->setMethod('status', 'in', ['open', 'close']);
         $Rule->setMethod('rule', 'ridIsNull', idval($this->Get->get('rid')) > 0);
         $Rule->setMethod('rule', 'invalidLicence', IS_LICENSED);
         $Rule->setMethod('rule', 'operative', $this->isOperable());
+        $Rule->setMethod('description', 'maxlength', '255');
 
         $Rule->validate(new ACMS_Validator());
     }

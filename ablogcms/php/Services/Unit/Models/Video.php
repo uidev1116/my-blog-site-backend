@@ -10,6 +10,7 @@ use Acms\Traits\Unit\AnkerUnitTrait;
 use Acms\Traits\Unit\SizeableUnitTrait;
 use Acms\Services\Unit\Contracts\SizeableUnitInterface;
 use Acms\Traits\Unit\UnitMultiLangTrait;
+use Uri\Rfc3986\Uri as Rfc3986Uri;
 use Template;
 use ACMS_Hook;
 
@@ -98,9 +99,10 @@ class Video extends Model implements AlignableUnitInterface, AnkerUnitInterface,
             if (is_string($tempVideoId) && $tempVideoId !== '') { // @phpstan-ignore-line
                 $videoId = $tempVideoId;
             } else {
-                $parsed_url = parse_url($videoId);
-                if (!empty($parsed_url['query'])) {
-                    $videoId = preg_replace('/v=([\w\-_]+).*/', '$1', $parsed_url['query']) ?? '';
+                $parsedUrl = Rfc3986Uri::parse($videoId);
+                $query = $parsedUrl?->getQuery();
+                if ($query !== null && $query !== '') {
+                    $videoId = preg_replace('/v=([\w\-_]+).*/', '$1', $query) ?? '';
                 }
             }
         }

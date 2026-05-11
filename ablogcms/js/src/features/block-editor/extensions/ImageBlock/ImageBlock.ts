@@ -1,9 +1,6 @@
 import { ReactNodeViewRenderer } from '@tiptap/react';
-import { Editor, Range } from '@tiptap/core';
-import { Plugin } from '@tiptap/pm/state';
-import { EditorView } from '@tiptap/pm/view';
-import { DOMParser as PMDOMParser } from '@tiptap/pm/model';
-import { MediaItem } from '@features/media/types';
+import { Range } from '@tiptap/core';
+import type { MediaItem } from '@features/media/types';
 import { ImageBlockView } from './components/ImageBlockView';
 import { Image } from '../Image';
 
@@ -24,47 +21,6 @@ declare module '@tiptap/core' {
     };
   }
 }
-
-// 🔧 画像のsrcをチェックして相対パスに変換するPasteプラグイン
-const htmlImagePastePlugin = (editor: Editor) =>
-  new Plugin({
-    props: {
-      handlePaste(view: EditorView, event: ClipboardEvent): boolean {
-        const html = event.clipboardData?.getData('text/html');
-        if (html) {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, 'text/html');
-          const imgs = doc.querySelectorAll('img');
-
-          const checks = Array.from(imgs).map(async (img) => {
-            const originalSrc = img.getAttribute('src');
-            if (!originalSrc) return;
-            try {
-              const root = ACMS.Config.root.replace(/\/$/, '');
-              const url = new URL(originalSrc);
-              const relativePath = url.pathname + url.search;
-              const checkUrl = `${location.origin}${root}${relativePath}`;
-              const res = await fetch(checkUrl, { method: 'HEAD' });
-              if (res.ok) {
-                img.setAttribute('src', `${root}${relativePath}`);
-              }
-            } catch (e) {
-              console.warn('画像URL変換失敗:', e); // eslint-disable-line no-console
-            }
-          });
-
-          Promise.all(checks).then(() => {
-            const slice = PMDOMParser.fromSchema(editor.schema).parseSlice(doc.body);
-            const transaction = view.state.tr.replaceSelection(slice);
-            view.dispatch(transaction);
-          });
-
-          return true;
-        }
-        return false;
-      },
-    },
-  });
 
 export const ImageBlock = Image.extend({
   name: 'imageBlock',
@@ -412,10 +368,6 @@ export const ImageBlock = Image.extend({
 
   addNodeView() {
     return ReactNodeViewRenderer(ImageBlockView);
-  },
-
-  addProseMirrorPlugins() {
-    return [htmlImagePastePlugin(this.editor)];
   },
 });
 

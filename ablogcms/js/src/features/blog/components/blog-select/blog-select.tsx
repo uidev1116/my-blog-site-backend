@@ -57,11 +57,11 @@ const BlogSelectWithoutRef = (
   ref: React.ForwardedRef<SelectInstance<BlogOption, false>>
 ) => {
   const selectRef = useRef<SelectInstance<BlogOption, false>>(null);
+  const initialized = useRef(false);
   const [inputValue, setInputValue] = useState<string>('');
   const [keyword, setKeyword] = useState<string>('');
 
   const [value, setValue] = useState<BlogOption | null>(null);
-  const [defaultValue, setDefaultValue] = useState<BlogOption | null>(null);
 
   const currentBid = useMemo(() => {
     if (value !== null) {
@@ -91,17 +91,13 @@ const BlogSelectWithoutRef = (
   );
 
   useEffect(() => {
-    if (defaultValue === null && options && options.length > 0) {
+    if (!initialized.current && options && options.length > 0) {
+      initialized.current = true;
       const defaultValueString =
         typeof defaultValueProp === 'string' ? defaultValueProp : defaultValueProp?.value.toString();
-
-      setDefaultValue(options.find((option) => option.value === defaultValueString) || null);
+      setValue(options.find((option) => option.value === defaultValueString) || null);
     }
-  }, [options, defaultValue, defaultValueProp]);
-
-  useEffect(() => {
-    setValue(defaultValue);
-  }, [defaultValue]);
+  }, [options, defaultValueProp]);
 
   const setKeywordDebounced = useRef(debounce(800, (keyword) => setKeyword(keyword))).current;
 

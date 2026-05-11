@@ -21,6 +21,14 @@ const MemoFontFamilyPicker = memo(FontFamilyPicker);
 const MemoFontSizePicker = memo(FontSizePicker);
 const MemoCustomClassPicker = memo(CustomClassPicker);
 
+const SHORTCUT_BOLD = ['Mod', 'B'];
+const SHORTCUT_ITALIC = ['Mod', 'I'];
+const SHORTCUT_UNDERLINE = ['Mod', 'U'];
+const SHORTCUT_STRIKE = ['Mod', 'Shift', 'S'];
+const SHORTCUT_CODE = ['Mod', 'E'];
+const SHORTCUT_SUBSCRIPT = ['Mod', ','];
+const SHORTCUT_SUPERSCRIPT = ['Mod', '.'];
+
 export type TextMenuProps = {
   editor: Editor;
   appendTo?: React.RefObject<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -78,7 +86,7 @@ export const TextMenu = ({ editor, appendTo }: TextMenuProps) => {
     const el = menuRef.current;
     if (!el) return;
 
-    el.addEventListener('scroll', updateScrollButtons);
+    el.addEventListener('scroll', updateScrollButtons, { passive: true });
     document.addEventListener('resize', updateScrollButtons);
     return () => {
       el.removeEventListener('scroll', updateScrollButtons);
@@ -162,7 +170,7 @@ export const TextMenu = ({ editor, appendTo }: TextMenuProps) => {
         <MemoButton
           type="button"
           tooltip="太字"
-          tooltipShortcut={['Mod', 'B']}
+          tooltipShortcut={SHORTCUT_BOLD}
           onClick={commands.onBold}
           active={states.isBold}
           aria-label="太字"
@@ -173,7 +181,7 @@ export const TextMenu = ({ editor, appendTo }: TextMenuProps) => {
           <MemoButton
             type="button"
             tooltip="斜体"
-            tooltipShortcut={['Mod', 'I']}
+            tooltipShortcut={SHORTCUT_ITALIC}
             onClick={commands.onItalic}
             active={states.isItalic}
             aria-label="斜体"
@@ -185,7 +193,7 @@ export const TextMenu = ({ editor, appendTo }: TextMenuProps) => {
           <MemoButton
             type="button"
             tooltip="下線"
-            tooltipShortcut={['Mod', 'U']}
+            tooltipShortcut={SHORTCUT_UNDERLINE}
             onClick={commands.onUnderline}
             active={states.isUnderline}
             aria-label="下線"
@@ -197,7 +205,7 @@ export const TextMenu = ({ editor, appendTo }: TextMenuProps) => {
           <MemoButton
             type="button"
             tooltip="打ち消し線"
-            tooltipShortcut={['Mod', 'Shift', 'S']}
+            tooltipShortcut={SHORTCUT_STRIKE}
             onClick={commands.onStrike}
             active={states.isStrike}
             aria-label="打ち消し線"
@@ -209,7 +217,7 @@ export const TextMenu = ({ editor, appendTo }: TextMenuProps) => {
           <MemoButton
             type="button"
             tooltip="コード"
-            tooltipShortcut={['Mod', 'E']}
+            tooltipShortcut={SHORTCUT_CODE}
             onClick={commands.onCode}
             active={states.isCode}
             aria-label="コード"
@@ -260,7 +268,7 @@ export const TextMenu = ({ editor, appendTo }: TextMenuProps) => {
           <MemoButton
             type="button"
             tooltip="下付き文字"
-            tooltipShortcut={['Mod', ',']}
+            tooltipShortcut={SHORTCUT_SUBSCRIPT}
             onClick={commands.onSubscript}
             active={states.isSubscript}
             aria-label="下付き文字"
@@ -272,7 +280,7 @@ export const TextMenu = ({ editor, appendTo }: TextMenuProps) => {
           <MemoButton
             type="button"
             tooltip="上付き文字"
-            tooltipShortcut={['Mod', '.']}
+            tooltipShortcut={SHORTCUT_SUPERSCRIPT}
             onClick={commands.onSuperscript}
             active={states.isSuperscript}
             aria-label="上付き文字"

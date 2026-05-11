@@ -51,6 +51,16 @@ class ACMS_POST
     protected $messages;
 
     /**
+     * 正常なルートからのPOSTかどうかをチェック
+     *
+     * @return bool
+     */
+    protected function isValidPostRoute(): bool
+    {
+        return true;
+    }
+
+    /**
      * CSRFトークンの存在チェック
      *
      * @return boolean
@@ -181,6 +191,13 @@ class ACMS_POST
         $this->errors = new Field_Validation();
         $this->messages = new Field_Validation();
 
+         // 正常なルートからのPOSTかどうかをチェック
+        if (!$this->isValidPostRoute()) {
+            httpStatusCode('403 Forbidden');
+            AcmsLogger::notice('不正なルートからのPOSTが検知されたため、処理を中断しました');
+            return $this->Post;
+        }
+
         //----------
         // takeover
         if ($takeover = $this->Post->get('takeover')) {
@@ -192,7 +209,7 @@ class ACMS_POST
                 $this->Post = new Field_Validation($Post, true);
             } else {
                 httpStatusCode('400 Bad Request');
-                AcmsLogger::error('POSTデータの「takeover」が復元できません');
+                AcmsLogger::notice('POSTデータの「takeover」が復元できませんでした');
                 return $this->Post;
             }
         }
@@ -200,7 +217,7 @@ class ACMS_POST
         //-------------------------
         // Check missing POST data
         if (!$this->Post->isExists('formToken')) {
-            AcmsLogger::error('POSTデータが不完全である可能性があるため処理を中断しました');
+            AcmsLogger::notice('POSTデータが不完全である可能性があるため処理を中断しました');
             $this->addSystemError('IllegalPostData');
             return $this->Post;
         }
@@ -521,8 +538,10 @@ class ACMS_POST
         $status = $workflow->get('workflow_status');
         if ($status === 'open') {
             $workflow->setMethod('workflow_name', 'required');
+            $workflow->setMethod('workflow_name', 'maxlength', '255');
             $workflow->setMethod('workflow_type', 'required');
             $workflow->setMethod('workflow_role', 'operable', sessionWithEnterpriseAdministration());
+            $workflow->setMethod('workflow_description', 'maxlength', '512');
 
             // 並列チェック
             if ($workflow->get('workflow_type') === 'parallel') {

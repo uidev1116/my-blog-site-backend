@@ -1,5 +1,7 @@
 <?php
 
+use Acms\Services\Facades\Login;
+
 class ACMS_GET_Admin extends ACMS_GET
 {
     function buildBlogSelect(&$Tpl, $rbid = BID, $selectedBid = null, $loopblock = 'loop', $aryAuth = [], $isGlobal = false, $order = 'sort-asc')
@@ -8,8 +10,11 @@ class ACMS_GET_Admin extends ACMS_GET
         $SQL    = SQL::newSelect('blog');
         if ($isGlobal) {
             ACMS_Filter::blogTree($SQL, $rbid, 'descendant-self', null);
-            if (SUID) {
-                $SQL->addWhereIn('blog_id', Auth::getAuthorizedBlog(SUID));
+            if (Login::isLoggedIn()) {
+                /** @var int|null $sessionUserId */
+                $sessionUserId = SUID;
+                assert(is_int($sessionUserId));
+                $SQL->addWhereIn('blog_id', Auth::getAuthorizedBlog($sessionUserId));
             }
         } else {
             $SQL->addWhereOpr('blog_id', $rbid);
