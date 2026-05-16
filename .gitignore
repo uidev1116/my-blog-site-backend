@@ -47,3 +47,4 @@ compose.override.yaml
 node_modules
 php.ini
 .claude
+/ablogcms/wp-content/*
