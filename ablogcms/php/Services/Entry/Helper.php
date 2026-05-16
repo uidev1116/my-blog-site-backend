@@ -581,9 +581,41 @@ class Helper
     public function findPublishableReservedRevisions(): array
     {
         $revisionAliasName = 'revision';
+        $entryAliasName = 'entry';
+
+        // entry_rev の主キーは (entry_id, entry_rev_id) なので、entry_rev_id だけで JOIN すると
+        // 同番リビジョンを持つ別エントリーまで巻き込まれる。entry_id 一致条件を ON に加える。
+        $joinWhere = SQL::newWhere();
+        $joinWhere->addWhereOpr(
+            'entry_id',
+            SQL::newField('entry_id', $entryAliasName),
+            '=',
+            'AND',
+            $revisionAliasName
+        );
+
         $reservedRevisionsSql = SQL::newSelect('entry_rev', $revisionAliasName);
         $reservedRevisionsSql->addSelect('*', null, $revisionAliasName);
-        $reservedRevisionsSql->addInnerJoin('entry', 'entry_reserve_rev_id', 'entry_rev_id', 'entry', $revisionAliasName);
+        $reservedRevisionsSql->addInnerJoin(
+            'entry',
+            'entry_reserve_rev_id',
+            'entry_rev_id',
+            $entryAliasName,
+            $revisionAliasName,
+            $joinWhere
+        );
+        // 予約があるエントリーに絞り込み、entry_reserve_filter インデックスのレンジスキャンを誘導する。
+        // addWhereOpr で数値を渡すと左辺が "(col + 0)" にラップされて索引が無効化されるため、
+        // 右辺を quote=false な SQL_Field として埋め込む（既存ビルダ慣習）。
+        // entry_reserve_rev_id は int(11) NOT NULL DEFAULT 0 で、有効な予約 ID は必ず 1 以上なので
+        // "> 0" を意味的に等価な ">= 1" に置き換えている。
+        $reservedRevisionsSql->addWhereOpr(
+            'entry_reserve_rev_id',
+            SQL::newField('1', null, false),
+            '>=',
+            'AND',
+            $entryAliasName
+        );
         $reservedRevisionsSql->addWhereOpr('entry_start_datetime', date('Y-m-d H:i:s', REQUEST_TIME), '<', 'AND', $revisionAliasName);
         $reservedRevisions = DB::query($reservedRevisionsSql->get(dsn()), 'all');
         return $reservedRevisions;
