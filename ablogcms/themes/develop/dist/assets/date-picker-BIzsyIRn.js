@@ -1,0 +1,1 @@
+import{f as e,b as i}from"./vendor-HosIAaPb.js";import"./leaflet-tkpg15bm.js";const u=t=>{const r={allowInput:!0,dateFormat:"Y-m-d",locale:e.ja};if(t.flatpickr!==void 0)return;r.defaultDate=t.value;const a=i(t,r);t.setAttribute("autocomplete","off"),t.addEventListener("change",o=>{a.jumpToDate(o.target.value),a.setDate(o.target.value)}),t.flatpickr=a};export{u as default};
