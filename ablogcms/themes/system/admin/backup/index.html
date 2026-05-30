@@ -108,8 +108,8 @@
         <th style="text-align: left;"><!--T-->画像・ファイル<!--/T--></th>
       </tr>
       <tr>
-        <!-- BEGIN sqlfile:veil -->
         <td>
+          <!-- BEGIN sqlfile:veil -->
           <form action="" method="post" enctype="multipart/form-data" class="acms-admin-form">
             <select name="backup_file" class="js-select2 acms-admin-form-width-half"><!-- BEGIN sql:loop -->
               <option value="{sqlfile}">{sqlfile}</option><!-- END sql:loop -->
@@ -123,10 +123,10 @@
                  onclick="return confirm('<!--T-->選択したバックアップを削除します。本当によろしいですか？<!--/T-->');"
                  class="acms-admin-btn-admin acms-admin-btn-admin-danger"/>
           </form>
+          <!-- END sqlfile:veil -->
         </td>
-        <!-- END sqlfile:veil -->
-        <!-- BEGIN zipfile:veil -->
         <td>
+          <!-- BEGIN zipfile:veil -->
           <form action="" method="post" enctype="multipart/form-data" class="acms-admin-form">
             <select name="backup_file" class="js-select2 acms-admin-form-width-half"><!-- BEGIN zip:loop -->
               <option value="{zipfile}">{zipfile}</option><!-- END zip:loop -->
@@ -140,8 +140,8 @@
                  onclick="return confirm('<!--T-->選択したバックアップを削除します。本当によろしいですか？<!--/T-->');"
                  class="acms-admin-btn-admin acms-admin-btn-admin-danger"/>
           </form>
+          <!-- END zipfile:veil -->
         </td>
-        <!-- END zipfile:veil -->
       </tr>
     </table>
     <!-- END_MODULE Admin_Backup_ArchiveZipList -->

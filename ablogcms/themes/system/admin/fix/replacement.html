@@ -117,19 +117,12 @@ $('.js-replacement_target').change(function(){
           <span class="acms-admin-icon acms-admin-icon-right"></span>
           <input type="text" name="fix_replacement_replacement" value="{fix_replacement_replacement}" placeholder="<!--T-->変換文字<!--/T-->" class="acms-admin-form-width-small">
           <input type="hidden" name="fix[]" value="fix_replacement_replacement" />
-          <input type="hidden" name="fix_replacement_replacement:validator#required" />
         </div>
         <div role="alert" aria-live="assertive">
           <div class="validator-result-{fix_replacement_pattern:validator#required}">
             <p class="error-text">
               <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
               <!--T-->対象文字を入力してください<!--/T-->
-            </p>
-          </div>
-          <div class="validator-result-{fix_replacement_replacement:validator#required}">
-            <p class="error-text">
-              <span class="acms-admin-icon acms-admin-icon-attention" aria-hidden="true"></span>
-              <!--T-->変換文字を入力してください<!--/T-->
             </p>
           </div>
         </div>
@@ -204,13 +197,64 @@ $('.js-replacement_target').change(function(){
           </div>
         </td><!-- BEGIN key:veil -->
         <td>{key}</td><!-- END key:veil -->
-        <td>{text}[raw]</td>
+        <td><acms-replacement-highlight pattern="{pattern}">{text}</acms-replacement-highlight></td>
         <td class="acms-admin-table-nowrap">
           <a href="{url}" class="acms-admin-btn-admin" target="_blank"><!--T-->確認<!--/T--></a>
         </td>
       </tr><!-- END found:loop -->
     </tbody>
   </table>
+  @verbatim
+  <script>
+    class AcmsReplacementHighlight extends HTMLElement {
+      #highlighted = false;
+
+      connectedCallback() {
+        if (this.#highlighted) {
+          return;
+        }
+        const pattern = this.getAttribute('pattern');
+        if (!pattern) {
+          return;
+        }
+        this.#highlighted = true;
+
+        const escapedPattern = pattern.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(escapedPattern, 'giu');
+        const walker = document.createTreeWalker(this, NodeFilter.SHOW_TEXT);
+        const textNodes = [];
+        while (walker.nextNode()) {
+          textNodes.push(walker.currentNode);
+        }
+        for (const textNode of textNodes) {
+          const text = textNode.nodeValue;
+          const matches = [...text.matchAll(regex)];
+          if (matches.length === 0) {
+            continue;
+          }
+          const fragment = document.createDocumentFragment();
+          let lastIndex = 0;
+          for (const match of matches) {
+            if (match.index > lastIndex) {
+              fragment.append(text.slice(lastIndex, match.index));
+            }
+            const strong = document.createElement('strong');
+            strong.className = 'highlight1';
+            strong.textContent = match[0];
+            fragment.append(strong);
+            lastIndex = match.index + match[0].length;
+          }
+          if (lastIndex < text.length) {
+            fragment.append(text.slice(lastIndex));
+          }
+          textNode.replaceWith(fragment);
+        }
+      }
+    }
+
+    customElements.define('acms-replacement-highlight', AcmsReplacementHighlight);
+  </script>
+  @endverbatim
   <!-- END list:veil -->
   <!-- END_MODULE Admin_Fix_Replacement_Confirm -->
 

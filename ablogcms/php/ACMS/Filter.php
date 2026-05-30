@@ -203,30 +203,29 @@ class ACMS_Filter
         $seq    = isset($aryOrder[1]) ? $aryOrder[1] : null;
 
         if ('random' == $fd) {
-            $Fd = SQL::newFunction(null, 'random', $scp);
-        } else {
-            if ('field' == $fd) {
-                if (false !== strpos($SQL->getSQL(dsn()), 'field_sort')) {
-                    $fd = 'strfield_sort';
-                } else {
-                    $fd = 'user_id';
-                }
-            } elseif ('intfield' == $fd) {
-                if (false !== strpos($SQL->getSQL(dsn()), 'intfield_sort')) {
-                    $fd = 'intfield_sort';
-                } else {
-                    $fd = 'user_id';
-                }
-            } elseif ('amount' == $fd) {
-                $fd = 'entry_amount';
-            } else {
-                $fd = 'user_' . $fd;
-            }
-
-            $Fd = SQL::newField($fd, $scp);
+            $SQL->setOrder(SQL::newFunction(null, 'random', $scp));
+            return;
         }
 
-        $SQL->addOrder($Fd, $seq, $scp);
+        if ('field' == $fd) {
+            if (false !== strpos($SQL->getSQL(dsn()), 'field_sort')) {
+                $fd = 'strfield_sort';
+            } else {
+                $fd = 'user_id';
+            }
+        } elseif ('intfield' == $fd) {
+            if (false !== strpos($SQL->getSQL(dsn()), 'intfield_sort')) {
+                $fd = 'intfield_sort';
+            } else {
+                $fd = 'user_id';
+            }
+        } elseif ('amount' == $fd) {
+            $fd = 'entry_amount';
+        } else {
+            $fd = 'user_' . $fd;
+        }
+
+        $SQL->addOrder(SQL::newField($fd, $scp), $seq, $scp);
     }
 
     /**

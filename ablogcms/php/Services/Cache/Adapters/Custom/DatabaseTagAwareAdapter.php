@@ -184,11 +184,11 @@ class DatabaseTagAwareAdapter extends AbstractTagAwareAdapter implements Pruneab
     {
         if ('' === $namespace) {
             $q = [
-                'sql' => "TRUNCATE TABLE $this->cacheTableName",
+                'sql' => "TRUNCATE TABLE `$this->cacheTableName`",
                 'params' => [],
             ];
             $q2 = [
-                'sql' => "TRUNCATE TABLE $this->cacheTagTableName",
+                'sql' => "TRUNCATE TABLE `$this->cacheTagTableName`",
                 'params' => [],
             ];
         } else {

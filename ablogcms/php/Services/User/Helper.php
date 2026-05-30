@@ -101,21 +101,4 @@ class Helper
         $sql->setLimit(1);
         return !!DB::query($sql->get(dsn()));
     }
-
-    /**
-     * IDが一番小さい（古い）管理者アカウントを取得
-     *
-     * @return bool|string
-     */
-    public function getAdminUserWithMinId()
-    {
-        $sql = SQL::newSelect('user');
-        $sql->addWhereOpr('user_status', 'open');
-        $sql->addWhereOpr('user_login_expire', date('Y-m-d', REQUEST_TIME), '>=');
-        $sql->addWhereOpr('user_auth', 'administrator');
-        $sql->setOrder('user_id', 'ASC');
-        $sql->setLimit(1);
-
-        return DB::query($sql->get(dsn()), 'row');
-    }
 }

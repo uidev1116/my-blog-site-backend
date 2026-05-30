@@ -19,7 +19,6 @@ class ACMS_POST_Fix extends ACMS_POST
         }
         $field->setMethod('fix_replacement_target', 'required');
         $field->setMethod('fix_replacement_pattern', 'required');
-        $field->setMethod('fix_replacement_replacement', 'required');
 
         $field->validate(new ACMS_Validator());
 

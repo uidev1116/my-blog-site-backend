@@ -90,15 +90,10 @@ class ACMS_GET_Admin_ActionMenu extends ACMS_GET
             return false;
         }
 
-        switch (\ACMS_RAM::userAuth(SUID)) {
-            case 'administrator':
-            case 'editor':
-            case 'contributor':
-            case 'subscriber':
-                break;
-            default:
-                return false;
+        if (in_array(\ACMS_RAM::userAuth(SUID), configArray('hide_action_menu_auth'), true)) {
+            return false;
         }
+
         return true;
     }
 }

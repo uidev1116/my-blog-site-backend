@@ -56,6 +56,47 @@ class Container implements Contracts\ContainerInterface
     }
 
     /**
+     * 既に make 済みの singleton インスタンスをキャッシュから破棄する。
+     *
+     * テストで `singleton()` で stub クロージャに上書きした後、次回 make 時に
+     * 新しい closure が確実に呼ばれるようにキャッシュをクリアするのに使う。
+     * 通常の本番フローでは使わない。
+     *
+     * @param string $alias
+     */
+    public function forgetInstance(string $alias): void
+    {
+        unset($this->resolvedInstance[$alias]);
+    }
+
+    /**
+     * 既存のオブジェクトをそのまま singleton として登録する。
+     *
+     * 主な用途はテスト時のサービス差し替え。Laravel の `Container::instance()`
+     * 相当で、内部では `singleton()` で alias を上書き → `forgetInstance()` で
+     * resolvedInstance キャッシュを破棄する。次回の `make($alias)` は登録した
+     * オブジェクトを必ず返す。
+     *
+     * 使用例:
+     *
+     *   $stub = new MyServiceStub();
+     *   $container->instance('my.service', $stub);
+     *   $resolved = $container->make('my.service'); // === $stub
+     *
+     * @param string $alias 上書きする DI コンテナエイリアス
+     * @param object $instance 登録するオブジェクト
+     * @return object 登録したオブジェクトをそのまま返す (流暢な書き方を許容するため)
+     */
+    public function instance(string $alias, object $instance): object
+    {
+        $this->singleton($alias, static function () use ($instance) {
+            return $instance;
+        });
+        $this->forgetInstance($alias);
+        return $instance;
+    }
+
+    /**
      * get service
      *
      * @param string $alias

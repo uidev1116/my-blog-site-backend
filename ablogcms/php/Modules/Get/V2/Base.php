@@ -6,6 +6,7 @@ use Acms\Services\Cache\Contracts\AdapterInterface as CacheAdapterInterface;
 use Acms\Services\Common\HookFactory;
 use Acms\Services\Facades\Cache;
 use Acms\Services\Facades\Common;
+use Acms\Services\Facades\Login;
 use BadMethodCallException;
 use Field;
 use Field_Search;
@@ -316,6 +317,14 @@ class Base
     }
 
     /**
+     * キャッシュを使用すべきかどうかを返す
+     */
+    protected function moduleCacheEnabled(): bool
+    {
+        return $this->cacheLifetime > 0 && $this->identifier !== null && $this->identifier !== '' && !Login::isLoggedIn();
+    }
+
+    /**
      * モジュールを実行結果を返却（キャッシュ考慮）
      *
      * @return array
@@ -323,8 +332,7 @@ class Base
      */
     protected function exec(): array
     {
-        $cacheEnabled = $this->cacheLifetime > 0 && $this->identifier;
-        if ($cacheEnabled) {
+        if ($this->moduleCacheEnabled()) {
             $cache = Cache::module();
             assert($cache instanceof CacheAdapterInterface);
             $className = get_class($this);

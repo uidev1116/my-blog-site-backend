@@ -282,4 +282,23 @@ class EntryBodyHelper extends BaseHelper
         // それ以外は編集権限なし
         return false;
     }
+
+    /**
+      * エントリー詳細ページかどうかを判定
+      *
+      * @return bool
+    */
+    public function isEntryDetailPage(): bool
+    {
+        if (!is_int($this->eid)) {
+            return false;
+        }
+        if ($this->eids !== []) {
+            return false;
+        }
+        if ($this->eid < 1) {
+            return false;
+        }
+        return true;
+    }
 }

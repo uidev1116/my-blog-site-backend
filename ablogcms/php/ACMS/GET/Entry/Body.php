@@ -139,17 +139,14 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
      */
     public function get()
     {
+        if (!$this->setConfigTrait()) {
+            return '';
+        }
+        $this->boot();
+        $tpl = new Template($this->tpl, new ACMS_Corrector());
+        TemplateHelper::buildModuleField($tpl, $this->mid, $this->showField);
         try {
-            if (!$this->setConfigTrait()) {
-                return '';
-            }
-            $tpl = new Template($this->tpl, new ACMS_Corrector());
-            TemplateHelper::buildModuleField($tpl, $this->mid, $this->showField);
-
-            // 起動
-            $this->boot();
-
-            if ($this->isEntryDetailPage()) {
+            if ($this->entryBodyHelper->isEntryDetailPage()) {
                 // エントリー詳細ページ
                 $this->entryPage($tpl);
             } else {
@@ -702,6 +699,10 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
             // 編集権限がない場合は処理を終了
             return;
         }
+        if (ACMS_RAM::entryStatus($eid) === 'trash') {
+            // ゴミ箱状態のエントリーには管理アクション（編集・公開／非公開・削除・フォームなど）を一切表示しない
+            return;
+        }
         $block = array_merge(['adminEntryAction'], $block);
 
         $entry = $this->createAdminEntry($eid, $bid, $cid);
@@ -987,15 +988,5 @@ class ACMS_GET_Entry_Body extends ACMS_GET_Entry
         return [
             'parent.loop.class' => $this->config['parentLoopClass'] ?? '',
         ];
-    }
-
-    /**
-     * エントリー詳細ページかどうか
-     *
-     * @return bool
-     */
-    protected function isEntryDetailPage(): bool
-    {
-        return strval($this->eid) === strval(intval($this->eid)) && ($this->eid ?? 0) > 0;
     }
 }

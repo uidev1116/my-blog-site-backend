@@ -2,6 +2,7 @@
 
 namespace Acms\Services\Template;
 
+use Acms\Services\Facades\LocalStorage;
 use Twig\Environment;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
@@ -45,8 +46,10 @@ class Twig
         $this->theme = $theme;
 
         $templateDirectories = [];
-        while (!empty($theme)) {
-            $templateDirectories[] = THEMES_DIR . $theme;
+        while ($theme !== '' && $theme !== null) {
+            if (LocalStorage::isDirectory(THEMES_DIR . $theme)) {
+                $templateDirectories[] = THEMES_DIR . $theme;
+            }
             $theme  = preg_replace('/^[^@]*?(@|$)/', '', $theme);
         }
         $templateDirectories[] = THEMES_DIR . 'system';

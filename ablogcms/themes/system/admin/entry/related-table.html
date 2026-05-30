@@ -18,7 +18,7 @@
       "title": "{related.title}[jsonEscape|raw|allow_dangerous_tag]",
       "categoryName": "{related.categoryName}[jsonEscape|raw|allow_dangerous_tag]",
       "url": "{related.url}[jsonEscape|raw|allow_dangerous_tag]",
-      "image": "<!-- BEGIN_IF [{related.path}/nem] -->%{ROOT_DIR}{related.path}[jsonEscape|raw|allow_dangerous_tag|resizeImg(50)]<!-- ELSE -->/themes/system/images/placeholder/image-16-9.svg<!-- END_IF -->"
+      "image": "<!-- BEGIN_IF [{related.path}/nem] -->%{HTTP_ROOT}{related.path}[jsonEscape|raw|allow_dangerous_tag|resizeImg(50)]<!-- ELSE -->%{HTTP_ROOT}themes/system/images/placeholder/image-16-9.svg<!-- END_IF -->"
     }
     <!-- END {{block_name}} -->
   ]

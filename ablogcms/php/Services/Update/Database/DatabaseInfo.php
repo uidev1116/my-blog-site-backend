@@ -198,7 +198,7 @@ class DatabaseInfo
                 // カラムのサイズ変更で現行サイズより小さい場合は処理をスキップ
                 if (preg_match('/^[a-z]+\((\d+)\)/', $def['Type'], $match)) {
                     $cq = [
-                        'sql' => "SHOW COLUMNS FROM " . $tb . " LIKE '" . $left . "'",
+                        'sql' => "SHOW COLUMNS FROM `" . $tb . "` LIKE '" . $left . "'",
                         'params' => [],
                     ];
                     $DB = DB::singleton($this->dsn);
@@ -250,7 +250,7 @@ class DatabaseInfo
         foreach ($tables as $tb) {
             $def = $define[$tb];
 
-            $q = "CREATE TABLE {$tb} ( \r\n";
+            $q = "CREATE TABLE `{$tb}` ( \r\n";
             foreach ($def as $row) {
                 $row['Null'] = (isset($row['Null']) && $row['Null'] == 'NO') ? 'NOT NULL' : 'NULL';
                 $row['Default'] = !empty($row['Default']) ? "default '" . $row['Default'] . "'" : null;

@@ -447,7 +447,7 @@ class ACMS_GET_Schedule extends ACMS_GET
     public function yearView(&$Tpl)
     {
         for ($i = 1; $i < 13; $i++) {
-            $this->buildMonth($Tpl, $i, $this->year);
+            $this->buildMonth($Tpl, sprintf('%02d', $i), $this->year);
         }
 
         $DB     = DB::singleton(dsn());

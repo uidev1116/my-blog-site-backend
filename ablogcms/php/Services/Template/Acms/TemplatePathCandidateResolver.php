@@ -5,7 +5,8 @@ namespace Acms\Services\Template\Acms;
 use Acms\Services\Template\Contracts\TemplatePathCandidateResolverInterface;
 
 /**
- * 拡張子ありはそのパスのみ、拡張子なしは .html を付与したパス。
+ * 拡張子ありはそのパスのみを候補とする。
+ * 拡張子なしは候補なし（補完責務は呼び出し側に置く）。
  * pathinfo で filename が取れないパスは候補なし。
  */
 class TemplatePathCandidateResolver implements TemplatePathCandidateResolverInterface
@@ -23,21 +24,13 @@ class TemplatePathCandidateResolver implements TemplatePathCandidateResolverInte
         $path = $normalized;
 
         $info = pathinfo($path);
-        $rawDirname = $info['dirname'];
-        $dirname = ($rawDirname !== '.' && $rawDirname !== '')
-            ? $rawDirname . '/'
-            : '';
         $filename = $info['filename'];
         $extension = $info['extension'] ?? '';
 
-        if ($filename === '') {
+        if ($filename === '' || $extension === '') {
             return [];
         }
 
-        if ($extension !== '') {
-            return [$path];
-        }
-
-        return [$dirname . $filename . '.html'];
+        return [$path];
     }
 }

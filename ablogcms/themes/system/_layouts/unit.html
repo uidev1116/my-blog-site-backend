@@ -347,10 +347,10 @@
       <!-- BEGIN_IF [{anker}/nem] -->
       id="{anker}"
       <!-- END_IF -->
+      style="border: 0;"
       width="{x}"
       height="{y}"
       src="https://www.youtube.com/embed/{youtubeId}?wmode=transparent&rel=0"
-      frameborder="0"
       allowfullscreen
       loading="lazy"
     ></iframe>
@@ -364,13 +364,10 @@
         <!-- BEGIN_IF [{anker}/nem] -->
         id="{anker}"
         <!-- END_IF -->
-        <!-- BEGIN_IF [{x}/nem/_and_/{y}/nem] -->
-        style="aspect-ratio: {x}/{y};"
-        <!-- END_IF -->
+        style="border: 0;<!-- BEGIN_IF [{x}/nem/_and_/{y}/nem] --> aspect-ratio: {x}/{y};<!-- END_IF -->"
         width="{x}"
         height="{y}"
         src="https://www.youtube.com/embed/{youtubeId}?wmode=transparent&rel=0"
-        frameborder="0"
         allowfullscreen
         loading="lazy"
       ></iframe>
@@ -392,10 +389,10 @@
       id="{anker}"
       <!-- END_IF -->
       class="is-movie"
+      style="border: 0;"
       width="{x}"
       height="{y}"
       src="https://www.youtube.com/embed/{videoId}?wmode=transparent&rel=0"
-      frameborder="0"
       allowfullscreen
       loading="lazy"
     ></iframe>
@@ -410,13 +407,10 @@
         id="{anker}"
         <!-- END_IF -->
         class="is-movie"
-        <!-- BEGIN_IF [{x}/nem/_and_/{y}/nem] -->
-        style="aspect-ratio: {x}/{y};"
-        <!-- END_IF -->
+        style="border: 0;<!-- BEGIN_IF [{x}/nem/_and_/{y}/nem] --> aspect-ratio: {x}/{y};<!-- END_IF -->"
         width="{x}"
         height="{y}"
         src="https://www.youtube.com/embed/{videoId}?wmode=transparent&rel=0"
-        frameborder="0"
         allowfullscreen
         loading="lazy"
       ></iframe>
@@ -663,11 +657,9 @@
       <img
         src="{quote_image}"
         class="quoteImage"
-        width="{x}"
-        height="{y}"
         loading="lazy"
         decoding="async"
-        alt="{quote_title}"
+        alt=""
       >
     </div>
     <!-- END image:veil -->

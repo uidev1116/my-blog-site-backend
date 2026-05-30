@@ -129,15 +129,14 @@ class Body extends Base
      */
     public function get(): array
     {
+        if (!$this->setConfigTrait()) {
+            return [];
+        }
+        // 起動
+        $this->boot();
+        $vars = [];
         try {
-            if (!$this->setConfigTrait()) {
-                return [];
-            }
-            // 起動
-            $this->boot();
-            $vars = [];
-
-            if (strval($this->eid) === strval(intval($this->eid)) && ($this->eid ?? 0) > 0) {
+            if ($this->entryBodyHelper->isEntryDetailPage()) {
                 // エントリー詳細ページ
                 $vars = $this->entryPage();
             } else {
@@ -432,6 +431,10 @@ class Body extends Base
     {
         if (!Login::isLoggedIn()) {
             // ユーザーがログインしていない場合は処理を終了
+            return null;
+        }
+        if (($entry['entry_status'] ?? '') === 'trash') {
+            // ゴミ箱状態のエントリーには編集情報（編集・公開／非公開・削除・リビジョンなど）を一切表示しない
             return null;
         }
         $vars = [

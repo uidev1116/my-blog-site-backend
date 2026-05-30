@@ -88,7 +88,7 @@ class Replication
         foreach ($this->getTableList() as $table) {
             $table = strtolower($table);
             if (!preg_match('/^backup_acms_.*/', $table) and preg_match('/^' . DB_PREFIX . '.*/', $table)) {
-                array_push($list, $table . ' TO backup_acms_' . $table);
+                array_push($list, '`' . $table . '` TO `backup_acms_' . $table . '`');
             }
         }
         $tables_str = implode(', ', $list);
@@ -155,7 +155,7 @@ class Replication
 
         foreach ($list as $key => $row) {
             $sql = [
-                'sql' => 'SHOW CREATE TABLE ' . $row,
+                'sql' => 'SHOW CREATE TABLE `' . $row . '`',
                 'params' => [],
             ];
             $create = DB::query($sql, 'all');
@@ -196,7 +196,7 @@ class Replication
             $columnsType[$name] = $row['Type'];
         }
         $q = [
-            'sql' => "SELECT * FROM $table",
+            'sql' => "SELECT * FROM `$table`",
             'params' => [],
         ];
         $all = $db->query($q, 'all', false);
@@ -254,7 +254,7 @@ class Replication
     public function rewriteDomain($new_domain, $name)
     {
         $sql = [
-            'sql' => 'UPDATE ' . $name . ' SET blog_domain=' . DB::quote($new_domain),
+            'sql' => 'UPDATE `' . $name . '` SET blog_domain=' . DB::quote($new_domain),
             'params' => [],
         ];
         DB::query($sql, 'exec');

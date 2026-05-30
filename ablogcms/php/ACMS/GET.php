@@ -389,11 +389,19 @@ class ACMS_GET
     }
 
     /**
+     * キャッシュを使用すべきかどうかを返す
+     */
+    protected function moduleCacheEnabled(): bool
+    {
+        return $this->cache > 0 && $this->identifier !== null && $this->identifier !== '' && !Login::isLoggedIn();
+    }
+
+    /**
      * @return string
      */
     protected function cache()
     {
-        $cacheOn = $this->cache > 0 && $this->identifier;
+        $cacheOn = $this->moduleCacheEnabled();
         if ($cacheOn) {
             $cache = Cache::module();
             assert($cache instanceof \Acms\Services\Cache\Contracts\AdapterInterface);

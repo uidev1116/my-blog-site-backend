@@ -230,9 +230,12 @@ export default class AcmsFieldList {
         }
       }
 
-      // ③ connector(and/or)の判定処理
+      // ③ connector(or)の判定処理
+      // PHP 側 Field_Search::parse() と挙動を揃え、connector として認識するのは 'or' のみ。
+      // 裸の `and` は後段の separator 判定（'and' | '_and_' | '_or_'）で処理されるよう、
+      // ここでは else 分岐に流して value 経由でフィールド境界トークンに到達させる。
       if (connector === null) {
-        if (isConnector(token)) {
+        if (token === 'or') {
           // 'or'が見つかった場合、それをconnectorとして設定
           connector = token;
           continue;
@@ -336,11 +339,12 @@ export default class AcmsFieldList {
       if (connectors.length === 0 && operators.length === 0) {
         defaultConnector = 'or';
       }
-      if (connectors.length > 0) {
+      if (connectors.length > 0 && isConnector(connectors[0])) {
         defaultConnector = connectors[0]; // eslint-disable-line prefer-destructuring
       }
 
-      if (operators.length > 0) {
+      if (operators.length > 0 && isOperator(operators[0])) {
+        // 不正な operator が指定された場合は 'eq' にフォールバックする（PHP 側 Field_Search::fromPost と挙動を揃える）。
         defaultOperator = operators[0]; // eslint-disable-line prefer-destructuring
       }
 

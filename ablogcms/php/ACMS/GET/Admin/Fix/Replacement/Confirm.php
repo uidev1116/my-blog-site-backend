@@ -190,12 +190,11 @@ class ACMS_GET_Admin_Fix_Replacement_Confirm extends ACMS_GET_Admin_Fix
         foreach ($list as $row) {
             $id = $row['id'];
             $eid = $row['eid'];
-            $hits = $row['text'];
-            $hits = preg_replace('/(' . preg_quote($pattern, '/') . ')/iu', '<strong class="highlight1">$1</strong>', $hits);
 
             $loop = [
                 'id' => $id,
-                'text' => $hits,
+                'text' => $row['text'],
+                'pattern' => $pattern,
                 'url' => acmsLink([
                     'eid' => $eid,
                 ]),

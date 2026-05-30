@@ -7,6 +7,7 @@ use Acms\Services\Unit\Constants\UnitAlign;
 use Acms\Services\Unit\Contracts\Model;
 use Acms\Services\Facades\Media;
 use Acms\Services\Facades\Entry;
+use Acms\Services\Facades\Preview;
 use Acms\Services\Facades\Application;
 use Acms\Services\Unit\UnitCollection;
 use Acms\Services\Unit\UnitTreeNode;
@@ -344,6 +345,11 @@ class Front
      */
     protected function canDisplayInvisibleUnit(array $entry): bool
     {
+        // プレビューモード中は非表示ユニットを表示しない
+        if (Preview::isPreviewMode()) {
+            return false;
+        }
+
         // 基本的な権限チェック
         if (!sessionWithContribution($entry['entry_blog_id'])) {
             // 投稿者以上の権限がない場合は非表示ユニットを表示しない

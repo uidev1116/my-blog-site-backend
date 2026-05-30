@@ -11,6 +11,26 @@ use Symfony\Component\Yaml\Yaml;
 class Import
 {
     /**
+     * カテゴリーIDを値として保持する config キー。
+     * 管理画面のカテゴリー選択UI（js-admin-category-select）に紐づくキーが対象。
+     */
+    private const CATEGORY_ID_CONFIG_KEYS = [
+        'entry_edit_category_default',
+        'entry_edit_category_filter',
+        'entry_edit_sub_category_filter',
+        'static_page_cid',
+        'static_archive_cid',
+    ];
+
+    /**
+     * メディアIDを値として保持する config キー。
+     */
+    private const MEDIA_ID_CONFIG_KEYS = [
+        'media_banner_mid',
+        'navigation_media',
+    ];
+
+    /**
      * @var array
      */
     protected $yaml;
@@ -251,8 +271,14 @@ class Import
      */
     private function configFix($field, $value, $record)
     {
-        if (!is_null($value) && $record['config_key'] === 'media_banner_mid' && $field === 'config_value') {
+        if (is_null($value) || $field !== 'config_value') {
+            return $value;
+        }
+        if (in_array($record['config_key'], self::MEDIA_ID_CONFIG_KEYS, true)) {
             return $this->getNewID('media', $value) ?? '';
+        }
+        if (in_array($record['config_key'], self::CATEGORY_ID_CONFIG_KEYS, true)) {
+            return $this->getNewID('category', $value) ?? '';
         }
         return $value;
     }

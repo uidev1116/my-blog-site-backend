@@ -1,13 +1,14 @@
+<!-- BEGIN_MODULE Admin_Schedule_Edit -->
 <header>
   <div>
     @include("/admin/topicpath.html")
   </div>
   <div>
-    <h1 class="acms-admin-admin-title js-dialog-title"><!--T-->スケジュール管理<!--/T--></h1>
+    @include("/admin/schedule/parts/header.html", {
+      "name": "{name}"
+    })
   </div>
 </header>
-
-<!-- BEGIN_MODULE Admin_Schedule_Edit -->
 
 <!-- BEGIN msg#update -->
 <div class="acms-admin-alert acms-admin-alert-icon acms-admin-alert-info">

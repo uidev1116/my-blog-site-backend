@@ -117,12 +117,15 @@ const CategorySelectWithoutRef = (
   );
 
   useEffect(() => {
-    if (!initialized.current && options && options.length > 0) {
-      initialized.current = true;
-      const defaultValueString = isString(defaultValueProp) ? defaultValueProp : defaultValueProp?.value.toString();
-      setValue(options.find((option) => option.value === defaultValueString) || null);
-    }
-  }, [options, defaultValueProp]);
+    if (initialized.current) return;
+    // 固定オプション(noOption/mtOption/emptyOption)があると API レスポンス到着前でも
+    // options.length > 0 になるため、isLoading が false になるまで初期化を遅延する
+    if (isLoading) return;
+    initialized.current = true;
+    const defaultValueString = isString(defaultValueProp) ? defaultValueProp : defaultValueProp?.value.toString();
+    if (defaultValueString === undefined) return;
+    setValue(options.find((option) => option.value === defaultValueString) || null);
+  }, [isLoading, options, defaultValueProp]);
 
   const setKeywordDebounced = useRef(debounce(800, (keyword) => setKeyword(keyword))).current;
 

@@ -7,14 +7,16 @@ use Acms\Services\Template\Contracts\TemplatePathCandidateResolverInterface;
 /**
  * Twig テンプレートの探索候補を返す。
  *
- * 拡張子が html・なし・twig（html コンテキスト）の場合:
+ * 拡張子が html・twig（html コンテキスト）の場合:
  *   {base}.twig → {base}.html.twig → {base}.html
- *   拡張子なしや .twig 指定は .html と同等に扱う。
+ *   .twig 指定は .html と同等に扱う。
  *
  * それ以外の拡張子（例: .xml）の場合:
  *   {base}.{ext}.twig → {base}.{ext}
  *   汎用の {base}.twig は含めない。xml 等を html テンプレートとして
  *   誤って解決しないよう、元の拡張子に紐づく候補のみに絞る。
+ *
+ * 拡張子なしのパスは候補なし（補完責務は呼び出し側に置く）。
  */
 class TemplatePathCandidateResolver implements TemplatePathCandidateResolverInterface
 {
@@ -38,15 +40,15 @@ class TemplatePathCandidateResolver implements TemplatePathCandidateResolverInte
         $filename = $info['filename'];
         $extension = $info['extension'] ?? '';
 
-        if ($filename === '') {
+        if ($filename === '' || $extension === '') {
             return [];
         }
 
         $base = $dirname . $filename;
 
-        // 拡張子なし・html・twig はすべて「html コンテキスト」として同じ候補列を返す。
+        // html・twig は「html コンテキスト」として同じ候補列を返す。
         // それ以外（xml 等）は元の拡張子を使った候補のみとし、{base}.twig は含めない。
-        $isHtmlContext = $extension === '' || $extension === 'html' || $extension === 'twig';
+        $isHtmlContext = $extension === 'html' || $extension === 'twig';
 
         if ($isHtmlContext) {
             $candidates = [

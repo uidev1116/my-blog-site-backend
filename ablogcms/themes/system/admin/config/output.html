@@ -79,7 +79,7 @@
 			</td>
 		</tr>
 		<tr>
-			<th><!--T-->HTMLコメントの削除<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->出力するHTMLソースからHTMLコメント（&lt;-- コメント -- &gt;）を取り除きます<!--/T-->"></i></th>
+			<th><!--T-->HTMLコメントの削除<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->出力するHTMLソースからHTMLコメント（&lt;-- コメント -- &gt;）を取り除きます。デバッグモード時は無効になります。<!--/T-->"></i></th>
 			<td>
 				<input type="hidden" name="remove_comment" value="off" />
 				<div class="acms-admin-form-checkbox">
@@ -88,11 +88,12 @@
 						<i class="acms-admin-ico-checkbox"></i><!--T-->HTMLコメントを取り除く<!--/T-->
 					</label>
 				</div>
+        <p class="acms-admin-text-helper acms-admin-mt-1"><!--T-->※デバッグモード時は無効になります。<!--/T--></p>
 				<input type="hidden" name="config[]" value="remove_comment" />
 			</td>
 		</tr>
 		<tr>
-			<th><!--T-->余分な空白の削除<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->出力するHTMLソースから余分な空白を取り除きます。連続する空白文字（改行、スペース、タブ）の二つ目以降が取り除かれます。<!--/T-->"></i></th>
+			<th><!--T-->余分な空白の削除<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->出力するHTMLソースから余分な空白を取り除きます。連続する空白文字（改行、スペース、タブ）の二つ目以降が取り除かれます。デバッグモード時は無効になります。<!--/T-->"></i></th>
 			<td>
 				<input type="hidden" name="remove_blank" value="off" />
 				<div class="acms-admin-form-checkbox">
@@ -101,6 +102,7 @@
 						<i class="acms-admin-ico-checkbox"></i><!--T-->余分な空白を取り除く<!--/T-->
 					</label>
 				</div>
+        <p class="acms-admin-text-helper acms-admin-mt-1"><!--T-->※デバッグモード時は無効になります。<!--/T--></p>
 				<input type="hidden" name="config[]" value="remove_blank" />
 			</td>
 		</tr>

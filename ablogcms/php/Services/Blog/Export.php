@@ -40,7 +40,6 @@ class Export extends ExportBase
             'rule',
             'tag',
             'entry_sub_category',
-            'schedule',
             'layout_grid',
             'geo',
             'blog',
@@ -129,12 +128,6 @@ class Export extends ExportBase
             $txt = $record['column_field_1'];
             $record['column_field_1'] = $this->fixNextLine($txt);
         }
-        if ($table === 'schedule') {
-            $this->fixSchedule($record);
-        }
-        if ($table === 'fulltext') {
-            $this->fixFulltext($record);
-        }
         foreach ($record as $key => $value) {
             $key = substr($key, strlen($table . '_'));
             if ($key === 'media_id') {
@@ -144,38 +137,6 @@ class Export extends ExportBase
         $callback = [$this, "{$table}ExtractMediaId"];
         if (is_callable($callback)) {
             $value = call_user_func_array($callback, [$record]);
-        }
-    }
-
-    /**
-     * ignore user fulltext
-     *
-     * @param $record
-     */
-    private function fixFulltext(&$record)
-    {
-        if (!empty($record['fulltext_uid'])) {
-            $record = false;
-        }
-        $txt = $record['fulltext_value'];
-        $record['fulltext_value'] = $this->fixNextLine($txt);
-    }
-
-    /**
-     * ignore schedule data without base set
-     *
-     * @param $record
-     */
-    private function fixSchedule(&$record)
-    {
-        if (
-            1
-            and $record['schedule_year'] == 0000
-            and $record['schedule_month'] == 00
-        ) {
-            // no touch
-        } else {
-            $record = false;
         }
     }
 
@@ -190,7 +151,7 @@ class Export extends ExportBase
     private function fixQueryColumn($SQL, $bid = 0)
     {
         $columns = DB::query([
-            'sql' => 'SHOW COLUMNS FROM ' . $this->prefix . 'column',
+            'sql' => 'SHOW COLUMNS FROM `' . $this->prefix . 'column`',
             'params' => []
         ], 'all');
         foreach ($columns as $column) {
@@ -213,7 +174,7 @@ class Export extends ExportBase
     private function fixQueryComment($SQL, $bid = 0)
     {
         $columns = DB::query([
-            'sql' => 'SHOW COLUMNS FROM ' . $this->prefix . 'comment',
+            'sql' => 'SHOW COLUMNS FROM `' . $this->prefix . 'comment`',
             'params' => []
         ], 'all');
         foreach ($columns as $column) {
@@ -251,7 +212,7 @@ class Export extends ExportBase
     private function fixQueryField($SQL, $bid = 0)
     {
         $columns = DB::query([
-            'sql' => 'SHOW COLUMNS FROM ' . $this->prefix . 'field',
+            'sql' => 'SHOW COLUMNS FROM `' . $this->prefix . 'field`',
             'params' => [],
         ], 'all');
         foreach ($columns as $column) {
@@ -263,29 +224,6 @@ class Export extends ExportBase
         $SUB->addWhereOpr('entry_status', 'trash', '<>', 'OR');
         $SUB->addWhereOpr('field_eid', null, '=', 'OR');
         $SQL->addWhere($SUB);
-
-        return $SQL;
-    }
-
-    /**
-     * フルテキストデータからゴミ箱のデータを除外
-     * This method is called dynamically via call_user_func_array().
-     *
-     * @param \SQL_Select $SQL
-     * @param int $bid
-     * @return mixed
-     */
-    private function fixQueryFulltext($SQL, $bid = 0)
-    {
-        $columns = DB::query([
-            'sql' => 'SHOW COLUMNS FROM ' . $this->prefix . 'fulltext',
-            'params' => [],
-        ], 'all');
-        foreach ($columns as $column) {
-            $SQL->addSelect($column['Field']);
-        }
-        $SQL->addLeftJoin('entry', 'fulltext_eid', 'entry_id');
-        $SQL->addWhereOpr('entry_status', 'trash', '<>');
 
         return $SQL;
     }
@@ -315,6 +253,30 @@ class Export extends ExportBase
     }
 
     /**
+     * タグデータからゴミ箱のデータを除外
+     * This method is called dynamically via call_user_func_array().
+     *
+     * @param \SQL_Select $SQL
+     * @param int $bid
+     * @return mixed
+     * @phpstan-ignore-next-line
+     */
+    private function fixQueryTag($SQL, $bid = 0)
+    {
+        $columns = DB::query([
+            'sql' => 'SHOW COLUMNS FROM ' . $this->prefix . 'tag',
+            'params' => []
+        ], 'all');
+        foreach ($columns as $column) {
+            $SQL->addSelect($column['Field']);
+        }
+        $SQL->addLeftJoin('entry', 'tag_entry_id', 'entry_id');
+        $SQL->addWhereOpr('entry_status', 'trash', '<>');
+
+        return $SQL;
+    }
+
+    /**
      * サブカテゴリーデータからゴミ箱のデータを除外
      * This method is called dynamically via call_user_func_array().
      *
@@ -326,7 +288,7 @@ class Export extends ExportBase
     private function fixQueryEntry_sub_category($SQL, $bid = 0)
     {
         $columns = DB::query([
-            'sql' => 'SHOW COLUMNS FROM ' . $this->prefix . 'entry_sub_category',
+            'sql' => 'SHOW COLUMNS FROM `' . $this->prefix . 'entry_sub_category`',
             'params' => []
         ], 'all');
         foreach ($columns as $column) {
@@ -380,7 +342,8 @@ class Export extends ExportBase
      */
     private function configExtractMediaId(array $record): void
     {
-        if ($record['config_key'] === 'media_banner_mid' && !is_null($record['config_value'])) {
+        $mediaKeys = ['media_banner_mid', 'navigation_media'];
+        if (in_array($record['config_key'], $mediaKeys, true) && !is_null($record['config_value'])) {
             $this->mediaIds[] = (int) $record['config_value'];
         }
     }

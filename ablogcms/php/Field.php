@@ -565,7 +565,26 @@ class Field_Search extends Field
     }
 
     /**
-     * @inheritDoc
+     * フィールド検索条件のクエリ文字列をパースする。
+     *
+     * クエリ書式は a-blog cms 独自の URL パス形式で、スラッシュ区切りで
+     * フィールド名・connector・operator・value を順に並べる:
+     *
+     *   field/op/value                      ... 単一値（op 省略時は eq）
+     *   field/op/value1/op/value2           ... 同一フィールドの連続値（connector は and）
+     *   field/or/op/v1/or/op/v2             ... 同一フィールド内 OR 結合
+     *   fieldA/v1/_and_/fieldB/v2           ... フィールド間 AND（_and_ セパレーター）
+     *   fieldA/v1/_or_/fieldB/v2            ... フィールド間 OR
+     *   fieldA/v1/and/fieldB/v2             ... 裸の and もフィールド間 AND として後方互換で受ける
+     *
+     * 重要な決まりごと:
+     * - `and` トークンは parse では常に separator として扱う（connector ではない）。
+     *   serialize 側で connector='and' を出力しない仕様（後述）と対になっており、
+     *   出力に裸の and が現れない以上、入力で見た and は separator しかありえない。
+     *   同一フィールド内の連続値は connector='and' を「省略形」として扱い、
+     *   `field/op/v1/op/v2` のように and を書かずに表現する。
+     * - 連続スラッシュ `//` は「演算子のみ・値なし」を意味する空トークンとして残し、
+     *   末尾の `/` だけは無視する。
      */
     public function parse($query)
     {
@@ -574,11 +593,18 @@ class Field_Search extends Field
             return;
         }
 
-        // splitPath (TS 側) と挙動を揃えるため、末尾の空トークンは無視する
+        // 末尾の空トークンは無視する（`price/200/300/` のような末尾スラッシュ対策）。
+        // 途中の空トークン（連続 `//`）は値なし演算子の表現として保持する。
         while (count($tokens) > 0 && end($tokens) === '') {
             array_pop($tokens);
         }
 
+        // 状態機械の 5 変数:
+        //   field        ... 現在処理中のフィールド名（null = 次トークンをフィールド名として読む）
+        //   connector    ... 値の結合演算子 'and' | 'or'（null = 未確定）
+        //   operator     ... 比較演算子 'eq' | 'neq' | ...（null = 未確定）
+        //   value        ... 値（null = 未確定、em/nem では '' に確定）
+        //   tmpSeparator ... 直前に出現した separator を次フィールドに引き継ぐためのバッファ
         $field          = null;
         $connector      = null;
         $operator       = null;
@@ -586,8 +612,12 @@ class Field_Search extends Field
         $tmpSeparator   = null;
 
         while (null !== ($token = array_shift($tokens))) {
-            //-------------------
-            // field token start
+            //-----------------------------------------------------------------
+            // [1] フィールド名トークン
+            //   field が null のとき、次のトークンは必ずフィールド名として読む。
+            //   直前の separator（tmpSeparator）があればそれを採用し、
+            //   なければデフォルトで 'and' separator を割り当てる。
+            //-----------------------------------------------------------------
             if (is_null($field)) {
                 $field      = $token;
 
@@ -600,24 +630,29 @@ class Field_Search extends Field
                 continue;
             }
 
+            //-----------------------------------------------------------------
+            // [2] 空トークン `//` のハンドリング
+            //   connector が既に確定済みで operator がまだ未確定なら、
+            //   eq とみなして「値なし eq フィルター」を作る（serialize の往復で
+            //   `or//` のような表現が空 eq として復元されるようにするため）。
+            //-----------------------------------------------------------------
             if ('' === $token) {
-                // connector / operator どちらも未定の場合は何もしない（TS 側挙動）
                 if (!is_null($connector) && is_null($operator)) {
                     $operator   = 'eq';
                 }
             }
 
-            //----------
-            // fd/...
-            // fd/or/...
+            //-----------------------------------------------------------------
+            // [3] operator トークンの判定
+            //   fd/op/...      … connector 省略形（後段で 'and' を補う）
+            //   fd/or/op/...   … connector 明示後の operator
+            //-----------------------------------------------------------------
             if (is_null($operator)) {
-                //------------
-                // fd/ope/...
-                // fd/or/ope/...
                 switch ($token) {
                     case 'eq':
+                        // eq + 値 のときは「等値の列挙」を意味し、暗黙に OR で結ぶ仕様。
+                        // 旧仕様との互換のため eq が現れた瞬間に connector を or に強制する。
                         $operator   = $token;
-                        // eq の場合は connector を or に強制（TS 側挙動）
                         $connector  = 'or';
                         break;
                     case 'neq':
@@ -633,57 +668,59 @@ class Field_Search extends Field
                         break;
                     case 'em':
                     case 'nem':
+                        // em/nem は「値が空 / 空でない」を判定するため value を '' に固定する。
+                        // 次のトークンを value として消費しないので、ここで value を確定させる。
                         $operator   = $token;
                         $value      = '';
                         break;
                 }
 
-                //---------------
-                // fd/ope/...
-                // fd/or/ope/...
                 if (!is_null($operator)) {
-                    //------------
-                    // fd/ope/...
+                    // operator が確定したら connector のデフォルトを 'and' にする
+                    // （eq の場合は上で既に 'or' になっているのでここでは上書きされない）。
                     if (is_null($connector)) {
                         $connector  = 'and';
                     }
+                    // em/nem 以外は次トークンが value。それ以外（em/nem）は value 確定済みなので、
+                    // 後続の値受け取りステップは飛ばして次トークンへ進む。
                     if (is_null($value)) {
                         continue;
                     }
                 }
             }
 
-            //-----------
-            // connector
+            //-----------------------------------------------------------------
+            // [4] connector トークンの判定
+            //   ここで認識するのは `or` のみ。`and` は separator として後段で処理する。
+            //   どちらでもないトークンが来た場合は「connector 省略の eq 値」と解釈し、
+            //   connector='or' / operator='eq' / value=token をその場で確定させる。
+            //-----------------------------------------------------------------
             if (is_null($connector)) {
-                //-------------------
-                // fd/or/... または fd/and/...
-                if (in_array($token, ['or', 'and'], true)) {
+                if ('or' === $token) {
                     $connector  = $token;
                     continue;
-
-                //--------
-                // fd/val
                 } else {
+                    // fd/val 形式（operator も connector も省略）
                     $connector  = 'or';
                     $operator   = 'eq';
                     $value      = $token;
                 }
             }
 
-            //---------------
-            // fd/or/ope/val
+            //-----------------------------------------------------------------
+            // [5] value トークン と separator の振り分け
+            //   value が未確定: 現トークンを value として確定。
+            //   value 確定済み: 現トークンが and / _and_ / _or_ ならフィールド境界。
+            //                   それ以外は通常 add に進む（値の重複追加など）。
+            //-----------------------------------------------------------------
             if (is_null($value)) {
-                //-------------
-                // fd/or/value
                 if (is_null($operator)) {
                     $operator   = 'eq';
                 }
                 $value  = $token;
-
-            //-----------
-            // separator
             } elseif (in_array($token, ['and', '_and_', '_or_'], true)) {
+                // separator を検出: 次フィールドへの切り替えを準備する。
+                // `_or_` だけ OR、それ以外は AND。状態変数をリセットして field を null に戻す。
                 if ($token == '_or_') {
                     $tmpSeparator = 'or';
                 } else {
@@ -828,7 +865,18 @@ class Field_Search extends Field
     }
 
     /**
-     * @inheritDoc
+     * フィールド検索条件を URL パス形式の文字列にシリアライズする。
+     *
+     * 出力上のルール:
+     * - connector='and' は出力に現れない（同名フィールドの暗黙のデフォルトとして扱う）。
+     *   裸の `and` を出すと parse 側が separator として解釈してしまうため、必ず省略する。
+     * - connector='or' は明示的に出力する。
+     * - operator='eq' は connector='or' と組み合わさったときに限り省略する
+     *   （parse 側で eq は connector を or に強制する仕様の裏返し）。
+     * - em / nem は値を持たないので value トークンを出さない。
+     * - 空値を持つ連続フィルター（`or//or/op/val` のような表現）に備えて、
+     *   空値の出現回数をカウント保留し、後続に値ありフィルターが現れた時点でまとめて出力する。
+     * - フィールド境界は `_and_` / `_or_` で出力し、先頭フィールドにつくものだけ後段で除去する。
      */
     public function serialize()
     {
@@ -840,10 +888,13 @@ class Field_Search extends Field
             $aryConnector   = $this->getConnector($fd, null);
             $separator      = $this->getSeparator($fd);
 
+            // 値・演算子・結合子のいずれも空ならこのフィールドは出力対象外
             if (!($cnt = max(count($aryValue), count($aryOperator), count($aryConnector)))) {
                 continue;
             }
 
+            // $empty: 出力を保留している空値の個数。後段で値ありが出たときに合流させる。
+            // $buf  : このフィールド分のトークン列バッファ。
             $empty  = 0;
             $buf    = [];
 
@@ -864,28 +915,35 @@ class Field_Search extends Field
                     case 're':
                     case 'nre':
                         if ('' !== $value) {
+                            // 保留していた空値を先にフラッシュ（連続スラッシュで往復再現できるように）
                             for ($j = 0; $j < $empty; $j++) {
                                 $buf[]  = '';
                             }
                             $empty  = 0;
 
                             if ('or' == $connector) {
+                                // eq は or との組合せのときだけ省略する（parse 側の eq→or 強制と対）
                                 if ('eq' != $operator) {
                                     $buf[]  = 'or';
                                     $buf[]  = $operator;
                                 }
                                 $buf[]  = $value;
                             } else {
+                                // connector='and' は出さない。operator と value のみ。
                                 $buf[]  = $operator;
                                 $buf[]  = $value;
                             }
                             break;
                         } else {
+                            // 値が空文字: いったん保留に積む。後続に値ありフィルターが
+                            // 来れば '' トークンとしてフラッシュ、来なければ捨てる。
                             $empty++;
                         }
                         break;
                     case 'em':
                     case 'nem':
+                        // em/nem は値なしでも必ず出力する。保留空値を先にフラッシュしてから
+                        // connector='or' のときだけ 'or' を前置し、最後に演算子トークンを置く。
                         for ($j = 0; $j < $empty; $j++) {
                             $buf[]  = '';
                         }
@@ -896,10 +954,13 @@ class Field_Search extends Field
                         $buf[]  = $operator;
                         break;
                     default:
+                        // 未知の演算子: 何も書かず空トークンとして残す（防御的）
                         $buf[]  = '';
                 }
             }
 
+            // フィールド分のトークン列が 1 つ以上できたら、separator + フィールド名を頭に付けて aryQuery に連結。
+            // 先頭フィールドにも separator が必ず付くが、ループ外で先頭分を後から削る。
             $aryTmp = [];
             if (!empty($buf)) {
                 if ($separator === 'or') {
@@ -916,6 +977,7 @@ class Field_Search extends Field
                 $aryQuery = array_merge($aryQuery, $aryTmp);
             }
         }
+        // 先頭フィールドの separator は不要（前段がないため）。`_or_` / `_and_` / `and` のいずれかなら除去。
         if (!empty($aryQuery) && in_array($aryQuery[0], ['_or_', '_and_', 'and'], true)) {
             array_shift($aryQuery);
         }

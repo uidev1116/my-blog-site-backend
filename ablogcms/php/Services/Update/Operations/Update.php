@@ -219,8 +219,10 @@ class Update
             $to = $config->get('system_update_to');
 
             if (empty($to)) {
-                $userService = Application::make('user');
-                $admin = $userService->getAdminUserWithMinId();
+                $userRepository = Application::make('user.repository');
+                assert($userRepository instanceof \Acms\Services\User\UserRepository);
+                $rootBlogId = (defined('RBID') && RBID !== null) ? RBID : 1; // @phpstan-ignore-line RBID may not be defined, but if it is, it should be used as root blog ID
+                $admin = $userRepository->findPrimaryAdmin($rootBlogId);
                 $to = $admin['user_mail'] ?? false;
             }
             if (empty($to)) {

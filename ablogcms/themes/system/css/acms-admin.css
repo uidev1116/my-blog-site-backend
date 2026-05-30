@@ -6807,17 +6807,17 @@ a.acms-admin-label-danger:focus {
     font-size: 20px;
   }
 }
-.acms-admin-title-wrapper .acms-admin-module-en {
+.acms-admin-title-wrapper .acms-admin-subtitle {
   display: inline-block;
   margin: 0 15px 10px 0;
   font-weight: bold;
   color: #4b4b4b;
 }
-.acms-admin-title-wrapper .acms-admin-module-en {
+.acms-admin-title-wrapper .acms-admin-subtitle {
   font-size: 12px;
 }
 @media print {
-  .acms-admin-title-wrapper .acms-admin-module-en {
+  .acms-admin-title-wrapper .acms-admin-subtitle {
     font-size: 12px;
   }
 }

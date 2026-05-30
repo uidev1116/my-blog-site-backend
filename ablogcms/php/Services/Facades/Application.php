@@ -24,6 +24,8 @@ namespace Acms\Services\Facades;
  * @method static mixed make(string $alias) Get a service from the DI container
  * @method static void bind(string $alias, string|callable $class, array $arguments = []) Register a service in the DI container
  * @method static void singleton(string $alias, string|callable $class, array $arguments = []) Register a service as a singleton in the DI container
+ * @method static void forgetInstance(string $alias) Drop the cached singleton instance so the next make() rebuilds it (test only)
+ * @method static object instance(string $alias, object $instance) Replace a service with a concrete object (test helper, equivalent to Laravel's Container::instance())
  * @method static void bootstrap(string $alias, callable $callback) Register a bootstrap function for a service
  * @method static void init(array $aliases = [], array $providers = [], bool $ignore_error = false) Initialize the application
  */
