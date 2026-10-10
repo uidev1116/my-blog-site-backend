@@ -36,6 +36,22 @@ export default {
         ],
       },
     ],
+    'at-rule-prelude-no-invalid': [
+      true,
+      {
+        ignoreAtRules: [
+          /** tailwindcss v4 */
+          'theme',
+          'source',
+          'utility',
+          'variant',
+          'custom-variant',
+          'plugin',
+          'apply',
+          'config',
+        ],
+      },
+    ],
     'function-no-unknown': [
       true,
       {
