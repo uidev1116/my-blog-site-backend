@@ -22,16 +22,15 @@
 ```bash
 docker compose up -d      # compose.yaml
 npm run setup             # submodule 取得・プラグインの symlink 作成
-npm run fetch-core -- --init   # コアが無い環境(新しい clone など)のみ。setup の後に実行
 cd ablogcms/themes/develop && npm ci && npm run dev
 ```
 
-`npm run fetch-core` は公式の配布パッケージから、オンラインアップデートが置き換えるのと同じ範囲だけを取得します
-(`-- --dry-run` で取得対象の確認、`-- --init` で `.htaccess` / `config.server.php` の初期配置)。
-置き換え前のコアは Web ルート外の `.core-backup/backup_core_<日時>/` に退避されます。
+新しい環境(clone し直しなど)ではコアが存在しません。公式サイトの配布パッケージを取得して `ablogcms/` に展開し、
+`config.server.php` / `.htaccess` / `license.php` を用意してください
+([アップデート](https://developer.a-blogcms.jp/document/update/) 参照)。
 
 > 既存の clone でこのブランチへ切り替える(または master にマージされたものを pull する)と、作業ツリーからコアが削除されます。
-> 切り替え前に `ablogcms/` をバックアップし、切り替え後に `npm run fetch-core` で取得し直してください。
+> 切り替え前に `ablogcms/` をバックアップしてください。
 
 ## コアのアップデート
 

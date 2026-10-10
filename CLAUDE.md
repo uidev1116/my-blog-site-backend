@@ -23,7 +23,7 @@ npx lint-staged
 ## Architecture
 
 > **a-blog cms のコア (`ablogcms/php`, `js`, `lang`, `themes/system`, `index.php`, `acms.js` など) は Git 管理外**です。
-> オンライン/自動アップデートに任せ、コアは編集しないでください。取得は `npm run fetch-core`。
+> オンライン/自動アップデートに任せ、コアは編集しないでください。新しい環境では公式パッケージを手動で展開。
 > デプロイは GitHub Actions の rsync (`.github/workflows/deploy.yml`)。本番で `git pull` しないこと。詳細は README.md / docs/deploy.md。
 
 ### Main Components

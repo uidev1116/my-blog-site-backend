@@ -39,7 +39,6 @@ ablogcms/license.php
 !/ablogcms/cron/.htaccess
 
 ## Backup
-/.core-backup/
 /ablogcms/backup_*
 
 ## Editor

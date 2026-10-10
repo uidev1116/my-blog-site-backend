@@ -5,7 +5,6 @@
   "scripts": {
     "setup": "node ./tools/setup.js",
     "prepare": "husky install",
-    "fetch-core": "node ./tools/fetch-core.js",
     "format:check": "prettier --check tools"
   },
   "repository": {
