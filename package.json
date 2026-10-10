@@ -4,7 +4,9 @@
   "main": "index.js",
   "scripts": {
     "setup": "node ./tools/setup.js",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "fetch-core": "node ./tools/fetch-core.js",
+    "format:check": "prettier --check tools"
   },
   "repository": {
     "type": "git",
@@ -25,6 +27,7 @@
     "node": "20.16.0"
   },
   "lint-staged": {
-    "tools/**/*.{js,ts,jsx,tsx}": "prettier --write"
+    "tools/**/*.{js,ts,jsx,tsx}": "prettier --write",
+    "ablogcms/themes/develop/{src,include}/**/*.{js,css,twig}": "prettier --write"
   }
 }
