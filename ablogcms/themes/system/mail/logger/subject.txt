@@ -1,1 +1,0 @@
-【{level}】{message}[delnl|mb_trim(60, '...')]【{rootBlogName}】

@@ -1,8 +1,0 @@
-【{rootBlogName}】で、大量のエラーを検知したのでメール通知を一時的に停止しました
-
-日時: {datetime}[datetime('Y年m月d日 H:i')]
-停止時間: {stop_time}分
-再開日時: {restart_datetime}[datetime('Y年m月d日 H:i')]
-
-詳細については、管理画面の監査ログよりご確認ください。
-{auditLogUrl}

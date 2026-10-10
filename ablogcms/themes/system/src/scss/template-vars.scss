@@ -1,9 +1,0 @@
-@charset "utf-8";
-@forward 'global/variables' with (
-  $admin: false
-);
-@forward 'global/functions';
-@forward 'global/mixins';
-@forward 'global/system-variables';
-@forward 'global/variables-fonts';
-@use 'template-vars-style';

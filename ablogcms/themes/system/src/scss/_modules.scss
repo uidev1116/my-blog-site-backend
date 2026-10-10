@@ -1,8 +1,0 @@
-@use 'global/common' as global;
-
-/* ------------------------------
- SmartPhoto.js
-------------------------------- */
-[data-id] .smartphoto {
-  z-index: global.zIndex(smartphoto);
-}

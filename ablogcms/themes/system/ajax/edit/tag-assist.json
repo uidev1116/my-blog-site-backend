@@ -1,3 +1,0 @@
-<!-- BEGIN_MODULE Tag_Assist -->[<!-- BEGIN tag:loop -->
-  <!-- BEGIN tag:glue -->,<!-- END tag:glue -->\{ "value": "{name}[delnl|jsonEscape|raw|allow_dangerous_tag]", "label": "{name}[delnl|jsonEscape|raw|allow_dangerous_tag]" \}<!-- END tag:loop -->
-]<!-- END_MODULE Tag_Assist -->
