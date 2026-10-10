@@ -44,7 +44,9 @@ cd ablogcms/themes/develop && npm ci && npm run dev
 - `ci.yml` : PR / master への push で、テーマの lint・フォーマット・ビルドと、ルートのフォーマットを検査
 - `deploy.yml` : master への push で、テーマをビルドして **自分で管理するファイルだけ**を rsync (SSH) でサーバーへ配置
   (コアには触れません)。リポジトリ変数 `DEPLOY_ENABLED=true` を設定するまで動きません
-- `dependabot.yml` : GitHub Actions / npm(ルート・テーマ)/ submodule を毎週月曜に更新 PR
+- `dependabot.yml` : GitHub Actions / npm(ルート・テーマ)を毎週月曜に更新 PR。
+  プラグインの submodule は対象外です(Dependabot はタグ/リリースに限定できず、毎コミットで PR が来るため)。
+  更新するときは、リリースタグのコミットへ手動で進めてください(`git -C plugins/<name> fetch --tags && git -C plugins/<name> checkout <tag>` → 親リポジトリでコミット)
 
 セットアップと本番移行の手順は [docs/deploy.md](docs/deploy.md) を参照してください。
 **移行後、本番サーバーで `git pull` してはいけません**(コアが削除されます)。

@@ -42,11 +42,5 @@ updates:
         dependency-type: production
         update-types: [minor, patch]
 
-  # Plugin submodules
-  - package-ecosystem: gitsubmodule
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-      time: '06:00'
-      timezone: Asia/Tokyo
+  # Plugin submodules (gitsubmodule) are intentionally NOT tracked: Dependabot follows every commit of the
+  # submodule's branch and cannot be limited to tags/releases. Bump them manually to a release tag.
