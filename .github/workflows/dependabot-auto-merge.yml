@@ -1,0 +1,53 @@
+name: Dependabot auto-merge
+
+# Enables auto-merge (squash) for low-risk Dependabot PRs. GitHub then merges them only after the
+# REQUIRED status checks pass, so master needs a branch protection / ruleset that requires the CI jobs
+# and the repository setting "Allow auto-merge" must be on. See docs/deploy.md.
+#
+# Auto-merged:   GitHub Actions (minor/patch), npm dev dependencies and indirect deps (minor/patch)
+# Left manual:   major updates, npm production dependencies (they change the production bundle),
+#                plugin submodules (they are deployed to the server)
+# NOTE: merging to master triggers Deploy once DEPLOY_ENABLED is on.
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - id: metadata
+        uses: dependabot/fetch-metadata@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: decide
+        env:
+          DEPS_JSON: ${{ steps.metadata.outputs.updated-dependencies-json }}
+          ECOSYSTEM: ${{ steps.metadata.outputs.package-ecosystem }}
+        run: |
+          set -euo pipefail
+          case "$ECOSYSTEM" in
+            github_actions)
+              FILTER='length > 0 and all(.[]; .updateType != "version-update:semver-major")' ;;
+            npm_and_yarn)
+              FILTER='length > 0 and all(.[]; .updateType != "version-update:semver-major" and .dependencyType != "direct:production")' ;;
+            *)
+              echo "ecosystem '$ECOSYSTEM' is not auto-merged"; exit 0 ;;
+          esac
+          if echo "$DEPS_JSON" | jq -e "$FILTER" > /dev/null; then
+            echo "merge=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "not eligible for auto-merge (major update or production dependency)"
+          fi
+
+      - if: steps.decide.outputs.merge == 'true'
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge --auto --squash "$PR_URL"

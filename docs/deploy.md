@@ -58,3 +58,20 @@ rsync は 1 回だけ実行し、許可リスト(`.github/scripts/deploy-rsync.s
 | 触る(--delete はそれぞれのディレクトリ内のみ) | 触らない |
 |---|---|
 | `themes/develop/` / `extension/acms/` / `extension/schema/` / `extension/plugins/<plugin>/` / `config.user.php` / `private/config.system.yaml` / `{archives,cache,cron,media,private,storage}/.htaccess`(ファイル単体、`--delete` なし) | コア全般、`config.server.php`、`.env`、`license.php`、ルートの `.htaccess`、`archives`、`media`、`storage`、`cache`、`backup_*` |
+
+## E. Dependabot の自動マージ
+
+`dependabot-auto-merge.yml` が、安全なものだけに自動マージを設定します。
+
+| 自動マージする | 手動のまま |
+|---|---|
+| GitHub Actions のマイナー/パッチ、npm の devDependencies と間接依存のマイナー/パッチ | メジャー更新、npm の本番依存(本番のバンドルが変わるため)、プラグインの submodule(サーバーに配置されるため) |
+
+**使うには、リポジトリ側の設定が必要です。** これがないと、CI の結果を待たずにマージされます。
+
+1. Settings > General > Pull Requests で **Allow auto-merge** を ON にする
+2. `master` にブランチ保護(または Ruleset)を作り、**Require status checks to pass** で次を必須にする
+   - `Theme (lint / format / build)`
+   - `Root tooling (format)`
+
+`DEPLOY_ENABLED` が `true` の間は、master へのマージが本番デプロイにつながります。自動マージを有効にする前に、Deploy の運用(Environment の承認など)を決めてください。
