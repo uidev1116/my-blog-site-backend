@@ -29,7 +29,7 @@ concurrency:
 jobs:
   deploy:
     if: ${{ vars.DEPLOY_ENABLED == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment: production
     env:
@@ -39,7 +39,7 @@ jobs:
       DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
       DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Checkout plugin submodules
         run: |
@@ -47,7 +47,7 @@ jobs:
           git config --global url."https://github.com/".insteadOf "git@github.com:"
           git submodule update --init --recursive
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: ablogcms/themes/develop/.node-version
           cache: npm
@@ -81,34 +81,23 @@ jobs:
         run: |
           # Refuse to deploy unless DEPLOY_PATH really is an a-blog cms root.
           $RSYNC_RSH "$DEPLOY_USER@$DEPLOY_HOST" "test -f '$DEPLOY_PATH/index.php' && test -f '$DEPLOY_PATH/config.server.php'"
+          # rsync refuses to write through symlinks inside the destination; fail before anything is sent.
+          # Only the paths rsync can write into are checked (server-only plugins are ignored).
+          PATHS=("$DEPLOY_PATH/themes/develop" "$DEPLOY_PATH/extension/acms" "$DEPLOY_PATH/extension/schema")
+          for dir in plugins/*/; do
+            name=$(basename "$dir")
+            [ -d "plugins/$name/src" ] && PATHS+=("$DEPLOY_PATH/extension/plugins/$name")
+          done
+          QUOTED=$(printf "'%s' " "${PATHS[@]}")
+          LINKS=$($RSYNC_RSH "$DEPLOY_USER@$DEPLOY_HOST" "find $QUOTED -type l 2>/dev/null || true")
+          if [ -n "$LINKS" ]; then
+            echo "ERROR: symlinks found in managed directories. Replace them with real directories first (docs/deploy.md):" >&2
+            echo "$LINKS" >&2
+            exit 1
+          fi
 
       - name: Deploy (rsync)
         run: |
-          set -euo pipefail
-          REMOTE="$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH"
-          OPTS=(-rlptz --human-readable --itemize-changes --omit-dir-times --chmod=D755,F644 $DRY_RUN)
-          echo "dry-run flag: '${DRY_RUN:-<none>}'"
-
-          # Theme: --delete only inside the theme directory
-          rsync "${OPTS[@]}" --delete \
-            --exclude='node_modules/' --exclude='.vscode/' --exclude='.eslintcache' --exclude='.stylelintcache' \
-            --exclude='.env' --exclude='.DS_Store' \
-            ablogcms/themes/develop/ "$REMOTE/themes/develop/"
-
-          # Extension (user-owned dirs only)
-          rsync "${OPTS[@]}" --delete ablogcms/extension/acms/ "$REMOTE/extension/acms/"
-          rsync "${OPTS[@]}" --delete ablogcms/extension/schema/ "$REMOTE/extension/schema/"
-
-          # Plugins: plugins/<name>/src -> extension/plugins/<name>
-          for dir in plugins/*/; do
-            name=$(basename "$dir")
-            src="plugins/$name/src"
-            [ -d "$src" ] || { echo "skip $name (no src)"; continue; }
-            # An uninitialised submodule would otherwise wipe the plugin on the server.
-            [ -n "$(ls -A "$src")" ] || { echo "::error::$src is empty"; exit 1; }
-            rsync "${OPTS[@]}" --delete "$src/" "$REMOTE/extension/plugins/$name/"
-          done
-
-          # Single files (no --delete)
-          rsync "${OPTS[@]}" ablogcms/config.user.php "$REMOTE/config.user.php"
-          rsync "${OPTS[@]}" ablogcms/private/config.system.yaml "$REMOTE/private/config.system.yaml"
+          # One rsync; see .github/scripts/deploy-rsync.sh for exactly what is sent/deleted.
+          # $DRY_RUN is intentionally unquoted (empty => no argument).
+          .github/scripts/deploy-rsync.sh "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH" $DRY_RUN

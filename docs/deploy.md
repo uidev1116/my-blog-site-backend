@@ -32,8 +32,7 @@
    プラグインの submodule が private の場合は、`deploy.yml` の submodule 取得にトークンを設定してください。
 5. **ドライラン**: `DEPLOY_ENABLED=true` にして、Actions > Deploy > Run workflow で `dry_run` を ON のまま実行する
    - ログの `*deleting` 行と、`config.system.yaml` などの上書き対象を確認する。想定外の削除があれば中止する
-   - `extension/plugins/<name>` がサーバー上で symlink の場合、リンク先(`<サイトルートの親>/plugins/<name>/src`)が実在することも確認する。リンク切れだと rsync がその時点で失敗し、先に同期したテーマ等だけが反映された状態になる
-   - (補足)`extension/plugins/<name>` がサーバー上で symlink の場合、実体ディレクトリとして用意するか、辿った先への書き込みで問題ないかを確認する
+   - **サーバーの `extension/plugins/<name>`(特に `ApiPreview`)が symlink だと、Deploy は事前チェックで止まります**。rsync は転送先の途中にある symlink へは書き込めないためです(以前 symlink ごと Git で追跡していた名残)。手順 1 のバックアップ後に、symlink を実ディレクトリに置き換えてください(例: `unlink extension/plugins/ApiPreview && mkdir extension/plugins/ApiPreview`。`unlink` はリンクだけを外し、リンク先 `plugins/ApiPreview/src` は残る)
    - テーマ配下にサーバー側で作られたファイル(テンプレートエディタ等)があると `--delete` で消えるので、ドライランで必ず確認する
    - サーバー側の `config.system.yaml` に本番固有の設定がある場合は、先にリポジトリへ反映する(デプロイで上書きされるため)
 6. **本番反映**: `dry_run` を OFF にして実行し、サイトの表示と管理画面を確認する
@@ -54,6 +53,8 @@
 
 ## D. Deploy が触るもの / 触らないもの
 
+rsync は 1 回だけ実行し、許可リスト(`.github/scripts/deploy-rsync.sh`)にあるパスだけを送信・削除します。リストにないものは、サーバー側に何があっても `--delete` の対象になりません。
+
 | 触る(--delete はそれぞれのディレクトリ内のみ) | 触らない |
 |---|---|
-| `themes/develop/` / `extension/acms/` / `extension/schema/` / `extension/plugins/<plugin>/` / `config.user.php` / `private/config.system.yaml` | コア全般、`config.server.php`、`.env`、`license.php`、`.htaccess`、`archives`、`media`、`storage`、`cache`、`backup_*` |
+| `themes/develop/` / `extension/acms/` / `extension/schema/` / `extension/plugins/<plugin>/` / `config.user.php` / `private/config.system.yaml` / `{archives,cache,cron,media,private,storage}/.htaccess`(ファイル単体、`--delete` なし) | コア全般、`config.server.php`、`.env`、`license.php`、ルートの `.htaccess`、`archives`、`media`、`storage`、`cache`、`backup_*` |
