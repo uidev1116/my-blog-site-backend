@@ -50,7 +50,7 @@
     "leaflet": "^1.9.4",
     "leaflet-gesture-handling": "^1.2.2",
     "modal-video": "^2.4.8",
-    "pdfjs-dist": "^5.4.530",
+    "pdfjs-dist": "^6.4.299",
     "query-string": "^9.3.1",
     "scroll-hint": "^1.2.9",
     "smartphoto": "^1.6.5"
