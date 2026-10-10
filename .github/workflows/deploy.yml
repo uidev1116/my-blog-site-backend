@@ -1,0 +1,103 @@
+name: Deploy
+
+# Deploys ONLY the files managed in this repository (theme / extension / plugins / config).
+# The a-blog cms core is never touched: it is updated by the CMS's own online/auto update.
+# Disabled until the REPOSITORY-level variable DEPLOY_ENABLED is set to 'true'
+# (job-level `if` cannot read Environment variables). See docs/deploy.md.
+
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/dependabot.yml'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'rsync --dry-run (nothing is changed on the server)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ vars.DEPLOY_ENABLED == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: production
+    env:
+      DRY_RUN: ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) && '--dry-run' || '' }}
+      DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+      DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Checkout plugin submodules
+        run: |
+          # .gitmodules uses SSH URLs; use HTTPS in CI (set a token if the submodule is private)
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git submodule update --init --recursive
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: ablogcms/themes/develop/.node-version
+          cache: npm
+          cache-dependency-path: ablogcms/themes/develop/package-lock.json
+
+      - name: Build theme
+        working-directory: ablogcms/themes/develop
+        run: |
+          npm ci
+          npm run lint:check
+          npm run format:check
+          npm run build
+
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          for v in DEPLOY_HOST DEPLOY_USER DEPLOY_PORT DEPLOY_PATH DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS; do
+            [ -n "${!v:-}" ] || { echo "::error::$v is not set"; exit 1; }
+          done
+          [[ "$DEPLOY_PATH" =~ ^/[A-Za-z0-9._/-]+$ ]] || { echo "::error::DEPLOY_PATH must be an absolute path (letters, digits, . _ / -)"; exit 1; }
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          echo "RSYNC_RSH=ssh -i $HOME/.ssh/deploy_key -p $DEPLOY_PORT -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts" >> "$GITHUB_ENV"
+
+      - name: Sanity check remote path
+        run: |
+          # Refuse to deploy unless DEPLOY_PATH really is an a-blog cms root.
+          $RSYNC_RSH "$DEPLOY_USER@$DEPLOY_HOST" "test -f '$DEPLOY_PATH/index.php' && test -f '$DEPLOY_PATH/config.server.php'"
+          # rsync refuses to write through symlinks inside the destination; fail before anything is sent.
+          # Only the paths rsync can write into are checked (server-only plugins are ignored).
+          PATHS=("$DEPLOY_PATH/themes/develop" "$DEPLOY_PATH/extension/acms" "$DEPLOY_PATH/extension/schema")
+          for dir in plugins/*/; do
+            name=$(basename "$dir")
+            [ -d "plugins/$name/src" ] && PATHS+=("$DEPLOY_PATH/extension/plugins/$name")
+          done
+          QUOTED=$(printf "'%s' " "${PATHS[@]}")
+          LINKS=$($RSYNC_RSH "$DEPLOY_USER@$DEPLOY_HOST" "find $QUOTED -type l 2>/dev/null || true")
+          if [ -n "$LINKS" ]; then
+            echo "ERROR: symlinks found in managed directories. Replace them with real directories first (docs/deploy.md):" >&2
+            echo "$LINKS" >&2
+            exit 1
+          fi
+
+      - name: Deploy (rsync)
+        run: |
+          # One rsync; see .github/scripts/deploy-rsync.sh for exactly what is sent/deleted.
+          # $DRY_RUN is intentionally unquoted (empty => no argument).
+          .github/scripts/deploy-rsync.sh "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH" $DRY_RUN

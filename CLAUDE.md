@@ -22,6 +22,10 @@ npx lint-staged
 
 ## Architecture
 
+> **a-blog cms のコア (`ablogcms/php`, `js`, `lang`, `themes/system`, `index.php`, `acms.js` など) は Git 管理外**です。
+> オンライン/自動アップデートに任せ、コアは編集しないでください。取得は `npm run fetch-core`。
+> デプロイは GitHub Actions の rsync (`.github/workflows/deploy.yml`)。本番で `git pull` しないこと。詳細は README.md / docs/deploy.md。
+
 ### Main Components
 
 **ablogcms/**: Core CMS installation
@@ -29,7 +33,7 @@ npx lint-staged
 - Database configuration in `config.server.php`
 - Configured to use MariaDB running in Docker
 
-**ablogcms/themes/uidev/**: Main theme
+**ablogcms/themes/develop/**: Main theme
 - TypeScript/React-based frontend
 - Vite build system with two entry points: `index.ts` (frontend) and `admin.ts` (admin panel)
 - SCSS styling with organized structure (foundation, layout, object)
@@ -91,7 +95,7 @@ The theme uses Vite with:
 
 1. Start Docker services: `docker-compose -f docker/compose.yaml up -d`
 2. Run initial setup: `npm run setup`
-3. Navigate to theme directory: `cd ablogcms/themes/uidev`
+3. Navigate to theme directory: `cd ablogcms/themes/develop`
 4. Start development: `npm run dev`
 5. Access CMS at: http://localhost:8080
 

@@ -13,7 +13,9 @@
     "stylelint": "stylelint --fix './src/style/**/*.{css,scss,sass,less,styl,vue,svelte}'",
     "format": "prettier --write '../**develop**/**/*.{js,ts,jsx,tsx,vue,css,twig}'",
     "lint": "npm run eslint && npm run stylelint",
-    "check-update": "npx -p npm-check-updates -c ncu"
+    "check-update": "npx -p npm-check-updates -c ncu",
+    "lint:check": "eslint './src/js/**/*.{js,jsx,ts,tsx,vue,svelte}' && stylelint './src/style/**/*.{css,scss,sass,less,styl,vue,svelte}'",
+    "format:check": "prettier --check 'src/**/*.{js,css}' '**/*.twig'"
   },
   "author": "com.appleple",
   "license": "MIT",

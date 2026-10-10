@@ -1,1 +1,0 @@
-"use strict";(globalThis.webpackChunkacmsWebpackJsonp=globalThis.webpackChunkacmsWebpackJsonp||[]).push([[3372],{23461(a,n,s){function e(a){return{name:"VBScript in HTML",subLanguage:"xml",contains:[{begin:"<%",end:"%>",subLanguage:"vbscript"}]}}s.r(n),s.d(n,{default:()=>e})}}]);

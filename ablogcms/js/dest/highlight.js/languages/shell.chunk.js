@@ -1,1 +1,0 @@
-"use strict";(globalThis.webpackChunkacmsWebpackJsonp=globalThis.webpackChunkacmsWebpackJsonp||[]).push([[3547],{76340(s,a,e){function n(s){return{name:"Shell Session",aliases:["console","shellsession"],contains:[{className:"meta.prompt",begin:/^\s{0,3}[/~\w\d[\]()@-]*[>%$#][ ]?/,starts:{end:/[^\\](?=\s*$)/,subLanguage:"bash"}}]}}e.r(a),e.d(a,{default:()=>n})}}]);

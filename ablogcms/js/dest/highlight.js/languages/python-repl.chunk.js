@@ -1,1 +1,0 @@
-"use strict";(globalThis.webpackChunkacmsWebpackJsonp=globalThis.webpackChunkacmsWebpackJsonp||[]).push([[1173],{53302(a,s,n){function e(a){return{aliases:["pycon"],contains:[{className:"meta.prompt",starts:{end:/ |$/,starts:{end:"$",subLanguage:"python"}},variants:[{begin:/^>>>(?=[ ]|$)/},{begin:/^\.\.\.(?=[ ]|$)/}]}]}}n.r(s),n.d(s,{default:()=>e})}}]);

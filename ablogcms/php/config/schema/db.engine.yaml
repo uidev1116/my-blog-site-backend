@@ -1,3 +1,0 @@
----
-%{PREFIX}geo: MyISAM
-%{PREFIX}fulltext: MyISAM

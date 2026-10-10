@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  theme:
+    name: Theme (lint / format / build)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ablogcms/themes/develop
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: ablogcms/themes/develop/.node-version
+          cache: npm
+          cache-dependency-path: ablogcms/themes/develop/package-lock.json
+      - run: npm ci
+      - run: npm run lint:check
+      - run: npm run format:check
+      - run: npm run build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: theme-dist
+          path: ablogcms/themes/develop/dist
+          retention-days: 7
+
+  tooling:
+    name: Root tooling (format)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: ablogcms/themes/develop/.node-version
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run format:check

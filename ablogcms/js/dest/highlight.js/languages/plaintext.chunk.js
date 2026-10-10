@@ -1,1 +1,0 @@
-"use strict";(globalThis.webpackChunkacmsWebpackJsonp=globalThis.webpackChunkacmsWebpackJsonp||[]).push([[520],{49273(a,e,t){function s(a){return{name:"Plain text",aliases:["text","txt"],disableAutodetect:!0}}t.r(e),t.d(e,{default:()=>s})}}]);

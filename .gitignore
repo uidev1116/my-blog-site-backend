@@ -17,9 +17,29 @@ ablogcms/license.php
 /ablogcms/_setup*
 /ablogcms/setup*
 /ablogcms/extension/plugins/*
-# /ablogcms/themes/*/dest/*
+/ablogcms/api/
+
+## a-blog cms core (updated by online/auto update; not managed by Git)
+## Ref: https://developer.a-blogcms.jp/document/update/
+/ablogcms/acms.js
+/ablogcms/index.php
+/ablogcms/js/
+/ablogcms/lang/
+/ablogcms/php/*
+!/ablogcms/php/AAPP/
+!/ablogcms/php/ACMS/
+/ablogcms/php/ACMS/*
+!/ablogcms/php/ACMS/User/
+/ablogcms/themes/system/
+/ablogcms/private/config.system.default.yaml
+/ablogcms/private/const/
+/ablogcms/private/mime.types
+/ablogcms/private/cronkey
+/ablogcms/cron/*
+!/ablogcms/cron/.htaccess
 
 ## Backup
+/.core-backup/
 /ablogcms/backup_*
 
 ## Editor

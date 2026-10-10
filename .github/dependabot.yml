@@ -1,0 +1,52 @@
+version: 2
+updates:
+  # CI / deploy workflow actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Asia/Tokyo
+    groups:
+      actions:
+        patterns: ['*']
+
+  # Root tooling (husky, lint-staged, prettier)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Asia/Tokyo
+    open-pull-requests-limit: 5
+    groups:
+      tooling:
+        patterns: ['*']
+
+  # Theme (Vite / Tailwind / ESLint / Stylelint / runtime libraries)
+  - package-ecosystem: npm
+    directory: /ablogcms/themes/develop
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Asia/Tokyo
+    open-pull-requests-limit: 5
+    groups:
+      build-tooling:
+        dependency-type: development
+        update-types: [minor, patch]
+      runtime:
+        dependency-type: production
+        update-types: [minor, patch]
+
+  # Plugin submodules
+  - package-ecosystem: gitsubmodule
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Asia/Tokyo

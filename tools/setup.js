@@ -18,6 +18,7 @@ const plugins = fs
     await systemCmd('git submodule foreach npm ci')
     await systemCmd('git submodule foreach npm run setup')
     await systemCmd('npm ci')
+    fs.mkdirSync('ablogcms/extension/plugins', { recursive: true })
     await Promise.all(
       plugins.map((plugin) => {
         if (fs.existsSync(`ablogcms/extension/plugins/${plugin}`)) {

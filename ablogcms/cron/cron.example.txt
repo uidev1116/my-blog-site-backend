@@ -1,7 +1,0 @@
-MAILTO="info@example.com"
-LANG=ja_JP.UTF-8
-LC_ALL=ja_JP.UTF-8
-CONTENT_TYPE=text/plain; charset=UTF-8
-BIN_DIR="/var/www/html/cron"
-
-3 3 * * * $BIN_DIR/example.sh
