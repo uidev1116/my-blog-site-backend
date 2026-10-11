@@ -77,7 +77,7 @@ npx lint-staged
 #### Development Environment
 Development uses MariaDB in Docker:
 - Host: `db` (Docker service)
-- Database: `db_myblog`
+- Database: `db_my-blog-site`
 - User: `root`
 - Password: `root`
 - Port: 3306
