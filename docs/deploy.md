@@ -26,7 +26,8 @@
    | Secret | `DEPLOY_KNOWN_HOSTS` | `ssh-keyscan -p <port> <host>` の出力。**手元で取得して指紋を確認してから登録** |
    | Variable | `DEPLOY_HOST` / `DEPLOY_USER` / `DEPLOY_PORT` | 接続先 (Xserver の SSH 設定を確認) |
    | Variable | `DEPLOY_PATH` | 手順 2 のサイトルート(**絶対パス**。`~` は不可) |
-   | Variable | `DEPLOY_ENABLED` | 準備ができたら `true` |
+   | Variable | `DEPLOY_ENABLED` | 準備ができたら `true`(手動実行が可能になる) |
+   | Variable | `DEPLOY_ON_PUSH` | `true` にすると、master への push でも自動デプロイする(既定は未設定=手動実行のみ) |
 
    Environment `production` に Required reviewers を付けると、本番反映前に承認を挟めます。
    プラグインの submodule が private の場合は、`deploy.yml` の submodule 取得にトークンを設定してください。

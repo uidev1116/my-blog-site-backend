@@ -2,7 +2,7 @@ name: Deploy
 
 # Deploys ONLY the files managed in this repository (theme / extension / plugins / config).
 # The a-blog cms core is never touched: it is updated by the CMS's own online/auto update.
-# Disabled until the REPOSITORY-level variable DEPLOY_ENABLED is set to 'true'
+# Disabled until the REPOSITORY-level variable DEPLOY_ENABLED is set to 'true' (push-triggered runs also need DEPLOY_ON_PUSH=true)
 # (job-level `if` cannot read Environment variables). See docs/deploy.md.
 
 on:
@@ -28,7 +28,8 @@ concurrency:
 
 jobs:
   deploy:
-    if: ${{ vars.DEPLOY_ENABLED == 'true' }}
+    # Manual runs need DEPLOY_ENABLED. Runs triggered by a push to master additionally need DEPLOY_ON_PUSH=true.
+    if: ${{ vars.DEPLOY_ENABLED == 'true' && (github.event_name == 'workflow_dispatch' || vars.DEPLOY_ON_PUSH == 'true') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment: production
