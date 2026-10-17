@@ -57,7 +57,7 @@ rsync は 1 回だけ実行し、許可リスト(`.github/scripts/deploy-rsync.s
 
 | 触る(--delete はそれぞれのディレクトリ内のみ) | 触らない |
 |---|---|
-| `themes/develop/` / `extension/acms/` / `extension/schema/` / `extension/plugins/<plugin>/` / `config.user.php` / `private/config.system.yaml` / `{archives,cron,media,private,storage}/.htaccess`(ファイル単体、`--delete` なし) | コア全般、`config.server.php`、`.env`、`license.php`、ルートの `.htaccess`、`archives`、`media`、`storage`、`cache`(`cache/.htaccess` を含む。公式が上書きを避けるよう案内しているため)、`backup_*` |
+| `themes/develop/` / `extension/acms/` / `extension/schema/` / `extension/plugins/<plugin>/` / `config.user.php` / `private/config.system.yaml` / `{archives,cache,cron,media,private,storage}/.htaccess`(ファイル単体、`--delete` なし) | コア全般、`config.server.php`、`.env`、`license.php`、ルートの `.htaccess`、`archives`、`media`、`storage`、`cache`(`cache/.htaccess` 以外)、`backup_*` |
 
 ## E. Dependabot の自動マージ
 

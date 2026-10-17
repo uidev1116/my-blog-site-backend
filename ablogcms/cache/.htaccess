@@ -1,1 +1,7 @@
-RemoveHandler php php4 php5 php51 php52 php53 php54 rb py pl cgi phps phtml shtml html inc
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>
