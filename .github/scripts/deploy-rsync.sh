@@ -47,7 +47,7 @@ FILTERS=(
   --include='/private/' --include='/private/config.system.yaml' --include='/private/.htaccess'
   # directory guards (.htaccess only; the data inside these directories is never touched)
   --include='/archives/' --include='/archives/.htaccess'
-  --include='/cache/' --include='/cache/.htaccess'
+  # cache/.htaccess is deliberately NOT synced (a-blog cms docs: do not overwrite it on update; the server's differs)
   --include='/cron/' --include='/cron/.htaccess'
   --include='/media/' --include='/media/.htaccess'
   --include='/storage/' --include='/storage/.htaccess'
