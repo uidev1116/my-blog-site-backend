@@ -77,6 +77,14 @@ jobs:
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
           echo "RSYNC_RSH=ssh -i $HOME/.ssh/deploy_key -p $DEPLOY_PORT -o BatchMode=yes -o ConnectTimeout=30 -o ConnectionAttempts=3 -o ServerAliveInterval=15 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts" >> "$GITHUB_ENV"
 
+      - name: Network diagnostics (non-fatal)
+        continue-on-error: true
+        run: |
+          echo "runner egress IP: $(curl -s --max-time 10 https://api.ipify.org || echo unknown)"
+          for i in 1 2 3; do
+            if timeout 15 bash -c "exec 3<>/dev/tcp/$DEPLOY_HOST/$DEPLOY_PORT"; then echo "tcp $DEPLOY_HOST:$DEPLOY_PORT reachable (try $i)"; break; else echo "tcp $DEPLOY_HOST:$DEPLOY_PORT NOT reachable (try $i)"; fi
+          done
+
       - name: Sanity check remote path
         run: |
           # Refuse to deploy unless DEPLOY_PATH really is an a-blog cms root.
