@@ -20,7 +20,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "node-cmd": "^6.0.1",
-    "prettier": "^3.9.9"
+    "prettier": "^3.9.10"
   },
   "volta": {
     "node": "20.16.0"
