@@ -1,11 +1,14 @@
-<!-- サイト設定 基本 -->
-@include("/admin/blog/field-base.html")
-
+<!-- 全ブログ共通 -->
 <!-- SEOの設定 -->
 @include("/admin/blog/field-seo.html")
 
 <!-- OGPの設定 -->
 @include("/admin/blog/field-ogp.html")
+
+<!-- BEGIN_IF [%{BID}/eq/%{RBID}] -->
+<!-- ルートブログ用(フロントエンドはルートブログの値だけを読む) -->
+<!-- サイト設定 基本 -->
+@include("/admin/blog/field-base.html")
 
 <!-- SNSアカウントの設定 -->
 @include("/admin/blog/field-sns.html")
@@ -18,6 +21,7 @@
 
 <!-- Search Consoleの設定 -->
 @include("/admin/blog/field-search-console.html")
+<!-- END_IF -->
 
 <!-- URLコンテキスト別 -->
 @include("/admin/blog/field/bcd/%{BCD}.html")
