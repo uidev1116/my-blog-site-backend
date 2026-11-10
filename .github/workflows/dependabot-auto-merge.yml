@@ -4,8 +4,9 @@ name: Dependabot auto-merge
 # REQUIRED status checks pass, so master needs a branch protection / ruleset that requires the CI jobs
 # and the repository setting "Allow auto-merge" must be on. See docs/deploy.md.
 #
-# Auto-merged:   GitHub Actions (minor/patch), npm dev dependencies and indirect deps (minor/patch)
-# Left manual:   major updates, npm production dependencies (they change the production bundle),
+# Auto-merged:   GitHub Actions (minor/patch), npm production dependencies (minor/patch),
+#                npm dev dependencies and indirect deps (major/minor/patch)
+# Left manual:   major updates of GitHub Actions / npm production dependencies,
 #                plugin submodules (they are deployed to the server)
 # NOTE: merging to master triggers Deploy once DEPLOY_ENABLED is on.
 
@@ -36,7 +37,7 @@ jobs:
             github_actions)
               FILTER='length > 0 and all(.[]; .updateType != "version-update:semver-major")' ;;
             npm_and_yarn)
-              FILTER='length > 0 and all(.[]; .updateType != "version-update:semver-major" and .dependencyType != "direct:production")' ;;
+              FILTER='length > 0 and all(.[]; .dependencyType != "direct:production" or .updateType != "version-update:semver-major")' ;;
             *)
               echo "ecosystem '$ECOSYSTEM' is not auto-merged"; exit 0 ;;
           esac
