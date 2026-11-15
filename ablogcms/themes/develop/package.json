@@ -56,8 +56,8 @@
     "smartphoto": "^2.1.18"
   },
   "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "4.67.5",
-    "@tailwindcss/oxide-linux-x64-gnu": "^4.3.3",
+    "@rollup/rollup-linux-x64-gnu": "4.68.2",
+    "@tailwindcss/oxide-linux-x64-gnu": "^4.3.5",
     "lightningcss-linux-x64-gnu": "^1.33.0"
   }
 }
