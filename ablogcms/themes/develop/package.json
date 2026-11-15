@@ -51,7 +51,7 @@
     "leaflet-gesture-handling": "^1.2.2",
     "modal-video": "^2.4.8",
     "pdfjs-dist": "^6.5.438",
-    "query-string": "^9.5.1",
+    "query-string": "^10.0.0",
     "scroll-hint": "^1.2.10",
     "smartphoto": "^2.1.18"
   },
