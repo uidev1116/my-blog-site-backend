@@ -10,7 +10,7 @@ a-blog cms に脆弱性があっても、Access を通らないリクエスト�
 | 自分(管理画面の操作) | `backend.uidev.me` 全体 | Access のログイン(メール OTP など)。許可リストは自分のメールだけ |
 | フロントの Worker(`/api/*`、プレビュー) | `backend.uidev.me` の API | **Service Token**(`CF-Access-Client-Id` / `CF-Access-Client-Secret`) |
 | Workers Builds(静的書き出しのビルド) | 同上 | 同じ Service Token |
-| 訪問者のブラウザ(画像など) | `assets.uidev.me` の `/media/` `/archives/` `/storage/` | Access をかけない。ただし、**これ以外のパスは遮断する**(後述) |
+| 訪問者のブラウザ(画像など) | `assets.uidev.me` の `/media/` `/archives/` `/storage/` | Access をかけない(DNS only のまま)。ドキュメントルートがこの 3 つへのシンボリックリンクだけなので、PHP には届かない(手順 4) |
 | a-blog cms → Cloudflare Deploy Hook(Webhook) | 外向きの通信 | 影響なし |
 
 フロント側は、`CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` が設定されていれば、API へのリクエストに Service Token のヘッダーを自動で付ける(フロントの `app/lib/acms/index.ts`)。
@@ -18,7 +18,7 @@ a-blog cms に脆弱性があっても、Access を通らないリクエスト�
 ## 前提の確認
 
 1. `backend.uidev.me` の DNS レコードが **Proxied(オレンジの雲)** であること。DNS only だと、Access は効かない。
-2. `assets.uidev.me` が、同じサーバー(Xserver)を指しているか。**同じオリジンなら、`assets` 側のホスト名からも PHP(a-blog cms)に届いてしまう**ので、手順 4 を必ず行う。
+2. `assets.uidev.me` が、PHP(a-blog cms)に届かないこと。同じサーバー(Xserver)を指していても、ドキュメントルートが別で、`media` / `archives` / `storage` へのシンボリックリンクだけなら届かない(手順 4 で確認する)。
 3. Xserver の初期ドメイン(`xxxx.xsrv.jp` など)や、サーバーの IP から、同じサイトが見えないこと。見えるなら、Access を迂回される(手順 5)。
 
 ## 手順
@@ -58,16 +58,22 @@ Zero Trust → Access → Service Auth → Create Service Token
   printf '%s' "$CF_ACCESS_CLIENT_SECRET" | npx wrangler secret put CF_ACCESS_CLIENT_SECRET
   ```
 
-### 4. `assets.uidev.me` は、メディア系のパスだけを通す
+### 4. `assets.uidev.me` には、Access も WAF もかけない
 
-訪問者のブラウザが画像を取るため、`assets.uidev.me` に Access はかけられない。代わりに、Cloudflare の WAF(Security → WAF → Custom rules)で、**メディア以外を遮断**する。
+訪問者のブラウザが画像を取るため、`assets.uidev.me` に Access はかけられない。DNS も **DNS only のまま**(Proxied にしない)でよい。
 
-- 式: `(http.host eq "assets.uidev.me" and not starts_with(http.request.uri.path, "/media/") and not starts_with(http.request.uri.path, "/archives/") and not starts_with(http.request.uri.path, "/storage/"))`
-- Action: **Block**
+`assets.uidev.me` のドキュメントルートは、バックエンドの `media` / `archives` / `storage` へのシンボリックリンクだけで、PHP(a-blog cms)がない。そのため、`backend` を迂回する入口にはならない。確認結果(2026-11)は次のとおり。
 
-これで、`assets.uidev.me/login/` や `/index.php` のような PHP への入口は、エッジで止まる。
+- `/` は、Xserver 標準の静的ページ
+- `/login/` `/index.php` `/php/` は、Xserver 標準の 404
 
-> `/storage/` に公開してはいけないファイルがないか、事前に確認する。
+これが崩れていないことを、手順 6 の `curl` で確認する。次の場合は、前提が変わるので、見直す。
+
+- ドキュメントルートに、シンボリックリンク以外のファイル(特に `.php`)を置いた
+- `assets` を、a-blog cms のドキュメントルートに向け直した
+  → この場合は、Cloudflare の WAF(Security → WAF → Custom rules)で、`/media/` `/archives/` `/storage/` 以外を **Block** する(式: `http.host eq "assets.uidev.me" and not starts_with(http.request.uri.path, "/media/") and not starts_with(http.request.uri.path, "/archives/") and not starts_with(http.request.uri.path, "/storage/")`)
+
+> `/storage/` に、公開してはいけないファイルがないか、確認する。`assets` では、`storage` の中身が、誰にでも見える。
 
 ### 5. オリジンへの直接アクセスを塞ぐ
 
@@ -90,9 +96,10 @@ curl -s -o /dev/null -w '%{http_code}\n' \
   -H "X-API-KEY: $ACMS_API_KEY" \
   'https://backend.uidev.me/api/summary_top_index/'
 
-# assets: メディアは取れる、それ以外は遮断される
+# assets: メディアは取れる。PHP には届かない(Xserver 標準の 404)
 curl -sI https://assets.uidev.me/media/ | head -1
-curl -sI https://assets.uidev.me/login/ | head -1   # 403 になること
+curl -s -o /dev/null -w '%{http_code}\n' https://assets.uidev.me/index.php   # 404 になること
+curl -s https://assets.uidev.me/login/ | grep -c XSERVER   # 1 以上(Xserver 標準の 404 ページ)
 ```
 
 ブラウザでも、次を確認する。
