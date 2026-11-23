@@ -77,11 +77,45 @@ Zero Trust → Access → Service Auth → Create Service Token
 
 ### 5. オリジンへの直接アクセスを塞ぐ
 
-Access はエッジで効くので、Cloudflare を通らずにサーバーへ直接届くと、迂回される。
+Access はエッジで効くので、Cloudflare を通らずにサーバーへ直接届くと、迂回される。**IP 直打ち(`Host: backend.uidev.me` を付けた直接アクセス)で、Access なしに a-blog cms のログイン画面まで届く**ことを、2026-11 に確認した。メンテナンスモードを外す前に、必ず塞ぐ。
 
-- Xserver の初期ドメイン / IP 直打ちで、サイトが表示されないことを確認する
-- 表示されるなら、ルートの `.htaccess` で、Cloudflare の IP 範囲(<https://www.cloudflare.com/ips/>)以外を 403 にする(ルートの `.htaccess` は環境依存なので、サーバー側で直接編集する。Deploy では同期されない)
-- より強くするなら、PHP 側で `Cf-Access-Jwt-Assertion` ヘッダーの有無を見る方法もあるが、コアは編集しない方針なので、`.htaccess` で足りるかをまず確認する
+サイトのルート(`index.php` と `config.server.php` があるディレクトリ)の `.htaccess` の**一番上**に、次を追記する。ルートの `.htaccess` は環境依存なので、サーバー側で直接編集する(Deploy では同期されない)。**編集前に、元の `.htaccess` をバックアップする。**
+
+```apache
+# Cloudflare 以外からの直接アクセスを拒否する(Cloudflare Access の迂回対策)
+# IP 範囲: https://www.cloudflare.com/ips/ (変更されることがあるため、定期的に見直す)
+# 取得日: 2026-11-24
+<RequireAny>
+  Require ip 173.245.48.0/20
+  Require ip 103.21.244.0/22
+  Require ip 103.22.200.0/22
+  Require ip 103.31.4.0/22
+  Require ip 141.101.64.0/18
+  Require ip 108.162.192.0/18
+  Require ip 190.93.240.0/20
+  Require ip 188.114.96.0/20
+  Require ip 197.234.240.0/22
+  Require ip 198.41.128.0/17
+  Require ip 162.158.0.0/15
+  Require ip 104.16.0.0/13
+  Require ip 104.24.0.0/14
+  Require ip 172.64.0.0/13
+  Require ip 131.0.72.0/22
+  Require ip 2400:cb00::/32
+  Require ip 2606:4700::/32
+  Require ip 2803:f800::/32
+  Require ip 2405:b500::/32
+  Require ip 2405:8100::/32
+  Require ip 2a06:98c0::/29
+  Require ip 2c0f:f248::/32
+</RequireAny>
+```
+
+- 追記後、`curl --resolve backend.uidev.me:443:<サーバーのIP> https://backend.uidev.me/login/` が **403** になり、Cloudflare 経由(`https://backend.uidev.me/`)は 302(Access)のままであることを確認する。あわせて、フロントの検索 API(`/api/blog/`)が 200 のままであることも確認する
+- 範囲を誤ると、`backend` 全体が 403 になり、フロントのビルドと検索が止まる。その場合はバックアップを戻す
+- Cloudflare の IP 範囲は、まれに変わる。年に 1 回ほど、公式のページと見比べる(変わると、Cloudflare 経由のアクセスが 403 になる)
+- Xserver の初期ドメイン(`xxxx.xsrv.jp`)は、サイトごとに別のドキュメントルートを持つ場合がある。このサイトのものか、別のサイトのものかを、中身で確認する
+- より強くするなら、PHP 側で `Cf-Access-Jwt-Assertion` ヘッダーを検証する方法もあるが、コアは編集しない方針なので、`.htaccess` で足りるかをまず確認する
 
 ### 6. 動作確認(メンテナンスモードを外す前)
 
@@ -100,6 +134,9 @@ curl -s -o /dev/null -w '%{http_code}\n' \
 curl -sI https://assets.uidev.me/media/ | head -1
 curl -s -o /dev/null -w '%{http_code}\n' https://assets.uidev.me/index.php   # 404 になること
 curl -s https://assets.uidev.me/login/ | grep -c XSERVER   # 1 以上(Xserver 標準の 404 ページ)
+
+# オリジンへの直接アクセス(IP 直打ち)は 403(サーバーの IP は dig +short backend.uidev.me の値。Proxied 後は、DNS の設定画面で確認する)
+curl -s -o /dev/null -w '%{http_code}\n' -k --resolve backend.uidev.me:443:<サーバーのIP> https://backend.uidev.me/login/
 ```
 
 ブラウザでも、次を確認する。
@@ -113,7 +150,7 @@ curl -s https://assets.uidev.me/login/ | grep -c XSERVER   # 1 以上(Xserver �
 
 上の確認が全部通ってから、a-blog cms のメンテナンスモードを解除する。
 
-- 解除前に、**Access のポリシーが効いていること**(手順 6 の最初の `curl`)を確認する。先に外すと、無防備な時間ができる
+- 解除前に、**Access のポリシーが効いていること**(手順 6 の最初の `curl`)と、**オリジンへの直接アクセスが 403 であること**(手順 5)を確認する。先に外すと、無防備な時間ができる
 - 解除後は、`backend.uidev.me` の一般公開への 503 は、Access による遮断に置き換わる(**以降、503 は障害の可能性がある**ので、見たら調べる)
 
 ## ロールバック
