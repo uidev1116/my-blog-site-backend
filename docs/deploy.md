@@ -76,3 +76,7 @@ rsync は 1 回だけ実行し、許可リスト(`.github/scripts/deploy-rsync.s
    - `Root tooling (format)`
 
 `DEPLOY_ENABLED` が `true` の間は、master へのマージが本番デプロイにつながります。自動マージを有効にする前に、Deploy の運用(Environment の承認など)を決めてください。
+
+## F. バックエンドへのアクセス制限
+
+一般ユーザーからの遮断は、a-blog cms のメンテナンスモード(PHP が動く)ではなく、Cloudflare Access(エッジで遮断)で行う。設定と切り替えの手順は [cloudflare-access.md](cloudflare-access.md)。
